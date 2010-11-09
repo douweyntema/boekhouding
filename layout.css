@@ -1,0 +1,197 @@
+/* Algemene tags */
+body {
+	font-family: sans-serif;
+	color: black;
+	background-color: white;
+	font-size: 12pt;
+}
+
+a {
+	text-decoration: none;
+	color: inherit;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+th {
+	text-align: left;
+	padding-right: 1em;
+}
+
+/* Login */
+table.login {
+	margin-left: auto;
+	text-align: center;
+	margin-right: auto;
+}
+
+.tableheader {
+	text-align: center;
+}
+
+/* Forms */
+.submitbutton {
+	text-align: left;
+}
+
+/* Header */
+.welcome {
+	text-align: center;
+	font-size: 2em;
+	padding: 0.3em;
+	margin-bottom: 0.3em;
+	background-color: #c11b17;
+	color: white;
+}
+
+/* Menu */
+.menu {
+	width: 300px;
+	position: absolute;
+}
+
+.menu ul {
+	list-style-type: square;
+	font-weight: normal;
+}
+
+.menu li.selected>a {
+	text-decoration: underline;
+}
+
+.menu ul {
+	list-style-type: none;
+	font-style: normal;
+	font-weight: bold;
+}
+
+.menu ul ul {
+	list-style-type: none;
+	font-style: normal;
+	font-weight: normal;
+}
+
+.menu ul.menu-admin {
+	font-style: italic;
+}
+
+.menu ul.menu-admin li {
+	font-style: italic;
+}
+
+.menu a:hover {
+	color: #347235;
+	text-decoration: none;
+}
+
+/* Main content */
+.main {
+	position: absolute;
+	left: 300px;
+/*	right: 0.45em; /* .operation border + padding */
+	min-width: 500px;
+}
+
+.main-login {
+	width: 500px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+h1 {
+	color: #c11b17;
+}
+
+h2 {
+	color: #153e7e;
+	font-size: 14pt;
+	text-align: center;
+	padding: 4px;
+	background-color: #cbdfff;
+	border: 2px solid #153e7e;
+}
+
+/* Blokjes informatie */
+
+.operation {
+	border: 2px solid #153e7e;
+	background: #ffffff;
+	margin-top: 0.7em;
+	margin-bottom: 0.7em;
+	padding: 0.3em;
+	right: 0px;
+}
+
+.operation h2 {
+	margin-top: 0px;
+}
+
+/* table sorter layout */
+.list table {
+	margin:10px 0pt 15px;
+	width: 100%;
+	text-align: left;
+}
+.list table, .list td, .list th {
+	border: 2px solid #153e7e;
+	border-spacing: 0px;
+	border-collapse: collapse;
+}
+.list table thead tr th, .list table tfoot tr th {
+	background-color: #cbdfff;
+	padding: 4px;
+}
+.list table thead tr .header {
+	background-image: url(img/bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+.list table tbody td {
+	padding: 4px;
+	background-color: #FFFFFF;
+	vertical-align: top;
+}
+.list table tbody tr.odd td {
+	background-color:#F0F0F6;
+}
+.list table thead tr .headerSortUp {
+	background-image: url(img/asc.gif);
+}
+.list table thead tr .headerSortDown {
+	background-image: url(img/desc.gif);
+}
+.list table thead tr .headerSortDown, .list table thead tr .headerSortUp {
+	background-color: #99c0ff;
+}
+
+
+/* Messages */
+.error {
+	border: 3px solid #c11b17;
+	background-color: #ffffcd;
+	padding: 4px;
+}
+
+.confirm {
+	border: 3px solid #347235;
+	background-color: #e6ffe6;
+	padding: 4px;
+}
+
+.confirm:before {
+	content: url(img/apply.png);
+}
+
+.confirmdelete {
+	border: 6px solid #c11b17;
+	background-color: #ffffcd;
+	padding: 4px;
+}
+
+/* Pieces of information */
+.customer {
+	font-style: italic;
+}

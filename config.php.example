@@ -1,0 +1,9 @@
+<?php
+
+$database_hostname = "localhost";
+$database_username = "";
+$database_password = "";
+$database_name = "system";
+$crypto_key = "aiulfdsfhkasdfouglasdfasjd,fgksdfj";
+
+?>
