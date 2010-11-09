@@ -194,26 +194,38 @@ HTML;
 			}
 			$rightsHtml .= "<td>$titleHtml</td>\n";
 		} else {
-			$rightsHtml .= "<td><input type=\"checkbox\" name=\"right{$component["componentID"]}\" id=\"right{$component["componentID"]}\" value=\"1\" $checkedHtml /></td>\n";
+			$rightsHtml .= "<td><input type=\"checkbox\" name=\"right{$component["componentID"]}\" id=\"right{$component["componentID"]}\" class=\"right\" value=\"1\" $checkedHtml /></td>\n";
 			$rightsHtml .= "<td><label for=\"right{$component["componentID"]}\">$titleHtml</label></td>\n";
 		}
 		$rightsHtml .= "<td>$descriptionHtml</td>\n";
 		$rightsHtml .= "</tr>\n";
 	}
 	
-	if($rights === true) {
-		$fullChecked = "checked=\"checked\"";
-		$limitedChecked = "";
+	$js = <<<SCRIPT
+<script type="text/javascript">
+function updateRights() {
+	if($("input[name='rights']:checked", "#addAccount").val() == 'full') {
+		$("input.right").attr("disabled", "disabled");
 	} else {
-		$fullChecked = "";
-		$limitedChecked = "checked=\"checked\"";
+		$("input.right").attr("disabled", null);
 	}
+}
+
+$(document).ready(function() {
+	$("#fullrights").bind("change", updateRights);
+	$("#limitedrights").bind("change", updateRights);
+	updateRights();
+});
+
+</script>
+
+SCRIPT;
 	
 	return <<<HTML
 <div class="operation">
 <h2>Add account</h2>
 $messageHtml
-<form action="addaccount.php" method="post">
+<form action="addaccount.php" method="post" id="addAccount">
 $confirmHtml
 <table>
 <tr><th>Username:</th><td colspan="4"><input type="text" name="accountUsername" $nameValue $readonly /></td></tr>
@@ -223,6 +235,7 @@ $rightsHtml
 </table>
 </form>
 </div>
+$js
 
 HTML;
 }
@@ -363,18 +376,38 @@ function changeAccountRightsForm($userID, $error, $rights)
 			}
 			$rightsHtml .= "<td>$titleHtml</td>\n";
 		} else {
-			$rightsHtml .= "<td><input type=\"checkbox\" name=\"right{$component["componentID"]}\" id=\"right{$component["componentID"]}\" value=\"1\" $checkedHtml /></td>\n";
+			$rightsHtml .= "<td><input type=\"checkbox\" name=\"right{$component["componentID"]}\" id=\"right{$component["componentID"]}\" value=\"1\" class=\"right\" $checkedHtml /></td>\n";
 			$rightsHtml .= "<td><label for=\"right{$component["componentID"]}\">$titleHtml</label></td>\n";
 		}
 		$rightsHtml .= "<td>$descriptionHtml</td>\n";
 		$rightsHtml .= "</tr>\n";
 	}
 	
+	$js = <<<SCRIPT
+<script type="text/javascript">
+function updateRights() {
+	if($("input[name='rights']:checked", "#changeRights").val() == 'full') {
+		$("input.right").attr("disabled", "disabled");
+	} else {
+		$("input.right").attr("disabled", null);
+	}
+}
+
+$(document).ready(function() {
+	$("#fullrights").bind("change", updateRights);
+	$("#limitedrights").bind("change", updateRights);
+	updateRights();
+});
+
+</script>
+
+SCRIPT;
+	
 	return <<<HTML
 <div class="operation">
 <h2>Change account access rights</h2>
 $messageHtml
-<form action="editrights.php?id=$userID" method="post">
+<form action="editrights.php?id=$userID" method="post" id="changeRights">
 $confirmHtml
 <table>
 $rightsHtml
@@ -382,6 +415,7 @@ $rightsHtml
 </table>
 </form>
 </div>
+$js
 
 HTML;
 
