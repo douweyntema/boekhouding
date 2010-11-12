@@ -73,7 +73,7 @@ function loginForm($failed = false)
 	if($failed) {
 		$errorHtml = <<<HTML
 <tr>
-<td colspan="2" class="error">Invalid username or password.</td>
+<td colspan="2"><p class="error">Invalid username or password.</p></td>
 </tr>
 
 HTML;
@@ -107,7 +107,7 @@ HTML;
 function loginFailed()
 {
 	session_destroy();
-	echo htmlHeader(welcomeHeader() . loginForm(true));
+	echo htmlHeader(welcomeHeader() . "<div class=\"main-login\">" . loginForm(true) . "</div>");
 	die();
 }
 
