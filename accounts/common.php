@@ -300,7 +300,6 @@ HTML;
 
 function changeAccountRightsForm($userID, $error, $rights)
 {
-	$nameValue = inputValue($name);
 	if($error === null) {
 		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
 		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
