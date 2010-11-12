@@ -4,11 +4,11 @@ require_once(dirname(__FILE__) . "/common.php");
 
 function main()
 {
-	doMail(null);
+	doMail();
 	
 	$content = "<h1>Email</h1>\n";
 	
-// 	$content .= addDomainsList();
+	$content .= mailDomainsList();
 	
 	echo page($content);
 }
