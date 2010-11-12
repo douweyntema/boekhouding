@@ -31,14 +31,14 @@ function doDomains($domainID)
 
 function addDomainsList()
 {
-	$html = "";
+	$output = "";
 	$domains = array();
 	foreach($GLOBALS["database"]->stdList("dnsDomain", array("customerID"=>customerID()), array("domainID", "parentDomainID", "name")) as $domainPart) {
 		$domainName = fullDomainName($domainPart["name"], $domainPart["parentDomainID"]);
 		$domains[$domainName] = array("domainID"=>$domainPart["domainID"], "name"=>$domainName);
 	}
 	ksort($domains);
-	$html .= <<<HTML
+	$output .= <<<HTML
 <div class="list">
 <table>
 <thead>
@@ -47,22 +47,22 @@ function addDomainsList()
 <tbody>
 HTML;
 	foreach($domains as $domain) {
-		$html .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}domains/domain.php?id={$domain["domainID"]}\">{$domain["name"]}</a></td></tr>\n";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}domains/domain.php?id={$domain["domainID"]}\">{$domain["name"]}</a></td></tr>\n";
 	}
-	$html .= <<<HTML
+	$output .= <<<HTML
 </tbody>
 </table>
 </div>
 
 HTML;
-	return $html;
+	return $output;
 }
 
 function addDomainDetails($domainID)
 {
-	$html = "TODO";
+	$output = "TODO";
 	
-	return $html;
+	return $output;
 }
 
 function domainName($domainID)
