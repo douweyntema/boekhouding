@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__FILE__) . "/common.php");
+require_once("common.php");
 
 function main()
 {
@@ -9,18 +9,19 @@ function main()
 	
 	$alias = $GLOBALS["database"]->stdGetTry("mailAlias", array("aliasID"=>$aliasID), array("domainID", "localpart", "targetAddress"), false);
 	
-	if($alias === false) {
-		aliasNotFound($aliasID);
-	}
-	
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$alias["domainID"]), "name");
 	
 	$content = "<h1>Alias {$alias["localpart"]}@$domain</h1>\n";
 	
-	$content .= editMailAliasForm($aliasID, "", $alias["localpart"], $alias["targetAddress"]);
-	$content .= removeMailAliasForm($aliasID, "");
+	if(!isset($_POST["confirm"])) {
+		$content .= removeMailAliasForm($aliasID, null);
+		die(page($content));
+	}
 	
-	echo page($content);
+	$GLOBALS["database"]->stdDel("mailAlias", array("aliasID"=>$aliasID));
+	
+	header("HTTP/1.1 303 See Other");
+	header("Location: {$GLOBALS["root"]}mail/domain.php?id={$alias["domainID"]}");
 }
 
 main();

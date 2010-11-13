@@ -36,6 +36,14 @@ function doMailbox($mailboxID)
 {
 }
 
+function aliasNotFound($aliasID)
+{
+	header("HTTP/1.1 404 Not Found");
+	
+	die("Mail alias #$aliasID not found");
+}
+
+
 function mailDomainsList()
 {
 	$output = "";
@@ -108,31 +116,122 @@ HTML;
 	return $output;
 }
 
-function mailboxForm($addressID)
+function editMailAliasForm($aliasID, $error, $alias, $targetAddress)
 {
-}
-
-function mailAliasForm($aliasID)
-{
-	$output = "";
-	$output .= <<<HTML
-<div class="list">
-<table>
-<thead>
-<tr><th>Alias</th><th>Forward to</th></tr>
-</thead>
-<tbody>
-HTML;
-	foreach($GLOBALS["database"]->stdList("mailAlias", array("domainID"=>$domainID), array("aliasID", "localpart", "targetAddress"), array("localpart"=>"asc")) as $alias) {
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}mail/alias.php?id={$alias["aliasID"]}\">{$alias["localpart"]}</a></td><td>{$alias["targetAddress"]}</td></tr>\n";
+	$aliasValue = inputValue($alias);
+	$targetAddressValue = inputValue($targetAddress);
+	$domainID = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), "domainID");
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
 	}
-	$output .= <<<HTML
-</tbody>
+	
+	return <<<HTML
+<div class="operation">
+<h2>Change alias</h2>
+$messageHtml
+<form action="editalias.php?id=$aliasID" method="post">
+$confirmHtml
+<table>
+<tr>
+<th>Alias:</th>
+<td><input type="text" name="localpart" $readonly $aliasValue />@{$domainName}</td>
+</tr>
+<tr>
+<th>Target address:</th>
+<td><input type="text" name="targetAddress" $readonly $targetAddressValue /></td>
+</tr>
+<tr><td colspan="5"><input type="submit" value="Save" /></td></tr>
 </table>
+</form>
 </div>
 
 HTML;
-	return $output;
+
+}
+
+function addMailAliasForm($domainID, $error, $alias, $targetAddress)
+{
+	$aliasValue = inputValue($alias);
+	$targetAddressValue = inputValue($targetAddress);
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+	}
+	
+	return <<<HTML
+<div class="operation">
+<h2>Add an alias</h2>
+$messageHtml
+<form action="addalias.php?id=$domainID" method="post">
+$confirmHtml
+<table>
+<tr>
+<th>Alias:</th>
+<td><input type="text" name="localpart" $readonly $aliasValue />@{$domainName}</td>
+</tr>
+<tr>
+<th>Target address:</th>
+<td><input type="text" name="targetAddress" $readonly $targetAddressValue /></td>
+</tr>
+<tr><td colspan="5"><input type="submit" value="Save" /></td></tr>
+</table>
+</form>
+</div>
+
+HTML;
+
+}
+
+function removeMailAliasForm($aliasID, $error)
+{
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n<p class=\"confirmdelete\">Are you sure you want to remove this alias?</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+	}
+	
+	return <<<HTML
+<div class="operation">
+<h2>Remove alias</h2>
+$messageHtml
+<form action="removealias.php?id=$aliasID" method="post">
+$confirmHtml
+<input type="submit" value="Remove Alias" />
+</form>
+</div>
+
+HTML;
 }
 
 ?>

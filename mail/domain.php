@@ -11,7 +11,8 @@ function main()
 	
 	$content .= mailboxList($domainID);
 	$content .= mailAliasList($domainID);
-	
+	$content .= addMailAliasForm($domainID, "", null, null);
+
 	echo page($content);
 }
 
