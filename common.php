@@ -1,7 +1,7 @@
 <?php
 
 require_once(dirname(__FILE__) . "/config.php");
-require_once(dirname(__FILE__) . "/database.php");
+require_once("/usr/lib/phpdatabase/database.php");
 require_once(dirname(__FILE__) . "/menu.php");
 
 function exceptionHandler($exception)
@@ -135,7 +135,8 @@ function inputValue($value)
 
 function hashPassword($password)
 {
-	return crypt($password, '$6$');
+	$salt = base64_encode(mcrypt_create_iv(12, MCRYPT_DEV_URANDOM));
+	return crypt($password, '$6$' . $salt);
 }
 
 function verifyPassword($password, $passwordHash)
