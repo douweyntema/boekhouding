@@ -17,10 +17,11 @@ class AssertionFailedException extends Exception {}
  *
  * The DatabaseConnection class provides a DBMS-independant database interface, as well as certain often-used utility functions.
  */
-abstract class DatabaseConnection {
+class MysqlConnection {
 	private $connected;
 	private $connectionData;
 	private $delayPending;
+	private $connection;
 	
 	/**
 	 * \brief Constructor
@@ -32,18 +33,8 @@ abstract class DatabaseConnection {
 		$this->connected = false;
 		$this->delayPending = false;
 		$this->connectionData = null;
+		$this->connection = null;
 	}
-	
-	public abstract function dbOpen($address, $username, $password, $dbname);
-	public abstract function dbClose();
-	public abstract function dbQuery($query);
-	public abstract function dbError();
-	public abstract function dbFree($result);
-	public abstract function dbFetchArray($result);
-	public abstract function dbFetchObject($result);
-	public abstract function dbNumRows($result);
-	public abstract function dbAffectedRows();
-	public abstract function dbInsertID();
 	
 	/**
 	 * \brief Connect to a database server
@@ -176,7 +167,7 @@ abstract class DatabaseConnection {
 	 */
 	public function addSlashes($data)
 	{
-		return addslashes($data);
+		return mysql_real_escape_string($data, $this->connection);
 	}
 	
 	/**
@@ -218,50 +209,18 @@ abstract class DatabaseConnection {
 	 */
 	public function stdGet($table, $where, $get)
 	{
-		if(!is_array($where) || !count($where)) {
-			throw new AssertionFailedException("Bad \$where clause");
-		}
+		$query = $this->buildSelect($get);
+		$query .= $this->buildFrom($table);
+		$query .= $this->buildWhere($where);
 		
-		if(is_array($get) && !count($get)) {
-			throw new AssertionFailedException("Bad \$get clause");
-		}
-		
-		if(is_array($get)) {
-			reset($get);
-			list($key, $value) = each($get);
-			$query = "SELECT `" . $value . "` ";
-			while(list($key, $value) = each($get)) {
-				$query .= ", `" . $value . "` ";
-			}
-		} else if($get == "*") {
-			$query = "SELECT * ";
-		} else {
-			$query = "SELECT `" . $get . "` ";
-		}
-		$query .= "FROM `" . $table . "` ";
-		reset($where);
-		list($key, $value) = each($where);
-		if($value === null) {
-			$query .= "WHERE `" . $key . "` IS NULL ";
-		} else {
-			$query .= "WHERE `" . $key . "`='" . $this->addSlashes($value) . "' ";
-		}
-		while(list($key, $value) = each($where)) {
-			if($value === null) {
-				$query .= "AND `" . $key . "` IS NULL ";
-			} else {
-				$query .= "AND `" . $key . "`='" . $this->addSlashes($value) . "' ";
-			}
-		}
-		
-		$qresult = $this->query($query);
-		$rows = $qresult->numRows();
+		$queryResult = $this->query($query);
+		$rows = $queryResult->numRows();
 		if($rows != 1) {
-			$qresult->free();
+			$queryResult->free();
 			throw new NotFoundException();
 		}
-		$result = $qresult->fetchArray();
-		$qresult->free();
+		$result = $queryResult->fetchArray();
+		$queryResult->free();
 		if(is_array($get) || $get == "*") {
 			return $result;
 		} else {
@@ -301,7 +260,7 @@ abstract class DatabaseConnection {
 	 * $userData = stdGetTry("users", array("userId"=>123), array("username", "email"), null);
 	 * \endcode
 	 * Considered user 123 does exist, $userData["username"] will contain the user's username,
-	 * and $userDAta["email"] will contain the user's email address. If user 123 does not exist,
+	 * and $userData["email"] will contain the user's email address. If user 123 does not exist,
 	 * something has gone wrong and the page will terminate; presumably, the existance of user 123
 	 * has been verified earlier on this page, so it is quite safe to assume it's still there.
 	 *
@@ -351,70 +310,11 @@ abstract class DatabaseConnection {
 	 */
 	public function stdList($table, $where, $get, $sort = null, $number = 0, $skip = 0)
 	{
-		if(is_array($get) && !count($get)) {
-			throw new AssertionFailedException("Bad \$get clause");
-		}
-		
-		if($sort != null && !is_array($sort)) {
-			throw new AssertionFailedException("Bad \$sort clause");
-		}
-		
-		if(is_array($get)) {
-			reset($get);
-			list($key, $value) = each($get);
-			$query = "SELECT `" . $value . "` ";
-			while(list($key, $value) = each($get)) {
-				$query .= ", `" . $value . "` ";
-			}
-		} else if($get == "*") {
-			$query = "SELECT * ";
-		} else {
-			$query = "SELECT `" . $get . "` ";
-		}
-		$query .= "FROM `" . $table . "` ";
-		if(is_array($where) && count($where)) {
-			reset($where);
-			list($key, $value) = each($where);
-			if($value === null) {
-				$query .= "WHERE `" . $key . "` IS NULL ";
-			} else {
-				$query .= "WHERE `" . $key . "`='" . $this->addSlashes($value) . "' ";
-			}
-			while(list($key, $value) = each($where)) {
-				if($value === null) {
-					$query .= "AND `" . $key . "` IS NULL ";
-				} else {
-					$query .= "AND `" . $key . "`='" . $this->addSlashes($value) . "' ";
-				}
-			}
-		}
-		
-		if($sort != null && count($sort)) {
-			reset($sort);
-			list($key, $value) = each($sort);
-			$query .= "ORDER BY `" . $key . "` ";
-			if(!strcasecmp($value, "a") || !strcasecmp($value, "asc")) {
-				$query .= "ASC ";
-			} else if(!strcasecmp($value, "d") || !strcasecmp($value, "desc")) {
-				$query .= "DESC ";
-			} else {
-				throw new AssertionFailedException("Bad sort order");
-			}
-			while(list($key, $value) = each($sort)) {
-				$query .= ", `" . $key . "` ";
-				if(!strcasecmp($value, "a") || !strcasecmp($value, "asc")) {
-					$query .= "ASC ";
-				} else if(!strcasecmp($value, "d") || !strcasecmp($value, "desc")) {
-					$query .= "DESC ";
-				} else {
-					throw new AssertionFailedException("Bad sort order");
-				}
-			}
-		}
-		
-		if($number != 0 || $skip != 0) {
-			$query .= "LIMIT " . (int)$skip . ", " . (int)$number . " ";
-		}
+		$query = $this->buildSelect($get);
+		$query .= $this->buildFrom($table);
+		$query .= $this->buildWhere($where);
+		$query .= $this->buildSort($sort);
+		$query .= $this->buildLimit($number, $skip);
 		
 		$qresult = $this->query($query);
 		$result = $qresult->fetchList();
@@ -445,23 +345,8 @@ abstract class DatabaseConnection {
 	public function stdCount($table, $where)
 	{
 		$query = "SELECT COUNT(*) ";
-		$query .= "FROM `" . $table . "` ";
-		if(is_array($where) && count($where)) {
-			reset($where);
-			list($key, $value) = each($where);
-			if($value === null) {
-				$query .= "WHERE `" . $key . "` IS NULL ";
-			} else {
-				$query .= "WHERE `" . $key . "`='" . $this->addSlashes($value) . "' ";
-			}
-			while(list($key, $value) = each($where)) {
-				if($value === null) {
-					$query .= "AND `" . $key . "` IS NULL ";
-				} else {
-					$query .= "AND `" . $key . "`='" . $this->addSlashes($value) . "' ";
-				}
-			}
-		}
+		$query .= $this->buildFrom($table);
+		$query .= $this->buildWhere($where);
 		
 		$qresult = $this->query($query);
 		$result = $qresult->fetchArray();
@@ -497,44 +382,9 @@ abstract class DatabaseConnection {
 	 */
 	public function stdSet($table, $where, $set)
 	{
-		if(!is_array($where)) {
-			throw new AssertionFailedException("Bad \$where clause");
-		}
-		
-		if(!is_array($set) || !count($set)) {
-			throw new AssertionFailedException("Bad \$set clause");
-		}
-		
 		$query = "UPDATE `" . $table . "` ";
-		reset($set);
-		list($key, $value) = each($set);
-		if($value === null) {
-			$query .= "SET `" . $key . "`=NULL ";
-		} else {
-			$query .= "SET `" . $key . "`='" . $this->addSlashes($value) . "' ";
-		}
-		while(list($key, $value) = each($set)) {
-			if($value === null) {
-				$query .= ", `" . $key . "`=NULL ";
-			} else {
-				$query .= ", `" . $key . "`='" . $this->addSlashes($value) . "' ";
-			}
-		}
-		reset($where);
-		if(list($key, $value) = each($where)) {
-			if($value === null) {
-				$query .= "WHERE `" . $key . "` IS NULL ";
-			} else {
-				$query .= "WHERE `" . $key . "`='" . $this->addSlashes($value) . "' ";
-			}
-			while(list($key, $value) = each($where)) {
-				if($value === null) {
-					$query .= "AND `" . $key . "` IS NULL ";
-				} else {
-					$query .= "AND `" . $key . "`='" . $this->addSlashes($value) . "' ";
-				}
-			}
-		}
+		$query .= $this->buildSet($set);
+		$query .= $this->buildWhere($where);
 		
 		return $this->setQuery($query);
 	}
@@ -565,27 +415,9 @@ abstract class DatabaseConnection {
 		}
 		
 		$query = "INSERT INTO `" . $table . "` ";
-		reset($set);
-		list($key, $value) = each($set);
-		$query .= "(`" . $key . "`";
-		while(list($key, $value) = each($set)) {
-			$query .= ", `" . $key . "`";
-		}
-		reset($set);
-		list($key, $value) = each($set);
-		if($value === null) {
-			$query .= ") VALUES (NULL ";
-		} else {
-			$query .= ") VALUES ('" . $this->addSlashes($value) . "' ";
-		}
-		while(list($key, $value) = each($set)) {
-			if($value === null) {
-				$query .= ", NULL ";
-			} else {
-				$query .= ", '" . $this->addSlashes($value) . "' ";
-			}
-		}
-		$query .= ")";
+		$query .= $this->buildInsertFields(array_keys($set));
+		$query .= "VALUES ";
+		$query .= $this->buildInsertRecord($set);
 		
 		$this->setQuery($query);
 		
@@ -612,54 +444,193 @@ abstract class DatabaseConnection {
 	 */
 	public function stdDel($table, $where)
 	{
-		if(!is_array($where) || !count($where)) {
-			throw new AssertionFailedException("Bad \$where clause");
-		}
-		
-		$get = array();
-		reset($where);
-		while(list($key, $value) = each($where)) {
-			$get[] = $key;
-		}
-		
 		$query = "DELETE FROM `" . $table . "` ";
-		reset($where);
-		list($key, $value) = each($where);
-		if($value === null) {
-			$query .= "WHERE `" . $key . "` IS NULL ";
-		} else {
-			$query .= "WHERE `" . $key . "`='" . $this->addSlashes($value) . "' ";
-		}
-		while(list($key, $value) = each($where)) {
-			if($value === null) {
-				$query .= "AND `" . $key . "` IS NULL ";
-			} else {
-				$query .= "AND `" . $key . "`='" . $this->addSlashes($value) . "' ";
-			}
-		}
+		$query .= $this->buildWhere($where);
 		
 		return $this->setQuery($query);
 	}
-}
-
-/**
- * \brief MySQL implementation of the DatabaseConnection class
- *
- * The MysqlConnection class provides the MySQL implementation of the DatabaseConnection class.
- */
-class MysqlConnection extends DatabaseConnection {
-	private $connection;
 	
-	public function __construct()
+	public function stdIncrement($table, $where, $field)
 	{
-		parent::__construct();
+		$query = "UPDATE `" . $table . "` ";
+		$query .= "SET `" . $field . "`=`" . $field . "` + 1 ";
+		$query .= $this->buildWhere($where);
 		
-		$this->connection = null;
+		return $this->setQuery($query);
 	}
 	
-	public function connection()
+	public function buildSelect($get)
 	{
-		return $this->connection;
+		if(is_array($get) && !count($get)) {
+			throw new AssertionFailedException("Bad \$get clause: empty array");
+		}
+		
+		$output = "";
+		if(is_array($get)) {
+			reset($get);
+			list($key, $value) = each($get);
+			$output .= "SELECT `" . $value . "` ";
+			while(list($key, $value) = each($get)) {
+				$output .= ", `" . $value . "` ";
+			}
+		} else if($get == "*") {
+			$output .= "SELECT * ";
+		} else {
+			$output .= "SELECT `" . $get . "` ";
+		}
+		return $output;
+	}
+	
+	public function buildFrom($tables)
+	{
+		if(is_array($tables) && !count($tables)) {
+			throw new AssertionFailedException("Bad \$tables clause: empty array");
+		}
+		
+		$output = "";
+		if(is_array($tables)) {
+			reset($tables);
+			list($key, $value) = each($tables);
+			$output .= "FROM `" . $value . "` ";
+			while(list($key, $value) = each($tables)) {
+				$output .= ", `" . $value . "` ";
+			}
+		} else {
+			$output .= "FROM `" . $tables . "` ";
+		}
+		return $output;
+	}
+	
+	public function buildSet($set)
+	{
+		if(!is_array($set) || !count($set)) {
+			throw new AssertionFailedException("Bad \$set clause: not an array or empty");
+		}
+		
+		$output = "";
+		reset($set);
+		list($key, $value) = each($set);
+		if($value === null) {
+			$output .= "SET `" . $key . "`=NULL ";
+		} else {
+			$output .= "SET `" . $key . "`='" . $this->addSlashes($value) . "' ";
+		}
+		while(list($key, $value) = each($set)) {
+			if($value === null) {
+				$output .= ", `" . $key . "`=NULL ";
+			} else {
+				$output .= ", `" . $key . "`='" . $this->addSlashes($value) . "' ";
+			}
+		}
+		return $output;
+	}
+	
+	public function buildInsertFields($fields)
+	{
+		reset($fields);
+		list($key, $value) = each($fields);
+		$output = "(`" . $key . "`";
+		while(list($key, $value) = each($fields)) {
+			$output .= ", `" . $key . "`";
+		}
+		$output .= ") ";
+		return $output;
+	}
+	
+	public function buildInsertRecord($record)
+	{
+		$output = "";
+		reset($record);
+		list($key, $value) = each($record);
+		if($value === null) {
+			$output .= "(NULL ";
+		} else {
+			$output .= "('" . $this->addSlashes($value) . "' ";
+		}
+		while(list($key, $value) = each($record)) {
+			if($value === null) {
+				$output .= ", NULL ";
+			} else {
+				$output .= ", '" . $this->addSlashes($value) . "' ";
+			}
+		}
+		$output .= ")";
+		return $output;
+	}
+	
+	public function buildWhere($where)
+	{
+		if($where === null) {
+			return "";
+		}
+		if(!is_array($where)) {
+			throw new AssertionFailedException("Bad \$where clause: not an array");
+		}
+		if(count($where) == 0) {
+			return "";
+		}
+		
+		$output = "";
+		reset($where);
+		list($key, $value) = each($where);
+		if($value === null) {
+			$output .= "WHERE `" . $key . "` IS NULL ";
+		} else {
+			$output .= "WHERE `" . $key . "`='" . $this->addSlashes($value) . "' ";
+		}
+		while(list($key, $value) = each($where)) {
+			if($value === null) {
+				$output .= "AND `" . $key . "` IS NULL ";
+			} else {
+				$output .= "AND `" . $key . "`='" . $this->addSlashes($value) . "' ";
+			}
+		}
+		return $output;
+	}
+	
+	public function buildSort($sort)
+	{
+		if($sort == null) {
+			return "";
+		}
+		if(!is_array($sort)) {
+			throw new AssertionFailedException("Bad \$sort clause: not null and not an array");
+		}
+		if(count($sort) == 0) {
+			return "";
+		}
+		
+		$output = "";
+		reset($sort);
+		list($key, $value) = each($sort);
+		$output .= "ORDER BY `" . $key . "` ";
+		if(!strcasecmp($value, "a") || !strcasecmp($value, "asc")) {
+			$output .= "ASC ";
+		} else if(!strcasecmp($value, "d") || !strcasecmp($value, "desc")) {
+			$output .= "DESC ";
+		} else {
+			throw new AssertionFailedException("Bad sort order");
+		}
+		while(list($key, $value) = each($sort)) {
+			$output .= ", `" . $key . "` ";
+			if(!strcasecmp($value, "a") || !strcasecmp($value, "asc")) {
+				$output .= "ASC ";
+			} else if(!strcasecmp($value, "d") || !strcasecmp($value, "desc")) {
+				$output .= "DESC ";
+			} else {
+				throw new AssertionFailedException("Bad sort order");
+			}
+		}
+		return $output;
+	}
+	
+	public function buildLimit($number, $skip)
+	{
+		if($number != 0 || $skip != 0) {
+			return "LIMIT " . (int)$skip . ", " . (int)$number . " ";
+		} else {
+			return "";
+		}
 	}
 	
 	public function dbOpen($address, $username, $password, $dbname)
@@ -729,11 +700,6 @@ class MysqlConnection extends DatabaseConnection {
 	{
 		return mysql_insert_id($this->connection);
 	}
-	
-	public function addSlashes($data)
-	{
-		return mysql_real_escape_string($data, $this->connection);
-	}
 }
 
 class QueryResult {
@@ -775,7 +741,7 @@ class QueryResult {
 	 *
 	 * \see fetchArray
 	 */
-	function fetchObject()
+	public function fetchObject()
 	{
 		return $this->connection->dbFetchObject($this->result);
 	}
@@ -803,7 +769,7 @@ class QueryResult {
 	 *
 	 * \return The number of records returned by the query
 	 */
-	function numRows()
+	public function numRows()
 	{
 		return $this->connection->dbNumRows($this->result);
 	}
