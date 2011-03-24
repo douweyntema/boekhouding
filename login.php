@@ -9,6 +9,18 @@ unset($GLOBALS["loginUserID"]);
 unset($GLOBALS["loginUsername"]);
 unset($GLOBALS["loginImpersonatedCustomer"]);
 
+if(isset($GLOBALS["controlpanelDisabled"]) && $GLOBALS["controlpanelDisabled"]) {
+	session_destroy();
+	$content = <<<HTML
+<div class="controlpanel-disabled"><div class="operation">
+<h2>Control panel disabled</h2>
+{$GLOBALS["controlpanelDisabledNotice"]}
+</div></div>
+HTML;
+	echo htmlHeader(welcomeHeader() . $content);
+	die();
+}
+
 if((isset($_SESSION["username"]) && isset($_SESSION["password"])) ||
    (isset($GLOBALS["loginAllowed"]) && isset($_POST["username"]) && isset($_POST["password"]))) {
 	if(isset($GLOBALS["loginAllowed"]) && isset($_POST["username"]) && isset($_POST["password"])) {
@@ -19,8 +31,11 @@ if((isset($_SESSION["username"]) && isset($_SESSION["password"])) ||
 		$password = $_SESSION["password"];
 	}
 	
-	$user = $GLOBALS["database"]->stdGetTry("adminUser", array("username"=>$username, "password"=>md5($password)), array("userID", "customerID", "username"), false);
+	$user = $GLOBALS["database"]->stdGetTry("adminUser", array("username"=>$username), array("userID", "customerID", "username", "password"), false);
 	if($user === false) {
+		loginFailed();
+	}
+	if(!verifyPassword($password, $user["password"])) {
 		loginFailed();
 	}
 	

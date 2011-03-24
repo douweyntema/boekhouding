@@ -1,5 +1,7 @@
 <?php
 
+// TODO: blacklist van usernames maken + character checken
+
 require_once("common.php");
 doAccounts(null);
 

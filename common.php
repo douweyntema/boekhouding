@@ -2,17 +2,18 @@
 
 require_once(dirname(__FILE__) . "/config.php");
 require_once(dirname(__FILE__) . "/database.php");
+require_once(dirname(__FILE__) . "/menu.php");
 
 function exceptionHandler($exception)
 {
 	die($exception->__toString());
 }
 
-error_reporting(E_ALL & ~E_NOTICE);
+set_exception_handler("exceptionHandler");
+error_reporting(0);
 
-if($_SERVER["REMOTE_ADDR"] != "127.0.0.1") {
-	set_exception_handler("exceptionHandler");
-	error_reporting(0);
+if($_SERVER["REMOTE_ADDR"] == "127.0.0.1") {
+	error_reporting(E_ALL);
 }
 
 $GLOBALS["database"] = new MysqlConnection();
@@ -53,8 +54,9 @@ function absoluteRoot()
 $GLOBALS["root"] = absoluteRoot();
 $GLOBALS["rootHtml"] = htmlentities($GLOBALS["root"]);
 
-require_once(dirname(__FILE__) . "/login.php");
-require_once(dirname(__FILE__) . "/menu.php");
+if(!(isset($GLOBALS["noLoginChecks"]) && $GLOBALS["noLoginChecks"])) {
+	require_once(dirname(__FILE__) . "/login.php");
+}
 
 function htmlHeader($content)
 {
@@ -131,25 +133,49 @@ function inputValue($value)
 	}
 }
 
+function hashPassword($password)
+{
+	return crypt($password, '$6$');
+}
+
+function verifyPassword($password, $passwordHash)
+{
+	return crypt($password, $passwordHash) === $passwordHash;
+}
+
 function encryptPassword($password)
 {
-	$plaintext = md5(uniqid()) . md5($password) . base64_encode($password);
+	$iv = mcrypt_create_iv(32, MCRYPT_DEV_URANDOM);
+	$plaintext = md5($password) . base64_encode($password);
 	$key = md5($GLOBALS["crypto_key"], true);
-	$cipher = mcrypt_encrypt(MCRYPT_ARCFOUR, $key, $plaintext, MCRYPT_MODE_STREAM);
-	return base64_encode($cipher);
+	$cipher = mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $key, $plaintext, MCRYPT_MODE_CBC, $iv);
+	return base64_encode($iv) . ":" . base64_encode($cipher);
 }
 
 function decryptPassword($cipher)
 {
-	$decoded = base64_decode($cipher);
+	$pos = strpos($cipher, ':');
+	if($pos === false) {
+		return null;
+	}
+	$iv = base64_decode(substr($cipher, 0, $pos));
+	$decoded = base64_decode(substr($cipher, $pos + 1));
 	$key = md5($GLOBALS["crypto_key"], true);
-	$plaintext = mcrypt_decrypt(MCRYPT_ARCFOUR, $key, $decoded, MCRYPT_MODE_STREAM);
-	$checksum = substr($plaintext, 32, 32);
-	$password = base64_decode(substr($plaintext, 64));
+	$plaintext = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $key, $decoded, MCRYPT_MODE_CBC, $iv);
+	$checksum = substr($plaintext, 0, 32);
+	$password = base64_decode(substr($plaintext, 32));
 	if(md5($password) != $checksum) {
 		return null;
 	}
 	return $password;
+}
+
+function updateHosts($hosts, $command)
+{
+	foreach($hosts as $hostID) {
+		$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("hostname", "sshPort"));
+		`ssh -i $ssh_private_key_file -l root -p {$host["sshPort"]} {$host["hostname"]} '$command'`;
+	}
 }
 
 ?>

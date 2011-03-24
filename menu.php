@@ -6,12 +6,14 @@ $GLOBALS["menuComponent"] = null;
 $GLOBALS["menuComponents"] = array();
 $GLOBALS["menuComponentsAdmin"] = array();
 
-foreach(components() as $component) {
-	require_once(dirname(__FILE__) . "/{$component["name"]}/menu.php");
-}
-
 function menu()
 {
+	foreach(components() as $component) {
+		if(is_file(dirname(__FILE__) . "/{$component["name"]}/menu.php")) {
+			require_once(dirname(__FILE__) . "/{$component["name"]}/menu.php");
+		}
+	}
+	
 	$output = "";
 	
 	$output .= "<ul>\n";

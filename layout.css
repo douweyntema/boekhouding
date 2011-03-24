@@ -31,6 +31,16 @@ table.login {
 	text-align: center;
 }
 
+.controlpanel-disabled {
+	width: 500px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.controlpanel-disabled p {
+	
+}
+
 /* Forms */
 .submitbutton {
 	text-align: left;
@@ -114,7 +124,6 @@ h2 {
 }
 
 /* Blokjes informatie */
-
 .operation {
 	border: 2px solid #153e7e;
 	background: #ffffff;
