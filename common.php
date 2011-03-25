@@ -6,6 +6,7 @@ require_once(dirname(__FILE__) . "/menu.php");
 
 function exceptionHandler($exception)
 {
+	// TODO: netjes formatten
 	die($exception->__toString());
 }
 
