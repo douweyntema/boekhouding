@@ -1,0 +1,16 @@
+#!/bin/bash -e
+
+if [ "`dpkg-divert --truename /usr/bin/passwd`" = /usr/sbin/real-passwd ]
+then
+	rm /usr/bin/passwd
+	dpkg-divert --remove --rename /usr/bin/passwd
+	chmod u+s /usr/bin/passwd
+fi
+
+if [ "`dpkg-divert --truename /usr/bin/chfn`" = /usr/sbin/real-chfn ]
+then
+	rm /usr/bin/chfn
+	dpkg-divert --remove --rename /usr/bin/chfn
+	chmod u+s /usr/bin/chfn
+fi
+

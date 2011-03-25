@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+
+build:
+	make
+	touch build
+
+binary: build
+	mkdir debian/tmp
+	mkdir debian/tmp/DEBIAN
+	DESTDIR=debian/tmp PREFIX=/usr make install
+	dpkg-gencontrol -Pdebian/tmp
+	cp debian/conffiles debian/postinst debian/prerm debian/tmp/DEBIAN
+	dpkg-deb -b debian/tmp ..
+	touch binary
+
+binary-arch:
+
+binary-indep: binary
+
+clean:
+	rm -f build
+	rm -f binary
+	rm -f debian/files
+	rm -rf debian/tmp
+	make clean
+
+.PHONY: clean
