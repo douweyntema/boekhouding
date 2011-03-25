@@ -7,8 +7,14 @@ function main()
 {
 	$content = "<h1>Customers</h1>\n";
 	
-	$name = $_POST["customerName"];
-	$email = $_POST["customerEmail"];
+	$name = "";
+	$email = "";
+	if(isset($_POST["customerName"])) {
+		$name = $_POST["customerName"];
+	}
+	if(isset($_POST["customerEmail"])) {
+		$email = $_POST["customerEmail"];
+	}
 	
 	if(trim($name) == "") {
 		$content .= addCustomerForm("", $name, $email);
