@@ -5,6 +5,21 @@ define("CUSTOMER_UID_MIN", 10000);
 define("CUSTOMER_UID_MAX", 60000);
 
 $accountDisabled = "-e 1970-01-01 -f 0";
+$accountEnabled = "-e '' -f -1";
+
+$force = false;
+$verbose = false;
+
+$arguments = $_SERVER["argv"];
+array_shift($arguments);
+foreach($arguments as $argument) {
+	if($argument == "--force") {
+		$force = true;
+	}
+	if($argument == "--verbose") {
+		$verbose = true;
+	}
+}
 
 function exceptionHandler($exception)
 {
@@ -12,8 +27,10 @@ function exceptionHandler($exception)
 	exit(1);
 }
 
-set_exception_handler("exceptionHandler");
-error_reporting(0);
+if(!$verbose) {
+	set_exception_handler("exceptionHandler");
+	error_reporting(0);
+}
 
 if(posix_getuid() != 0) {
 	echo "Error: root privileges required.\n";
@@ -22,16 +39,6 @@ if(posix_getuid() != 0) {
 
 require_once("/etc/treva-update-passwd.conf");
 require_once("/usr/lib/phpdatabase/database.php");
-
-$force = false;
-
-$arguments = $_SERVER["argv"];
-array_shift($arguments);
-foreach($arguments as $argument) {
-	if($argument == "--force") {
-		$force = true;
-	}
-}
 
 $database = new MysqlConnection();
 try {
@@ -93,7 +100,7 @@ foreach($users as $user) {
 	} else {
 		$isDisabled = false;
 	}
-	$disabled = ($isDisabled ? $accountDisabled : "");
+	$disabled = ($isDisabled ? $accountDisabled : $accountEnabled);
 	
 	$gr = posix_getgrgid($gid);
 	if($gr === false) {
@@ -114,6 +121,11 @@ foreach($users as $user) {
 	} else {
 		echo "WARNING: inconsistent user found: user '$uid:{$user["username"]}' in the control panel does not match user '{$pw["uid"]}:{$pw["name"]}' in /etc/passwd, skipping\n";
 		continue;
+	}
+	
+	if($isDisabled) {
+		`killall -u {$user["username"]}`;
+		`killall -u {$user["username"]} -9`;
 	}
 }
 
