@@ -62,7 +62,7 @@ function main()
 		die(page($content));
 	}
 	
-	$accountID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>customerID(), "username"=>$username, "password"=>md5($password)));
+	$accountID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>customerID(), "username"=>$username, "password"=>hashPassword($password)));
 	if($rights === true) {
 		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$accountID, "componentID"=>0));
 	} else {

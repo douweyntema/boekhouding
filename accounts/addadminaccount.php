@@ -46,7 +46,7 @@ function main()
 		die(page($content));
 	}
 	
-	$accountID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>null, "username"=>$username, "password"=>md5($password)));
+	$accountID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>null, "username"=>$username, "password"=>hashPassword($password)));
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}accounts/adminaccount.php?id=$accountID");
