@@ -12,8 +12,8 @@ function exceptionHandler($exception)
 	exit(1);
 }
 
-//set_exception_handler("exceptionHandler");
-//error_reporting(0);
+set_exception_handler("exceptionHandler");
+error_reporting(0);
 
 if(posix_getuid() != 0) {
 	echo "Error: root privileges required.\n";
@@ -86,7 +86,7 @@ foreach($users as $user) {
 		$isDisabled = true;
 	} else if($database->stdGetTry("adminCustomerRight", array("customerID"=>$user["customerID"], "componentID"=>$shellComponentID), "customerID", null) === null) {
 		$isDisabled = true;
-	} else if($database->stdGetTry("adminUserRight", array("userID"=>$user["userID"], "componentID"=>0), "userID", null) !== null) {
+	} else if($database->stdGetTry("adminUserRight", array("userID"=>$user["userID"], "componentID"=>null), "userID", null) !== null) {
 		$isDisabled = false;
 	} else if($database->stdGetTry("adminUserRight", array("userID"=>$user["userID"], "componentID"=>$shellComponentID), "userID", null) === null) {
 		$isDisabled = true;
