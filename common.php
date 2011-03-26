@@ -1,7 +1,8 @@
 <?php
 
 require_once(dirname(__FILE__) . "/config.php");
-require_once("/usr/lib/phpdatabase/database.php");
+require_once("/home/fhp/treva-git/libphpdatabase/libphpdatabase/src/database.php");
+// require_once("/usr/lib/phpdatabase/database.php");
 require_once(dirname(__FILE__) . "/menu.php");
 
 function exceptionHandler($exception)
@@ -10,7 +11,7 @@ function exceptionHandler($exception)
 	die($exception->__toString());
 }
 
-set_exception_handler("exceptionHandler");
+// set_exception_handler("exceptionHandler");
 error_reporting(0);
 
 if($_SERVER["REMOTE_ADDR"] == "127.0.0.1") {
@@ -19,6 +20,8 @@ if($_SERVER["REMOTE_ADDR"] == "127.0.0.1") {
 
 $GLOBALS["database"] = new MysqlConnection();
 $GLOBALS["database"]->open($database_hostname, $database_username, $database_password, $database_name);
+
+
 
 if(get_magic_quotes_gpc()) {
 	foreach($_GET as $key=>$value) {
@@ -176,8 +179,19 @@ function updateHosts($hosts, $command)
 {
 	foreach($hosts as $hostID) {
 		$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("hostname", "sshPort"));
-		`ssh -i $ssh_private_key_file -l root -p {$host["sshPort"]} {$host["hostname"]} '$command'`;
+		`/usr/bin/ssh -i {$GLOBALS["ssh_private_key_file"]} -l root -p {$host["sshPort"]} {$host["hostname"]} '$command' > /dev/null &`;
 	}
+}
+
+function updateAccounts($customerID)
+{
+	// Update the filesystem version
+	$filesystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "filesystemID");
+	$GLOBALS["database"]->stdIncrement("infrastructureFilesystem", array("filesystemID"=>$filesystemID), "filesystemVersion", 1000000000);
+	
+	// Update all servers
+	$hosts = $GLOBALS["database"]->stdList("infrastructureMount", array("filesystemID"=>$filesystemID), "hostID");
+	updateHosts($hosts, "update-treva-passwd");
 }
 
 ?>

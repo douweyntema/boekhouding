@@ -39,6 +39,9 @@ function main()
 	
 	$GLOBALS["database"]->stdSet("adminUser", array("userID"=>$userID, "customerID"=>customerID()), array("password"=>hashPassword($password)));
 	
+	// Distribute the accounts database
+	updateAccounts(customerID());
+	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}accounts/account.php?id=$userID");
 }

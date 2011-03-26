@@ -12,7 +12,7 @@ function main()
 		accountNotFound($userID);
 	}
 	
-	if($GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>$userID, "componentID"=>0), "userID", false) !== false) {
+	if($GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>$userID, "componentID"=>null), "userID", false) !== false) {
 		$rights = true;
 	} else {
 		$components = customerComponents();

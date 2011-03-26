@@ -39,7 +39,7 @@ if((isset($_SESSION["username"]) && isset($_SESSION["password"])) ||
 		loginFailed();
 	}
 	
-	if($user["customerID"] != 0) {
+	if($user["customerID"] !== null) {
 		$customerID = $user["customerID"];
 		$impersonate = false;
 	} else if(isset($GLOBALS["loginAllowed"]) && isset($_GET["customerID"]) && $_GET["customerID"] == 0) {

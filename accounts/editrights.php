@@ -37,7 +37,7 @@ function main()
 	
 	$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID));
 	if($rights === true) {
-		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "componentID"=>0));
+		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "componentID"=>null));
 	} else {
 		foreach(customerComponents() as $component) {
 			if($rights[$component["componentID"]]) {
@@ -45,6 +45,9 @@ function main()
 			}
 		}
 	}
+	
+	// Distribute the accounts database
+	updateAccounts(customerID());
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}accounts/account.php?id=$userID");

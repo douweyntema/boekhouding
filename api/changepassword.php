@@ -29,14 +29,9 @@ ignore_user_abort(true);
 // Update the password
 $GLOBALS["database"]->stdSet("adminUser", array("username"=>$username), array("password"=>$newPasswordHash));
 
-// Update the filesystem version
+// Distribute the accounts database
 $customerID = $GLOBALS["database"]->stdGet("adminUser", array("username"=>$username), "customerID");
-$filesystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "filesystemID");
-$GLOBALS["database"]->stdIncrement("infrastructureFilesystem", array("filesystemID"=>$filesystemID), "filesystemVersion");
-
-// Update all servers
-$hosts = $GLOBALS["database"]->stdList("infrastructureMount", array("filesystemID"=>$filesystemID), "hostID");
-updateHosts($hosts, "update-passwd");
+updateAccounts($customerID);
 
 echo "success";
 

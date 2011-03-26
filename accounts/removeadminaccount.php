@@ -21,7 +21,7 @@ function main()
 		die(page($content));
 	}
 	
-	$GLOBALS["database"]->stdDel("adminUser", array("userID"=>$userID, "customerID"=>0));
+	$GLOBALS["database"]->stdDel("adminUser", array("userID"=>$userID, "customerID"=>null));
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}accounts/");
