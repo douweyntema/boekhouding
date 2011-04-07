@@ -30,14 +30,14 @@ function main()
 		}
 	}
 	
-	$exists = $GLOBALS["database"]->stdGetTry("adminUser", array("username"=>$username), "customerID", false) !== false;
-	if($exists) {
-		$content .= addAccountForm("An account with the chosen name already exists.", $username, $rights, null);
+	if(!validAccountName($username)) {
+		$content .= addAccountForm("Invalid account name.", $username, $rights, null);
 		die(page($content));
 	}
 	
-	if(!validAccountName($username)) {
-		$content .= addAccountForm("Invalid account name.", $username, $rights, null);
+	$exists = $GLOBALS["database"]->stdGetTry("adminUser", array("username"=>$username), "customerID", false) !== false;
+	if($exists || reservedAccountName($username)) {
+		$content .= addAccountForm("An account with the chosen name already exists.", $username, $rights, null);
 		die(page($content));
 	}
 	
