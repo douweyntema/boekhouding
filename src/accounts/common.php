@@ -67,12 +67,17 @@ function accountList()
 	$output  = "<div class=\"list\">\n";
 	$output .= "<table>\n";
 	$output .= "<thead>\n";
-	$output .= "<tr><th>Account name</th></tr>\n";
+	$output .= "<tr><th>Account name</th><th>Type</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
 	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username"), array("username"=>"ASC")) as $account) {
+		if($GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>$account["userID"], "componentID"=>null), "userID", false) === false) {
+			$type = "Limited rights";
+		} else {
+			$type = "Full access";
+		}
 		$usernameHtml = htmlentities($account["username"]);
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}accounts/account.php?id={$account["userID"]}\">$usernameHtml</a></td></tr>\n";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}accounts/account.php?id={$account["userID"]}\">$usernameHtml</a></td><td>$type</td></tr>\n";
 	}
 	$output .= "</tbody>\n";
 	$output .= "</table>\n";
