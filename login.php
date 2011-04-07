@@ -155,7 +155,7 @@ function canAccessComponent($component, $advisory = false)
 	if(isImpersonating()) {
 		return true;
 	}
-	if($GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>userID(), "componentID"=>0), "userID", false) !== false) {
+	if($GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>userID(), "componentID"=>null), "userID", false) !== false) {
 		return true;
 	}
 	if($GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>userID(), "componentID"=>$componentID), "userID", false) !== false) {
