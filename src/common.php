@@ -1,8 +1,7 @@
 <?php
 
 require_once(dirname(__FILE__) . "/config.php");
-require_once("/home/fhp/treva-git/libphpdatabase/libphpdatabase/src/database.php");
-// require_once("/usr/lib/phpdatabase/database.php");
+require_once("/usr/lib/phpdatabase/database.php");
 require_once(dirname(__FILE__) . "/menu.php");
 
 function exceptionHandler($exception)
