@@ -6,7 +6,7 @@ doAccountsAdmin($_GET["id"]);
 function main()
 {
 	$userID = $_GET["id"];
-	$username = $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID, "customerID"=>0), "username", false);
+	$username = $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID, "customerID"=>null), "username", false);
 	
 	if($username === false) {
 		accountNotFound($userID);

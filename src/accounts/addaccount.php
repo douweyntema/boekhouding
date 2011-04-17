@@ -1,7 +1,5 @@
 <?php
 
-// TODO: blacklist van usernames maken + character checken
-
 require_once("common.php");
 doAccounts(null);
 
@@ -64,7 +62,7 @@ function main()
 	
 	$accountID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>customerID(), "username"=>$username, "password"=>hashPassword($password)));
 	if($rights === true) {
-		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$accountID, "componentID"=>0));
+		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$accountID, "componentID"=>null));
 	} else {
 		foreach(customerComponents() as $component) {
 			if($rights[$component["componentID"]]) {

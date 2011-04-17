@@ -450,7 +450,7 @@ function adminAccountList()
 	$output .= "<tr><th>Account name</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>0), array("userID", "username"), array("username"=>"ASC")) as $account) {
+	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>null), array("userID", "username"), array("username"=>"ASC")) as $account) {
 		$usernameHtml = htmlentities($account["username"]);
 		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}accounts/adminaccount.php?id={$account["userID"]}\">$usernameHtml</a></td></tr>\n";
 	}
