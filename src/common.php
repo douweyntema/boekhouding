@@ -71,6 +71,7 @@ return <<<HTML
 <link rel="stylesheet" type="text/css" href="{$GLOBALS["rootHtml"]}layout.css" />
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery.js"></script>
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery.tablesorter.js"></script>
+<script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery.treeTable.js"></script>
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/script.js"></script>
 <title>Treva control panel</title>
 </head>

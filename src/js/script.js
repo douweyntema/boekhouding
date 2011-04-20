@@ -1,4 +1,5 @@
 $(document).ready(function() {
 	// TODO: sorteren op de .sorted colom
-	$(".list table").tablesorter({widgets: ['zebra']});
+	$(".sortable table").tablesorter({widgets: ['zebra']});
+	$(".tree table").treeTable({zebra: true});
 });
