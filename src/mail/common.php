@@ -30,7 +30,7 @@ function mailDomainsList()
 {
 	$output = "";
 	$output .= <<<HTML
-<div class="list">
+<div class="list sortable">
 <table>
 <thead>
 <tr><th>Domain</th><th># mailboxes</th><th># aliasses</th></tr>

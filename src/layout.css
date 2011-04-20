@@ -151,55 +151,6 @@ h2 {
 	margin-top: 0px;
 }
 
-/* table sorter layout */
-.list table {
-	margin:10px 0pt 15px;
-	width: 100%;
-	text-align: left;
-}
-.list table, .list td, .list th {
-	border: 2px solid #153e7e;
-	border-spacing: 0px;
-	border-collapse: collapse;
-}
-.list table thead tr th, .list table tfoot tr th {
-	background-color: #cbdfff;
-	padding-left: 4px;
-	padding-right: 20px;
-	padding-top: 4px;
-	padding-bottom: 4px;
-}
-.list table thead tr .header {
-	background-image: url(img/bg.gif);
-	background-repeat: no-repeat;
-	background-position: center right;
-	cursor: pointer;
-}
-.list table tbody td {
-	padding: 4px;
-	background-color: #FFFFFF;
-	vertical-align: top;
-}
-.list table tbody tr.odd td {
-	background-color:#F0F0F6;
-}
-.list table thead tr .headerSortUp {
-	background-image: url(img/asc.gif);
-}
-.list table thead tr .headerSortDown {
-	background-image: url(img/desc.gif);
-}
-.list table thead tr .headerSortDown, .list table thead tr .headerSortUp {
-	background-color: #99c0ff;
-}
-
-/* tree */
-.tree {
-	margin-top: 1em;
-	margin-bottom: 1em;
-	border: 2px solid black;
-}
-
 /* Messages */
 .error {
 	border: 3px solid #c11b17;
@@ -226,4 +177,75 @@ h2 {
 /* Pieces of customer information */
 .customer {
 	font-style: italic;
+}
+
+/* table layout */
+.list table {
+	margin:10px 0pt 15px;
+	width: 100%;
+	text-align: left;
+}
+.list table, .list th {
+	border: 2px solid #153e7e;
+	border-spacing: 0px;
+	border-collapse: collapse;
+}
+.list td {
+	border-left: 2px solid #153e7e;
+	border-spacing: 0px;
+	border-collapse: collapse;
+}
+
+.list table thead tr th, .list table tfoot tr th {
+	background-color: #cbdfff;
+	padding-left: 4px;
+	padding-right: 20px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
+.list table thead tr .header {
+	background-image: url(img/bg.gif);
+	background-repeat: no-repeat;
+	background-position: center right;
+	cursor: pointer;
+}
+.list table tbody td {
+	padding: 4px;
+	background-color: #FFFFFF;
+	vertical-align: top;
+}
+.list table tbody tr.odd td {
+	background-color: #F0F0F6;
+}
+
+/* table sorter layout */
+.sortable table thead tr .headerSortUp {
+	background-image: url(img/asc.gif);
+}
+.sortable table thead tr .headerSortDown {
+	background-image: url(img/desc.gif);
+}
+.sortable table thead tr .headerSortDown, .list table thead tr .headerSortUp {
+	background-color: #99c0ff;
+}
+
+/* jquery.treeTable.collapsible */
+.tree table tr td {
+	padding-left: 20px;
+}
+
+.tree table tr td .expander {
+	background-position: left center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+	padding: 0;
+	zoom: 1; /* IE7 Hack */
+}
+
+.tree table tr.collapsed td .expander {
+	background-image: url(img/toggle-expand-dark.png);
+}
+
+.tree table tr.expanded td .expander {
+	background-image: url(img/toggle-collapse-dark.png);
 }
