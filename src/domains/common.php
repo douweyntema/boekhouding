@@ -21,7 +21,7 @@ function addDomainsList()
 	}
 	ksort($domains);
 	$output .= <<<HTML
-<div class="list">
+<div class="sortable list">
 <table>
 <thead>
 <tr><th>Domain</th></tr>

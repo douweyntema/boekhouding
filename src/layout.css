@@ -230,7 +230,7 @@ h2 {
 }
 
 /* jquery.treeTable.collapsible */
-.tree table tr td {
+.tree table tr td:first-child {
 	padding-left: 20px;
 }
 
