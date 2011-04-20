@@ -9,6 +9,8 @@ function main()
 	
 	$content = "<h1>Web hosting - " . domainName($domainID) . "</h1>\n";
 	
+	$content .= domainBreadcrumbs($domainID);
+	
 	$content .= domainSummary($domainID);
 	
 	echo page($content);

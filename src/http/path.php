@@ -9,6 +9,8 @@ function main()
 	
 	$content = "<h1>Web hosting - " . pathName($pathID) . "</h1>\n";
 	
+	$content .= pathBreadcrumbs($pathID);
+	
 	$content .= pathSummary($pathID);
 	
 	echo page($content);

@@ -45,16 +45,15 @@ function domainBreadcrumbsList($domainID)
 	$parts = array_reverse($parts);
 	$crumbs = array();
 	$crumbs[] = array("name"=>"Web hosting", "url"=>"{$GLOBALS["root"]}http/");
-	$prefix = "";
+	$postfix = "";
 	while(count($parts) > 0) {
 		$part = array_shift($parts);
 		if(count($parts) == 0) {
-			$crumbs[] = array("name"=>$prefix . $part["name"], "url"=>"{$GLOBALS["root"]}http/domain.php?id={$part["id"]}");
-		} else if($GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$part["id"], "parentDomainID"=>null), "pathID") !== null) {
-			$crumbs[] = array("name"=>$prefix . $part["name"], "url"=>"{$GLOBALS["root"]}http/domain.php?id={$part["id"]}");
-		} else {
-			$prefix .= $part["name"] . ".";
+			$crumbs[] = array("name"=>$part["name"] . $postfix, "url"=>"{$GLOBALS["root"]}http/domain.php?id={$part["id"]}");
+		} else if($GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$part["id"], "parentPathID"=>null), "pathID") !== null) {
+			$crumbs[] = array("name"=>$part["name"] . $postfix, "url"=>"{$GLOBALS["root"]}http/domain.php?id={$part["id"]}");
 		}
+		$postfix = "." . $part["name"] . $postfix;
 	}
 	return $crumbs;
 }
@@ -66,11 +65,11 @@ function pathBreadcrumbs($pathID)
 	$domainID = null;
 	while(true) {
 		$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$nextPathID), array("name", "parentPathID", "domainID", "type", "userDatabaseID"));
-		$parts[] = array("id"=>$nextPathID, "name"=>$path["name"], "used"=>($path["type"] != "NONE" || $path["userDatabaseID"] !== null));
 		if($path["parentPathID"] === null) {
 			$domainID = $path["domainID"];
 			break;
 		} else {
+			$parts[] = array("id"=>$nextPathID, "name"=>$path["name"], "used"=>($path["type"] != "NONE" || $path["userDatabaseID"] !== null));
 			$nextPathID = $path["parentPathID"];
 		}
 	}
@@ -79,7 +78,7 @@ function pathBreadcrumbs($pathID)
 	$crumbs = domainBreadcrumbsList($domainID);
 	while(count($parts) > 0) {
 		$part = array_shift($parts);
-		if(!$parts["used"] && count($parts) > 0) {
+		if(!$part["used"] && count($parts) > 0) {
 			$parts[0]["name"] = $part["name"] . "/" . $parts[0]["name"];
 		} else {
 			$crumbs[] = array("name"=>$part["name"], "url"=>"{$GLOBALS["root"]}http/path.php?id={$part["id"]}");
