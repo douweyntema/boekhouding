@@ -30,7 +30,7 @@ function mailDomainsList()
 {
 	$output = "";
 	$output .= <<<HTML
-<div class="list sortable">
+<div class="sortable list">
 <table>
 <thead>
 <tr><th>Domain</th><th># mailboxes</th><th># aliasses</th></tr>
@@ -55,7 +55,7 @@ function mailboxList($domainID)
 {
 	$output = "";
 	$output .= <<<HTML
-<div class="list">
+<div class="sortable list">
 <table>
 <thead>
 <tr><th>Mailbox</th><th>Quota</th></tr>
@@ -79,7 +79,7 @@ function mailAliasList($domainID)
 {
 	$output = "";
 	$output .= <<<HTML
-<div class="list">
+<div class="sortable list">
 <table>
 <thead>
 <tr><th>Alias</th><th>Forward to</th></tr>

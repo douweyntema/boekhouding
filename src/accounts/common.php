@@ -64,7 +64,7 @@ function customerComponents()
 
 function accountList()
 {
-	$output  = "<div class=\"list\">\n";
+	$output  = "<div class=\"list sortable\">\n";
 	$output .= "<table>\n";
 	$output .= "<thead>\n";
 	$output .= "<tr><th>Account name</th><th>Type</th></tr>\n";
@@ -444,7 +444,7 @@ HTML;
 
 function adminAccountList()
 {
-	$output  = "<div class=\"list\">\n";
+	$output  = "<div class=\"list sortable\">\n";
 	$output .= "<table>\n";
 	$output .= "<thead>\n";
 	$output .= "<tr><th>Account name</th></tr>\n";

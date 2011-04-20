@@ -28,7 +28,8 @@
           
           initialize($(this));
         } else if(options.initialState == "collapsed") {
-          this.style.display = "none"; // Performance! $(this).hide() is slow...
+//           this.style.display = "none"; // Performance! $(this).hide() is slow...
+          this.style.visibility = "collapse";
         }
       });
       zebra(this);
@@ -54,7 +55,8 @@
         $(this).collapse();
       }
       
-      this.style.display = "none"; // Performance! $(this).hide() is slow...
+//       this.style.display = "none"; // Performance! $(this).hide() is slow...
+      this.style.visibility = "collapse";
     });
     zebra($(this).parent().parent());
     return this;
@@ -72,7 +74,8 @@
       }
       
       // this.style.display = "table-row"; // Unfortunately this is not possible with IE :-(
-      $(this).show();
+//       $(this).show();
+      this.style.visibility = "visible";
     });
     
     zebra($(this).parent().parent());
@@ -83,7 +86,8 @@
   $.fn.reveal = function() {
     $(ancestorsOf($(this)).reverse()).each(function() {
       initialize($(this));
-      $(this).expand().show();
+      $(this).expand();/*.show();*/
+      this.style.visibility = "visible";
     });
     
     return this;

@@ -18,7 +18,7 @@ function customerNotFound($customerID)
 
 function customerList()
 {
-	$output  = "<div class=\"list\">\n";
+	$output  = "<div class=\"sortable list\">\n";
 	$output .= "<table>\n";
 	$output .= "<thead>\n";
 	$output .= "<tr><th>Name</th><th>Email</th></tr>\n";
