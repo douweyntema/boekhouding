@@ -6,7 +6,7 @@ function main()
 {
 	doHttp();
 	
-	$content = "<h1>Webhosting</h1>\n";
+	$content = "<h1>Web hosting</h1>\n";
 	
 	$content .= domainsList();
 	

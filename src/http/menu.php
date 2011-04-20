@@ -7,16 +7,15 @@ function menuHttp()
 	if($GLOBALS["menuComponent"] == "http") {
 		return <<<HTML
 <li>
-<a href="{$GLOBALS["rootHtml"]}http/">Webhosting</a>
+<a href="{$GLOBALS["rootHtml"]}http/">Web hosting</a>
 <ul>
-<li><a href="{$GLOBALS["rootHtml"]}http/functie1.php">Functie 1</a></li>
-<li><a href="{$GLOBALS["rootHtml"]}http/functie2.php">Functie 2</a></li>
+<li><a href="{$GLOBALS["rootHtml"]}http/adddomain.php">New domain</a></li>
 </ul>
 </li>
 
 HTML;
 	} else {
-		return "<li><a href=\"{$GLOBALS["rootHtml"]}http/\">Webhosting</a></li>\n";
+		return "<li><a href=\"{$GLOBALS["rootHtml"]}http/\">Web hosting</a></li>\n";
 	}
 }
 

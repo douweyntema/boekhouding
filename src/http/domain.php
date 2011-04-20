@@ -7,9 +7,9 @@ function main()
 	$domainID = $_GET["id"];
 	doHttpDomain($domainID);
 	
-	$content = "<h1>Webhosting - " . domainName($domainID) . "</h1>\n";
+	$content = "<h1>Web hosting - " . domainName($domainID) . "</h1>\n";
 	
-	$content .= virtualHostList($domainID);
+	$content .= domainSummary($domainID);
 	
 	echo page($content);
 }
