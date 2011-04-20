@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Apr 20, 2011 at 11:45 AM
+-- Generation Time: Apr 20, 2011 at 06:28 PM
 -- Server version: 5.1.49
 -- PHP Version: 5.3.3-7+squeeze1
 
@@ -223,12 +223,12 @@ CREATE TABLE IF NOT EXISTS `httpGroupUser` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `httpMountpoint`
+-- Table structure for table `httpPath`
 --
 
-CREATE TABLE IF NOT EXISTS `httpMountpoint` (
-  `mountpointID` int(11) NOT NULL AUTO_INCREMENT,
-  `parentMountpointID` int(11) DEFAULT NULL,
+CREATE TABLE IF NOT EXISTS `httpPath` (
+  `pathID` int(11) NOT NULL AUTO_INCREMENT,
+  `parentPathID` int(11) DEFAULT NULL,
   `domainID` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `type` enum('NONE','HOSTED','SVN','REDIRECT','MIRROR') NOT NULL,
@@ -236,43 +236,43 @@ CREATE TABLE IF NOT EXISTS `httpMountpoint` (
   `hostedIndexes` tinyint(1) DEFAULT NULL,
   `svnPath` varchar(255) DEFAULT NULL,
   `redirectTarget` varchar(255) DEFAULT NULL,
-  `mirrorTargetMountpointID` int(11) DEFAULT NULL,
+  `mirrorTargetPathID` int(11) DEFAULT NULL,
   `userDatabaseID` int(11) DEFAULT NULL,
   `userDatabaseRealm` varchar(255) NOT NULL,
   `customLocationConfigText` text NOT NULL,
   `customDirectoryConfigText` text NOT NULL,
-  PRIMARY KEY (`mountpointID`),
-  UNIQUE KEY `parentMountpointID` (`parentMountpointID`,`name`),
-  KEY `mirrorTargetMountpointID` (`mirrorTargetMountpointID`),
+  PRIMARY KEY (`pathID`),
+  UNIQUE KEY `parentPathID` (`parentPathID`,`name`),
   KEY `userDatabaseID` (`userDatabaseID`),
-  KEY `domainID` (`domainID`)
+  KEY `domainID` (`domainID`),
+  KEY `mirrorTargetPathID` (`mirrorTargetPathID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `httpMountpointGroup`
+-- Table structure for table `httpPathGroup`
 --
 
-CREATE TABLE IF NOT EXISTS `httpMountpointGroup` (
-  `mountpointID` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `httpPathGroup` (
+  `pathID` int(11) NOT NULL,
   `groupID` int(11) NOT NULL,
   `rights` varchar(255) NOT NULL,
-  PRIMARY KEY (`mountpointID`,`groupID`),
+  PRIMARY KEY (`pathID`,`groupID`),
   KEY `groupID` (`groupID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `httpMountpointUser`
+-- Table structure for table `httpPathUser`
 --
 
-CREATE TABLE IF NOT EXISTS `httpMountpointUser` (
-  `mountpointID` int(11) NOT NULL,
+CREATE TABLE IF NOT EXISTS `httpPathUser` (
+  `pathID` int(11) NOT NULL,
   `userID` int(11) NOT NULL,
   `rights` varchar(255) NOT NULL,
-  PRIMARY KEY (`mountpointID`,`userID`),
+  PRIMARY KEY (`pathID`,`userID`),
   KEY `userID` (`userID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -495,27 +495,27 @@ ALTER TABLE `httpGroupUser`
   ADD CONSTRAINT `httpGroupUser_ibfk_2` FOREIGN KEY (`groupID`) REFERENCES `httpGroup` (`groupID`);
 
 --
--- Constraints for table `httpMountpoint`
+-- Constraints for table `httpPath`
 --
-ALTER TABLE `httpMountpoint`
-  ADD CONSTRAINT `httpMountpoint_ibfk_1` FOREIGN KEY (`parentMountpointID`) REFERENCES `httpMountpoint` (`mountpointID`),
-  ADD CONSTRAINT `httpMountpoint_ibfk_3` FOREIGN KEY (`mirrorTargetMountpointID`) REFERENCES `httpMountpoint` (`mountpointID`),
-  ADD CONSTRAINT `httpMountpoint_ibfk_4` FOREIGN KEY (`userDatabaseID`) REFERENCES `httpUserDatabase` (`userDatabaseID`),
-  ADD CONSTRAINT `httpMountpoint_ibfk_5` FOREIGN KEY (`domainID`) REFERENCES `httpDomain` (`domainID`);
+ALTER TABLE `httpPath`
+  ADD CONSTRAINT `httpPath_ibfk_7` FOREIGN KEY (`mirrorTargetPathID`) REFERENCES `httpPath` (`pathID`),
+  ADD CONSTRAINT `httpPath_ibfk_4` FOREIGN KEY (`userDatabaseID`) REFERENCES `httpUserDatabase` (`userDatabaseID`),
+  ADD CONSTRAINT `httpPath_ibfk_5` FOREIGN KEY (`domainID`) REFERENCES `httpDomain` (`domainID`),
+  ADD CONSTRAINT `httpPath_ibfk_6` FOREIGN KEY (`parentPathID`) REFERENCES `httpPath` (`pathID`);
 
 --
--- Constraints for table `httpMountpointGroup`
+-- Constraints for table `httpPathGroup`
 --
-ALTER TABLE `httpMountpointGroup`
-  ADD CONSTRAINT `httpMountpointGroup_ibfk_1` FOREIGN KEY (`mountpointID`) REFERENCES `httpMountpoint` (`mountpointID`),
-  ADD CONSTRAINT `httpMountpointGroup_ibfk_2` FOREIGN KEY (`groupID`) REFERENCES `httpGroup` (`groupID`);
+ALTER TABLE `httpPathGroup`
+  ADD CONSTRAINT `httpPathGroup_ibfk_3` FOREIGN KEY (`pathID`) REFERENCES `httpPath` (`pathID`),
+  ADD CONSTRAINT `httpPathGroup_ibfk_2` FOREIGN KEY (`groupID`) REFERENCES `httpGroup` (`groupID`);
 
 --
--- Constraints for table `httpMountpointUser`
+-- Constraints for table `httpPathUser`
 --
-ALTER TABLE `httpMountpointUser`
-  ADD CONSTRAINT `httpMountpointUser_ibfk_1` FOREIGN KEY (`mountpointID`) REFERENCES `httpMountpoint` (`mountpointID`),
-  ADD CONSTRAINT `httpMountpointUser_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `httpUser` (`userID`);
+ALTER TABLE `httpPathUser`
+  ADD CONSTRAINT `httpPathUser_ibfk_3` FOREIGN KEY (`pathID`) REFERENCES `httpPath` (`pathID`),
+  ADD CONSTRAINT `httpPathUser_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `httpUser` (`userID`);
 
 --
 -- Constraints for table `httpUser`

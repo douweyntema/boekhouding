@@ -112,6 +112,8 @@ table.login {
 
 h1 {
 	color: #c11b17;
+	margin-top: 20px;
+	margin-bottom: 20px;
 }
 
 h2 {
@@ -143,12 +145,12 @@ h2 {
 	background: #ffffff;
 	margin-top: 0.7em;
 	margin-bottom: 0.7em;
-	padding: 0.3em;
+	padding: 4px;
 	right: 0px;
 }
 
 .operation h2 {
-	margin-top: 0px;
+	margin: -6px -6px 10px -6px;
 }
 
 /* Messages */
@@ -248,4 +250,17 @@ h2 {
 
 .tree table tr.expanded td .expander {
 	background-image: url(img/toggle-collapse-dark.png);
+}
+
+.breadcrumbs {
+	font-size: 9pt;
+	color: #808080;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	margin-left: 40px;
+}
+
+.breadcrumbs a {
+	color: black;
+	font-style: italic;
 }

@@ -194,4 +194,19 @@ function updateAccounts($customerID)
 	updateHosts($hosts, "update-treva-passwd");
 }
 
+function breadcrumbs($breadcrumbs)
+{
+	$output = "";
+	$output .= "\n<div class=\"breadcrumbs\">\n";
+	$separator = "         ";
+	foreach($breadcrumbs as $breadcrumb) {
+		$urlHtml = htmlentities($breadcrumb["url"]);
+		$nameHtml = htmlentities($breadcrumb["name"]);
+		$output .= $separator . "<a href=\"$urlHtml\">$nameHtml</a>\n";
+		$separator = "&gt;&gt; ";
+	}
+	$output .= "</div>\n\n";
+	return $output;
+}
+
 ?>
