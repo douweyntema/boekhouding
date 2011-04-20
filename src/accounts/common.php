@@ -85,7 +85,7 @@ function accountList()
 	return $output;
 }
 
-function addAccountForm($error, $name, $rights, $password)
+function addAccountForm($error = "", $name = null, $rights = null, $password = null)
 {
 	$nameValue = inputValue($name);
 	if($error === null) {
@@ -460,7 +460,7 @@ function adminAccountList()
 	return $output;
 }
 
-function addAdminAccountForm($error, $name, $password)
+function addAdminAccountForm($error = "", $name = null, $password = null)
 {
 	$nameValue = inputValue($name);
 	if($error === null) {
