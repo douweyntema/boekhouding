@@ -125,6 +125,15 @@ h2 {
 	border: 2px solid #153e7e;
 }
 
+h3 {
+	color: #153e7e;
+	font-size: 11pt;
+	text-align: center;
+	padding: 4px;
+	background-color: #cbdfff;
+	border: 2px solid #153e7e;
+}
+
 /* Blokjes informatie */
 .information {
 	border: 2px solid #153e7e;
@@ -152,9 +161,8 @@ h2 {
 .operation h2 {
 	margin: -6px -6px 10px -6px;
 }
-.operation h3, .operation .operation h2 {
+.operation h3 {
 	margin: -6px -6px 10px -6px;
-	font-size: 11pt;
 }
 
 .operation .operation {
