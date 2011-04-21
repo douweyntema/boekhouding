@@ -180,6 +180,103 @@ function pathSummary($pathID)
 	return $output;
 }
 
+function addSubdomainForm($domainID, $error = "", $name = null)
+{
+	$parentName = domainName($domainID);
+	$parentNameHtml = htmlentities($parentName);
+	
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+		$stub = false;
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = false;
+	} else if($error == "STUB") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = true;
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = false;
+	}
+	
+	if($stub) {
+		$operationsHtml = "";
+	} else {
+		$usersHtml = "<select name=\"documentOwner\">";
+		foreach($GLOBALS["database"]->query("SELECT DISTINCT adminUser.userID AS userID, username FROM adminUser INNER JOIN adminUserRight ON adminUser.userID = adminUserRight.userID LEFT JOIN adminComponent ON adminUserRight.componentID = adminComponent.componentID WHERE (adminComponent.name = 'http' OR adminComponent.name IS NULL) AND adminUser.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' ORDER BY username ASC")->fetchList() as $user) {
+			$usernameHtml = htmlentities($user["username"]);
+			$usersHtml .= "<option value=\"{$user["userID"]}\">$usernameHtml</option>";
+		}
+		$usersHtml .= "</select>";
+		
+		$paths = array();
+		foreach($GLOBALS["database"]->query("SELECT pathID FROM httpPath INNER JOIN httpDomain ON httpPath.domainID = httpDomain.domainID WHERE httpDomain.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' AND httpPath.type != 'MIRROR'")->fetchList() as $path) {
+			$paths[$path["pathID"]] = pathName($path["pathID"]);
+		}
+		asort($paths);
+		$pathsHtml = "<select name=\"mirrorTarget\">";
+		foreach($paths as $id=>$address) {
+			$addressHtml = htmlentities($address);
+			$pathsHtml .= "<option value=\"$id\">$addressHtml</option>";
+		}
+		$pathsHtml .= "</select>";
+		
+		$operationsHtml = <<<HTML
+<div class="operation">
+<h3>Hosted website</h3>
+<table>
+<tr><th>Document root:</th><td>/home/</td><td>$usersHtml</td><td>/www/</td><td class="stretch"><input type="text" name="documentRoot" /></td><td>/</td></tr>
+<tr class="submit"><td colspan="6"><input type="submit" name="type" value="Use Hosted Website" /></td></tr>
+</table>
+</div>
+
+<div class="operation">
+<h3>Redirect</h3>
+A redirect to an external site.
+<table>
+<tr><th>Redirect target:</th><td><input type="text" name="redirectTarget" /></td></tr>
+<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use Redirect" /></td></tr>
+</table>
+</div>
+
+<div class="operation">
+<h3>Alias</h3>
+Shows the same content as one of your other sites, effectively making the same content available under an alternative name.
+<table>
+<tr><th>Aliased website:</th><td>$pathsHtml</td></tr>
+<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use Alias" /></td></tr>
+</table>
+</div>
+
+HTML;
+	}
+	
+	return <<<HTML
+<div class="operation">
+<h2>Add subdomain</h2>
+$messageHtml
+<form action="addsubdomain.php" method="post">
+$confirmHtml
+<table>
+<tr><th>Subdomain name:</th><td class="stretch"><input type="text" name="name" /></td><td>.$parentNameHtml</td></tr>
+</table>
+
+$operationsHtml
+
+</form>
+</div>
+
+HTML;
+}
+
 function flattenDomainTree($tree, $parentID = null)
 {
 	$id = "domain-" . $tree["domainID"];
