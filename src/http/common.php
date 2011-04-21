@@ -180,7 +180,93 @@ function pathSummary($pathID)
 	return $output;
 }
 
-function addSubdomainForm($domainID, $error = "", $name = null)
+function pathFunctionSubform($confirm = false, $type = null, $pathID = null, $hostedUserID = null, $hostedPath = null, $redirectTarget = null, $mirrorTargetPathID = null)
+{
+	$start = "";
+	$functions = array();
+	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
+	
+	$usersHtml = "<select name=\"documentOwner\" $readonlyHtml>";
+	foreach($GLOBALS["database"]->query("SELECT DISTINCT adminUser.userID AS userID, username FROM adminUser INNER JOIN adminUserRight ON adminUser.userID = adminUserRight.userID LEFT JOIN adminComponent ON adminUserRight.componentID = adminComponent.componentID WHERE (adminComponent.name = 'http' OR adminComponent.name IS NULL) AND adminUser.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' ORDER BY username ASC")->fetchList() as $user) {
+		$usernameHtml = htmlentities($user["username"]);
+		$selected = ($type == "HOSTED" && $hostedUserID == $user["userID"]) ? "selected=\"selected\"" : "";
+		$usersHtml .= "<option value=\"{$user["userID"]}\" $selected>$usernameHtml</option>";
+	}
+	$usersHtml .= "</select>";
+	$documentRootValueHtml = ($type == "HOSTED" && $hostedPath !== null) ? "value=\"" . htmlentities($hostedPath) . "\"" : "";
+	$currentlySelectedHtml = ($type == "HOSTED") ? "Currently selected:" : "";
+	$currentlySelectedClass = ($type == "HOSTED") ? "selected" : "";
+	$hostedHtml = <<<HTML
+<div class="operation $currentlySelectedClass">
+<h3>$currentlySelectedHtml Hosted website</h3>
+<table>
+<tr><th>Document root:</th><td>/home/</td><td>$usersHtml</td><td>/www/</td><td class="stretch"><input type="text" name="documentRoot" $documentRootValueHtml $readonlyHtml /></td><td>/</td></tr>
+<tr class="submit"><td colspan="6"><input type="submit" name="type" value="Use Hosted Website" /></td></tr>
+</table>
+</div>
+
+HTML;
+	if($type == "HOSTED") {
+		$start = $hostedHtml;
+	} else {
+		$functions[] = $hostedHtml;
+	}
+	
+	$redirectTargetValueHtml = ($type == "REDIRECT") ? "value=\"" . htmlentities($redirectTarget) . "\"" : "";
+	$currentlySelectedHtml = ($type == "REDIRECT") ? "Currently selected:" : "";
+	$currentlySelectedClass = ($type == "REDIRECT") ? "selected" : "";
+	$redirectHtml = <<<HTML
+<div class="operation $currentlySelectedClass">
+<h3>$currentlySelectedHtml Redirect</h3>
+A redirect to an external site.
+<table>
+<tr><th>Redirect target:</th><td><input type="text" name="redirectTarget" $redirectTargetValueHtml $readonlyHtml /></td></tr>
+<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use Redirect" /></td></tr>
+</table>
+</div>
+
+HTML;
+	if($type == "REDIRECT") {
+		$start = $redirectHtml;
+	} else {
+		$functions[] = $redirectHtml;
+	}
+	
+	$paths = array();
+	foreach($GLOBALS["database"]->query("SELECT pathID FROM httpPath INNER JOIN httpDomain ON httpPath.domainID = httpDomain.domainID WHERE httpDomain.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' AND httpPath.type != 'MIRROR'" . ($pathID === null ? "" : "httpPath.pathID <> '" . $GLOBALS["database"]->addSlashes($pathID) . "'"))->fetchList() as $path) {
+		$paths[$path["pathID"]] = pathName($path["pathID"]);
+	}
+	asort($paths);
+	$pathsHtml = "<select name=\"mirrorTarget\" $readonlyHtml >";
+	foreach($paths as $id=>$address) {
+		$addressHtml = htmlentities($address);
+		$selected = ($type == "MIRROR" && $mirrorTargetPathID == $id) ? "selected=\"selected\"" : "";
+		$pathsHtml .= "<option value=\"$id\" $selected>$addressHtml</option>";
+	}
+	$pathsHtml .= "</select>";
+	$currentlySelectedHtml = ($type == "MIRROR") ? "Currently selected:" : "";
+	$currentlySelectedClass = ($type == "MIRROR") ? "selected" : "";
+	$mirrorHtml = <<<HTML
+<div class="operation $currentlySelectedClass">
+<h3>$currentlySelectedHtml Alias</h3>
+An alternative address to reach one of your existing sites.
+<table>
+<tr><th>Aliased website:</th><td>$pathsHtml</td></tr>
+<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use Alias" /></td></tr>
+</table>
+</div>
+
+HTML;
+	if($type == "MIRROR") {
+		$start = $mirrorHtml;
+	} else {
+		$functions[] = $mirrorHtml;
+	}
+	
+	return ($confirm ? $start : $start . "\n" . implode("\n", $functions));
+}
+
+function addSubdomainForm($domainID, $error = "", $name = null, $type = null, $hostedUserID = null, $hostedPath = null, $redirectTarget = null, $mirrorTargetPathID = null)
 {
 	$parentName = domainName($domainID);
 	$parentNameHtml = htmlentities($parentName);
@@ -210,55 +296,10 @@ function addSubdomainForm($domainID, $error = "", $name = null)
 	if($stub) {
 		$operationsHtml = "";
 	} else {
-		$usersHtml = "<select name=\"documentOwner\">";
-		foreach($GLOBALS["database"]->query("SELECT DISTINCT adminUser.userID AS userID, username FROM adminUser INNER JOIN adminUserRight ON adminUser.userID = adminUserRight.userID LEFT JOIN adminComponent ON adminUserRight.componentID = adminComponent.componentID WHERE (adminComponent.name = 'http' OR adminComponent.name IS NULL) AND adminUser.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' ORDER BY username ASC")->fetchList() as $user) {
-			$usernameHtml = htmlentities($user["username"]);
-			$usersHtml .= "<option value=\"{$user["userID"]}\">$usernameHtml</option>";
-		}
-		$usersHtml .= "</select>";
-		
-		$paths = array();
-		foreach($GLOBALS["database"]->query("SELECT pathID FROM httpPath INNER JOIN httpDomain ON httpPath.domainID = httpDomain.domainID WHERE httpDomain.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' AND httpPath.type != 'MIRROR'")->fetchList() as $path) {
-			$paths[$path["pathID"]] = pathName($path["pathID"]);
-		}
-		asort($paths);
-		$pathsHtml = "<select name=\"mirrorTarget\">";
-		foreach($paths as $id=>$address) {
-			$addressHtml = htmlentities($address);
-			$pathsHtml .= "<option value=\"$id\">$addressHtml</option>";
-		}
-		$pathsHtml .= "</select>";
-		
-		$operationsHtml = <<<HTML
-<div class="operation">
-<h3>Hosted website</h3>
-<table>
-<tr><th>Document root:</th><td>/home/</td><td>$usersHtml</td><td>/www/</td><td class="stretch"><input type="text" name="documentRoot" /></td><td>/</td></tr>
-<tr class="submit"><td colspan="6"><input type="submit" name="type" value="Use Hosted Website" /></td></tr>
-</table>
-</div>
-
-<div class="operation">
-<h3>Redirect</h3>
-A redirect to an external site.
-<table>
-<tr><th>Redirect target:</th><td><input type="text" name="redirectTarget" /></td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use Redirect" /></td></tr>
-</table>
-</div>
-
-<div class="operation">
-<h3>Alias</h3>
-Shows the same content as one of your other sites, effectively making the same content available under an alternative name.
-<table>
-<tr><th>Aliased website:</th><td>$pathsHtml</td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use Alias" /></td></tr>
-</table>
-</div>
-
-HTML;
+		$operationsHtml = pathFunctionSubform($readonly != "", $type, null, $hostedUserID, $hostedPath, $redirectTarget, $mirrorTargetPathID);
 	}
 	
+	$nameValue = inputValue($name);
 	return <<<HTML
 <div class="operation">
 <h2>Add subdomain</h2>
@@ -266,7 +307,7 @@ $messageHtml
 <form action="addsubdomain.php" method="post">
 $confirmHtml
 <table>
-<tr><th>Subdomain name:</th><td class="stretch"><input type="text" name="name" /></td><td>.$parentNameHtml</td></tr>
+<tr><th>Subdomain name:</th><td class="stretch"><input type="text" name="name" $nameValue /></td><td>.$parentNameHtml</td></tr>
 </table>
 
 $operationsHtml
