@@ -152,27 +152,40 @@ h2 {
 .operation h2 {
 	margin: -6px -6px 10px -6px;
 }
+.operation h3, .operation .operation h2 {
+	margin: -6px -6px 10px -6px;
+	font-size: 11pt;
+}
 
-.operation form table {
+.operation .operation {
+	margin-left: 15px;
+	margin-right: 15px;
+}
+
+.operation table {
 	width: 100%;
 }
-.operation form table th {
+.operation table th {
 	white-space: nowrap;
 }
-.operation form table td.stretch {
+.operation table td.stretch {
 	width: 100%;
 }
-.operation form table td input {
+.operation table td input {
 	width: 100%;
 }
 
-.operation form .submit input {
+.operation .submit input {
 	width: 100%;
 }
-.operation form .submit td {
+.operation .submit td {
 	text-align: center;
 	margin: 10px -6px -6px -6px;
 	padding: 10px 20px 6px 20px;
+}
+.operation .selected h2, .operation .selected h3 {
+	color: #cbdfff;
+	background: #153e7e;
 }
 
 /* Messages */
