@@ -26,6 +26,16 @@ function main()
 	$customerHtml = htmlentities($customer["name"]);
 	
 	$content = "<h1>Customers - $customerHtml</h1>\n";
+	$content .= breadcrumbs(array(
+		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/"),
+		array("name"=>$customer["name"], "url"=>"{$GLOBALS["root"]}customers/customer.php?id=" . $customerID),
+		array("name"=>"Edit customer rights", "url"=>"{$GLOBALS["root"]}customers/editcustomerrights.php?id=" . $customerID)
+		));
+	
+	if(!isset($_POST["posted"])) {
+		$content .= editCustomerRightsForm($customerID);
+		die(page($content));
+	}
 	
 	if(!isset($_POST["confirm"])) {
 		$content .= editCustomerRightsForm($customerID, null, $rights);

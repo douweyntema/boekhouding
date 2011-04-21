@@ -9,7 +9,7 @@ function menuCustomers()
 <li>
 <a href="{$GLOBALS["rootHtml"]}customers/">Customers</a>
 <ul>
-<li><a href="{$GLOBALS["rootHtml"]}customers/addcustomer.php">New customer</a></li>
+<li><a href="{$GLOBALS["rootHtml"]}customers/addcustomer.php">Add customer</a></li>
 </ul>
 </li>
 

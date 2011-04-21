@@ -16,6 +16,17 @@ function main()
 	
 	$content = "<h1>Customers - $customerHtml</h1>\n";
 	
+	$content .= breadcrumbs(array(
+		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/"),
+		array("name"=>$customer["name"], "url"=>"{$GLOBALS["root"]}customers/customer.php?id=" . $customerID),
+		array("name"=>"Edit customer", "url"=>"{$GLOBALS["root"]}customers/editcustomer.php?id=" . $customerID)
+		));
+	
+	if(!isset($_POST["customerName"]) || !isset($_POST["customerEmail"])) {
+		$content .= editCustomerForm($customerID, "", $customer["name"], $customer["email"]);
+		die(page($content));
+	}
+	
 	$name = $_POST["customerName"];
 	$email = $_POST["customerEmail"];
 	

@@ -35,7 +35,7 @@ function customerList()
 	return $output;
 }
 
-function addCustomerForm($error, $name, $email)
+function addCustomerForm($error = "", $name = "", $email = "")
 {
 	$nameValue = inputValue($name);
 	$emailValue = inputValue($email);
@@ -121,8 +121,18 @@ $confirmHtml
 HTML;
 }
 
-function editCustomerRightsForm($customerID, $error, $rights)
+function editCustomerRightsForm($customerID, $error = "", $rights = null)
 {
+	if($rights === null) {
+		$components = components();
+		$rights = array();
+		foreach($components as $component) {
+			$rights[$component["componentID"]] = false;
+		}
+		foreach($GLOBALS["database"]->stdList("adminCustomerRight", array("customerID"=>$customerID), "componentID") as $componentID) {
+			$rights[$componentID] = true;
+		}
+	}
 	if($error === null) {
 		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
 		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
@@ -141,6 +151,7 @@ function editCustomerRightsForm($customerID, $error, $rights)
 	$html .= "<h2>Edit customer rights</h2>\n";
 	$html .= $messageHtml;
 	$html .= "<form action=\"editcustomerrights.php?id=$customerID\" method=\"post\">\n";
+	$html .= "<input type=\"hidden\" name=\"posted\" value=\"true\">";
 	$html .= $confirmHtml;
 	$html .= "<table class=\"customer rights\">\n";
 	$html .= "<tr>\n";
