@@ -125,6 +125,15 @@ h2 {
 	border: 2px solid #153e7e;
 }
 
+h3 {
+	color: #153e7e;
+	font-size: 11pt;
+	text-align: center;
+	padding: 4px;
+	background-color: #cbdfff;
+	border: 2px solid #153e7e;
+}
+
 /* Blokjes informatie */
 .information {
 	border: 2px solid #153e7e;
@@ -152,6 +161,40 @@ h2 {
 .operation h2 {
 	margin: -6px -6px 10px -6px;
 }
+.operation h3 {
+	margin: -6px -6px 10px -6px;
+}
+
+.operation .operation {
+	margin-left: 15px;
+	margin-right: 15px;
+}
+
+.operation table {
+	width: 100%;
+}
+.operation table th {
+	white-space: nowrap;
+}
+.operation table td.stretch {
+	width: 100%;
+}
+.operation table td input {
+	width: 100%;
+}
+
+.operation .submit input {
+	width: 100%;
+}
+.operation .submit td {
+	text-align: center;
+	margin: 10px -6px -6px -6px;
+	padding: 10px 20px 6px 20px;
+}
+.operation .selected h2, .operation .selected h3 {
+	color: #cbdfff;
+	background: #153e7e;
+}
 
 /* Messages */
 .error {
@@ -171,7 +214,7 @@ h2 {
 }
 
 .confirmdelete {
-	border: 6px solid #c11b17;
+	border: 3px solid #c11b17;
 	background-color: #ffffcd;
 	padding: 4px;
 }
@@ -216,7 +259,7 @@ h2 {
 	background-color: #FFFFFF;
 	vertical-align: top;
 }
-.list table tbody tr.odd td {
+.list table tbody tr.even td {
 	background-color: #F0F0F6;
 }
 

@@ -8,7 +8,7 @@ function main()
 	$content = "<h1>Accounts</h1>\n";
 	
 	if(!isset($_POST["accountUsername"])) {
-		$content .= addAccountForm("", null, null, null);
+		$content .= addAccountForm();
 		die(page($content));
 	}
 	

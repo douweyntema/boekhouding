@@ -9,7 +9,7 @@ function menuAccounts()
 <li>
 <a href="{$GLOBALS["rootHtml"]}accounts/">Accounts</a>
 <ul>
-<li><a href="{$GLOBALS["rootHtml"]}accounts/addaccount.php">New account</a></li>
+<li><a href="{$GLOBALS["rootHtml"]}accounts/addaccount.php">Add account</a></li>
 </ul>
 </li>
 
@@ -26,7 +26,7 @@ function menuAccountsAdmin()
 <li>
 <a href="{$GLOBALS["rootHtml"]}accounts/">Admin Accounts</a>
 <ul>
-<li><a href="{$GLOBALS["rootHtml"]}accounts/addadminaccount.php">New admin account</a></li>
+<li><a href="{$GLOBALS["rootHtml"]}accounts/addadminaccount.php">Add admin account</a></li>
 </ul>
 </li>
 

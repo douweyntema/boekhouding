@@ -224,7 +224,7 @@ $confirmHtml
 <tr><th>Username:</th><td colspan="4"><input type="text" name="accountUsername" $nameValue $readonly /></td></tr>
 $passwordHtml
 $rightsHtml
-<tr><td colspan="5"><input type="submit" value="Add" /></td></tr>
+<tr class="submit"><td colspan="5"><input type="submit" value="Add" /></td></tr>
 </table>
 </form>
 </div>
@@ -253,11 +253,11 @@ function changeAccountPasswordForm($userID, $error, $password)
 		$passwordHtml = <<<HTML
 <tr>
 <th>Password:</th>
-<td><input type="password" name="accountPassword1" /></td>
+<td class="stretch"><input type="password" name="accountPassword1" /></td>
 </tr>
 <tr>
 <th>Confirm password:</th>
-<td><input type="password" name="accountPassword2" /></td>
+<td class="stretch"><input type="password" name="accountPassword2" /></td>
 </tr>
 
 HTML;
@@ -281,8 +281,8 @@ $messageHtml
 $confirmHtml
 <table>
 $passwordHtml
-<tr>
-<td colspan="2" class="submit"><input type="submit" value="Change Password" /></td>
+<tr class="submit">
+<td colspan="2"><input type="submit" value="Change Password" /></td>
 </tr>
 </table>
 </form>
@@ -403,7 +403,7 @@ $messageHtml
 $confirmHtml
 <table>
 $rightsHtml
-<tr><td colspan="5"><input type="submit" value="Save" /></td></tr>
+<tr class="submit"><td colspan="5"><input type="submit" value="Save" /></td></tr>
 </table>
 </form>
 </div>
@@ -435,7 +435,9 @@ function removeAccountForm($userID, $error)
 $messageHtml
 <form action="removeaccount.php?id=$userID" method="post">
 $confirmHtml
+<table><tr class="submit"><td>
 <input type="submit" value="Remove Account" />
+</td></tr></table>
 </form>
 </div>
 
@@ -513,8 +515,8 @@ $confirmHtml
 <td><input type="text" name="accountUsername" $nameValue $readonly /></td>
 </tr>
 $passwordHtml
-<tr>
-<td colspan="2" class="submit"><input type="submit" value="Add" /></td>
+<tr class="submit">
+<td colspan="2"><input type="submit" value="Add" /></td>
 </tr>
 </table>
 </form>
@@ -571,8 +573,8 @@ $messageHtml
 $confirmHtml
 <table>
 $passwordHtml
-<tr>
-<td colspan="2" class="submit"><input type="submit" value="Change Password" /></td>
+<tr class="submit">
+<td colspan="2"><input type="submit" value="Change Password" /></td>
 </tr>
 </table>
 </form>
@@ -603,7 +605,9 @@ function removeAdminAccountForm($userID, $error)
 $messageHtml
 <form action="removeadminaccount.php?id=$userID" method="post">
 $confirmHtml
+<table><tr class="submit"><td>
 <input type="submit" value="Remove Account" />
+</td></tr></table>
 </form>
 </div>
 
