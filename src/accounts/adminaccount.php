@@ -15,6 +15,10 @@ function main()
 	$usernameHtml = htmlentities($username);
 	
 	$content = "<h1>Admin Accounts - $usernameHtml</h1>\n";
+	$content .= breadcrumbs(array(
+		array("name"=>"Admin Accounts", "url"=>"{$GLOBALS["root"]}accounts/"),
+		array("name"=>$username, "url"=>"{$GLOBALS["root"]}accounts/adminaccount.php?id=" . $userID)
+		));
 	
 	$content .= changeAdminAccountPasswordForm($userID, "", null);
 	$content .= removeAdminAccountForm($userID, "");

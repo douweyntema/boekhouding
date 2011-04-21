@@ -6,6 +6,10 @@ doCustomers(null);
 function main()
 {
 	$content = "<h1>Customers</h1>\n";
+	$content .= breadcrumbs(array(
+		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/"),
+		array("name"=>"Add customer", "url"=>"{$GLOBALS["root"]}customers/addcustomer.php")
+		));
 	
 	$name = "";
 	$email = "";

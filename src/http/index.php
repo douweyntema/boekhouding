@@ -8,7 +8,7 @@ function main()
 	
 	$content = "<h1>Web hosting</h1>\n";
 	
-	$content .= breadcrumbs(array(array("url"=>"", "name"=>"Web hosting")));
+	$content .= breadcrumbs(array(array("url"=>"{$GLOBALS["root"]}http/", "name"=>"Web hosting")));
 	
 	$content .= domainsList();
 	

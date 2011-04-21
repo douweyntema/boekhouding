@@ -6,6 +6,10 @@ doAccounts(null);
 function main()
 {
 	$content = "<h1>Accounts</h1>\n";
+	$content .= breadcrumbs(array(
+		array("name"=>"Accounts", "url"=>"{$GLOBALS["root"]}accounts/"),
+		array("name"=>"Add account", "url"=>"{$GLOBALS["root"]}accounts/addaccount.php")
+		));
 	
 	if(!isset($_POST["accountUsername"])) {
 		$content .= addAccountForm();

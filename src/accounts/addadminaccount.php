@@ -6,6 +6,10 @@ doAccountsAdmin(null);
 function main()
 {
 	$content = "<h1>Admin Accounts</h1>\n";
+	$content .= breadcrumbs(array(
+		array("name"=>"Admin Accounts", "url"=>"{$GLOBALS["root"]}accounts/"),
+		array("name"=>"Add admin account", "url"=>"{$GLOBALS["root"]}accounts/addadminaccount.php")
+		));
 	
 	if(!isset($_POST["accountUsername"])) {
 		$content .= addAdminAccountForm("", "", null);

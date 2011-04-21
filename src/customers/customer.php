@@ -12,19 +12,14 @@ function main()
 		customerNotFound($customerID);
 	}
 	
-	$components = components();
-	$rights = array();
-	foreach($components as $component) {
-		$rights[$component["componentID"]] = false;
-	}
-	foreach($GLOBALS["database"]->stdList("adminCustomerRight", array("customerID"=>$customerID), "componentID") as $componentID) {
-		$rights[$componentID] = true;
-	}
-	
 	$usernameHtml = htmlentities(username());
 	$customerHtml = htmlentities($customer["name"]);
 	
 	$content = "<h1>Customers - $customerHtml</h1>\n";
+	$content .= breadcrumbs(array(
+		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/"),
+		array("name"=>$customer["name"], "url"=>"{$GLOBALS["root"]}customers/customer.php?id=" . $customerID)
+		));
 	
 	$content .= <<<HTML
 <div class="operation">
@@ -35,7 +30,7 @@ function main()
 HTML;
 	
 	$content .= editCustomerForm($customerID, "", $customer["name"], $customer["email"]);
-	$content .= editCustomerRightsForm($customerID, "", $rights);
+	$content .= editCustomerRightsForm($customerID);
 	
 	echo page($content);
 }
