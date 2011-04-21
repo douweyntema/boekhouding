@@ -15,6 +15,11 @@ function main()
 	$usernameHtml = htmlentities($username);
 	
 	$content = "<h1>Admin Accounts - $usernameHtml</h1>\n";
+	$content .= breadcrumbs(array(
+		array("name"=>"Admin Accounts", "url"=>"{$GLOBALS["root"]}accounts/"),
+		array("name"=>$username, "url"=>"{$GLOBALS["root"]}accounts/adminaccount.php?id=" . $userID),
+		array("name"=>"Remove account", "url"=>"{$GLOBALS["root"]}accounts/removeadminaccount.php?id=" . $userID)
+		));
 	
 	if(!isset($_POST["confirm"])) {
 		$content .= removeAdminAccountForm($userID, null);

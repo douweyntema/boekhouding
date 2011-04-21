@@ -233,7 +233,7 @@ $js
 HTML;
 }
 
-function changeAccountPasswordForm($userID, $error, $password)
+function changeAccountPasswordForm($userID, $error = "", $password = null)
 {
 	if($error === null) {
 		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
@@ -291,8 +291,22 @@ $passwordHtml
 HTML;
 }
 
-function changeAccountRightsForm($userID, $error, $rights)
+function changeAccountRightsForm($userID, $error = "", $rights = null)
 {
+	if($rights === null) {
+		if($GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>$userID, "componentID"=>null), "userID", false) !== false) {
+			$rights = true;
+		} else {
+			$components = customerComponents();
+			$rights = array();
+			foreach($components as $component) {
+				$rights[$component["componentID"]] = false;
+			}
+			foreach($GLOBALS["database"]->stdList("adminUserRight", array("userID"=>$userID), "componentID") as $componentID) {
+				$rights[$componentID] = true;
+			}
+		}
+	}
 	if($error === null) {
 		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
 		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
@@ -525,7 +539,7 @@ $passwordHtml
 HTML;
 }
 
-function changeAdminAccountPasswordForm($userID, $error, $password)
+function changeAdminAccountPasswordForm($userID, $error = "", $password = null)
 {
 	if($error === null) {
 		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";

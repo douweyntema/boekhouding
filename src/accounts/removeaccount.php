@@ -15,12 +15,18 @@ function main()
 	$usernameHtml = htmlentities($username);
 	
 	$content = "<h1>Accounts - $usernameHtml</h1>\n";
+	$content .= breadcrumbs(array(
+		array("name"=>"Accounts", "url"=>"{$GLOBALS["root"]}accounts/"),
+		array("name"=>$username, "url"=>"{$GLOBALS["root"]}accounts/account.php?id=" . $userID),
+		array("name"=>"Remove account", "url"=>"{$GLOBALS["root"]}accounts/removeaccount.php?id=" . $userID)
+		));
 	
 	if(!isset($_POST["confirm"])) {
 		$content .= removeAccountForm($userID, null);
 		die(page($content));
 	}
 	
+	$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID));
 	$GLOBALS["database"]->stdDel("adminUser", array("userID"=>$userID, "customerID"=>customerID()));
 	
 	// Distribute the accounts database

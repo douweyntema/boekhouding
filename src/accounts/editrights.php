@@ -12,6 +12,20 @@ function main()
 		accountNotFound($userID);
 	}
 	
+	$usernameHtml = htmlentities($username);
+	
+	$content = "<h1>Accounts - $usernameHtml</h1>\n";
+	$content .= breadcrumbs(array(
+		array("name"=>"Accounts", "url"=>"{$GLOBALS["root"]}accounts/"),
+		array("name"=>$username, "url"=>"{$GLOBALS["root"]}accounts/account.php?id=" . $userID),
+		array("name"=>"Edit rights", "url"=>"{$GLOBALS["root"]}accounts/editrights.php?id=" . $userID)
+		));
+	
+	if(!isset($_POST["rights"])) {
+		$content .= changeAccountRightsForm($userID);
+		die(page($content));
+	}
+	
 	if($_POST["rights"] == "full") {
 		$rights = true;
 	} else {
@@ -25,10 +39,6 @@ function main()
 			}
 		}
 	}
-	
-	$usernameHtml = htmlentities($username);
-	
-	$content = "<h1>Accounts - $usernameHtml</h1>\n";
 	
 	if(!isset($_POST["confirm"])) {
 		$content .= changeAccountRightsForm($userID, null, $rights);
