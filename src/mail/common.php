@@ -128,13 +128,14 @@ $confirmHtml
 <table>
 <tr>
 <th>Alias:</th>
-<td><input type="text" name="localpart" $readonly $aliasValue />@{$domainName}</td>
+<td class="stretch"><input type="text" name="localpart" $readonly $aliasValue /></td>
+<td>@{$domainName}</td>
 </tr>
 <tr>
 <th>Target address:</th>
-<td><input type="text" name="targetAddress" $readonly $targetAddressValue /></td>
+<td class="stretch" colspan="2"><input type="text" name="targetAddress" $readonly $targetAddressValue /></td>
 </tr>
-<tr><td colspan="5"><input type="submit" value="Save" /></td></tr>
+<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
 </table>
 </form>
 </div>
@@ -172,13 +173,14 @@ $confirmHtml
 <table>
 <tr>
 <th>Alias:</th>
-<td><input type="text" name="localpart" $readonly $aliasValue />@{$domainName}</td>
+<td class="stretch"><input type="text" name="localpart" $readonly $aliasValue /></td>
+<td>@{$domainName}</td>
 </tr>
 <tr>
 <th>Target address:</th>
-<td><input type="text" name="targetAddress" $readonly $targetAddressValue /></td>
+<td colspan="2" class="stretch"><input type="text" name="targetAddress" $readonly $targetAddressValue /></td>
 </tr>
-<tr><td colspan="5"><input type="submit" value="Save" /></td></tr>
+<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
 </table>
 </form>
 </div>
@@ -209,7 +211,9 @@ function removeMailAliasForm($aliasID, $error)
 $messageHtml
 <form action="removealias.php?id=$aliasID" method="post">
 $confirmHtml
+<table><tr class="submit"><td>
 <input type="submit" value="Remove Alias" />
+</td></tr></table>
 </form>
 </div>
 

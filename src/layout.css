@@ -153,6 +153,28 @@ h2 {
 	margin: -6px -6px 10px -6px;
 }
 
+.operation form table {
+	width: 100%;
+}
+.operation form table th {
+	white-space: nowrap;
+}
+.operation form table td.stretch {
+	width: 100%;
+}
+.operation form table td input {
+	width: 100%;
+}
+
+.operation form .submit input {
+	width: 100%;
+}
+.operation form .submit td {
+	text-align: center;
+	margin: 10px -6px -6px -6px;
+	padding: 10px 20px 6px 20px;
+}
+
 /* Messages */
 .error {
 	border: 3px solid #c11b17;
@@ -171,7 +193,7 @@ h2 {
 }
 
 .confirmdelete {
-	border: 6px solid #c11b17;
+	border: 3px solid #c11b17;
 	background-color: #ffffcd;
 	padding: 4px;
 }
@@ -216,7 +238,7 @@ h2 {
 	background-color: #FFFFFF;
 	vertical-align: top;
 }
-.list table tbody tr.odd td {
+.list table tbody tr.even td {
 	background-color: #F0F0F6;
 }
 
