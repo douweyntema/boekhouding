@@ -285,7 +285,7 @@ function pathFunctionSubformMirror($confirm, $selected, $pathID, $mirrorTargetPa
 {
 	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
 	$paths = array();
-	foreach($GLOBALS["database"]->query("SELECT pathID FROM httpPath INNER JOIN httpDomain ON httpPath.domainID = httpDomain.domainID WHERE httpDomain.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' AND httpPath.type != 'MIRROR'" . ($pathID === null ? "" : "httpPath.pathID <> '" . $GLOBALS["database"]->addSlashes($pathID) . "'"))->fetchList() as $path) {
+	foreach($GLOBALS["database"]->query("SELECT pathID FROM httpPath INNER JOIN httpDomain ON httpPath.domainID = httpDomain.domainID WHERE httpDomain.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' AND httpPath.type != 'MIRROR'" . ($pathID === null ? "" : " AND httpPath.pathID <> '" . $GLOBALS["database"]->addSlashes($pathID) . "'"))->fetchList() as $path) {
 		$paths[$path["pathID"]] = pathName($path["pathID"]);
 	}
 	asort($paths);
@@ -510,7 +510,7 @@ HTML;
 		}
 		$operationsHtml = "";
 	} else {
-		$operationsHtml = pathFunctionSubform($readonly != "", $type, null, $hostedUserID, $hostedPath, $redirectTarget, $mirrorTargetPathID);
+		$operationsHtml = pathFunctionSubform($readonly != "", $type, $pathID, $hostedUserID, $hostedPath, $redirectTarget, $mirrorTargetPathID);
 	}
 	
 	return <<<HTML
@@ -595,7 +595,7 @@ function subdomainTrees($domainID, $name, $customerID)
 
 function domainPathTree($domainID, $name)
 {
-	$path = $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), array("pathID", "type", "hostedPath", "svnPath", "redirectTarget", "mirrorTargetPathID", "userDatabaseID"));
+	$path = $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), array("pathID", "type", "hostedUserID", "hostedPath", "svnPath", "redirectTarget", "mirrorTargetPathID", "userDatabaseID"));
 	if($path === null) {
 		return null;
 	}
@@ -604,7 +604,8 @@ function domainPathTree($domainID, $name)
 	$output["type"] = $path["type"];
 	$output["userDatabaseID"] = $path["userDatabaseID"];
 	if($path["type"] == "HOSTED") {
-		$output["target"] = $path["hostedPath"];
+		$username = username($path["hostedUserID"]);
+		$output["target"] = "/home/$username/{$path["hostedPath"]}/";
 	} else if($path["type"] == "SVN") {
 		$output["target"] = $path["svnPath"];
 	} else if($path["type"] == "REDIRECT") {
