@@ -13,6 +13,8 @@ function main()
 	
 	$content .= domainSummary($domainID);
 	
+	$content .= editPathForm($domainID, null, "STUB");
+	
 	$content .= addSubdomainForm($domainID, "STUB");
 	
 	echo page($content);
