@@ -45,6 +45,7 @@ function main()
 		die(page($content));
 	}
 	
+	$GLOBALS["database"]->startTransaction();
 	$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID));
 	if($rights === true) {
 		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "componentID"=>null));
@@ -55,6 +56,7 @@ function main()
 			}
 		}
 	}
+	$GLOBALS["database"]->commitTransaction();
 	
 	// Distribute the accounts database
 	updateAccounts(customerID());

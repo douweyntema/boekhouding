@@ -26,8 +26,10 @@ function main()
 		die(page($content));
 	}
 	
+	$GLOBALS["database"]->startTransaction();
 	$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID));
 	$GLOBALS["database"]->stdDel("adminUser", array("userID"=>$userID, "customerID"=>customerID()));
+	$GLOBALS["database"]->commitTransaction();
 	
 	// Distribute the accounts database
 	updateAccounts(customerID());

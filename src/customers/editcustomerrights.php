@@ -43,6 +43,7 @@ function main()
 		die(page($content));
 	}
 	
+	$GLOBALS["database"]->startTransaction();
 	$GLOBALS["database"]->stdDel("adminCustomerRight", array("customerID"=>$customerID));
 	foreach($components as $component) {
 		$componentID = $component["componentID"];
@@ -54,6 +55,7 @@ function main()
 			}
 		}
 	}
+	$GLOBALS["database"]->commitTransaction();
 	
 	// Distribute the accounts database
 	updateAccounts($customerID);

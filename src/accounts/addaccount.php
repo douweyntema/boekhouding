@@ -65,6 +65,7 @@ function main()
 		die(page($content));
 	}
 	
+	$GLOBALS["database"]->startTransaction();
 	$accountID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>customerID(), "username"=>$username, "password"=>hashPassword($password)));
 	if($rights === true) {
 		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$accountID, "componentID"=>null));
@@ -75,6 +76,7 @@ function main()
 			}
 		}
 	}
+	$GLOBALS["database"]->commitTransaction();
 	
 	// Distribute the accounts database
 	updateAccounts(customerID());
