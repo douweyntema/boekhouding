@@ -31,6 +31,11 @@ function main()
 		$mirrorTarget = $_POST["mirrorTarget"];
 	}
 	
+	if($subdomainName == "" || $subdomainName === null) {
+		$content .= addSubdomainForm($domainID, "", $subdomainName);
+		die(page($content));
+	}
+	
 	$subdomainParts = explode(".", $subdomainName);
 	$valid = count($subdomainParts) > 0;
 	foreach($subdomainParts as $part) {
@@ -44,7 +49,7 @@ function main()
 	}
 	
 	if($type === null) {
-		$content .= addSubdomainForm($domainID, "", $subdomainName, null, null, $subdomainName . "." . $domainName);
+		$content .= addSubdomainForm($domainID, "", $subdomainName, null, null, "$subdomainName.$domainName");
 		die(page($content));
 	}
 	
@@ -61,7 +66,7 @@ function main()
 		}
 	}
 	if(count($remainingDomainParts) == 0 && !isStubDomain($parentDomainID)) {
-		$content .= addSubdomainForm($domainID, "Domain name is in use", $subdomainName, $type, $hostedUsrID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
+		$content .= addSubdomainForm($domainID, "Domain name is in use", $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
 		die(page($content));
 	}
 	
@@ -122,7 +127,7 @@ function main()
 			$parentDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "parentDomainID"=>$parentDomainID, "name"=>$part));
 		}
 		$newDomainID = $parentDomainID;
-		$GLOBALS["database"]->stdNew("httpPath", array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null, "type"=>"MIRROR", "mirrorTargetPathID"=>$redirectTarget));
+		$GLOBALS["database"]->stdNew("httpPath", array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null, "type"=>"MIRROR", "mirrorTargetPathID"=>$mirrorTarget));
 	} else {
 		die("Internal error");
 	}
