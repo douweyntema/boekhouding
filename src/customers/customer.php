@@ -1,11 +1,12 @@
 <?php
 
 require_once("common.php");
-doCustomers($_GET["id"]);
 
 function main()
 {
-	$customerID = $_GET["id"];
+	doCustomers();
+	
+	$customerID = get("id");
 	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "email"), false);
 	
 	if($customer === false) {

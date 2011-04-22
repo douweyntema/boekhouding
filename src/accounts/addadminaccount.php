@@ -1,22 +1,23 @@
 <?php
 
 require_once("common.php");
-doAccountsAdmin(null);
 
 function main()
 {
+	doAdminAccounts();
+	
 	$content = "<h1>Admin Accounts</h1>\n";
 	$content .= breadcrumbs(array(
 		array("name"=>"Admin Accounts", "url"=>"{$GLOBALS["root"]}accounts/"),
 		array("name"=>"Add admin account", "url"=>"{$GLOBALS["root"]}accounts/addadminaccount.php")
 		));
 	
-	if(!isset($_POST["accountUsername"])) {
+	if(post("accountUsername") === null) {
 		$content .= addAdminAccountForm("", "", null);
 		die(page($content));
 	}
 	
-	$username = $_POST["accountUsername"];
+	$username = post("accountUsername");
 	
 	$exists = $GLOBALS["database"]->stdGetTry("adminUser", array("username"=>$username), "customerID", false) !== false;
 	if($exists) {
@@ -29,22 +30,22 @@ function main()
 		die(page($content));
 	}
 	
-	if(!isset($_POST["confirm"])) {
-		if($_POST["accountPassword1"] != $_POST["accountPassword2"]) {
+	if(post("confirm") === null) {
+		if(post("accountPassword1") != post("accountPassword2")) {
 			$content .= addAdminAccountForm("The entered passwords do not match.", $username, null);
 			die(page($content));
 		}
 		
-		if($_POST["accountPassword1"] == "") {
+		if(post("accountPassword1") == "") {
 			$content .= addAdminAccountForm("Passwords must be at least one character long.", $username, null);
 			die(page($content));
 		}
 		
-		$content .= addAdminAccountForm(null, $username, $_POST["accountPassword1"]);
+		$content .= addAdminAccountForm(null, $username, post("accountPassword1"));
 		die(page($content));
 	}
 	
-	$password = decryptPassword($_POST["accountEncryptedPassword"]);
+	$password = decryptPassword(post("accountEncryptedPassword"));
 	if($password === null) {
 		$content .= addAdminAccountForm("Internal error: invalid encrypted password. Please enter password again.", $username, null);
 		die(page($content));

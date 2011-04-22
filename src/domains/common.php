@@ -2,10 +2,15 @@
 
 require_once(dirname(__FILE__) . "/../common.php");
 
-function doDomains($domainID)
+function doDomains()
 {
 	useComponent("domains");
 	$GLOBALS["menuComponent"] = "domains";
+}
+
+function doDomain($domainID)
+{
+	doDomains();
 	if($domainID != null) {
 		useCustomer($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "customerID", false));
 	}

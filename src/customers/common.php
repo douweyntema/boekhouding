@@ -2,7 +2,7 @@
 
 require_once(dirname(__FILE__) . "/../common.php");
 
-function doCustomers($customerID)
+function doCustomers()
 {
 	useComponent("customers");
 	useCustomer(0);

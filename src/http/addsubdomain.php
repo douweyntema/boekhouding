@@ -4,7 +4,7 @@ require_once("common.php");
 
 function main()
 {
-	$domainID = $_GET["id"];
+	$domainID = get("id");
 	doHttpDomain($domainID);
 	$domainName = domainName($domainID);
 	
@@ -15,20 +15,20 @@ function main()
 		array("name"=>"Add subdomain", "url"=>"{$GLOBALS["root"]}http/addsubdomain.php?id=$domainID")
 		));
 	
-	$subdomainName = $_POST["name"];
+	$subdomainName = post("name");
 	
-	$type = typeFromTitle(isset($_POST["type"]) ? $_POST["type"] : null);
+	$type = typeFromTitle(post("type"));
 	$hostedUserID = null;
 	$hostedDocumentRoot = null;
 	$redirectTarget = null;
 	$mirrorTarget = null;
 	if($type == "HOSTED") {
-		$hostedUserID = $_POST["documentOwner"];
-		$hostedDocumentRoot = $_POST["documentRoot"];
+		$hostedUserID = post("documentOwner");
+		$hostedDocumentRoot = post("documentRoot");
 	} else if($type == "REDIRECT") {
-		$redirectTarget = $_POST["redirectTarget"];
+		$redirectTarget = post("redirectTarget");
 	} else if($type == "MIRROR") {
-		$mirrorTarget = $_POST["mirrorTarget"];
+		$mirrorTarget = post("mirrorTarget");
 	}
 	
 	if($subdomainName == "" || $subdomainName === null) {
@@ -85,7 +85,7 @@ function main()
 			die(page($content));
 		}
 		
-		if(!isset($_POST["confirm"])) {
+		if(post("confirm") === null) {
 			$content .= addSubdomainForm($domainID, null, $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
 			die(page($content));
 		}
@@ -99,7 +99,7 @@ function main()
 		$newDomainID = $parentDomainID;
 		$GLOBALS["database"]->stdNew("httpPath", array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null, "type"=>"HOSTED", "hostedUserID"=>$hostedUserID, "hostedPath"=>$docroot));
 	} else if($type == "REDIRECT") {
-		if(!isset($_POST["confirm"])) {
+		if(post("confirm") === null) {
 			$content .= addSubdomainForm($domainID, null, $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
 			die(page($content));
 		}
@@ -117,7 +117,7 @@ function main()
 			die(page($content));
 		}
 		
-		if(!isset($_POST["confirm"])) {
+		if(post("confirm") === null) {
 			$content .= addSubdomainForm($domainID, null, $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
 			die(page($content));
 		}

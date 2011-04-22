@@ -1,11 +1,11 @@
 <?php
 
 require_once("common.php");
-doAccounts($_GET["id"]);
 
 function main()
 {
-	$userID = $_GET["id"];
+	$userID = get("id");
+	doAccountsUser($userID);
 	$username = $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID, "customerID"=>customerID()), "username", false);
 	
 	if($username === false) {
@@ -21,26 +21,26 @@ function main()
 		array("name"=>"Change password", "url"=>"{$GLOBALS["root"]}accounts/editpassword.php?id=" . $userID)
 		));
 
-	if(!isset($_POST["accountPassword1"]) || !isset($_POST["accountPassword2"])) {
+	if(post("accountPassword1") === null || post("accountPassword2")) {
 		$content .= changeAccountPasswordForm($userID);
 		die(page($content));
 	} else {
-		if(!isset($_POST["confirm"])) {
-			if($_POST["accountPassword1"] != $_POST["accountPassword2"]) {
+		if(post("confirm") === null) {
+			if(post("accountPassword1") != post("accountPassword2")) {
 				$content .= changeAccountPasswordForm($userID, "The entered passwords do not match.", null);
 				die(page($content));
 			}
 			
-			if($_POST["accountPassword1"] == "") {
+			if(post("accountPassword1") == "") {
 				$content .= changeAccountPasswordForm($userID, "Passwords must be at least one character long.", null);
 				die(page($content));
 			}
 			
-			$content .= changeAccountPasswordForm($userID, null, $_POST["accountPassword1"]);
+			$content .= changeAccountPasswordForm($userID, null, post("accountPassword1"));
 			die(page($content));
 		}
 		
-		$password = decryptPassword($_POST["accountEncryptedPassword"]);
+		$password = decryptPassword(post("accountEncryptedPassword"));
 		if($password === null) {
 			$content .= changeAccountPasswordForm($userID, "Internal error: invalid encrypted password. Please enter password again.", null);
 			die(page($content));

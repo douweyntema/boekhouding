@@ -34,6 +34,16 @@ if(get_magic_quotes_gpc()) {
 	}
 }
 
+function get($id)
+{
+	return isset($_GET[$id]) ? $_GET[$id] : null;
+}
+
+function post($id)
+{
+	return isset($_POST[$id]) ? $_POST[$id] : null;
+}
+
 function relativeRoot()
 {
 	$directories = substr_count(realpath($_SERVER["SCRIPT_FILENAME"]), "/") - substr_count(realpath(__FILE__), "/");

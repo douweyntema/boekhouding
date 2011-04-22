@@ -4,7 +4,7 @@ require_once("common.php");
 
 function main()
 {
-	$pathID = $_GET["id"];
+	$pathID = get("id");
 	doHttpPath($pathID);
 	$domainID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "domainID");
 	

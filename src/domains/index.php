@@ -4,7 +4,7 @@ require_once(dirname(__FILE__) . "/common.php");
 
 function main()
 {
-	doDomains(null);
+	doDomains();
 	
 	$content = "<h1>Domains</h1>\n";
 	
