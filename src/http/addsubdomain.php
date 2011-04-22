@@ -40,7 +40,7 @@ function main()
 		}
 	}
 	if(!$valid) {
-		$content .= addSubdomainForm($domainID, "Invalid domain name", $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
+		$content .= addSubdomainForm($domainID, "Invalid domain name.", $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
 		die(page($content));
 	}
 	
@@ -62,7 +62,7 @@ function main()
 		}
 	}
 	if(count($remainingDomainParts) == 0 && !isStubDomain($parentDomainID)) {
-		$content .= addSubdomainForm($domainID, "Domain name is in use", $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
+		$content .= addSubdomainForm($domainID, "A domain with the given name already exists.", $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
 		die(page($content));
 	}
 	
