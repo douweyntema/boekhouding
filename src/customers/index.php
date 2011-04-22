@@ -1,10 +1,11 @@
 <?php
 
 require_once("common.php");
-doCustomers(null);
 
 function main()
 {
+	doCustomers();
+	
 	$content = "<h1>Customers</h1>\n";
 	
 	$content .= breadcrumbs(array(

@@ -1,11 +1,12 @@
 <?php
 
 require_once("common.php");
-doCustomers($_GET["id"]);
 
 function main()
 {
-	$customerID = $_GET["id"];
+	doCustomers();
+	
+	$customerID = get("id");
 	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "email"), false);
 	
 	if($customer === false) {
@@ -16,7 +17,7 @@ function main()
 	$rights = array();
 	foreach($components as $component) {
 		$componentID = $component["componentID"];
-		if(isset($_POST["right" . $componentID])) {
+		if(post("right" . $componentID) !== null) {
 			$rights[$componentID] = true;
 		} else {
 			$rights[$componentID] = false;
@@ -32,16 +33,17 @@ function main()
 		array("name"=>"Edit customer rights", "url"=>"{$GLOBALS["root"]}customers/editcustomerrights.php?id=" . $customerID)
 		));
 	
-	if(!isset($_POST["posted"])) {
+	if(post("posted") === null) {
 		$content .= editCustomerRightsForm($customerID);
 		die(page($content));
 	}
 	
-	if(!isset($_POST["confirm"])) {
+	if(post("confirm") === null) {
 		$content .= editCustomerRightsForm($customerID, null, $rights);
 		die(page($content));
 	}
 	
+	$GLOBALS["database"]->startTransaction();
 	$GLOBALS["database"]->stdDel("adminCustomerRight", array("customerID"=>$customerID));
 	foreach($components as $component) {
 		$componentID = $component["componentID"];
@@ -53,6 +55,7 @@ function main()
 			}
 		}
 	}
+	$GLOBALS["database"]->commitTransaction();
 	
 	// Distribute the accounts database
 	updateAccounts($customerID);

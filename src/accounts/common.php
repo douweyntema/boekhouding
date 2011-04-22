@@ -4,18 +4,22 @@ require_once(dirname(__FILE__) . "/../common.php");
 
 define("RESERVED_USERNAMES_FILE", dirname(__FILE__) . "/../../reserved-usernames");
 
-function doAccounts($userID)
+function doAccounts()
 {
 	useComponent("accounts");
-	useCustomer($userID === null ? customerID() : $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID), "customerID", false));
 	$GLOBALS["menuComponent"] = "accounts";
 }
 
-function doAccountsAdmin($userID)
+function doAccountsUser($userID)
 {
-	useComponent("accounts");
+	doAccounts();
+	useCustomer($userID === null ? customerID() : $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID), "customerID", false));
+}
+
+function doAdminAccounts()
+{
+	doAccounts();
 	useCustomer(0);
-	$GLOBALS["menuComponent"] = "accounts";
 }
 
 function accountNotFound($accountID)

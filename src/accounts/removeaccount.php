@@ -1,11 +1,11 @@
 <?php
 
 require_once("common.php");
-doAccounts($_GET["id"]);
 
 function main()
 {
-	$userID = $_GET["id"];
+	$userID = get("id");
+	doAccountsUser($userID);
 	$username = $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID, "customerID"=>customerID()), "username", false);
 	
 	if($username === false) {
@@ -21,13 +21,15 @@ function main()
 		array("name"=>"Remove account", "url"=>"{$GLOBALS["root"]}accounts/removeaccount.php?id=" . $userID)
 		));
 	
-	if(!isset($_POST["confirm"])) {
+	if(post("confirm") === null) {
 		$content .= removeAccountForm($userID, null);
 		die(page($content));
 	}
 	
+	$GLOBALS["database"]->startTransaction();
 	$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID));
 	$GLOBALS["database"]->stdDel("adminUser", array("userID"=>$userID, "customerID"=>customerID()));
+	$GLOBALS["database"]->commitTransaction();
 	
 	// Distribute the accounts database
 	updateAccounts(customerID());

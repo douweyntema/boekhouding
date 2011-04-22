@@ -14,7 +14,7 @@ function doMailAlias($aliasID)
 {
 }
 
-function doMailbox($mailboxID)
+function doMailAddress($addressID)
 {
 }
 

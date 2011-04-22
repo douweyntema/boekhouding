@@ -4,7 +4,7 @@ require_once("common.php");
 
 function main()
 {
-	$aliasID = $_GET["id"];
+	$aliasID = get("id");
 	doMailAlias($aliasID);
 	
 	$alias = $GLOBALS["database"]->stdGetTry("mailAlias", array("aliasID"=>$aliasID), array("domainID", "localpart", "targetAddress"), false);
@@ -17,10 +17,10 @@ function main()
 	
 	$content = "<h1>Alias {$alias["localpart"]}@$domain</h1>\n";
 	
-	$localpart = $_POST["localpart"];
-	$targetAddress = $_POST["targetAddress"];
+	$localpart = post("localpart");
+	$targetAddress = post("targetAddress");
 	
-	if(!isset($_POST["confirm"])) {
+	if(post("confirm") === null) {
 		$content .= editMailAliasForm($aliasID, null, $localpart, $targetAddress);
 		die(page($content));
 	}

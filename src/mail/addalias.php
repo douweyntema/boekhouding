@@ -4,17 +4,17 @@ require_once("common.php");
 
 function main()
 {
-	$domainID = $_GET["id"];
+	$domainID = get("id");
 	doMailDomain($domainID);
 	
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
 	
 	$content = "<h1>New alias for doman $domain</h1>\n";
 	
-	$localpart = $_POST["localpart"];
-	$targetAddress = $_POST["targetAddress"];
+	$localpart = post("localpart");
+	$targetAddress = post("targetAddress");
 	
-	if(!isset($_POST["confirm"])) {
+	if(post("confirm") === null) {
 		$content .= addMailAliasForm($domainID, null, $localpart, $targetAddress);
 		die(page($content));
 	}

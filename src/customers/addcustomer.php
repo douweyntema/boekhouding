@@ -1,24 +1,19 @@
 <?php
 
 require_once("common.php");
-doCustomers(null);
 
 function main()
 {
+	doCustomers();
+	
 	$content = "<h1>Customers</h1>\n";
 	$content .= breadcrumbs(array(
 		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/"),
 		array("name"=>"Add customer", "url"=>"{$GLOBALS["root"]}customers/addcustomer.php")
 		));
 	
-	$name = "";
-	$email = "";
-	if(isset($_POST["customerName"])) {
-		$name = $_POST["customerName"];
-	}
-	if(isset($_POST["customerEmail"])) {
-		$email = $_POST["customerEmail"];
-	}
+	$name = post("customerName");
+	$email = post("customerEmail");
 	
 	if(trim($name) == "") {
 		$content .= addCustomerForm("", $name, $email);
@@ -31,7 +26,7 @@ function main()
 		die(page($content));
 	}
 	
-	if(!isset($_POST["confirm"])) {
+	if(post("confirm") === null) {
 		$content .= addCustomerForm(null, $name, $email);
 		die(page($content));
 	}

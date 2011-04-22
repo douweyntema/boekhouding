@@ -4,7 +4,7 @@ require_once("common.php");
 
 function main()
 {
-	$domainID = $_GET["id"];
+	$domainID = get("id");
 	doHttpDomain($domainID);
 	
 	if(isStubDomain($domainID)) {

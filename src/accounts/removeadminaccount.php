@@ -1,11 +1,12 @@
 <?php
 
 require_once("common.php");
-doAccountsAdmin(null);
 
 function main()
 {
-	$userID = $_GET["id"];
+	doAdminAccounts();
+	
+	$userID = get("id");
 	$username = $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID, "customerID"=>null), "username", false);
 	
 	if($username === false) {
@@ -21,7 +22,7 @@ function main()
 		array("name"=>"Remove account", "url"=>"{$GLOBALS["root"]}accounts/removeadminaccount.php?id=" . $userID)
 		));
 	
-	if(!isset($_POST["confirm"])) {
+	if(post("confirm") === null) {
 		$content .= removeAdminAccountForm($userID, null);
 		die(page($content));
 	}

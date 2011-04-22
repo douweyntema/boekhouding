@@ -1,11 +1,11 @@
 <?php
 
 require_once("common.php");
-doAccounts($_GET["id"]);
 
 function main()
 {
-	$userID = $_GET["id"];
+	$userID = get("id");
+	doAccountsUser($userID);
 	$username = $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID, "customerID"=>customerID()), "username", false);
 	
 	if($username === false) {

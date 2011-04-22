@@ -1,11 +1,12 @@
 <?php
 
 require_once("common.php");
-doCustomers($_GET["id"]);
 
 function main()
 {
-	$customerID = $_GET["id"];
+	doCustomers();
+	
+	$customerID = get("id");
 	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "email"), false);
 	
 	if($customer === false) {
@@ -22,13 +23,13 @@ function main()
 		array("name"=>"Edit customer", "url"=>"{$GLOBALS["root"]}customers/editcustomer.php?id=" . $customerID)
 		));
 	
-	if(!isset($_POST["customerName"]) || !isset($_POST["customerEmail"])) {
+	$name = post("customerName";
+	$email = post("customerEmail");
+	
+	if($name === null || $email === null) {
 		$content .= editCustomerForm($customerID, "", $customer["name"], $customer["email"]);
 		die(page($content));
 	}
-	
-	$name = $_POST["customerName"];
-	$email = $_POST["customerEmail"];
 	
 	$oldCustomerID = $GLOBALS["database"]->stdGetTry("adminCustomer", array("name"=>$name), "customerID", false);
 	$exists = ($oldCustomerID !== false && $oldCustomerID != $customerID);
@@ -38,7 +39,7 @@ function main()
 		die(page($content));
 	}
 	
-	if(!isset($_POST["confirm"])) {
+	if(post("confirm") === null) {
 		$content .= editCustomerForm($customerID, null, $name, $email);
 		die(page($content));
 	}

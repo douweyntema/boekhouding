@@ -1,11 +1,12 @@
 <?php
 
 require_once("common.php");
-doAccountsAdmin($_GET["id"]);
 
 function main()
 {
-	$userID = $_GET["id"];
+	doAdminAccounts();
+	
+	$userID = get("id");
 	$username = $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID, "customerID"=>null), "username", false);
 	
 	if($username === false) {

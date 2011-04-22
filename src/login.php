@@ -22,10 +22,10 @@ HTML;
 }
 
 if((isset($_SESSION["username"]) && isset($_SESSION["password"])) ||
-   (isset($GLOBALS["loginAllowed"]) && isset($_POST["username"]) && isset($_POST["password"]))) {
-	if(isset($GLOBALS["loginAllowed"]) && isset($_POST["username"]) && isset($_POST["password"])) {
-		$username = $_POST["username"];
-		$password = $_POST["password"];
+   (isset($GLOBALS["loginAllowed"]) && post("username") !== null && post("password") !== null)) {
+	if(isset($GLOBALS["loginAllowed"]) && post("username") !== null && post("password") !== null) {
+		$username = post("username");
+		$password = post("password");
 	} else {
 		$username = $_SESSION["username"];
 		$password = $_SESSION["password"];
@@ -42,11 +42,11 @@ if((isset($_SESSION["username"]) && isset($_SESSION["password"])) ||
 	if($user["customerID"] !== null) {
 		$customerID = $user["customerID"];
 		$impersonate = false;
-	} else if(isset($GLOBALS["loginAllowed"]) && isset($_GET["customerID"]) && $_GET["customerID"] == 0) {
+	} else if(isset($GLOBALS["loginAllowed"]) && get("customerID") !== null && get("customerID") == 0) {
 		$customerID = 0;
 		$impersonate = false;
-	} else if(isset($GLOBALS["loginAllowed"]) && isset($_GET["customerID"])) {
-		$customerID = $_GET["customerID"];
+	} else if(isset($GLOBALS["loginAllowed"]) && get("customerID") !== null) {
+		$customerID = get("customerID");
 		$impersonate = true;
 	} else if(isset($_SESSION["impersonatedCustomerID"])) {
 		$customerID = $_SESSION["impersonatedCustomerID"];

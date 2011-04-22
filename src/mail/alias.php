@@ -1,10 +1,10 @@
 <?php
 
-require_once(dirname(__FILE__) . "/common.php");
+require_once("common.php");
 
 function main()
 {
-	$aliasID = $_GET["id"];
+	$aliasID = get("id");
 	doMailAlias($aliasID);
 	
 	$alias = $GLOBALS["database"]->stdGetTry("mailAlias", array("aliasID"=>$aliasID), array("domainID", "localpart", "targetAddress"), false);

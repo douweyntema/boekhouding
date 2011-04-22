@@ -1,11 +1,11 @@
 <?php
 
 require_once("common.php");
-doAccounts($_GET["id"]);
 
 function main()
 {
-	$userID = $_GET["id"];
+	$userID = get("id");
+	doAccountsUser($userID);
 	$username = $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID, "customerID"=>customerID()), "username", false);
 	
 	if($username === false) {
@@ -21,18 +21,18 @@ function main()
 		array("name"=>"Edit rights", "url"=>"{$GLOBALS["root"]}accounts/editrights.php?id=" . $userID)
 		));
 	
-	if(!isset($_POST["rights"])) {
+	if(post("rights") === null) {
 		$content .= changeAccountRightsForm($userID);
 		die(page($content));
 	}
 	
-	if($_POST["rights"] == "full") {
+	if(post("rights") == "full") {
 		$rights = true;
 	} else {
 		$components = customerComponents();
 		$rights = array();
 		foreach($components as $component) {
-			if(isset($_POST["right" . $component["componentID"]])) {
+			if(post("right" . $component["componentID"]) !== null) {
 				$rights[$component["componentID"]] = true;
 			} else {
 				$rights[$component["componentID"]] = false;
@@ -40,11 +40,12 @@ function main()
 		}
 	}
 	
-	if(!isset($_POST["confirm"])) {
+	if(post("confirm") === null) {
 		$content .= changeAccountRightsForm($userID, null, $rights);
 		die(page($content));
 	}
 	
+	$GLOBALS["database"]->startTransaction();
 	$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID));
 	if($rights === true) {
 		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "componentID"=>null));
@@ -55,6 +56,7 @@ function main()
 			}
 		}
 	}
+	$GLOBALS["database"]->commitTransaction();
 	
 	// Distribute the accounts database
 	updateAccounts(customerID());

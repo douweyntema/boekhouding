@@ -4,8 +4,8 @@ require_once(dirname(__FILE__) . "/common.php");
 
 function main()
 {
-	$domainID = $_GET["id"];
-	doDomains($domainID);
+	$domainID = get("id");
+	doDomain($domainID);
 	
 	$content = "<h1>Domain " . domainName($domainID) . "</h1>\n";
 	
