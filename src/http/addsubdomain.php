@@ -94,6 +94,7 @@ function main()
 		}
 		$newDomainID = $parentDomainID;
 		$GLOBALS["database"]->stdNew("httpPath", array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null, "type"=>"HOSTED", "hostedUserID"=>$hostedUserID, "hostedPath"=>$docroot));
+		$GLOBALS["database"]->commitTransaction();
 	} else if($type == "REDIRECT") {
 		if(post("confirm") === null) {
 			$content .= addSubdomainForm($domainID, null, $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
@@ -106,6 +107,7 @@ function main()
 		}
 		$newDomainID = $parentDomainID;
 		$GLOBALS["database"]->stdNew("httpPath", array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null, "type"=>"REDIRECT", "redirectTarget"=>$redirectTarget));
+		$GLOBALS["database"]->commitTransaction();
 	} else if($type == "MIRROR") {
 		$path = $GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$mirrorTarget), array("domainID", "type"));
 		if($path === null || $path["type"] == "MIRROR" || $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$path["domainID"]), "customerID") != customerID()) {
@@ -124,11 +126,10 @@ function main()
 		}
 		$newDomainID = $parentDomainID;
 		$GLOBALS["database"]->stdNew("httpPath", array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null, "type"=>"MIRROR", "mirrorTargetPathID"=>$mirrorTarget));
+		$GLOBALS["database"]->commitTransaction();
 	} else {
 		die("Internal error");
 	}
-	
-	$GLOBALS["database"]->commitTransaction();
 	
 	updateHttp(customerID());
 	
