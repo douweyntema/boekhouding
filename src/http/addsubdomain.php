@@ -61,7 +61,7 @@ function main()
 		}
 	}
 	if(count($remainingDomainParts) == 0 && !isStubDomain($parentDomainID)) {
-		$content .= addSubdomainForm($domainID, "Domain name is in use", $subdomainName, $type, $hostedUsrID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
+		$content .= addSubdomainForm($domainID, "Domain name is in use", $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
 		die(page($content));
 	}
 	

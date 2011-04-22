@@ -230,7 +230,7 @@ function pathFunctionSubformHosted($confirm, $selected, $hostedUserID, $hostedPa
 	$usersHtml = "<select name=\"documentOwner\" $readonlyHtml>";
 	foreach($GLOBALS["database"]->query("SELECT DISTINCT adminUser.userID AS userID, username FROM adminUser INNER JOIN adminUserRight ON adminUser.userID = adminUserRight.userID LEFT JOIN adminComponent ON adminUserRight.componentID = adminComponent.componentID WHERE (adminComponent.name = 'http' OR adminComponent.name IS NULL) AND adminUser.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' ORDER BY username ASC")->fetchList() as $user) {
 		$usernameHtml = htmlentities($user["username"]);
-		$selectedHtml = ($selected && $hostedUserID == $user["userID"]) ? "selected=\"selected\"" : "";
+		$selectedHtml = ($hostedUserID == $user["userID"]) ? "selected=\"selected\"" : "";
 		$usersHtml .= "<option value=\"{$user["userID"]}\" $selectedHtml>$usernameHtml</option>";
 	}
 	$usersHtml .= "</select>";
@@ -283,8 +283,8 @@ function pathFunctionSubformMirror($confirm, $selected, $pathID, $mirrorTargetPa
 	$pathsHtml = "<select name=\"mirrorTarget\" $readonlyHtml >";
 	foreach($paths as $id=>$address) {
 		$addressHtml = htmlentities($address);
-		$selected = ($selected && $mirrorTargetPathID == $id) ? "selected=\"selected\"" : "";
-		$pathsHtml .= "<option value=\"$id\" $selected>$addressHtml</option>";
+		$selectedHtml = ($mirrorTargetPathID == $id) ? "selected=\"selected\"" : "";
+		$pathsHtml .= "<option value=\"$id\" $selectedHtml>$addressHtml</option>";
 	}
 	$pathsHtml .= "</select>";
 	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
@@ -332,7 +332,7 @@ function pathFunctionSubform($confirm = false, $type = null, $pathID = null, $ho
 
 function typeFromTitle($title)
 {
-	if($title == "Use Hosted Website") {
+	if($title == "Use Hosted Site") {
 		return "HOSTED";
 	} else if($title == "Use Redirect") {
 		return "REDIRECT";
@@ -372,8 +372,10 @@ function addSubdomainForm($domainID, $error = "", $name = null, $type = null, $h
 	
 	if($stub) {
 		$operationsHtml = "";
+		$submitHTML = "<tr class=\"submit\"><td colspan=\"3\"><input type=\"submit\" value=\"Add\"></td></tr>";
 	} else {
 		$operationsHtml = pathFunctionSubform($readonly != "", $type, null, $hostedUserID, $hostedPath, $redirectTarget, $mirrorTargetPathID);
+		$submitHTML = "";
 	}
 	
 	$nameValue = inputValue($name);
@@ -385,6 +387,7 @@ $messageHtml
 $confirmHtml
 <table>
 <tr><th>Subdomain name:</th><td class="stretch"><input type="text" name="name" $nameValue /></td><td>.$parentNameHtml</td></tr>
+$submitHTML
 </table>
 
 $operationsHtml
@@ -650,7 +653,7 @@ function pathTrees($pathID, $name)
 
 function isStubDomain($domainID)
 {
-	return $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null, "type"=>"NONE"), "pathID") === null;
+	return $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "type", "NONE") == "NONE";
 }
 
 function domainName($domainID)

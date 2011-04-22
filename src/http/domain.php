@@ -7,6 +7,10 @@ function main()
 	$domainID = $_GET["id"];
 	doHttpDomain($domainID);
 	
+	if(isStubDomain($domainID)) {
+		error404();
+	}
+	
 	$content = "<h1>Web hosting - " . domainName($domainID) . "</h1>\n";
 	
 	$content .= domainBreadcrumbs($domainID);
