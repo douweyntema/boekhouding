@@ -19,6 +19,49 @@ function doHttpPath($pathID)
 	doHttpDomain($GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$pathID), "domainID", null));
 }
 
+function updateHttp($customerID)
+{
+	$filesystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "filesystemID");
+	$GLOBALS["database"]->stdIncrement("infrastructureFilesystem", array("filesystemID"=>$filesystemID), "httpVersion", 1000000000);
+	
+	$hosts = $GLOBALS["database"]->stdList("infrastructureWebServer", array("filesystemID"=>$filesystemID), "hostID");
+	updateHosts($hosts, "update-treva-http");
+}
+
+function validSubdomain($name)
+{
+	if(strlen($name) < 1 || strlen($name) > 255) {
+		return false;
+	}
+	if(preg_match('/^[-a-zA-Z0-9_]*$/', $name) != 1) {
+		return false;
+	}
+	return true;
+}
+
+function validDocumentRoot($root)
+{
+	if(strlen($root) > 255) {
+		return false;
+	}
+	if(substr($root, 0, 1) == '/') {
+		$root = substr($root, 1);
+	}
+	if(substr($root, -1) == '/') {
+		$root = substr($root, 0, -1);
+	}
+	$parts = explode("/", $root);
+	foreach($parts as $part) {
+		if(preg_match('/^[a-zA-Z0-9_\-.]+$/', $part) != 1) {
+			return false;
+		}
+		if($part == "." || $part == "..") {
+			return false;
+		}
+	}
+	return true;
+}
+
 function domainBreadcrumbs($domainID)
 {
 	return breadcrumbs(domainBreadcrumbsList($domainID));
@@ -69,7 +112,7 @@ function pathBreadcrumbs($pathID)
 			$domainID = $path["domainID"];
 			break;
 		} else {
-			$parts[] = array("id"=>$nextPathID, "name"=>$path["name"], "used"=>($path["type"] != "NONE" || $path["userDatabaseID"] !== null));
+			$parts[] = array("id"=>$nextPathID, "name"=>$path["name"], "used"=>$path["type"] != "NONE");
 			$nextPathID = $path["parentPathID"];
 		}
 	}
@@ -193,7 +236,7 @@ function pathFunctionSubform($confirm = false, $type = null, $pathID = null, $ho
 		$usersHtml .= "<option value=\"{$user["userID"]}\" $selected>$usernameHtml</option>";
 	}
 	$usersHtml .= "</select>";
-	$documentRootValueHtml = ($type == "HOSTED" && $hostedPath !== null) ? "value=\"" . htmlentities($hostedPath) . "\"" : "";
+	$documentRootValueHtml = ($hostedPath !== null) ? "value=\"" . htmlentities($hostedPath) . "\"" : "";
 	$currentlySelectedHtml = ($type == "HOSTED") ? "Currently selected:" : "";
 	$currentlySelectedClass = ($type == "HOSTED") ? "selected" : "";
 	$hostedHtml = <<<HTML
@@ -266,6 +309,19 @@ HTML;
 	return ($confirm ? $start : $start . "\n" . implode("\n", $functions));
 }
 
+function typeFromTitle($title)
+{
+	if($title == "Use Hosted Website") {
+		return "HOSTED";
+	} else if($title == "Use Redirect") {
+		return "REDIRECT";
+	} else if($title == "Use Alias") {
+		return "MIRROR";
+	} else {
+		return null;
+	}
+}
+
 function addSubdomainForm($domainID, $error = "", $name = null, $type = null, $hostedUserID = null, $hostedPath = null, $redirectTarget = null, $mirrorTargetPathID = null)
 {
 	$parentName = domainName($domainID);
@@ -304,7 +360,7 @@ function addSubdomainForm($domainID, $error = "", $name = null, $type = null, $h
 <div class="operation">
 <h2>Add subdomain</h2>
 $messageHtml
-<form action="addsubdomain.php" method="post">
+<form action="addsubdomain.php?id=$domainID" method="post">
 $confirmHtml
 <table>
 <tr><th>Subdomain name:</th><td class="stretch"><input type="text" name="name" $nameValue /></td><td>.$parentNameHtml</td></tr>
@@ -437,7 +493,7 @@ function pathTrees($pathID, $name)
 	foreach($GLOBALS["database"]->stdList("httpPath", array("parentPathID"=>$pathID), array("pathID", "name", "type", "hostedPath", "svnPath", "redirectTarget", "mirrorTargetPathID", "userDatabaseID")) as $subPath) {
 		$pathName = $name . "/" . $subPath["name"];
 		$paths = pathTrees($subPath["pathID"], $pathName);
-		if($subPath["type"] == "NONE" && $subPath["userDatabaseID"] === null) {
+		if($subPath["type"] == "NONE") {
 			$output = array_merge($output, $paths);
 		} else {
 			$path = array();
@@ -459,6 +515,11 @@ function pathTrees($pathID, $name)
 		}
 	}
 	return $output;
+}
+
+function isStubDomain($domainID)
+{
+	return $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null, "type"=>"NONE"), "pathID") === null;
 }
 
 function domainName($domainID)
@@ -504,7 +565,7 @@ function functionDescription($address)
 	} else if($address["type"] == "REDIRECT") {
 		return "Redirect to {$address["target"]}";
 	} else if($address["type"] == "MIRROR") {
-		return "Mirror of {$address["target"]}";
+		return "Alias for {$address["target"]}";
 	} else if($address["type"] == "NONE" && $address["userDatabaseID"] !== null) {
 		return "Secured subdirectory";
 	} else {
