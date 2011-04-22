@@ -9,11 +9,7 @@ function main()
 	$domainName = domainName($domainID);
 	
 	$content  = "<h1>Web hosting - " . htmlentities($domainName) . "</h1>\n";
-	$content .= breadcrumbs(array(
-		array("name"=>"Web hosting", "url"=>"{$GLOBALS["root"]}http/"),
-		array("name"=>$domainName, "url"=>"{$GLOBALS["root"]}http/domain.php?id=$domainID"),
-		array("name"=>"Add subdomain", "url"=>"{$GLOBALS["root"]}http/addsubdomain.php?id=$domainID")
-		));
+	$content .= domainBreadcrumbs($domainID, array(array("name"=>"Add subdomain", "url"=>"{$GLOBALS["root"]}http/addsubdomain.php?id=$domainID")));
 	
 	$subdomainName = $_POST["name"];
 	

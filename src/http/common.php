@@ -62,9 +62,9 @@ function validDocumentRoot($root)
 	return true;
 }
 
-function domainBreadcrumbs($domainID)
+function domainBreadcrumbs($domainID, $postfix = array())
 {
-	return breadcrumbs(domainBreadcrumbsList($domainID));
+	return breadcrumbs(array_merge(domainBreadcrumbsList($domainID), $postfix));
 }
 
 function domainBreadcrumbsList($domainID)
@@ -101,7 +101,7 @@ function domainBreadcrumbsList($domainID)
 	return $crumbs;
 }
 
-function pathBreadcrumbs($pathID)
+function pathBreadcrumbs($pathID, $postfix = array())
 {
 	$parts = array();
 	$nextPathID = $pathID;
@@ -127,7 +127,7 @@ function pathBreadcrumbs($pathID)
 			$crumbs[] = array("name"=>$part["name"], "url"=>"{$GLOBALS["root"]}http/path.php?id={$part["id"]}");
 		}
 	}
-	return breadcrumbs($crumbs);
+	return breadcrumbs(array_merge($crumbs, $postfix));
 }
 
 function domainsList()
@@ -227,13 +227,22 @@ function pathFunctionSubformHosted($confirm, $selected, $hostedUserID, $hostedPa
 {
 	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
 	
+	$usersHtml = "<input type=\"hidden\" name=\"documentOwner\" value=\"\">";
 	$usersHtml = "<select name=\"documentOwner\" $readonlyHtml>";
+	$usersHtmlDisabled = "";
 	foreach($GLOBALS["database"]->query("SELECT DISTINCT adminUser.userID AS userID, username FROM adminUser INNER JOIN adminUserRight ON adminUser.userID = adminUserRight.userID LEFT JOIN adminComponent ON adminUserRight.componentID = adminComponent.componentID WHERE (adminComponent.name = 'http' OR adminComponent.name IS NULL) AND adminUser.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' ORDER BY username ASC")->fetchList() as $user) {
 		$usernameHtml = htmlentities($user["username"]);
 		$selectedHtml = ($hostedUserID == $user["userID"]) ? "selected=\"selected\"" : "";
 		$usersHtml .= "<option value=\"{$user["userID"]}\" $selectedHtml>$usernameHtml</option>";
+		if($hostedUserID == $user["userID"]) {
+			$size = strlen($usernameHtml);
+			$usersHtmlDisabled = "<input type=\"hidden\" name=\"documentOwner\" value=\"{$user["userID"]}\">\n<input type=\"text\" name=\"documentOwnerText\" value=\"$usernameHtml\" readonly=\"readonly\" style=\"width: {$size}em\">";
+		}
 	}
 	$usersHtml .= "</select>";
+	if($confirm) {
+		$usersHtml = $usersHtmlDisabled;
+	}
 	$documentRootValueHtml = ($hostedPath !== null) ? "value=\"" . htmlentities($hostedPath) . "\"" : "";
 	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
 	$currentlySelectedClass = $selected ? "selected" : "";
@@ -280,13 +289,24 @@ function pathFunctionSubformMirror($confirm, $selected, $pathID, $mirrorTargetPa
 		$paths[$path["pathID"]] = pathName($path["pathID"]);
 	}
 	asort($paths);
-	$pathsHtml = "<select name=\"mirrorTarget\" $readonlyHtml >";
-	foreach($paths as $id=>$address) {
-		$addressHtml = htmlentities($address);
-		$selectedHtml = ($mirrorTargetPathID == $id) ? "selected=\"selected\"" : "";
-		$pathsHtml .= "<option value=\"$id\" $selectedHtml>$addressHtml</option>";
+	if(!$confirm) {
+		$pathsHtml = "<select name=\"mirrorTarget\" $readonlyHtml >";
+		foreach($paths as $id=>$address) {
+			$addressHtml = htmlentities($address);
+			$selectedHtml = ($mirrorTargetPathID == $id) ? "selected=\"selected\"" : "";
+			$pathsHtml .= "<option value=\"$id\" $selectedHtml>$addressHtml</option>";
+		}
+		$pathsHtml .= "</select>";
+	} else {
+		$addressHtml = "";
+		foreach($paths as $id=>$address) {
+			if($mirrorTargetPathID == $id) {
+				$addressHtml = htmlentities($address);
+			}
+		}
+		$pathsHtml = "<input type=\"hidden\" name=\"mirrorTarget\" value=\"$mirrorTargetPathID\">";
+		$pathsHtml .= "<input type=\"text\" name=\"mirrorTargetText\" value=\"$addressHtml\" readonly=\"readonly\">";
 	}
-	$pathsHtml .= "</select>";
 	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
 	$currentlySelectedClass = $selected ? "selected" : "";
 	return <<<HTML
