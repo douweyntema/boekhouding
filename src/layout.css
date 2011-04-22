@@ -210,7 +210,7 @@ h3 {
 }
 
 .confirm:before {
-	content: url(img/apply.png);
+/* 	content: url(img/apply.png); */
 }
 
 .confirmdelete {
