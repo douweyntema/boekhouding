@@ -4,7 +4,7 @@ require_once(dirname(__FILE__) . "/../common.php");
 
 function doTicket()
 {
-	useComponent("ticket");
+// 	useComponent("ticket");
 	$GLOBALS["menuComponent"] = "ticket";
 }
 
@@ -124,20 +124,18 @@ function newReplyForm($threadID, $error = "", $text = null, $status = null)
 		$readonly = "";
 	}
 	
+	$oldstatus = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "status");
 	if($status === null) {
-		$status = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "status");
+		$status = $oldstatus;
 	}
 	
-	if($readonly == "") {
-		$openSelected = ($status == "OPEN") ? "selected=\"selected\"" : "";
-		$closedSelected = ($status == "CLOSED") ? "selected=\"selected\"" : "";
-		
-		$statusSelect = "<select name=\"status\"><option value=\"OPEN\" $openSelected>open</option><option value=\"CLOSED\" $closedSelected>closed</option></select>";
+	$statusChangeText = ($oldstatus == "OPEN") ? "Close ticket" : "Reopen ticket";
+	$statusChangeValue = ($oldstatus == "OPEN") ? "CLOSED" : "OPEN";
+	
+	if($status != $oldstatus) {
+		$statusChecked = "checked=\"checked\"";
 	} else {
-		$valueUpper = inputvalue(strtoupper($status));
-		$valueLower = inputvalue(strtolower($status));
-		$statusSelect  = "<input type=\"hidden\" name=\"status\" $valueUpper>";
-		$statusSelect .= "<input type=\"text\" name=\"statusName\" $valueLower $readonly>";
+		$statusChecked = "";
 	}
 	
 	$textHtml = ($text === null) ? "" : htmlentities($text);
@@ -149,9 +147,9 @@ $messageHtml
 <form action="addreply.php?id={$threadID}" method="post">
 $confirmHtml
 <table>
-<tr><td style="text-align: center; width: 100%" colspan="2"><textarea name="text" style="width: 95%; height: 100px;" $readonly>$textHtml</textarea></td></tr>
-<tr><th>New status</th><td>$statusSelect</td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="submit" value="Reply" /></td></tr>
+<tr><td><textarea name="text" $readonly>$textHtml</textarea></td></tr>
+<tr><td><label><input type="checkbox" name="status" value="$statusChangeValue" $statusChecked $readonly> $statusChangeText</label></td></tr>
+<tr class="submit"><td><input type="submit" name="submit" value="Reply" /></td></tr>
 </table>
 </form>
 </div>

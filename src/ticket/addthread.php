@@ -6,7 +6,7 @@ function main()
 {
 	doTicket();
 	
-	$content  = "<h1>Ticket</h1>\n";
+	$content  = "<h1>Tickets</h1>\n";
 	$content .= breadcrumbs(array(
 		array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Tickets"),
 		array("url"=>"{$GLOBALS["root"]}ticket/addthread.php", "name"=>"New ticket")

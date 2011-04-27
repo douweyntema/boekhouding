@@ -4,7 +4,7 @@ require_once(dirname(__FILE__) . "/../common.php");
 
 function menuTicket()
 {
-	if($GLOBALS["menuComponent"] == "ticket") {
+	if($GLOBALS["menuComponent"] == "ticket" && !isRoot()) {
 		return <<<HTML
 <li>
 <a href="{$GLOBALS["rootHtml"]}ticket/">Tickets</a>
@@ -19,12 +19,6 @@ HTML;
 	}
 }
 
-if(isRoot()) {
-	addMenu("menuTicket");
-} else if(canAccessComponent("ticket", true)) {
-	addMenu("menuTicket");
-} else if(canAccessComponent("ticket")) {
-	addAdminMenu("menuTicket");
-}
+addMenu("menuTicket");
 
 ?>

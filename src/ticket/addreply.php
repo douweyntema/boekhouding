@@ -16,8 +16,11 @@ function main()
 	
 	$userID = userID();
 	$text = post("text");
-	$status = post("status");
 	$date = time();
+	$status = post("status");
+	if($status === null) {
+		$status = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "status");
+	}
 	
 	if($text == null) {
 		header("HTTP/1.1 303 See Other");
