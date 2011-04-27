@@ -594,6 +594,103 @@ $operationsHtml
 HTML;
 }
 
+function removeDomainForm($domainID, $error = "", $keepSubs = false)
+{
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$messageHtml .= "<p class=\"confirmdelete\">The following sites will be removed:</p>";
+		if($keepSubs) {
+			$messageHtml .= pathSummary(domainPath($domainID));
+		} else {
+			$messageHtml .= domainSummary($domainID);
+		}
+		$confirmHtml  = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$keepSubsValue = $keepSubs ? "keep" : "remove";
+		$confirmHtml .= "<input type=\"hidden\" name=\"keepsubs\" value=\"$keepSubsValue\" />\n";
+		$keepSubsHtml = "";
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		if(isRootDomain($domainID)) {
+			$keepSubsHtml = "";
+		} else {
+			$keepSubsHtml = "<tr><td><label><input type=\"checkbox\" name=\"keepsubs\" value=\"keep\"/> Keep subdomains</label></td></tr>";
+		}
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		if(isRootDomain($domainID)) {
+			$keepSubsHtml = "";
+		} else {
+			$keepSubsHtml = "<tr><td><label><input type=\"checkbox\" name=\"keepsubs\" value=\"keep\"/> Keep subdomains</label></td></tr>";
+		}
+	}
+	
+	if($keepSubs) {
+		$keepSubsChecked = "checked=\"checked\"";
+	} else {
+		$keepSubsChecked = "";
+	}
+	
+	return <<<HTML
+<div class="operation">
+<h2>Remove domain</h2>
+$messageHtml
+<form action="removedomain.php?id=$domainID" method="post">
+$confirmHtml
+<table>
+$keepSubsHtml
+<tr class="submit"><td><input type="submit" value="Remove domain" /></td></tr>
+</table>
+</form>
+</div>
+
+HTML;
+}
+
+function removeDomain($domainID, $keepsubs)
+{
+	echo "removeDomain($domainID)<br>\n";
+	$pathID = $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "pathID");
+	if($pathID !== null) {
+		removePath($pathID, false);
+	}
+	$subdomains = $GLOBALS["database"]->stdList("httpDomain", array("parentDomainID"=>$domainID), "domainID");
+	if($keepsubs) {
+		if(count($subdomains) == 0) {
+			$GLOBALS["database"]->stdDel("httpDomain", array("domainID"=>$domainID));
+		}
+	} else {
+		foreach($subdomains as $subdomain) {
+			removeDomain($subdomain, false);
+		}
+		$GLOBALS["database"]->stdDel("httpDomain", array("domainID"=>$domainID));
+	}
+}
+
+function removePath($pathID, $keepsubs)
+{
+	echo "removePath($pathID)<br>\n";
+	$subpaths = $GLOBALS["database"]->stdList("httpPath", array("parentPathID"=>$pathID), "pathID");
+	$GLOBALS["database"]->stdDel("httpPathUser", array("pathID"=>$pathID));
+	$GLOBALS["database"]->stdDel("httpPathGroup", array("pathID"=>$pathID));
+	if($keepsubs) {
+		if(count($subpaths) == 0) {
+			$GLOBALS["database"]->stdDel("httpPath", array("pathID"=>$pathID));
+		}
+	} else {
+		foreach($subpaths as $subpath) {
+			removePath($subpath, false);
+		}
+		$GLOBALS["database"]->stdDel("httpPath", array("pathID"=>$pathID));
+	}
+}
+
+function isRootDomain($domainID)
+{
+	return $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID") === null;
+}
+
 function flattenDomainTree($tree, $parentID = null)
 {
 	$id = "domain-" . $tree["domainID"];

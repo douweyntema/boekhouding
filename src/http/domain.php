@@ -23,6 +23,8 @@ function main()
 	
 	$content .= addPathForm(domainPath($domainID), "STUB");
 	
+	$content .= removeDomainForm($domainID);
+	
 	echo page($content);
 }
 
