@@ -39,6 +39,17 @@ function validSubdomain($name)
 	return true;
 }
 
+function validDirectory($name)
+{
+	if(strlen($name) < 1 || strlen($name) > 255) {
+		return false;
+	}
+	if(preg_match('/^[-a-zA-Z0-9_.]*$/', $name) != 1) {
+		return false;
+	}
+	return true;
+}
+
 function validDocumentRoot($root)
 {
 	if(strlen($root) > 255) {
@@ -418,6 +429,61 @@ $operationsHtml
 HTML;
 }
 
+function addPathForm($pathID, $error = "", $name = null, $type = null, $hostedUserID = null, $hostedPath = null, $redirectTarget = null, $mirrorTargetPathID = null)
+{
+	$parentName = pathName($pathID);
+	$parentNameHtml = htmlentities($parentName);
+	
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+		$stub = false;
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = false;
+	} else if($error == "STUB") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = true;
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = false;
+	}
+	
+	if($stub) {
+		$operationsHtml = "";
+		$submitHTML = "<tr class=\"submit\"><td colspan=\"3\"><input type=\"submit\" value=\"Add\"></td></tr>";
+	} else {
+		$operationsHtml = pathFunctionSubform($readonly != "", $type, null, $hostedUserID, $hostedPath, $redirectTarget, $mirrorTargetPathID);
+		$submitHTML = "";
+	}
+	
+	$nameValue = inputValue($name);
+	return <<<HTML
+<div class="operation">
+<h2>Add subdirectory</h2>
+$messageHtml
+<form action="addpath.php?id=$pathID" method="post">
+$confirmHtml
+<table>
+<tr><th>Directory name:</th><td>$parentNameHtml/</td><td class="stretch"><input type="text" name="name" $nameValue /></td></tr>
+$submitHTML
+</table>
+
+$operationsHtml
+
+</form>
+</div>
+
+HTML;
+}
+
 function editPathForm($domainID, $pathID = null, $error = "", $type = null, $hostedUserID = null, $hostedPath = null, $redirectTarget = null, $mirrorTargetPathID = null)
 {
 	if($pathID === null) {
@@ -675,6 +741,11 @@ function pathTrees($pathID, $name)
 function isStubDomain($domainID)
 {
 	return $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "type", "NONE") == "NONE";
+}
+
+function domainPath($domainID)
+{
+	return $GLOBALS["database"]->stdGet("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "pathID");
 }
 
 function domainName($domainID)

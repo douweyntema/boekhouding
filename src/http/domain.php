@@ -21,6 +21,8 @@ function main()
 	
 	$content .= addSubdomainForm($domainID, "STUB");
 	
+	$content .= addPathForm(domainPath($domainID), "STUB");
+	
 	echo page($content);
 }
 
