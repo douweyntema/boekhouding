@@ -4,7 +4,7 @@ require_once("common.php");
 
 function main()
 {
-	doAdminAccounts();
+	doAccountsAdmin();
 	
 	$userID = get("id");
 	$username = $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID, "customerID"=>null), "username", false);

@@ -4,7 +4,7 @@ require_once("common.php");
 
 function main()
 {
-	doAdminAccounts();
+	doAccountsAdmin();
 	
 	$content = "<h1>Admin Accounts</h1>\n";
 	$content .= breadcrumbs(array(

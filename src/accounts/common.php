@@ -16,7 +16,7 @@ function doAccountsUser($userID)
 	useCustomer($userID === null ? customerID() : $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID), "customerID", false));
 }
 
-function doAdminAccounts()
+function doAccountsAdmin()
 {
 	doAccounts();
 	useCustomer(0);
