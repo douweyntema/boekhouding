@@ -6,9 +6,9 @@ function main()
 {
 	doTicket();
 	
-	$content = "<h1>Tickets</h1>\n";
+	$content = "<h1>Support</h1>\n";
 	
-	$content .= breadcrumbs(array(array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Tickets")));
+	$content .= breadcrumbs(array(array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Support")));
 	
 	if(isset($_GET["status"])) {
 		$status = $_GET["status"];

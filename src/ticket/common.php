@@ -26,9 +26,11 @@ function threadList($status = "OPEN")
 		$customerHeader = "";
 	}
 	if(count($threads) == 0) {
-		return "<p>There are no " . strtolower($status) . " tickets.</p>";
+		return "<h4>There are no " . strtolower($status) . " tickets.</h4>";
 	}
+	$statusHtml = "All " . strtolower($status) . " tickets:";
 	$output .= <<<HTML
+<h4>$statusHtml</h4>
 <div class="list sortable">
 <table>
 <thead>
@@ -114,14 +116,17 @@ function newReplyForm($threadID, $error = "", $text = null, $status = null)
 		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
 		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
 		$readonly = "readonly=\"readonly\"";
+		$disabled = "disabled=\"disabled\"";
 	} else if($error == "") {
 		$messageHtml = "";
 		$confirmHtml = "";
 		$readonly = "";
+		$disabled = "";
 	} else {
 		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
 		$confirmHtml = "";
 		$readonly = "";
+		$disabled = "";
 	}
 	
 	$oldstatus = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "status");
@@ -148,7 +153,7 @@ $messageHtml
 $confirmHtml
 <table>
 <tr><td><textarea name="text" $readonly>$textHtml</textarea></td></tr>
-<tr><td><label><input type="checkbox" name="status" value="$statusChangeValue" $statusChecked $readonly> $statusChangeText</label></td></tr>
+<tr><td><label><input type="checkbox" name="status" value="$statusChangeValue" $statusChecked $disabled> $statusChangeText</label></td></tr>
 <tr class="submit"><td><input type="submit" name="submit" value="Reply" /></td></tr>
 </table>
 </form>

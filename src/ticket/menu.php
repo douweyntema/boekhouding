@@ -7,7 +7,7 @@ function menuTicket()
 	if($GLOBALS["menuComponent"] == "ticket" && !isRoot()) {
 		return <<<HTML
 <li>
-<a href="{$GLOBALS["rootHtml"]}ticket/">Tickets</a>
+<a href="{$GLOBALS["rootHtml"]}ticket/">Support</a>
 <ul>
 <li><a href="{$GLOBALS["rootHtml"]}ticket/addthread.php">New ticket</a></li>
 </ul>
@@ -15,7 +15,7 @@ function menuTicket()
 
 HTML;
 	} else {
-		return "<li><a href=\"{$GLOBALS["rootHtml"]}ticket/\">Tickets</a></li>\n";
+		return "<li><a href=\"{$GLOBALS["rootHtml"]}ticket/\">Support</a></li>\n";
 	}
 }
 

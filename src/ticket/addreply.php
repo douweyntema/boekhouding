@@ -7,9 +7,9 @@ function main()
 	$threadID = get("id");
 	doTicketThread($threadID);
 	
-	$content  = "<h1>Ticket #$threadID</h1>\n";
+	$content  = "<h1>Support - Ticket #$threadID</h1>\n";
 	$content .= breadcrumbs(array(
-		array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Tickets"),
+		array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Support"),
 		array("url"=>"{$GLOBALS["root"]}ticket/thread.php?id=$threadID", "name"=>"Ticket #$threadID"),
 		array("url"=>"{$GLOBALS["root"]}ticket/addreply.php?id=$threadID", "name"=>"New reply")
 	));
