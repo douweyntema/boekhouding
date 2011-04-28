@@ -35,7 +35,7 @@ function main()
 	}
 	
 	if(post("confirm") === null) {
-		$content .= removeDomainForm($domainID, null ,$keepsubs);
+		$content .= removeDomainForm($domainID, null, $keepsubs);
 		die(page($content));
 	}
 	

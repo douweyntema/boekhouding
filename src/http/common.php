@@ -234,6 +234,34 @@ function pathSummary($pathID)
 	return $output;
 }
 
+function singlePathSummary($pathID)
+{
+	$addressTree = pathTree($pathID);
+// 	$addressList = flattenPathTree($addressTree);
+	
+	$output  = "<div class=\"list tree\">\n";
+	$output .= "<table>\n";
+	$output .= "<thead>\n";
+	$output .= "<tr><th>Address</th><th>Function</th></tr>\n";
+	$output .= "</thead>\n";
+	$output .= "<tbody>\n";
+	foreach($addressList as $address) {
+		$functionHtml = htmlentities(functionDescription($address));
+		$addressHtml = htmlentities($address["name"]);
+		$parentHtml = ($address["parentID"] === null ? "" : "class=\"child-of-{$address["parentID"]}\"");
+		if(isset($address["domainID"])) {
+			$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td><a href=\"domain.php?id={$address["domainID"]}\">$addressHtml</a></td><td>$functionHtml</td></tr>\n";
+		} else {
+			$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td><a href=\"path.php?id={$address["pathID"]}\">$addressHtml</a></td><td>$functionHtml</td></tr>\n";
+		}
+	}
+	$output .= "</tbody>\n";
+	$output .= "</table>\n";
+	$output .= "</div>\n";
+	return $output;
+}
+
+
 function pathFunctionSubformHosted($confirm, $selected, $hostedUserID, $hostedPath)
 {
 	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
@@ -652,6 +680,56 @@ $keepSubsHtml
 HTML;
 }
 
+function removePathForm($pathID, $error = "", $keepSubs = false)
+{
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$messageHtml .= "<p class=\"confirmdelete\">The following sites will be removed:</p>";
+		if($keepSubs) {
+			$messageHtml .= pathSummary($pathID, false);
+		} else {
+			$messageHtml .= pathSummary($pathID);
+		}
+		$confirmHtml  = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$keepSubsValue = $keepSubs ? "keep" : "remove";
+		$confirmHtml .= "<input type=\"hidden\" name=\"keepsubs\" value=\"$keepSubsValue\" />\n";
+		$keepSubsHtml = "";
+		$submitText = "Remove site";
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$keepSubsHtml = "<tr><td><label><input type=\"checkbox\" name=\"keepsubs\" value=\"keep\"/> Keep subpaths</label></td></tr>";
+		$submitText = "Remove site";
+	} else {
+		$messageHtml = "<div class=\"error\">" . $error . "</div>\n";
+		$confirmHtml = "";
+		$keepSubsChecked = $keepSubs ? "checked=\"checked\"" : "";
+		$keepSubsHtml = "<tr><td><label><input type=\"checkbox\" name=\"keepsubs\" value=\"keep\" $keepSubsChecked /> Keep subpaths</label></td></tr>";
+		$submitText = "Retry";
+	}
+	
+	if($keepSubs) {
+		$keepSubsChecked = "checked=\"checked\"";
+	} else {
+		$keepSubsChecked = "";
+	}
+	
+	return <<<HTML
+<div class="operation">
+<h2>Remove site</h2>
+$messageHtml
+<form action="removepath.php?id=$pathID" method="post">
+$confirmHtml
+<table>
+$keepSubsHtml
+<tr class="submit"><td><input type="submit" value="$submitText" /></td></tr>
+</table>
+</form>
+</div>
+
+HTML;
+}
+
 function removeDomain($domainID, $keepsubs)
 {
 	unsetAliases($domainID, !$keepsubs);
@@ -713,6 +791,22 @@ function aliassesPointToDomain($domainID, $recursive)
 	}
 	return $aliasesList;
 }
+
+function aliassesPointToPath($pathID, $recursive)
+{
+	$aliasesList = array();
+	$pathIDs = toBeRemovedPathsPath($pathID, $recursive);
+	foreach($pathIDs as $pathID) {
+		$aliases = $GLOBALS["database"]->stdList("httpPath", array("mirrorTargetPathID"=>$pathID), "pathID");
+		foreach($aliases as $alias) {
+			if(!in_array($alias, $pathIDs)) {
+				$aliasesList[] = $alias;
+			}
+		}
+	}
+	return $aliasesList;
+}
+
 
 function toBeRemovedPathsDomain($domainID, $recursive)
 {
