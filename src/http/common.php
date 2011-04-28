@@ -608,6 +608,7 @@ function removeDomainForm($domainID, $error = "", $keepSubs = false)
 		$keepSubsValue = $keepSubs ? "keep" : "remove";
 		$confirmHtml .= "<input type=\"hidden\" name=\"keepsubs\" value=\"$keepSubsValue\" />\n";
 		$keepSubsHtml = "";
+		$submitText = "Remove domain";
 	} else if($error == "") {
 		$messageHtml = "";
 		$confirmHtml = "";
@@ -616,14 +617,17 @@ function removeDomainForm($domainID, $error = "", $keepSubs = false)
 		} else {
 			$keepSubsHtml = "<tr><td><label><input type=\"checkbox\" name=\"keepsubs\" value=\"keep\"/> Keep subdomains</label></td></tr>";
 		}
+		$submitText = "Remove domain";
 	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$messageHtml = "<div class=\"error\">" . $error . "</div>\n";
 		$confirmHtml = "";
 		if(isRootDomain($domainID)) {
 			$keepSubsHtml = "";
 		} else {
-			$keepSubsHtml = "<tr><td><label><input type=\"checkbox\" name=\"keepsubs\" value=\"keep\"/> Keep subdomains</label></td></tr>";
+			$keepSubsChecked = $keepSubs ? "checked=\"checked\"" : "";
+			$keepSubsHtml = "<tr><td><label><input type=\"checkbox\" name=\"keepsubs\" value=\"keep\" $keepSubsChecked /> Keep subdomains</label></td></tr>";
 		}
+		$submitText = "Retry";
 	}
 	
 	if($keepSubs) {
@@ -640,7 +644,7 @@ $messageHtml
 $confirmHtml
 <table>
 $keepSubsHtml
-<tr class="submit"><td><input type="submit" value="Remove domain" /></td></tr>
+<tr class="submit"><td><input type="submit" value="$submitText" /></td></tr>
 </table>
 </form>
 </div>
@@ -650,7 +654,7 @@ HTML;
 
 function removeDomain($domainID, $keepsubs)
 {
-	echo "removeDomain($domainID)<br>\n";
+	unsetAliases($domainID, !$keepsubs);
 	$pathID = $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "pathID");
 	if($pathID !== null) {
 		removePath($pathID, false);
@@ -670,7 +674,6 @@ function removeDomain($domainID, $keepsubs)
 
 function removePath($pathID, $keepsubs)
 {
-	echo "removePath($pathID)<br>\n";
 	$subpaths = $GLOBALS["database"]->stdList("httpPath", array("parentPathID"=>$pathID), "pathID");
 	$GLOBALS["database"]->stdDel("httpPathUser", array("pathID"=>$pathID));
 	$GLOBALS["database"]->stdDel("httpPathGroup", array("pathID"=>$pathID));
@@ -685,6 +688,60 @@ function removePath($pathID, $keepsubs)
 		$GLOBALS["database"]->stdDel("httpPath", array("pathID"=>$pathID));
 	}
 }
+
+function unsetAliases($domainID, $recursive)
+{
+	$aliasesList = array();
+	$pathIDs = toBeRemovedPathsDomain($domainID, $recursive);
+	foreach($pathIDs as $pathID) {
+		$GLOBALS["database"]->stdSet("httpPath", array("pathID"=>$pathID), array("mirrorTargetPathID"=>null));
+	}
+	return $aliasesList;
+}
+
+function aliassesPointToDomain($domainID, $recursive)
+{
+	$aliasesList = array();
+	$pathIDs = toBeRemovedPathsDomain($domainID, $recursive);
+	foreach($pathIDs as $pathID) {
+		$aliases = $GLOBALS["database"]->stdList("httpPath", array("mirrorTargetPathID"=>$pathID), "pathID");
+		foreach($aliases as $alias) {
+			if(!in_array($alias, $pathIDs)) {
+				$aliasesList[] = $alias;
+			}
+		}
+	}
+	return $aliasesList;
+}
+
+function toBeRemovedPathsDomain($domainID, $recursive)
+{
+	$list = array();
+	$pathID = $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "pathID");
+	if($pathID !== null) {
+		$list = toBeRemovedPathsPath($pathID, true);
+	}
+	$subdomains = $GLOBALS["database"]->stdList("httpDomain", array("parentDomainID"=>$domainID), "domainID");
+	if($recursive) {
+		foreach($subdomains as $subdomain) {
+			$list = array_merge($list, toBeRemovedPathsDomain($subdomain, $recursive));
+		}
+	}
+	return $list;
+}
+
+function toBeRemovedPathsPath($pathID, $recursive)
+{
+	$list = array($pathID);
+	$subpaths = $GLOBALS["database"]->stdList("httpPath", array("parentPathID"=>$pathID), "pathID");
+	if($recursive) {
+		foreach($subpaths as $subpath) {
+			$list = array_merge($list, toBeRemovedPathsPath($subpath, $recursive));
+		}
+	}
+	return $list;
+}
+
 
 function isRootDomain($domainID)
 {
