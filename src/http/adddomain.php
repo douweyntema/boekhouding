@@ -31,14 +31,7 @@ function main()
 		die(page($content));
 	}
 	
-	$subdomainParts = explode(".", $subdomainName);
-	$valid = count($subdomainParts) > 0;
-	foreach($subdomainParts as $part) {
-		if(!validSubdomain($part)) {
-			$valid = false;
-		}
-	}
-	if(!$valid) {
+	if(!validSubdomain($subdomainName)) {
 		$content .= addDomainForm("Invalid domain name.", $rootDomainID, $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
 		die(page($content));
 	}
@@ -48,19 +41,8 @@ function main()
 		die(page($content));
 	}
 	
-	$parentDomainID = $rootDomainID;
-	$remainingDomainParts = array_reverse($subdomainParts);
-	while(count($remainingDomainParts) > 0) {
-		$part = $remainingDomainParts[0];
-		$domain = $GLOBALS["database"]->stdGetTry("httpDomain", array("parentDomainID"=>$parentDomainID, "name"=>$part), "domainID");
-		if($domain === null) {
-			break;
-		} else {
-			$parentDomainID = $domain;
-			array_shift($remainingDomainParts);
-		}
-	}
-	if(count($remainingDomainParts) == 0 && !isStubDomain($parentDomainID)) {
+	$domain = $GLOBALS["database"]->stdGetTry("httpDomain", array("parentDomainID"=>$rootDomainID, "name"=>$subdomainName), "domainID");
+	if($domain !== null) {
 		$content .= addDomainForm("A domain with the given name already exists.", $rootDomainID, $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
 		die(page($content));
 	}
@@ -88,10 +70,7 @@ function main()
 		$docroot = trim($hostedDocumentRoot, "/");
 		
 		$GLOBALS["database"]->startTransaction();
-		foreach($remainingDomainParts as $part) {
-			$parentDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "parentDomainID"=>$parentDomainID, "name"=>$part));
-		}
-		$newDomainID = $parentDomainID;
+		$newDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "parentDomainID"=>$rootDomainID, "name"=>$subdomainName));
 		$GLOBALS["database"]->stdNew("httpPath", array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null, "type"=>"HOSTED", "hostedUserID"=>$hostedUserID, "hostedPath"=>$docroot));
 		$GLOBALS["database"]->commitTransaction();
 	} else if($type == "REDIRECT") {
@@ -101,10 +80,7 @@ function main()
 		}
 		
 		$GLOBALS["database"]->startTransaction();
-		foreach($remainingDomainParts as $part) {
-			$parentDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "parentDomainID"=>$parentDomainID, "name"=>$part));
-		}
-		$newDomainID = $parentDomainID;
+		$newDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "parentDomainID"=>$rootDomainID, "name"=>$subdomainName));
 		$GLOBALS["database"]->stdNew("httpPath", array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null, "type"=>"REDIRECT", "redirectTarget"=>$redirectTarget));
 		$GLOBALS["database"]->commitTransaction();
 	} else if($type == "MIRROR") {
@@ -120,10 +96,7 @@ function main()
 		}
 		
 		$GLOBALS["database"]->startTransaction();
-		foreach($remainingDomainParts as $part) {
-			$parentDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "parentDomainID"=>$parentDomainID, "name"=>$part));
-		}
-		$newDomainID = $parentDomainID;
+		$newDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "parentDomainID"=>$rootDomainID, "name"=>$subdomainName));
 		$GLOBALS["database"]->stdNew("httpPath", array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null, "type"=>"MIRROR", "mirrorTargetPathID"=>$mirrorTarget));
 		$GLOBALS["database"]->commitTransaction();
 	} else {
