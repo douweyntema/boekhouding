@@ -143,6 +143,13 @@ function newReplyForm($threadID, $error = "", $text = null, $status = null)
 		$statusChecked = "";
 	}
 	
+	$statusName = "status";
+	$hiddenStatusField = "";
+	if($disabled != "" && $statusChecked != "") {
+		$hiddenStatusField = "<input type=\"hidden\" name=\"status\" value=\"$statusChangeValue\" />";
+		$statusName = "status-checkbox";
+	}
+	
 	$textHtml = ($text === null) ? "" : htmlentities($text);
 	
 	$output = <<<HTML
@@ -151,9 +158,10 @@ function newReplyForm($threadID, $error = "", $text = null, $status = null)
 $messageHtml
 <form action="addreply.php?id={$threadID}" method="post">
 $confirmHtml
+$hiddenStatusField
 <table>
 <tr><td><textarea name="text" $readonly>$textHtml</textarea></td></tr>
-<tr><td><label><input type="checkbox" name="status" value="$statusChangeValue" $statusChecked $disabled> $statusChangeText</label></td></tr>
+<tr><td><label><input type="checkbox" name="$statusName" value="$statusChangeValue" $statusChecked $disabled> $statusChangeText</label></td></tr>
 <tr class="submit"><td><input type="submit" name="submit" value="Reply" /></td></tr>
 </table>
 </form>

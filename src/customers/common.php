@@ -185,7 +185,7 @@ function editCustomerRightsForm($customerID, $error = "", $rights = null)
 	}
 	
 	$html .= "<tr>\n";
-	$html .= "<td colspan=\"2\" class=\"submit\"><input type=\"submit\" value=\"Save\" /></td>\n";
+	$html .= "<td colspan=\"3\" class=\"submit\"><input type=\"submit\" value=\"Save\" /></td>\n";
 	$html .= "</tr>\n";
 	$html .= "</table>\n";
 	$html .= "</form>\n";
