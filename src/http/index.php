@@ -12,6 +12,8 @@ function main()
 	
 	$content .= domainsList();
 	
+	$content .= addDomainForm("STUB");
+	
 	echo page($content);
 }
 

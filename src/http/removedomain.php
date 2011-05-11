@@ -40,6 +40,7 @@ function main()
 	}
 	
 	$parentDomainID = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID");
+	$isRootDomain = isRootDomain($domainID);
 	
 	$GLOBALS["database"]->startTransaction();
 	removeDomain($domainID, $keepsubs);
@@ -49,7 +50,7 @@ function main()
 	updateHttp(customerID());
 	
 	header("HTTP/1.1 303 See Other");
-	if($parentDomainID === null) {
+	if($isRootDomain) {
 		header("Location: {$GLOBALS["root"]}http/");
 	} else {
 		while($GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$parentDomainID, "parentPathID"=>null), "pathID") === null) {

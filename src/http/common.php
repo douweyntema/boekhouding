@@ -146,7 +146,7 @@ function domainsList()
 	$output = "";
 	
 	$customerIDEscaped = $GLOBALS["database"]->addSlashes(customerID());
-	$ownDomains = $GLOBALS["database"]->query("SELECT domainID, parentDomainID, name FROM httpDomain AS child WHERE customerID='$customerIDEscaped' AND (parentDomainID IS NULL OR customerID <> (SELECT customerID FROM httpDomain AS parent WHERE parent.domainID = child.parentDomainID))")->fetchList();
+	$ownDomains = $GLOBALS["database"]->query("SELECT domainID, parentDomainID, name FROM httpDomain AS child WHERE customerID='$customerIDEscaped' AND (parentDomainID IS NULL OR (SELECT customerID FROM httpDomain AS parent WHERE parent.domainID = child.parentDomainID) IS NULL OR customerID <> (SELECT customerID FROM httpDomain AS parent WHERE parent.domainID = child.parentDomainID))")->fetchList();
 	
 	$domains = array();
 	foreach($ownDomains as $ownDomain) {
@@ -400,6 +400,69 @@ function typeFromTitle($title)
 	} else {
 		return null;
 	}
+}
+
+function addDomainForm($error = "", $rootDomainID = null, $name = null, $type = null, $hostedUserID = null, $hostedPath = null, $redirectTarget = null, $mirrorTargetPathID = null)
+{
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+		$stub = false;
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = false;
+	} else if($error == "STUB") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = true;
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = false;
+	}
+	
+	if($stub) {
+		$operationsHtml = "";
+		$submitHTML = "<tr class=\"submit\"><td colspan=\"3\"><input type=\"submit\" value=\"Add\"></td></tr>";
+	} else {
+		$operationsHtml = pathFunctionSubform($readonly != "", $type, null, $hostedUserID, $hostedPath, $redirectTarget, $mirrorTargetPathID);
+		$submitHTML = "";
+	}
+	
+	$parentDomainIDs = "";
+	$rootDomains = $GLOBALS["database"]->stdList("httpDomain", array("customerID"=>null), array("domainID", "name"));
+	foreach($rootDomains as $domain) {
+		if($rootDomainID == $domain["domainID"]) {
+			$selected = "selected=\"selected\"";
+		} else {
+			$selected = "";
+		}
+		$parentDomainIDs .= "<option value=\"{$domain["domainID"]}\" $selected>" . htmlentities($domain["name"]) . "</option>\n";
+	}
+	
+	$nameValue = inputValue($name);
+	return <<<HTML
+<div class="operation">
+<h2>Add domain</h2>
+$messageHtml
+<form action="adddomain.php" method="post">
+$confirmHtml
+<table>
+<tr><th>Domain name:</th><td class="stretch"><input type="text" name="name" $nameValue /></td><td style="white-space: nowrap;">.<select name="rootDomainID">$parentDomainIDs</select></td></tr>
+$submitHTML
+</table>
+
+$operationsHtml
+
+</form>
+</div>
+
+HTML;
 }
 
 function addSubdomainForm($domainID, $error = "", $name = null, $type = null, $hostedUserID = null, $hostedPath = null, $redirectTarget = null, $mirrorTargetPathID = null)
@@ -839,7 +902,11 @@ function toBeRemovedPathsPath($pathID, $recursive)
 
 function isRootDomain($domainID)
 {
-	return $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID") === null;
+	$parentDomainID = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID");
+	if($parentDomainID === null) {
+		return true;
+	}
+	return $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$parentDomainID), "customerID") === null;
 }
 
 function flattenDomainTree($tree, $parentID = null)
