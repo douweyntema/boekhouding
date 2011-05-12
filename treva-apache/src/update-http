@@ -18,11 +18,14 @@ flock($lock, LOCK_EX) OR die("Couldn't acquire global update-http lock");
 $GLOBALS["database"] = new MysqlConnection();
 $GLOBALS["database"]->open($httpServer, $httpUsername, $httpPassword, $httpDBName);
 
+
 $date = date("r", time());
 
 $tmpDir = "/tmp/update-http-" . uniqid();
 deep_copy($httpTargetDirectory, $tmpDir);
 global_replace($httpTargetDirectory, $tmpDir . "/", $tmpDir);
+
+$GLOBALS["database"]->startTransaction(true);
 
 $brokenSites = array();
 foreach(array("testRun"=>$tmpDir, "liveRun"=>$httpTargetDirectory) as $runType=>$p) {
@@ -195,6 +198,8 @@ MESSAGE;
 	}
 }
 
+$GLOBALS["database"]->commitTransaction();
+
 deep_remove($tmpDir);
 
 fclose($lock);
@@ -279,7 +284,7 @@ function get_config_path($pathID, $root = false, $prefix = "")
 	
 	$output .= "# pathID: $pathID\n";
 	
-	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("name", "type", "hostedUserID", "hostedPath", "hostedIndexes", "svnPath", "redirectTarget", "mirrorTargetPathID", "userDatabaseID", "userDatabaseRealm", "customLocationConfigText", "customDirectoryConfigText"));
+	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("domainID", "name", "type", "hostedUserID", "hostedPath", "hostedIndexes", "svnPath", "redirectTarget", "mirrorTargetPathID", "userDatabaseID", "userDatabaseRealm", "customLocationConfigText", "customDirectoryConfigText"));
 	
 	$location = array();
 	$directory = array();
@@ -287,7 +292,22 @@ function get_config_path($pathID, $root = false, $prefix = "")
 	$locationpath = $prefix . location($pathID);
 	if($path["type"] == "HOSTED") {
 		$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$path["hostedUserID"]), "username");
+		$customerID = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$path["domainID"]), "customerID");
+		$groupname = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "groupname");
 		$directorypath = "/home/" . $username . "/www/" . $path["hostedPath"];
+		if(!is_dir("/home/" . $username)) {
+			return $output . "### WARNING: Home directory does not exist; Ignoring site.\n";
+		}
+		if(!is_dir("/home/" . $username . "/www/")) {
+			mkdir("/home/" . $username . "/www/", 0755, true);
+			chown("/home/" . $username . "/www/", $username);
+			chgrp("/home/" . $username . "/www/", $groupname);
+		}
+		if(!is_dir($directorypath)) {
+			mkdir($directorypath, 0755, true);
+			chown($directorypath, $username);
+			chgrp($directorypath, $groupname);
+		}
 		if($path["hostedIndexes"] == 1) {
 			$directory[] = "Options SymLinksIfOwnerMatch Indexes";
 		} else {
@@ -313,7 +333,17 @@ function get_config_path($pathID, $root = false, $prefix = "")
 		$output .= "# $locationpath is a mirror of " . pathName($path["mirrorTargetPathID"]) . ":\n";
 		$output .= get_config_path($path["mirrorTargetPathID"], false, $pathprefix);
 	} else if($path["type"] == "SVN") {
-		$output .= "# TODO\n";
+		$directorypath = $path["svnPath"];
+		if(!is_dir($directorypath)) {
+			return $output . "### WARNING: SVN directory does not exist; Ignoring site.\n";
+		}
+		$location[] = <<<SVN
+DAV svn
+SVNParentPath $directorypath
+
+SVN;
+		$location[] = $path["customLocationConfigText"];
+		$directory[] = $path["customDirectoryConfigText"];
 	} else if($path["type"] == "AUTH") {
 		$output .= "# TODO\n";
 	} else if($path["type"] == "NONE") {
