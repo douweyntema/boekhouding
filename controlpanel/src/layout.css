@@ -135,20 +135,6 @@ h3 {
 	border: 2px solid #153e7e;
 }
 
-/* Blokjes informatie */
-.information {
-	border: 2px solid #153e7e;
-	background: #ffffff;
-	margin-top: 0.7em;
-	margin-bottom: 0.7em;
-	padding: 0.3em;
-	right: 0px;
-}
-
-.information h2 {
-	margin-top: 0px;
-}
-
 /* Actie blokjes */
 .operation {
 	border: 2px solid #153e7e;
@@ -266,7 +252,7 @@ h3 {
 
 /* table layout */
 .list table {
-	margin:10px 0pt 15px;
+	margin: 10px 0pt 15px;
 	width: 100%;
 	text-align: left;
 }
@@ -301,6 +287,16 @@ h3 {
 }
 .list table tbody tr.even td {
 	background-color: #F0F0F6;
+}
+.list caption {
+	color: #153e7e;
+	font-size: 14pt;
+	text-align: center;
+	padding: 4px;
+	background-color: #cbdfff;
+	border: 2px solid #153e7e;
+	margin-bottom: -2px;
+	font-weight: bold;
 }
 
 /* table sorter layout */
