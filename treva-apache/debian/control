@@ -1,0 +1,10 @@
+Source: treva-apache
+Maintainer: Stef Louwers <s.louwers@treva.nl>
+Section: treva
+Priority: optional
+Standards-Version: 3.9.1.0
+
+Package: treva-apache
+Architecture: all
+Description: Treva apache configuration generator
+Depends: php5-cli, apache2, libapache2-mod-suphp, libphpdatabase
