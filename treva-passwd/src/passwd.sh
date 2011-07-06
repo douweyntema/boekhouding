@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. /etc/treva-passwd.conf
+. /etc/treva-infrastructure/passwd.conf
 
 if [ `id -ru` -eq 0 ]; then
 	/usr/sbin/real-passwd "$@"

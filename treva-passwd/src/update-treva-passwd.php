@@ -37,7 +37,7 @@ if(posix_getuid() != 0) {
 	exit(2);
 }
 
-require_once("/etc/treva-update-passwd.conf");
+require_once("/etc/treva-infrastructure/common.conf");
 require_once("/usr/lib/phpdatabase/database.php");
 
 $database = new MysqlConnection();
