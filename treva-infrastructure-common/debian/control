@@ -1,0 +1,12 @@
+Source: treva-infrastructure-common
+Maintainer: Ruud Koolen <r.koolen@treva.nl>
+Section: treva
+Priority: optional
+Standards-Version: 3.9.1.0
+
+Package: treva-infrastructure-common
+Architecture: all
+Depends: php5-cli, libphpdatabase
+Description: Treva infrastructure common configuration files
+ Contains common configuration files for the different treva-infrastructure
+ utilities.
