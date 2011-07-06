@@ -21,13 +21,14 @@ function customerList()
 	$output  = "<div class=\"sortable list\">\n";
 	$output .= "<table>\n";
 	$output .= "<thead>\n";
-	$output .= "<tr><th>Name</th><th>Email</th></tr>\n";
+	$output .= "<tr><th>Nickname</th><th>Name</th><th>Email</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), array("customerID", "name", "email"), array("name"=>"ASC")) as $customer) {
-		$nameHtml = htmlentities($customer["name"]);
+	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), array("customerID", "name", "realname", "email"), array("name"=>"ASC")) as $customer) {
+		$nicknameHtml = htmlentities($customer["name"]);
+		$nameHtml = htmlentities($customer["realname"]);
 		$emailHtml = htmlentities($customer["email"]);
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nameHtml</a></td><td>$emailHtml</td></tr>\n";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a></td><td>$nameHtml</td><td>$emailHtml</td></tr>\n";
 	}
 	$output .= "</tbody>\n";
 	$output .= "</table>\n";
@@ -35,8 +36,9 @@ function customerList()
 	return $output;
 }
 
-function addCustomerForm($error = "", $name = "", $email = "")
+function addCustomerForm($error = "", $nickname = "", $name = "", $email = "")
 {
+	$nicknameValue = inputValue($nickname);
 	$nameValue = inputValue($name);
 	$emailValue = inputValue($email);
 	if($error === null) {
@@ -61,6 +63,10 @@ $messageHtml
 $confirmHtml
 <table>
 <tr>
+<th>Nickname:</th>
+<td><input type="text" name="customerNickname" $nicknameValue $readonly /></td>
+</tr>
+<tr>
 <th>Name:</th>
 <td><input type="text" name="customerName" $nameValue $readonly /></td>
 </tr>
@@ -78,8 +84,9 @@ $confirmHtml
 HTML;
 }
 
-function editCustomerForm($customerID, $error, $name, $email)
+function editCustomerForm($customerID, $error, $nickname, $name, $email)
 {
+	$nicknameValue = inputValue($nickname);
 	$nameValue = inputValue($name);
 	$emailValue = inputValue($email);
 	if($error === null) {
@@ -103,6 +110,10 @@ $messageHtml
 <form action="editcustomer.php?id=$customerID" method="post">
 $confirmHtml
 <table>
+<tr>
+<th>Nickname:</th>
+<td><input type="text" name="customerNickname" $nicknameValue $readonly /></td>
+</tr>
 <tr>
 <th>Name:</th>
 <td><input type="text" name="customerName" $nameValue $readonly /></td>

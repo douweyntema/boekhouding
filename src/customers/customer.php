@@ -7,7 +7,7 @@ function main()
 	doCustomers();
 	
 	$customerID = get("id");
-	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "email"), false);
+	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "realname", "email"), false);
 	
 	if($customer === false) {
 		customerNotFound($customerID);
@@ -30,7 +30,7 @@ function main()
 
 HTML;
 	
-	$content .= editCustomerForm($customerID, "", $customer["name"], $customer["email"]);
+	$content .= editCustomerForm($customerID, "", $customer["name"], $customer["realname"], $customer["email"]);
 	$content .= editCustomerRightsForm($customerID);
 	
 	echo page($content);
