@@ -8,9 +8,6 @@ function menuHttp()
 		return <<<HTML
 <li>
 <a href="{$GLOBALS["rootHtml"]}http/">Web hosting</a>
-<ul>
-<li><a href="{$GLOBALS["rootHtml"]}http/adddomain.php">New domain</a></li>
-</ul>
 </li>
 
 HTML;
