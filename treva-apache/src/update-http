@@ -60,10 +60,9 @@ MESSAGE;
 	//
 	// Open ports in apache (currently only port 80 is supported)
 	//
-// 	$ports = $db->stdList("httpSocket", array(), "port", array("port"=>"ASC"));
 	$ports = array(80);
 	
-	$apache = <<<HEADER
+	$file = <<<HEADER
 #
 # THIS FILE IS AUTO-GENERATED. MANUAL EDITS WILL BE OVERWRITTEN!
 # generated: $date
@@ -72,19 +71,12 @@ MESSAGE;
 
 HEADER;
 	
-	$ports_d = array(80=>80);
 	foreach($ports as $port) {
-		$ports_d[$port] = $port;
-	}
-	foreach($ports_d as $port) {
-		$apache .= "Listen {$port}\n";
-		$apache .= "NameVirtualHost *:{$port}\n";
+		$file .= "Listen {$port}\n";
+		$file .= "NameVirtualHost *:{$port}\n";
 	}
 	
-	$filename = $p . "ports.conf";
-	$handle = fopen($filename, "w");
-	fwrite($handle, $apache);
-	fclose($handle);
+	file_put_contents($p . "ports.conf", $file);
 	
 	//
 	// test ports file
@@ -119,7 +111,6 @@ MESSAGE;
 		
 		$domainName = domainName($rootDomainID);
 		$customerName = customerName($rootDomainID);
-		$date = date("r", time());
 		
 		$file .= <<<HEADER
 #
@@ -169,10 +160,7 @@ BROKEN;
 		} else {
 			$file .= $config;
 		}
-		$filename = $p . "sites-enabled/" . $domainName;
-		$handle = fopen($filename, "w");
-		fwrite($handle, $file);
-		fclose($handle);
+		file_put_contents($p . "sites-enabled/" . $domainName, $file);
 		
 		//
 		// Test this domain's configuration
@@ -425,16 +413,16 @@ function get_log($domainID)
 	$group = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "groupname");
 	$domain = domainName($domainID);
 	
-	$logDirectory = "{$httpLogDirectory}{$username}/{$domain}/";
+	$logDirectory = "{$httpLogDirectory}{$group}/{$domain}/";
 	if(!is_dir($httpLogDirectory)) {
 		mkdir($httpLogDirectory, 0755, true);
 		chown($httpLogDirectory, "www-data");
 		chgrp($httpLogDirectory, "www-data");
 	}
-	if(!is_dir($httpLogDirectory . $username)) {
-		mkdir($httpLogDirectory . $username, 0750);
-		chown($httpLogDirectory . $username, "www-data");
-		chgrp($httpLogDirectory . $username, $group);
+	if(!is_dir($httpLogDirectory . $group)) {
+		mkdir($httpLogDirectory . $group, 0750);
+		chown($httpLogDirectory . $group, "www-data");
+		chgrp($httpLogDirectory . $group, $group);
 	}
 	if(!is_dir($logDirectory)) {
 		mkdir($logDirectory, 0750);
