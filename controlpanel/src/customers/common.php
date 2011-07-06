@@ -21,14 +21,15 @@ function customerList()
 	$output  = "<div class=\"sortable list\">\n";
 	$output .= "<table>\n";
 	$output .= "<thead>\n";
-	$output .= "<tr><th>Nickname</th><th>Name</th><th>Email</th></tr>\n";
+	$output .= "<tr><th>Nickname</th><th>Name</th><th>Email</th><th>Filesystem</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), array("customerID", "name", "realname", "email"), array("name"=>"ASC")) as $customer) {
+	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), array("customerID", "filesystemID", "name", "realname", "email"), array("name"=>"ASC")) as $customer) {
 		$nicknameHtml = htmlentities($customer["name"]);
 		$nameHtml = htmlentities($customer["realname"]);
 		$emailHtml = htmlentities($customer["email"]);
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a></td><td>$nameHtml</td><td>$emailHtml</td></tr>\n";
+		$filesystemNameHtml = htmlentities($GLOBALS["database"]->stdGet("infrastructureFilesystem", array("filesystemID"=>$customer["filesystemID"]), "name"));
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a></td><td>$nameHtml</td><td><a href=\"mailto:{$customer["email"]}\">$emailHtml</a></td><td>$filesystemNameHtml</td></tr>\n";
 	}
 	$output .= "</tbody>\n";
 	$output .= "</table>\n";
@@ -36,11 +37,12 @@ function customerList()
 	return $output;
 }
 
-function addCustomerForm($error = "", $nickname = "", $name = "", $email = "")
+function addCustomerForm($error = "", $nickname = "", $name = "", $email = "", $group = "", $filesystemID = "")
 {
 	$nicknameValue = inputValue($nickname);
 	$nameValue = inputValue($name);
 	$emailValue = inputValue($email);
+	$groupValue = inputValue($group);
 	if($error === null) {
 		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
 		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
@@ -53,6 +55,19 @@ function addCustomerForm($error = "", $nickname = "", $name = "", $email = "")
 		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
 		$confirmHtml = "";
 		$readonly = "";
+	}
+	
+	if($readonly == "") {
+		$filesystemOptions = "<select name=\"customerFilesystem\">";
+		$filesystems = $GLOBALS["database"]->stdList("infrastructureFilesystem", array(), array("filesystemID", "name"));
+		foreach($filesystems as $filesystemOption) {
+			$selected = $filesystemID == $filesystemOption["filesystemID"] ? "selected=\"selected\"" : "";
+			$filesystemOptions .= "<option value=\"{$filesystemOption["filesystemID"]}\" $selected>{$filesystemOption["name"]}</option>";
+		}
+		$filesystemOptions .= "</select>";
+	} else {
+		$filesystemName = $GLOBALS["database"]->stdGet("infrastructureFilesystem", array("filesystemID"=>$filesystemID), "name");
+		$filesystemOptions = "<input name=\"customerFilesystem\" type=\"hidden\" value=\"$filesystemID\" /><input type=\"text\" name=\"customerFilesystemName\" value=\"$filesystemName\" readonly=\"readonly\">";
 	}
 	
 	return <<<HTML
@@ -75,6 +90,14 @@ $confirmHtml
 <td><input type="text" name="customerEmail" $emailValue $readonly /></td>
 </tr>
 <tr>
+<th>Group:</th>
+<td><input type="text" name="customerGroup" $groupValue $readonly /></td>
+</tr>
+<tr>
+<th>Filesystem:</th>
+<td>$filesystemOptions</td>
+</tr>
+<tr>
 <td colspan="2" class="submitCell"><input type="submit" value="Add" /></td>
 </tr>
 </table>
@@ -84,11 +107,14 @@ $confirmHtml
 HTML;
 }
 
-function editCustomerForm($customerID, $error, $nickname, $name, $email)
+function editCustomerForm($customerID, $error, $name, $email)
 {
-	$nicknameValue = inputValue($nickname);
+	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "groupname", "filesystemID"), false);
+	$nicknameHtml = htmlentities($customer["name"]);
 	$nameValue = inputValue($name);
 	$emailValue = inputValue($email);
+	$groupHtml = htmlentities($customer["groupname"]);
+	$filesystemNameHtml = htmlentities($GLOBALS["database"]->stdGet("infrastructureFilesystem", array("filesystemID"=>$customer["filesystemID"]), "name"));
 	if($error === null) {
 		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
 		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />";
@@ -112,7 +138,7 @@ $confirmHtml
 <table>
 <tr>
 <th>Nickname:</th>
-<td><input type="text" name="customerNickname" $nicknameValue $readonly /></td>
+<td>$nicknameHtml</td>
 </tr>
 <tr>
 <th>Name:</th>
@@ -121,6 +147,14 @@ $confirmHtml
 <tr>
 <th>Email:</th>
 <td><input type="text" name="customerEmail" $emailValue $readonly /></td>
+</tr>
+<tr>
+<th>Group:</th>
+<td>$groupHtml</td>
+</tr>
+<tr>
+<th>Filesystem:</th>
+<td>$filesystemNameHtml</select></td>
 </tr>
 <tr>
 <td colspan="2" class="submit"><input type="submit" value="Save" /></td>
