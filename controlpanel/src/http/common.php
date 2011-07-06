@@ -25,7 +25,7 @@ function updateHttp($customerID)
 	$GLOBALS["database"]->stdIncrement("infrastructureFilesystem", array("filesystemID"=>$filesystemID), "httpVersion", 1000000000);
 	
 	$hosts = $GLOBALS["database"]->stdList("infrastructureWebServer", array("filesystemID"=>$filesystemID), "hostID");
-	updateHosts($hosts, "update-treva-http");
+	updateHosts($hosts, "update-treva-apache");
 }
 
 function validSubdomain($name)
