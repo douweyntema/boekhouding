@@ -8,10 +8,6 @@ function menuMail()
 		return <<<HTML
 <li>
 <a href="{$GLOBALS["rootHtml"]}mail/">Email</a>
-<ul>
-<li><a href="{$GLOBALS["rootHtml"]}mail/functie1.php">Functie 1</a></li>
-<li><a href="{$GLOBALS["rootHtml"]}mail/functie2.php">Functie 2</a></li>
-</ul>
 </li>
 
 HTML;
