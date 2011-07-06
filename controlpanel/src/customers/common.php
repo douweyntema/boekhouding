@@ -29,7 +29,7 @@ function customerList()
 		$nameHtml = htmlentities($customer["realname"]);
 		$emailHtml = htmlentities($customer["email"]);
 		$filesystemNameHtml = htmlentities($GLOBALS["database"]->stdGet("infrastructureFilesystem", array("filesystemID"=>$customer["filesystemID"]), "name"));
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a></td><td>$nameHtml</td><td><a href=\"mailto:{$customer["email"]}\">$emailHtml</a></td><td>$filesystemNameHtml</td></tr>\n";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a></td><td>$nameHtml</td><td><a href=\"mailto:{$customer["email"]}\">$emailHtml</a></td><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$customer["filesystemID"]}\">$filesystemNameHtml</a></td></tr>\n";
 	}
 	$output .= "</tbody>\n";
 	$output .= "</table>\n";
@@ -154,7 +154,7 @@ $confirmHtml
 </tr>
 <tr>
 <th>Filesystem:</th>
-<td>$filesystemNameHtml</select></td>
+<td><a href="{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$customer["filesystemID"]}">$filesystemNameHtml</select></td>
 </tr>
 <tr>
 <td colspan="2" class="submit"><input type="submit" value="Save" /></td>
