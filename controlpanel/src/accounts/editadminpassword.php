@@ -22,36 +22,36 @@ function main()
 		array("name"=>"Change password", "url"=>"{$GLOBALS["root"]}accounts/editadminpassword.php?id=" . $userID)
 		));
 	
-	if(post("accountPassword1") === null || post("accountPassword2") === null) {
-		$content .= changeAdminAccountPasswordForm($userID);
+	if(post("confirm") === null) {
+		if(post("accountPassword1") === null || post("accountPassword2") === null) {
+			$content .= changeAdminAccountPasswordForm($userID);
+			die(page($content));
+		}
+		
+		if(post("accountPassword1") != post("accountPassword2")) {
+			$content .= changeAdminAccountPasswordForm($userID, "The entered passwords do not match.", null);
+			die(page($content));
+		}
+		
+		if(post("accountPassword1") == "") {
+			$content .= changeAdminAccountPasswordForm($userID, "Passwords must be at least one character long.", null);
+			die(page($content));
+		}
+		
+		$content .= changeAdminAccountPasswordForm($userID, null, post("accountPassword1"));
 		die(page($content));
-	} else {
-		if(post("confirm") === null) {
-			if(post("accountPassword1") != post("accountPassword2")) {
-				$content .= changeAdminAccountPasswordForm($userID, "The entered passwords do not match.", null);
-				die(page($content));
-			}
-			
-			if(post("accountPassword1") == "") {
-				$content .= changeAdminAccountPasswordForm($userID, "Passwords must be at least one character long.", null);
-				die(page($content));
-			}
-			
-			$content .= changeAdminAccountPasswordForm($userID, null, post("accountPassword1"));
-			die(page($content));
-		}
-		
-		$password = decryptPassword(post("accountEncryptedPassword"));
-		if($password === null) {
-			$content .= changeAdminAccountPasswordForm($userID, "Internal error: invalid encrypted password. Please enter password again.", null);
-			die(page($content));
-		}
-		
-		$GLOBALS["database"]->stdSet("adminUser", array("userID"=>$userID), array("password"=>hashPassword($password)));
-		
-		header("HTTP/1.1 303 See Other");
-		header("Location: {$GLOBALS["root"]}accounts/adminaccount.php?id=$userID");
 	}
+	
+	$password = decryptPassword(post("accountEncryptedPassword"));
+	if($password === null) {
+		$content .= changeAdminAccountPasswordForm($userID, "Internal error: invalid encrypted password. Please enter password again.", null);
+		die(page($content));
+	}
+	
+	$GLOBALS["database"]->stdSet("adminUser", array("userID"=>$userID), array("password"=>hashPassword($password)));
+	
+	header("HTTP/1.1 303 See Other");
+	header("Location: {$GLOBALS["root"]}accounts/adminaccount.php?id=$userID");
 }
 
 main();
