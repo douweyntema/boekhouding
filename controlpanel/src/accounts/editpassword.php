@@ -21,7 +21,7 @@ function main()
 		array("name"=>"Change password", "url"=>"{$GLOBALS["root"]}accounts/editpassword.php?id=" . $userID)
 		));
 
-	if(post("accountPassword1") === null || post("accountPassword2")) {
+	if(post("accountPassword1") === null || post("accountPassword2") === null) {
 		$content .= changeAccountPasswordForm($userID);
 		die(page($content));
 	} else {
