@@ -81,13 +81,24 @@ $allusers = array();
 $allgroups = array();
 
 $hostIDEscaped = $database->addSlashes($hostID);
-$users = $database->query("SELECT adminUser.userID AS userID, adminUser.username AS username, adminUser.password AS password, adminUser.shell AS shell, adminCustomer.customerID AS customerID, adminCustomer.groupname AS groupname, infrastructureMount.allowCustomerLogin as loginAllowed FROM infrastructureMount INNER JOIN infrastructureFilesystem ON infrastructureMount.filesystemID = infrastructureFilesystem.filesystemID INNER JOIN adminCustomer ON infrastructureFilesystem.filesystemID = adminCustomer.filesystemID INNER JOIN adminUser ON adminCustomer.customerID = adminUser.customerID WHERE infrastructureMount.hostID = '$hostIDEscaped' ORDER BY adminUser.userID ASC")->fetchList();
+$users = $database->query("SELECT adminUser.userID AS userID, adminUser.username AS username, adminUser.password AS password, adminUser.shell AS shell, adminCustomer.customerID AS customerID, adminCustomer.groupname AS groupname, infrastructureMount.allowCustomerLogin as loginAllowed FROM infrastructureMount INNER JOIN infrastructureFilesystem ON infrastructureMount.filesystemID = infrastructureFilesystem.filesystemID INNER JOIN adminCustomer ON infrastructureFilesystem.filesystemID = adminCustomer.filesystemID LEFT JOIN adminUser ON adminCustomer.customerID = adminUser.customerID WHERE infrastructureMount.hostID = '$hostIDEscaped' ORDER BY adminUser.userID ASC")->fetchList();
 
 foreach($users as $user) {
-	$uid = $user["userID"] + CUSTOMER_UID_MIN;
 	$gid = $user["customerID"] + CUSTOMER_UID_MIN;
-	$allusers[$uid] = $user;
 	$allgroups[$gid] = $user;
+	
+	$gr = posix_getgrgid($gid);
+	if($gr === false) {
+		`groupadd -g $gid {$user["groupname"]}`;
+		`usermod -a -G {$user["groupname"]} www-data`;
+	}
+	
+	if($user["userID"] === null) {
+		continue;
+	}
+	
+	$uid = $user["userID"] + CUSTOMER_UID_MIN;
+	$allusers[$uid] = $user;
 	
 	if(!$user["loginAllowed"]) {
 		$isDisabled = true;
@@ -102,14 +113,9 @@ foreach($users as $user) {
 	}
 	$disabled = ($isDisabled ? $accountDisabled : $accountEnabled);
 	
-	$gr = posix_getgrgid($gid);
-	if($gr === false) {
-		`groupadd -g $gid {$user["groupname"]}`;
-	}
-	
 	$pw = posix_getpwuid($uid);
 	if($pw === false) {
-		`useradd $disabled -m -u $uid -p {$user["password"]} -s {$user["shell"]} -g $gid {$user["username"]} >/dev/null 2>/dev/null`;
+		`useradd $disabled -u $uid -s {$user["shell"]} -g $gid -m -K UMASK=027 {$user["username"]} >/dev/null 2>/dev/null`;
 		$chpasswd = popen("chpasswd -e", "w");
 		fwrite($chpasswd, "{$user["username"]}:{$user["password"]}\n");
 		pclose($chpasswd);

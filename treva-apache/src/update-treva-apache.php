@@ -7,34 +7,108 @@
  * - Een redirect neemt nu zijn postfix mee naar de nieuwe url, willen we dit?
  */
 
+/*
+ * TODO: recursieve mirrors afvangen
+ */
+
+chdir("/");
+
+$force = false;
+$verbose = false;
+
+$arguments = $_SERVER["argv"];
+array_shift($arguments);
+foreach($arguments as $argument) {
+	if($argument == "--force") {
+		$force = true;
+	}
+	if($argument == "--verbose") {
+		$verbose = true;
+	}
+}
+
+function exceptionHandler($exception)
+{
+	echo "Internal error\n";
+	exit(1);
+}
+
+if(!$verbose) {
+	set_exception_handler("exceptionHandler");
+	error_reporting(0);
+}
+
+if(posix_getuid() != 0) {
+	echo "Error: root privileges required.\n";
+	exit(2);
+}
 
 require_once("/usr/lib/phpdatabase/database.php");
-require_once("/etc/treva-apache/update-http.conf.php");
+require_once("/etc/treva-infrastructure/common.conf");
+require_once("/etc/treva-infrastructure/apache.conf");
 
-$lockfile = "/var/lock/update-http.lock";
+$lockfile = "/var/lock/update-treva-apache.lock";
 $lock = fopen($lockfile, "w");
-flock($lock, LOCK_EX) OR die("Couldn't acquire global update-http lock");
+flock($lock, LOCK_EX) OR die("Couldn't acquire global update-treva-apache lock");
 
 $GLOBALS["database"] = new MysqlConnection();
-$GLOBALS["database"]->open($httpServer, $httpUsername, $httpPassword, $httpDBName);
+$GLOBALS["database"]->open($mysqlServer, $mysqlUsername, $mysqlPassword, $mysqlDatabase);
 
 
 $date = date("r", time());
 
-$tmpDir = "/tmp/update-http-" . uniqid();
-deep_copy($httpTargetDirectory, $tmpDir);
-global_replace($httpTargetDirectory, $tmpDir . "/", $tmpDir);
+$tmpDir = "/tmp/update-treva-apache-" . uniqid();
+deepCopy($httpTargetDirectory, $tmpDir);
+globalReplace($httpTargetDirectory, $tmpDir . "/", $tmpDir);
 
 $GLOBALS["database"]->startTransaction(true);
 
+$hostID = $GLOBALS["database"]->stdGetTry("infrastructureHost", array("hostname"=>$hostname), "hostID");
+if($hostID === null) {
+	echo "Host not in database\n";
+	exit(1);
+}
+
+$filesystems = $database->stdList("infrastructureWebServer", array("hostID"=>$hostID), array("filesystemID", "version"));
+
+$updateNeeded = false;
+foreach($filesystems as $filesystem) {
+	$id = $filesystem["filesystemID"];
+	$version = $filesystem["version"];
+	
+	$databaseVersion = $database->stdGet("infrastructureFilesystem", array("filesystemID"=>$id), "httpVersion");
+	
+	if($version != $databaseVersion) {
+		$updateNeeded = true;
+		$database->stdSet("infrastructureWebServer", array("hostID"=>$hostID, "filesystemID"=>$id), array("version"=>$databaseVersion));
+	}
+}
+
+if(!$updateNeeded && !$force) {
+	exit(0);
+}
+
+$hostIDSql = $GLOBALS["database"]->addSlashes($hostID);
+$customerList = $GLOBALS["database"]->query("SELECT customerID from adminCustomer INNER JOIN infrastructureWebServer USING(filesystemID) WHERE hostID='$hostIDSql'")->fetchList();
+$customers = array();
+foreach($customerList as $customer) {
+	$customers[$customer["customerID"]] = $customer["customerID"];
+}
+
+
+
+
+$fatalError = false;
 $brokenSites = array();
 foreach(array("testRun"=>$tmpDir, "liveRun"=>$httpTargetDirectory) as $runType=>$p) {
-	$p .= "/";
-	if(is_dir($p . "sites-enabled")) {
-		deep_remove($p . "sites-enabled", true);
+	if(substr($p, -1) != "/") {
+		$p .= "/";
 	}
-	if(!is_dir($p . "sites-enabled")) {
-		mkdir($p . "sites-enabled");
+	if(is_dir($p . "sites-scripted")) {
+		deepRemove($p . "sites-scripted", true);
+	}
+	if(!is_dir($p . "sites-scripted")) {
+		mkdir($p . "sites-scripted");
 	}
 	//
 	// Test empty config
@@ -53,6 +127,7 @@ $check
 MESSAGE;
 			mail($adminMail, "[FATAL ERROR][Apache] Broken configuration file", $message);
 			echo $message;
+			$fatalError = true;
 			break;
 		}
 	}
@@ -95,6 +170,7 @@ $check
 MESSAGE;
 			mail($adminMail, "[FATAL ERROR][Apache] Broken ports file", $message);
 			echo $message;
+			$fatalError = true;
 			break;
 		}
 	}
@@ -102,17 +178,13 @@ MESSAGE;
 	//
 	// Generate virtualhosts
 	//
-	$rootDomainIDs = getRootDomains();
-	
-	$handledMountpoints = array();
+	$rootDomainIDs = getRootDomains($hostID);
 	
 	foreach($rootDomainIDs as $rootDomainID) {
-		$file = "";
-		
 		$domainName = domainName($rootDomainID);
 		$customerName = customerName($rootDomainID);
 		
-		$file .= <<<HEADER
+		$header = <<<HEADER
 #
 # THIS FILE IS AUTO-GENERATED. MANUAL EDITS WILL BE OVERWRITTEN!
 # generated: $date
@@ -131,7 +203,7 @@ MESSAGE;
 HEADER;
 		$config = "";
 		try {
-			$config = get_config_domain($rootDomainID);
+			$config = getDomainConfig($rootDomainID);
 		} catch(NotFoundException $e) {
 			$brokenSites[$rootDomainID] = true;
 			$message = <<<MESSAGE
@@ -143,24 +215,27 @@ Customer: $customerName
 Error message:
 $e
 
+Config file:
+$config
+
 MESSAGE;
 			mail($adminMail, "[ERROR][Apache] Broken virtualhost: $domainName", $message);
 			echo $message;
 		}
 		
 		if(isset($brokenSites[$rootDomainID])) {
-			$file .= <<<BROKEN
+			$header .= <<<BROKEN
 #
 # The configuration of this domain is broken, so it is disabled.
 #
 
 
 BROKEN;
-			$file .= "#" . str_replace("\n", "\n#", $config). "\n";
-		} else {
-			$file .= $config;
+			file_put_contents($p . "sites-scripted/" . $domainName, $header . "#" . str_replace("\n", "\n#", $config). "\n");
+			continue;
 		}
-		file_put_contents($p . "sites-enabled/" . $domainName, $file);
+		
+		file_put_contents($p . "sites-scripted/" . $domainName, $header . $config);
 		
 		//
 		// Test this domain's configuration
@@ -178,33 +253,62 @@ Customer: $customerName
 Error message:
 $check
 
+Config file:
+$config
+
 MESSAGE;
 				mail($adminMail, "[ERROR][Apache] Broken virtualhost: $domainName", $message);
 				echo $message;
+				
+				file_put_contents($p . "sites-scripted/" . $domainName, $header . "#" . str_replace("\n", "\n#", $config). "\n");
 			}
 		}
 	}
 }
 
-$GLOBALS["database"]->commitTransaction();
+if($fatalError) {
+	$GLOBALS["database"]->rollbackTransaction();
+} else {
+	$GLOBALS["database"]->commitTransaction();
+}
 
-deep_remove($tmpDir);
+deepRemove($tmpDir);
 
 fclose($lock);
 unlink($lockfile);
 
-echo shell_exec("/etc/init.d/apache2 reload");
+if(!$fatalError) {
+	echo shell_exec("/etc/init.d/apache2 reload");
+}
 
 
 function getRootDomains()
 {
-	$result = $GLOBALS["database"]->query("SELECT domainID FROM httpDomain AS child WHERE customerID IS NOT NULL AND (parentDomainID IS NULL OR (SELECT customerID FROM httpDomain AS parent WHERE parent.domainID = child.parentDomainID) IS NULL)")->fetchList();
-	
-	$list = array();
-	foreach($result as $item) {
-		$list[] = $item["domainID"];
+	$domainList = $GLOBALS["database"]->stdList("httpDomain", array(), array("domainID", "parentDomainID", "customerID"));
+	$allDomains = array();
+	foreach($domainList as $domain) {
+		$allDomains[$domain["domainID"]] = $domain;
 	}
-	return $list;
+	$domains = array();
+	foreach($allDomains as $domainID => $domain) {
+		if(!isset($GLOBALS["customers"][$domain["customerID"]])) {
+			continue;
+		}
+		$current = $domain["parentDomainID"];
+		$found = false;
+		while($current !== null) {
+			if(isset($GLOBALS["customers"][$allDomains[$current]["customerID"]])) {
+				$found = true;
+				break;
+			}
+			$current = $allDomains[$current]["parentDomainID"];
+		}
+		if($found) {
+			continue;
+		}
+		$domains[] = $domainID;
+	}
+	return $domains;
 }
 
 function getSubDomains($parentID)
@@ -212,12 +316,7 @@ function getSubDomains($parentID)
 	return $GLOBALS["database"]->stdList("httpDomain", array("parentDomainID"=>$parentID), "domainID");
 }
 
-function getSubPaths($pathID)
-{
-	return $GLOBALS["database"]->stdList("httpPath", array("parentPathID"=>$pathID), "pathID");
-}
-
-function get_config_domain($domainID)
+function getDomainConfig($domainID)
 {
 	$output = "";
 	
@@ -225,25 +324,32 @@ function get_config_domain($domainID)
 	
 	$subDomainIDs = getSubDomains($domainID);
 	foreach($subDomainIDs as $subDomainID) {
-		$output .= get_config_domain($subDomainID);
+		$output .= getDomainConfig($subDomainID);
 		$output .= "\n\n";
 	}
 	
-	$customConfigText = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "customConfigText");
+	//
+	// If this subdomain should not be hosted on this server, treat it like a trivial subdomain (one without a Path config).
+	//
+	if(!isset($GLOBALS["customers"][$GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "customerID")])) {
+		return $output;
+	}
+	
 	$rootPathID = $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "pathID");
 	if($rootPathID === null) {
 		return $output;
 	}
 	
+	$customConfigText = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "customConfigText");
 	if($customConfigText !== null) {
 		$customConfigText = indent("### Custom configuration:\n\n" . $customConfigText . "\n\n### End custom configuration\n");
 	} else {
 		$customConfigText = "";
 	}
 	
-	$locations = indent(get_config_path($rootPathID, true));
+	$locations = indent(getPathConfig($rootPathID, "", array()));
 	
-	$log = get_log($domainID);
+	$log = getLog($domainID);
 	
 	// write config file
 	$output .= <<<CONFIG
@@ -261,113 +367,113 @@ $output .= "</VirtualHost>\n";
 	return $output;
 }
 
-function get_config_path($pathID, $root = false, $prefix = "")
+function getPathConfig($pathID, $location, $ancestors)
 {
+	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("domainID", "name", "type", "hostedUserID", "hostedPath", "hostedIndexes", "svnPath", "redirectTarget", "mirrorTargetPathID", "userDatabaseID", "userDatabaseRealm", "customLocationConfigText", "customDirectoryConfigText"));
+	
+	$childAncestors = $ancestors;
+	$childAncestors[$pathID] = $location;
+	
 	$output = "";
-	$subPathIDs = getSubPaths($pathID);
-	foreach($subPathIDs as $subPathID) {
-		$output .= get_config_path($subPathID);
+	foreach($GLOBALS["database"]->stdList("httpPath", array("parentPathID"=>$pathID), array("pathID", "name")) as $subPath) {
+		$output .= getPathConfig($subPath["pathID"], $location . "/" . $subPath["name"], $childAncestors);
 		$output .= "\n\n";
 	}
 	
+	$effectiveLocation = ($location == "" ? "/" : $location);
+	
 	$output .= "# pathID: $pathID\n";
 	
-	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("domainID", "name", "type", "hostedUserID", "hostedPath", "hostedIndexes", "svnPath", "redirectTarget", "mirrorTargetPathID", "userDatabaseID", "userDatabaseRealm", "customLocationConfigText", "customDirectoryConfigText"));
+	$locationBlocks = null;
+	$directoryBlocks = null;
+	$directoryPath = null;
 	
-	$location = array();
-	$directory = array();
-	$directorypath = null;
-	$locationpath = $prefix . location($pathID);
 	if($path["type"] == "HOSTED") {
 		$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$path["hostedUserID"]), "username");
 		$customerID = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$path["domainID"]), "customerID");
 		$groupname = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "groupname");
-		$directorypath = "/home/" . $username . "/www/" . $path["hostedPath"];
-		if(!is_dir("/home/" . $username)) {
-			return $output . "### WARNING: Home directory does not exist; Ignoring site.\n";
+		$directoryBase = "/home/" . $username . "/www/";
+		$directoryPath = $directoryBase . $path["hostedPath"];
+		if(!is_dir($directoryBase)) {
+			mkdir($directoryBase, 0755);
+			chown($directoryBase, $username);
+			chgrp($directoryBase, $groupname);
 		}
-		if(!is_dir("/home/" . $username . "/www/")) {
-			mkdir("/home/" . $username . "/www/", 0755, true);
-			chown("/home/" . $username . "/www/", $username);
-			chgrp("/home/" . $username . "/www/", $groupname);
+		if(!is_dir($directoryPath)) {
+			mkdir($directoryPath, 0755);
+			chown($directoryPath, $username);
+			chgrp($directoryPath, $groupname);
 		}
-		if(!is_dir($directorypath)) {
-			mkdir($directorypath, 0755, true);
-			chown($directorypath, $username);
-			chgrp($directorypath, $groupname);
-		}
+		$locationBlocks = array();
+		$directoryBlocks = array();
 		if($path["hostedIndexes"] == 1) {
-			$directory[] = "Options SymLinksIfOwnerMatch Indexes";
+			$directoryBlocks[] = "Options SymLinksIfOwnerMatch Indexes";
 		} else {
-			$directory[] = "Options SymLinksIfOwnerMatch";
+			$directoryBlocks[] = "Options SymLinksIfOwnerMatch";
 		}
-		$directory[] = "AllowOverride AuthConfig FileInfo Indexes Limit Options=Indexes,IncludesNOEXEC,SymLinksIfOwnerMatch,MultiViews";
-		$location[] = $path["customLocationConfigText"];
-		$directory[] = $path["customDirectoryConfigText"];
-		if($root) {
-			$output .= "DocumentRoot $directorypath\n";
+		$directoryBlocks[] = "AllowOverride AuthConfig FileInfo Indexes Limit Options=Indexes,IncludesNOEXEC,SymLinksIfOwnerMatch,MultiViews";
+		if($location == "") {
+			$output .= "DocumentRoot $directoryPath\n";
 		} else {
-			$output .= "Alias $locationpath $directorypath\n";
+			$output .= "Alias $effectiveLocation $directoryPath\n";
 		}
 	} else if($path["type"] == "REDIRECT") {
-		$output .= "Redirect $locationpath {$path["redirectTarget"]}\n";
-		$location[] = $path["customLocationConfigText"];
+		$output .= "RewriteEngine On\n";
+		$output .= 'RewriteRule ^' . str_replace('.', '\\.', $location) . "(/|\$)(.*) {$path["redirectTarget"]} [R,L]\n";
 	} else if($path["type"] == "MIRROR") {
-		if($locationpath == "/") {
-			$pathprefix = "";
+		if(isset($ancestors[$path["mirrorTargetPathID"]])) {
+			if($ancestors[$path["mirrorTargetPathID"]] == $location) {
+				$output .= "### Alias loop, ignoring path.\n";
+				$output .= 'RewriteRule ^' . str_replace('.', '\\.', $location) . "(/|\$)(.*) - [R=500,L]\n";
+			} else {
+				$output .= "RewriteEngine On\n";
+				$output .= 'RewriteRule ^' . str_replace('.', '\\.', $location) . "(/|\$)(.*) {$ancestors[$path["mirrorTargetPathID"]]}/\$2 [N]\n";
+			}
 		} else {
-			$pathprefix = $locationpath;
+			$output .= "# $effectiveLocation is a mirror of " . pathName($path["mirrorTargetPathID"]) . ":\n";
+			$output .= getPathConfig($path["mirrorTargetPathID"], $location, $childAncestors);
 		}
-		$output .= "# $locationpath is a mirror of " . pathName($path["mirrorTargetPathID"]) . ":\n";
-		$output .= get_config_path($path["mirrorTargetPathID"], false, $pathprefix);
 	} else if($path["type"] == "SVN") {
-		$directorypath = $path["svnPath"];
-		if(!is_dir($directorypath)) {
+		$directoryPath = $path["svnPath"];
+		if(!is_dir($directoryPath)) {
 			return $output . "### WARNING: SVN directory does not exist; Ignoring site.\n";
 		}
-		$location[] = <<<SVN
+		$locationBlocks = array(<<<SVN
 DAV svn
 SVNParentPath $directorypath
 
-SVN;
-		$location[] = $path["customLocationConfigText"];
-		$directory[] = $path["customDirectoryConfigText"];
+SVN
+		);
+		$directoryBlocks = array();
 	} else if($path["type"] == "AUTH") {
+		$locationBlocks = array();
 		$output .= "# TODO\n";
 	} else if($path["type"] == "NONE") {
 		$output .= "# nothing here\n";
 	}
 	
-	$render = false;
-	$locationRender = "";
-	foreach($location as $string) {
-		if($string === null) {
-			continue;
+	if($locationBlocks !== null) {
+		$output .= "<Location $effectiveLocation>\n";
+		if($path["customLocationConfigText"] !== null) {
+			$output .= indent("### Custom configuration:\n\n" . $path["customLocationConfigText"] . "\n\n### End custom configuration\n");
 		}
-		$locationRender .= $string . "\n";
-		$render = true;
-	}
-	if($render) {
-		$output .= "<Location $l>\n";
-		$output .= indent($locationRender);
+		foreach($locationBlocks as $locationBlock) {
+			$output .= indent($locationBlock) . "\n";
+		}
 		$output .= "</Location>\n";
 	}
 	
-	$render = false;
-	$directoryRender = "";
-	foreach($directory as $string) {
-		if($string === null) {
-			continue;
+	if($directoryBlocks !== null) {
+		if($directoryPath === null) {
+			die("Assertion failure: \$directoryPath is not set!\n");
 		}
-		$directoryRender .= $string . "\n";
-		$render = true;
-	}
-	if($render) {
-		if($directorypath === null) {
-			die("Assertion failure: \$directorypath is not set!\n");
+		$output .= "<Directory $directoryPath>\n";
+		if($path["customDirectoryConfigText"] !== null) {
+			$output .= indent("### Custom configuration:\n\n" . $path["customDirectoryConfigText"] . "\n\n### End custom configuration\n");
 		}
-		$output .= "<Directory $directorypath>\n";
-		$output .= indent($directoryRender);
+		foreach($directoryBlocks as $directoryBlock) {
+			$output .= indent($directoryBlock) . "\n";
+		}
 		$output .= "</Directory>\n";
 	}
 	
@@ -400,7 +506,7 @@ function indent($string)
 	return $indented;
 }
 
-function get_log($domainID)
+function getLog($domainID)
 {
 	global $httpLogDirectory;
 	global $httpLogFormat;
@@ -499,7 +605,7 @@ function testConfig($dir)
 	}
 }
 
-function global_replace($find, $replace, $dir)
+function globalReplace($find, $replace, $dir)
 {
 	if(is_dir($dir)) {
 		$handle = opendir($dir);
@@ -507,7 +613,7 @@ function global_replace($find, $replace, $dir)
 			if($file == "." || $file == "..") {
 				continue;
 			}
-			global_replace($find, $replace, $dir . "/" . $file);
+			globalReplace($find, $replace, $dir . "/" . $file);
 		}
 		closedir($handle);
 	} else {
@@ -518,7 +624,7 @@ function global_replace($find, $replace, $dir)
 	}
 }
 
-function deep_copy($source, $target)
+function deepCopy($source, $target)
 {
 	$pos = strrpos($source, "/");
 	if($pos === false) {
@@ -534,7 +640,7 @@ function deep_copy($source, $target)
 			if($file == "." || $file == "..") {
 				continue;
 			}
-			deep_copy($source . "/" . $file, $target . "/" . $name);
+			deepCopy($source . "/" . $file, $target . "/" . $name);
 		}
 		closedir($dir);
 	} else {
@@ -547,7 +653,7 @@ function deep_copy($source, $target)
 	}
 }
 
-function deep_remove($target, $noSymlinks = false)
+function deepRemove($target, $noSymlinks = false)
 {
 	if($noSymlinks && is_link($target)) {
 		return false;
@@ -559,7 +665,7 @@ function deep_remove($target, $noSymlinks = false)
 			if($file == "." || $file == "..") {
 				continue;
 			}
-			$success &= deep_remove($target . "/" . $file, $noSymlinks);
+			$success &= deepRemove($target . "/" . $file, $noSymlinks);
 		}
 		closedir($dir);
 		if($success) {
