@@ -8,9 +8,6 @@ function menuTicket()
 		return <<<HTML
 <li>
 <a href="{$GLOBALS["rootHtml"]}ticket/">Support</a>
-<ul>
-<li><a href="{$GLOBALS["rootHtml"]}ticket/addthread.php">New ticket</a></li>
-</ul>
 </li>
 
 HTML;

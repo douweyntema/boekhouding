@@ -7,7 +7,7 @@ function main()
 	doCustomers();
 	
 	$customerID = get("id");
-	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "email"), false);
+	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "realname", "email"), false);
 	
 	if($customer === false) {
 		customerNotFound($customerID);
@@ -23,28 +23,22 @@ function main()
 		array("name"=>"Edit customer", "url"=>"{$GLOBALS["root"]}customers/editcustomer.php?id=" . $customerID)
 		));
 	
-	$name = post("customerName";
+	$realname = post("customerName");
 	$email = post("customerEmail");
 	
-	if($name === null || $email === null) {
-		$content .= editCustomerForm($customerID, "", $customer["name"], $customer["email"]);
-		die(page($content));
-	}
-	
-	$oldCustomerID = $GLOBALS["database"]->stdGetTry("adminCustomer", array("name"=>$name), "customerID", false);
-	$exists = ($oldCustomerID !== false && $oldCustomerID != $customerID);
-	
-	if($exists) {
-		$content .= editCustomerForm($customerID, "A customer with the chosen name already exists.", $name, $email);
+	if($realname === null || $email === null) {
+		$content .= editCustomerForm($customerID, "", $customer["realname"], $customer["email"]);
 		die(page($content));
 	}
 	
 	if(post("confirm") === null) {
-		$content .= editCustomerForm($customerID, null, $name, $email);
+		$content .= editCustomerForm($customerID, null, $realname, $email);
 		die(page($content));
 	}
 	
-	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("name"=>$name, "email"=>$email));
+	var_dump($realname);
+	
+	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("realname"=>$realname, "email"=>$email));
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}customers/customer.php?id=$customerID");

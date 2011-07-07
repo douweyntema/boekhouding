@@ -4,7 +4,7 @@ require_once("common.php");
 
 function main()
 {
-	$domainID = get("id")
+	$domainID = get("id");
 	doMailDomain($domainID);
 	
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
