@@ -96,7 +96,7 @@ function filesystemHostList($filesystemID)
 	$output .= "<table>\n";
 	$output .= "<caption>Hosts in filesystem $filesystemNameHtml</caption>";
 	$output .= "<thead>\n";
-	$output .= "<tr><th>Name</th><th>Hostname</th><th>Login</th><th>Filesystem</th><th>Webserver</th></tr>\n";
+	$output .= "<tr><th>Name</th><th>Hostname</th><th>Login</th><th>Mount</th><th>Webhosting</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
 	foreach(magicQuery(array("filesystem.filesystemID"=>$filesystemID)) as $host) {
@@ -153,7 +153,7 @@ function hostFilesystemList($hostID)
 	$output .= "<table>\n";
 	$output .= "<caption>Filesystems used by host $hostNameHtml</caption>";
 	$output .= "<thead>\n";
-	$output .= "<tr><th>Name</th><th>Login</th><th>Filesystem</th><th>Webserver</th></tr>\n";
+	$output .= "<tr><th>Name</th><th>Login</th><th>Mount</th><th>Webhosting</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
 	foreach(magicQuery(array("host.hostID"=>$hostID)) as $filesystem) {
@@ -233,18 +233,48 @@ function hostRefresh($hostID)
 	return $output;
 }
 
-function refreshMount($hostID)
+function filesystemRefresh($filesystemID)
 {
-	$GLOBALS["database"]->stdSet("infrastructureMount", array("hostID"=>$hostID), array("version"=>-1));
+	$filesystemName = $GLOBALS["database"]->stdGet("infrastructureFilesystem", array("filesystemID"=>$filesystemID), "name");
+	$filesystemNameHtml = htmlentities($filesystemName);
 	
-	updateHosts(array($hostID), "update-treva-passwd");
+	$output  = "<div class=\"operation\">\n";
+	$output .= "<h2>Refresh filesystem $filesystemNameHtml</h2>";
+	$output .= "<table>";
+	$output .= "<tr class=\"submit\"><td>";
+	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id=$filesystemID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"all\"><input type=\"submit\" value=\"Refresh everything\"></form>";
+	$output .= "</td></tr>";
+	$output .= "<tr class=\"submit\"><td>";
+	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id=$filesystemID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"filesystem\"><input type=\"submit\" value=\"Refresh mounts\"></form>";
+	$output .= "</td></tr>";
+	$output .= "<tr class=\"submit\"><td>";
+	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id=$filesystemID\"  method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"webserver\"><input type=\"submit\" value=\"Refresh webservers\"></form>";
+	$output .= "</td></tr>";
+	$output .= "</table>";
+	$output .= "</div>";
+	return $output;
 }
 
-function refreshWebServer($hostID)
+function refreshHostMount($hostID)
 {
-	$GLOBALS["database"]->stdSet("infrastructureWebServer", array("hostID"=>$hostID), array("version"=>-1));
-	
-	updateHosts(array($hostID), "update-treva-apache");
+	updateHosts(array($hostID), "update-treva-passwd --force");
+}
+
+function refreshHostWebServer($hostID)
+{
+	updateHosts(array($hostID), "update-treva-apache --force");
+}
+
+function refreshFilesystemMount($filesystemID)
+{
+	$hosts = $GLOBALS["database"]->stdList("infrastructureMount", array("filesystemID"=>$filesystemID), "hostID");
+	updateHosts($hosts, "update-treva-passwd --force");
+}
+
+function refreshFilesystemWebServer($filesystemID)
+{
+	$hosts = $GLOBALS["database"]->stdList("infrastructureWebServer", array("filesystemID"=>$filesystemID), "hostID");
+	updateHosts($hosts, "update-treva-apache --force");
 }
 
 ?>

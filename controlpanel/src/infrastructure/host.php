@@ -18,12 +18,12 @@ function main()
 		));
 	
 	if(post("refresh") == "all") {
-		refreshMount($hostID);
-		refreshWebServer($hostID);
+		refreshHostMount($hostID);
+		refreshHostWebServer($hostID);
 	} else if(post("refresh") == "filesystem") {
-		refreshMount($hostID);
+		refreshHostMount($hostID);
 	} else if(post("refresh") == "webserver") {
-		refreshWebServer($hostID);
+		refreshHostWebServer($hostID);
 	}
 	
 	$content .= hostDetail($hostID);

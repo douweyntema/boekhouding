@@ -17,9 +17,19 @@ function main()
 		array("name"=>"$filesystemName", "url"=>"{$GLOBALS["root"]}infrastructure/filesystem.php?id=$filesystemID")
 		));
 	
+	if(post("refresh") == "all") {
+		refreshFilesystemMount($filesystemID);
+		refreshFilesystemWebServer($filesystemID);
+	} else if(post("refresh") == "filesystem") {
+		refreshFilesystemMount($filesystemID);
+	} else if(post("refresh") == "webserver") {
+		refreshFilesystemWebServer($filesystemID);
+	}
+	
 	$content .= filesystemDetail($filesystemID);
 	$content .= filesystemHostList($filesystemID);
 	$content .= filesystemCustomersList($filesystemID);
+	$content .= filesystemRefresh($filesystemID);
 	
 	echo page($content);
 }
