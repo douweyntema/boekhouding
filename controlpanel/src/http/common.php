@@ -985,7 +985,7 @@ function domainPathTree($domainID, $name)
 	$output["type"] = $path["type"];
 	$output["userDatabaseID"] = $path["userDatabaseID"];
 	if($path["type"] == "HOSTED") {
-		$username = username($path["hostedUserID"]);
+		$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$path["hostedUserID"]), "username");
 		$output["target"] = "/home/$username/www/{$path["hostedPath"]}/";
 	} else if($path["type"] == "SVN") {
 		$output["target"] = $path["svnPath"];
