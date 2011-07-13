@@ -196,7 +196,11 @@ function domainSummary($domainID)
 		$addressHtml = htmlentities($address["name"]);
 		$parentHtml = ($address["parentID"] === null ? "" : "class=\"child-of-{$address["parentID"]}\"");
 		if(isset($address["domainID"])) {
-			$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td><a href=\"domain.php?id={$address["domainID"]}\">$addressHtml</a></td><td>$functionHtml</td></tr>\n";
+			if(isset($address["customerID"])) {
+				$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td>$addressHtml</td><td>$functionHtml</td></tr>\n";
+			} else {
+				$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td><a href=\"domain.php?id={$address["domainID"]}\">$addressHtml</a></td><td>$functionHtml</td></tr>\n";
+			}
 		} else {
 			$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td><a href=\"path.php?id={$address["pathID"]}\">$addressHtml</a></td><td>$functionHtml</td></tr>\n";
 		}
@@ -913,6 +917,11 @@ function flattenDomainTree($tree, $parentID = null)
 {
 	$id = "domain-" . $tree["domainID"];
 	$output = array();
+	
+	if(isset($tree["customerID"])) {
+		$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID, "type"=>"OTHERUSER"));
+		return $output;
+	}
 	$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID));
 	foreach($tree["subdomains"] as $domain) {
 		$output = array_merge($output, flattenDomainTree($domain, $id));
@@ -1109,6 +1118,9 @@ function functionDescription($address)
 		return "Alias for {$address["target"]}";
 	} else if($address["type"] == "NONE" && $address["userDatabaseID"] !== null) {
 		return "Secured subdirectory";
+	} else if($address["type"] == "OTHERUSER") {
+		$customerName = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$address["customerID"]), "name");
+		return "Delegated to customer $customerName";
 	} else {
 		return "";
 	}
