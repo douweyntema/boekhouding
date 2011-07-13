@@ -1,0 +1,8 @@
+#!/bin/bash -e
+
+if [ "`dpkg-divert --truename /etc/suphp/suphp.conf`" != /etc/suphp/suphp.conf.orig ]
+then
+	dpkg-divert --add --rename --divert /etc/suphp/suphp.conf.orig /etc/suphp/suphp.conf
+fi
+
+ln -s -f /usr/share/treva-apache/suphp.conf /etc/suphp/suphp.conf

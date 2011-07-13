@@ -1,3 +1,10 @@
+treva-apache (0.3) squeeze; urgency=medium
+
+  * Added a suphp config file
+  * Added a dependancy to treva-mysql
+
+ -- Stef Louwers <s.louwers@treva.nl>  Wed, 13 Jul 2011 17:04:42 +0200
+
 treva-apache (0.2) squeeze; urgency=medium
 
   * Updated to reflect new database structure
