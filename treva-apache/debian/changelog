@@ -1,3 +1,9 @@
+treva-apache (0.4) squeeze; urgency=medium
+
+  * Added dependancies to some usefull php-addons
+
+ -- Stef Louwers <s.louwers@treva.nl>  Wed, 13 Jul 2011 17:19:42 +0200
+
 treva-apache (0.3) squeeze; urgency=medium
 
   * Added a suphp config file
