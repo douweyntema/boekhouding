@@ -1,5 +1,7 @@
 <?php
 
+$GLOBALS["loginAllowed"] = true;
+
 require_once("common.php");
 
 function main()
