@@ -100,7 +100,7 @@ function welcomeHeader()
 		$customerHtml = htmlentities(impersonatedCustomer());
 		return <<<HTML
 <div class="welcome">
-<span>Logged in as $usernameHtml@$customerHtml - <a href="{$GLOBALS["rootHtml"]}logout.php">log out</a> - <a href="{$GLOBALS["rootHtml"]}index.php?customerID=0">back to $usernameHtml</a></span>
+<span>Logged in as $usernameHtml@$customerHtml - <a href="{$GLOBALS["rootHtml"]}logout.php">log out</a> - <a href="{$GLOBALS["rootHtml"]}customers/?customerID=0">back to $usernameHtml</a></span>
 </div>
 
 HTML;
