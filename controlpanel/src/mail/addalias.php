@@ -14,6 +14,16 @@ function main()
 	$localpart = post("localpart");
 	$targetAddress = post("targetAddress");
 	
+	if(!validLocalPart($localpart)) {
+		$content .= addMailAliasForm($domainID, "Invalid alias", $localpart, $targetAddress);
+		die(page($content));
+	}
+	
+	if(!validEmail($targetAddress)) {
+		$content .= addMailAliasForm($domainID, "Invalid target address", $localpart, $targetAddress);
+		die(page($content));
+	}
+	
 	if(post("confirm") === null) {
 		$content .= addMailAliasForm($domainID, null, $localpart, $targetAddress);
 		die(page($content));
@@ -22,7 +32,7 @@ function main()
 	$aliasID = $GLOBALS["database"]->stdNew("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart, "targetAddress"=>$targetAddress));
 	
 	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}mail/alias.php?id=$aliasID");
+	header("Location: {$GLOBALS["root"]}mail/domain.php?id={$domainID}");
 }
 
 main();

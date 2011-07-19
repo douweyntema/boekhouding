@@ -17,18 +17,22 @@ function main()
 	
 	$content = "<h1>Alias {$alias["localpart"]}@$domain</h1>\n";
 	
-	$localpart = post("localpart");
 	$targetAddress = post("targetAddress");
 	
-	if(post("confirm") === null) {
-		$content .= editMailAliasForm($aliasID, null, $localpart, $targetAddress);
+	if(!validEmail($targetAddress)) {
+		$content .= editMailAliasForm($aliasID, "Invalid target address", $targetAddress);
 		die(page($content));
 	}
 	
-	$GLOBALS["database"]->stdSet("mailAlias", array("aliasID"=>$aliasID), array("localpart"=>$localpart, "targetAddress"=>$targetAddress));
+	if(post("confirm") === null) {
+		$content .= editMailAliasForm($aliasID, null, $targetAddress);
+		die(page($content));
+	}
+	
+	$GLOBALS["database"]->stdSet("mailAlias", array("aliasID"=>$aliasID), array("targetAddress"=>$targetAddress));
 	
 	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}mail/alias.php?id=$aliasID");
+	header("Location: {$GLOBALS["root"]}mail/domain.php?id={$alias["domainID"]}");
 }
 
 main();

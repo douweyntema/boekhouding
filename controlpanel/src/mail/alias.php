@@ -17,7 +17,7 @@ function main()
 	
 	$content = "<h1>Alias {$alias["localpart"]}@$domain</h1>\n";
 	
-	$content .= editMailAliasForm($aliasID, "", $alias["localpart"], $alias["targetAddress"]);
+	$content .= editMailAliasForm($aliasID, "", $alias["targetAddress"]);
 	$content .= removeMailAliasForm($aliasID, "");
 	
 	echo page($content);
