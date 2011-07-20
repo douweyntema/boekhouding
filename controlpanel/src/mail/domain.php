@@ -10,6 +10,8 @@ function main()
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
 	$content = "<h1>Domain $domain</h1>\n";
 	
+	$content .= domainBreadcrumbs($domainID);
+	
 	$content .= mailboxList($domainID);
 	$content .= mailAliasList($domainID);
 	$content .= addMailAliasForm($domainID, "", null, null);

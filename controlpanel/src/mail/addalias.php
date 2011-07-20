@@ -11,6 +11,8 @@ function main()
 	
 	$content = "<h1>New alias for doman $domain</h1>\n";
 	
+	$content .= domainBreadcrumbs($domainID, array(array("name"=>"Add alias", "url"=>"{$GLOBALS["root"]}mail/addalias.php?id=$domainID")));
+	
 	$localpart = post("localpart");
 	$targetAddress = post("targetAddress");
 	

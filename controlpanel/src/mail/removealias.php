@@ -13,6 +13,8 @@ function main()
 	
 	$content = "<h1>Alias {$alias["localpart"]}@$domain</h1>\n";
 	
+	$content .= domainBreadcrumbs($alias["domainID"], array(array("name"=>"Alias {$alias["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/alias.php?id=$aliasID")));
+	
 	if(post("confirm") === null) {
 		$content .= removeMailAliasForm($aliasID, null);
 		die(page($content));

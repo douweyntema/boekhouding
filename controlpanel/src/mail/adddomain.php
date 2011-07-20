@@ -8,6 +8,8 @@ function main()
 	
 	$content = "<h1>New domain</h1>\n";
 	
+	$content .= mailBreadcrumbs(array(array("name"=>"Add domain", "url"=>"{$GLOBALS["root"]}mail/adddomain.php")));
+	
 	$domainName = post("domainName");
 	
 	if(!validDomain($domainName)) {

@@ -8,6 +8,8 @@ function main()
 	
 	$content = "<h1>Email</h1>\n";
 	
+	$content .= mailBreadcrumbs();
+	
 	$content .= mailDomainsList();
 	$content .= addMailDomainForm("", "");
 	

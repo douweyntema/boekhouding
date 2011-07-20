@@ -11,6 +11,8 @@ function main()
 	
 	$content = "<h1>New mailbox for doman $domain</h1>\n";
 	
+	$content .= domainBreadcrumbs($domainID, array(array("name"=>"Add mailbox", "url"=>"{$GLOBALS["root"]}mail/addmailbox.php?id=$domainID")));
+	
 	$localpart = post("localpart");
 	$quota = post("quota");
 	$spamQuota = post("spamquota");

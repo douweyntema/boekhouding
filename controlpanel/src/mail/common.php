@@ -26,6 +26,17 @@ function doMailAddress($addressID)
 	doMailDomain($domainID);
 }
 
+function mailBreadcrumbs($postfix = array())
+{
+	return breadcrumbs(array_merge(array(array("name"=>"Email", "url"=>"{$GLOBALS["root"]}mail/")), $postfix));
+}
+
+function domainBreadcrumbs($domainID, $postfix = array())
+{
+	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	return mailBreadcrumbs(array_merge(array(array("name"=>$domain, "url"=>"{$GLOBALS["root"]}mail/domain.php?id=$domainID")), $postfix));
+}
+
 function aliasNotFound($aliasID)
 {
 	header("HTTP/1.1 404 Not Found");
