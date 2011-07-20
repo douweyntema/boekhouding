@@ -269,13 +269,6 @@ function removeMailDomainForm($domainID, $error)
 {
 	if($error === null) {
 		$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-		$mailboxes = "";
-		foreach($GLOBALS["database"]->stdList("mailAddress", array("domainID"=>$domainID), "localpart") as $name) {
-			$mailboxes .= "<li>$name@$domain</li>\n";
-		}
-		if($mailboxes == "") {
-			$mailboxes = "<li>none</li>";
-		}
 		$aliasses = "";
 		foreach($GLOBALS["database"]->stdList("mailAlias", array("domainID"=>$domainID), "localpart") as $name) {
 			$aliasses .= "<li>$name@$domain</li>\n";
@@ -287,11 +280,7 @@ function removeMailDomainForm($domainID, $error)
 <p class="confirm">Confirm your input</p>
 <p class="confirmdelete">Are you sure you want to remove this domain, and all it's mailboxes and aliasses?</p>
 <p>
-The following mailboxes will be removed:
-<ul>
-$mailboxes
-</ul>
-and the following aliasses:
+The following aliasses will also be removed:
 <ul>
 $aliasses
 </ul>

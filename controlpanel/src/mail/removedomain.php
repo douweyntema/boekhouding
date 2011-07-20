@@ -8,8 +8,12 @@ function main()
 	doMailDomain($domainID);
 	
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
 	$content = "<h1>Domain $domain</h1>\n";
+	
+	if(count($GLOBALS["database"]->stdList("mailAddress", array("domainID"=>$domainID), "addressID")) > 0) {
+		$content .= removeMailDomainForm($domainID, "Unable to remove this domain. There are still mailboxes connected to this domain. Remove them first if you want to remove this domain.");
+		die(page($content));
+	}
 	
 	if(post("confirm") === null) {
 		$content .= removeMailDomainForm($domainID, null);
