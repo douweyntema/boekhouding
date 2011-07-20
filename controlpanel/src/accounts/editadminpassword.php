@@ -22,31 +22,7 @@ function main()
 		array("name"=>"Change password", "url"=>"{$GLOBALS["root"]}accounts/editadminpassword.php?id=" . $userID)
 		));
 	
-	if(post("confirm") === null) {
-		if(post("accountPassword1") === null || post("accountPassword2") === null) {
-			$content .= changeAdminAccountPasswordForm($userID);
-			die(page($content));
-		}
-		
-		if(post("accountPassword1") != post("accountPassword2")) {
-			$content .= changeAdminAccountPasswordForm($userID, "The entered passwords do not match.", null);
-			die(page($content));
-		}
-		
-		if(post("accountPassword1") == "") {
-			$content .= changeAdminAccountPasswordForm($userID, "Passwords must be at least one character long.", null);
-			die(page($content));
-		}
-		
-		$content .= changeAdminAccountPasswordForm($userID, null, post("accountPassword1"));
-		die(page($content));
-	}
-	
-	$password = decryptPassword(post("accountEncryptedPassword"));
-	if($password === null) {
-		$content .= changeAdminAccountPasswordForm($userID, "Internal error: invalid encrypted password. Please enter password again.", null);
-		die(page($content));
-	}
+	$password = checkPassword($content, "{$GLOBALS["root"]}accounts/editadminpassword.php?id=" . $userID);
 	
 	$GLOBALS["database"]->stdSet("adminUser", array("userID"=>$userID), array("password"=>hashPassword($password)));
 	

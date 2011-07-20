@@ -21,7 +21,7 @@ function main()
 		array("name"=>$username, "url"=>"{$GLOBALS["root"]}accounts/account.php?id=" . $userID)
 		));
 	
-	$content .= changeAccountPasswordForm($userID);
+	$content .= changePasswordForm("{$GLOBALS["root"]}accounts/editpassword.php?id=" . $userID);
 	$content .= changeAccountRightsForm($userID);
 	$content .= removeAccountForm($userID, "");
 	
