@@ -1,13 +1,14 @@
 -- phpMyAdmin SQL Dump
--- version 3.3.10
+-- version 3.4.3.1
 -- http://www.phpmyadmin.net
 --
--- Host: localhost
--- Generation Time: Apr 27, 2011 at 03:36 PM
+-- Host: earth.treva.nl
+-- Generation Time: Jul 21, 2011 at 04:01 AM
 -- Server version: 5.1.49
--- PHP Version: 5.3.3-7+squeeze1
+-- PHP Version: 5.3.3-7+squeeze3
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -16,7 +17,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 /*!40101 SET NAMES utf8 */;
 
 --
--- Database: `system`
+-- Database: `treva-panel`
 --
 
 -- --------------------------------------------------------
@@ -34,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `adminComponent` (
   `rootOnly` tinyint(1) NOT NULL,
   PRIMARY KEY (`componentID`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=8 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -46,11 +47,12 @@ CREATE TABLE IF NOT EXISTS `adminCustomer` (
   `customerID` int(11) NOT NULL AUTO_INCREMENT,
   `filesystemID` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
+  `realname` varchar(255) NOT NULL DEFAULT '',
   `email` varchar(255) NOT NULL,
   `groupname` varchar(255) NOT NULL,
   PRIMARY KEY (`customerID`),
   KEY `filesystemID` (`filesystemID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=10 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -77,7 +79,7 @@ CREATE TABLE IF NOT EXISTS `adminNews` (
   `date` int(11) NOT NULL,
   `text` text NOT NULL,
   PRIMARY KEY (`newsID`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=8 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -94,7 +96,7 @@ CREATE TABLE IF NOT EXISTS `adminUser` (
   PRIMARY KEY (`userID`),
   UNIQUE KEY `username` (`username`),
   KEY `customerID` (`customerID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=7 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -127,7 +129,7 @@ CREATE TABLE IF NOT EXISTS `dnsDomain` (
   PRIMARY KEY (`domainID`),
   UNIQUE KEY `parentDomainID` (`parentDomainID`,`name`),
   KEY `customerID` (`customerID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=24 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -143,7 +145,7 @@ CREATE TABLE IF NOT EXISTS `dnsHost` (
   `value` varchar(255) NOT NULL,
   PRIMARY KEY (`hostID`),
   KEY `domainID` (`domainID`,`hostname`,`type`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=87 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -159,7 +161,7 @@ CREATE TABLE IF NOT EXISTS `dnsMailServer` (
   PRIMARY KEY (`mailServerID`),
   KEY `domainID` (`domainID`),
   KEY `serverID` (`serverID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=50 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -175,7 +177,7 @@ CREATE TABLE IF NOT EXISTS `dnsNameServer` (
   PRIMARY KEY (`nameServerID`),
   KEY `domainID` (`domainID`),
   KEY `serverID` (`serverID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=47 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -187,7 +189,7 @@ CREATE TABLE IF NOT EXISTS `dnsServer` (
   `serverID` int(11) NOT NULL AUTO_INCREMENT,
   `hostname` varchar(255) NOT NULL,
   PRIMARY KEY (`serverID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=12 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -197,14 +199,14 @@ CREATE TABLE IF NOT EXISTS `dnsServer` (
 
 CREATE TABLE IF NOT EXISTS `httpDomain` (
   `domainID` int(11) NOT NULL AUTO_INCREMENT,
-  `customerID` int(11) NOT NULL,
+  `customerID` int(11) DEFAULT NULL,
   `parentDomainID` int(11) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `customConfigText` text,
   PRIMARY KEY (`domainID`),
   UNIQUE KEY `parentDomainID` (`parentDomainID`,`name`),
   KEY `customerID` (`customerID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=36 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -219,7 +221,7 @@ CREATE TABLE IF NOT EXISTS `httpGroup` (
   `description` text NOT NULL,
   PRIMARY KEY (`groupID`),
   UNIQUE KEY `userDatabaseID` (`userDatabaseID`,`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -262,7 +264,7 @@ CREATE TABLE IF NOT EXISTS `httpPath` (
   KEY `domainID` (`domainID`),
   KEY `mirrorTargetPathID` (`mirrorTargetPathID`),
   KEY `hostedUserID` (`hostedUserID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=38 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -306,7 +308,7 @@ CREATE TABLE IF NOT EXISTS `httpUser` (
   `description` text NOT NULL,
   PRIMARY KEY (`userID`),
   UNIQUE KEY `userDatabaseID` (`userDatabaseID`,`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -321,7 +323,7 @@ CREATE TABLE IF NOT EXISTS `httpUserDatabase` (
   `description` text NOT NULL,
   PRIMARY KEY (`userDatabaseID`),
   UNIQUE KEY `customerID` (`customerID`,`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -336,7 +338,7 @@ CREATE TABLE IF NOT EXISTS `infrastructureFilesystem` (
   `filesystemVersion` int(11) NOT NULL,
   `httpVersion` int(11) NOT NULL,
   PRIMARY KEY (`filesystemID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -352,7 +354,7 @@ CREATE TABLE IF NOT EXISTS `infrastructureHost` (
   `description` text NOT NULL,
   PRIMARY KEY (`hostID`),
   UNIQUE KEY `hostname` (`hostname`,`sshPort`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -402,7 +404,7 @@ CREATE TABLE IF NOT EXISTS `mailAddress` (
   `quota` bigint(20) NOT NULL,
   PRIMARY KEY (`addressID`),
   UNIQUE KEY `domainID` (`domainID`,`localpart`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=17 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -417,7 +419,7 @@ CREATE TABLE IF NOT EXISTS `mailAlias` (
   `targetAddress` varchar(255) NOT NULL,
   PRIMARY KEY (`aliasID`),
   KEY `domainID` (`domainID`,`localpart`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=109 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -431,7 +433,7 @@ CREATE TABLE IF NOT EXISTS `mailDomain` (
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`domainID`),
   KEY `customerID` (`customerID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=14 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -447,7 +449,7 @@ CREATE TABLE IF NOT EXISTS `ticketReply` (
   `date` int(11) NOT NULL,
   PRIMARY KEY (`replyID`),
   KEY `threadID` (`threadID`,`userID`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=19 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -466,7 +468,7 @@ CREATE TABLE IF NOT EXISTS `ticketThread` (
   PRIMARY KEY (`threadID`),
   KEY `customerID` (`customerID`),
   KEY `userID` (`userID`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=9 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 --
 -- Constraints for dumped tables
@@ -482,8 +484,8 @@ ALTER TABLE `adminCustomer`
 -- Constraints for table `adminCustomerRight`
 --
 ALTER TABLE `adminCustomerRight`
-  ADD CONSTRAINT `adminCustomerRight_ibfk_3` FOREIGN KEY (`customerID`) REFERENCES `adminCustomer` (`customerID`),
-  ADD CONSTRAINT `adminCustomerRight_ibfk_4` FOREIGN KEY (`componentID`) REFERENCES `adminComponent` (`componentID`);
+  ADD CONSTRAINT `adminCustomerRight_ibfk_1` FOREIGN KEY (`customerID`) REFERENCES `adminCustomer` (`customerID`),
+  ADD CONSTRAINT `adminCustomerRight_ibfk_2` FOREIGN KEY (`componentID`) REFERENCES `adminComponent` (`componentID`);
 
 --
 -- Constraints for table `adminUser`
@@ -549,25 +551,25 @@ ALTER TABLE `httpGroupUser`
 -- Constraints for table `httpPath`
 --
 ALTER TABLE `httpPath`
-  ADD CONSTRAINT `httpPath_ibfk_4` FOREIGN KEY (`userDatabaseID`) REFERENCES `httpUserDatabase` (`userDatabaseID`),
-  ADD CONSTRAINT `httpPath_ibfk_5` FOREIGN KEY (`domainID`) REFERENCES `httpDomain` (`domainID`),
-  ADD CONSTRAINT `httpPath_ibfk_6` FOREIGN KEY (`parentPathID`) REFERENCES `httpPath` (`pathID`),
-  ADD CONSTRAINT `httpPath_ibfk_7` FOREIGN KEY (`mirrorTargetPathID`) REFERENCES `httpPath` (`pathID`),
-  ADD CONSTRAINT `httpPath_ibfk_8` FOREIGN KEY (`hostedUserID`) REFERENCES `adminUser` (`userID`);
+  ADD CONSTRAINT `httpPath_ibfk_1` FOREIGN KEY (`domainID`) REFERENCES `httpDomain` (`domainID`),
+  ADD CONSTRAINT `httpPath_ibfk_2` FOREIGN KEY (`parentPathID`) REFERENCES `httpPath` (`pathID`),
+  ADD CONSTRAINT `httpPath_ibfk_3` FOREIGN KEY (`mirrorTargetPathID`) REFERENCES `httpPath` (`pathID`),
+  ADD CONSTRAINT `httpPath_ibfk_4` FOREIGN KEY (`hostedUserID`) REFERENCES `adminUser` (`userID`),
+  ADD CONSTRAINT `httpPath_ibfk_5` FOREIGN KEY (`userDatabaseID`) REFERENCES `httpUserDatabase` (`userDatabaseID`);
 
 --
 -- Constraints for table `httpPathGroup`
 --
 ALTER TABLE `httpPathGroup`
-  ADD CONSTRAINT `httpPathGroup_ibfk_2` FOREIGN KEY (`groupID`) REFERENCES `httpGroup` (`groupID`),
-  ADD CONSTRAINT `httpPathGroup_ibfk_3` FOREIGN KEY (`pathID`) REFERENCES `httpPath` (`pathID`);
+  ADD CONSTRAINT `httpPathGroup_ibfk_1` FOREIGN KEY (`groupID`) REFERENCES `httpGroup` (`groupID`),
+  ADD CONSTRAINT `httpPathGroup_ibfk_2` FOREIGN KEY (`pathID`) REFERENCES `httpPath` (`pathID`);
 
 --
 -- Constraints for table `httpPathUser`
 --
 ALTER TABLE `httpPathUser`
-  ADD CONSTRAINT `httpPathUser_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `httpUser` (`userID`),
-  ADD CONSTRAINT `httpPathUser_ibfk_3` FOREIGN KEY (`pathID`) REFERENCES `httpPath` (`pathID`);
+  ADD CONSTRAINT `httpPathUser_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `httpUser` (`userID`),
+  ADD CONSTRAINT `httpPathUser_ibfk_2` FOREIGN KEY (`pathID`) REFERENCES `httpPath` (`pathID`);
 
 --
 -- Constraints for table `httpUser`
@@ -612,3 +614,12 @@ ALTER TABLE `mailAlias`
 --
 ALTER TABLE `mailDomain`
   ADD CONSTRAINT `mailDomain_ibfk_1` FOREIGN KEY (`customerID`) REFERENCES `adminCustomer` (`customerID`);
+--
+-- Constraints for table `ticketReply`
+--
+ALTER TABLE `ticketReply`
+  ADD CONSTRAINT `ticketReply_ibfk_1` FOREIGN KEY (`threadID`) REFERENCES `ticketThread` (`threadID`);
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
