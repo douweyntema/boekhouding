@@ -274,6 +274,52 @@ function checkPassword($content, $postUrl)
 	return $password;
 }
 
+function trivialActionForm($postUrl, $error, $title, $warning = null, $extraInfo = "")
+{
+	if($error === null) {
+		if($warning === null) {
+			$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		} else {
+			$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n<p class=\"confirmdelete\">$warning</p>\n";
+		}
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+	}
+	
+	$messageHtml .= $extraInfo;
+	
+	return <<<HTML
+<div class="operation">
+<h2>$title</h2>
+$messageHtml
+<form action="$postUrl" method="post">
+$confirmHtml
+<table><tr class="submit"><td>
+<input type="submit" value="$title" />
+</td></tr></table>
+</form>
+</div>
+
+HTML;
+}
+
+function checkTrivialAction($content, $postUrl, $title, $warning = null, $extraInfo = "")
+{
+	if(post("confirm") === null) {
+		$content .= trivialActionForm($postUrl, null, $title, $warning, $extraInfo);
+		die(page($content));
+	}
+	return true;
+}
+
 function updateHosts($hosts, $command)
 {
 	foreach($hosts as $hostID) {
