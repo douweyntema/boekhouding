@@ -23,7 +23,7 @@ function main()
 		$spambox = null;
 		$spamQuota = null;
 		$checkspambox = false;
-	} else if($spambox == "index") {
+	} else if($spambox == "inbox") {
 		$checkspambox = false;
 	} else {
 		$spambox = post("spambox-folder");
@@ -35,7 +35,7 @@ function main()
 		$virusbox = null;
 		$virusQuota = null;
 		$checkvirusbox = false;
-	} else if($virusbox == "index") {
+	} else if($virusbox == "inbox") {
 		$checkvirusbox = false;
 	} else {
 		$virusbox = post("virusbox-folder");
