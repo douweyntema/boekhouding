@@ -484,6 +484,52 @@ function updateVirusbox()
 HTML;
 }
 
+function mailboxSummary($mailboxID)
+{
+	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$mailboxID), array("domainID", "localpart", "spambox", "virusbox", "quota", "spamQuota", "virusQuota"));
+	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$mailbox["domainID"]), "name");
+	
+	$quota = round($mailbox["quota"] / 1024 / 1024, 2);
+	
+	
+	if($mailbox["spambox"] === null) {
+		$spambox = "No spambox";
+	} else if($mailbox["spambox"] == "inbox") {
+		$spambox = "inbox";
+	} else { 
+		if($mailbox["spamQuota"] === null) {
+			$spambox = $mailbox["spambox"] . " (no quota)";
+		} else {
+			$spamQuota = round($mailbox["spamQuota"] / 1024 / 1024, 2);
+			$spambox = $mailbox["spambox"] . " (quota " . $spamQuota . " MB)";
+		}
+	}
+	
+	if($mailbox["virusbox"] === null) {
+		$virusbox = "No virusbox";
+	} else if($mailbox["virusbox"] == "inbox") {
+		$virusbox = "inbox";
+	} else {
+		if($mailbox["virusQuota"] === null) {
+			$virusbox = $mailbox["virusbox"] . " (no quota)";
+		} else {
+			$virusQuota = round($mailbox["virusQuota"] / 1024 / 1024, 2);
+			$virusbox = $mailbox["virusbox"] . " (quota " . $virusQuota . " MB)";
+		}
+	}
+	
+	return <<<HTML
+<div class="operation">
+<h2>Mailbox {$mailbox["localpart"]}@$domain</h2>
+<table>
+<tr><th>Quota</th><td>$quota MB</td></tr>
+<tr><th>Spambox</th><td>$spambox</td></tr>
+<tr><th>Virusbox</th><td>$virusbox</td></tr>
+</table>
+</div>
+HTML;
+}
+
 function validDomain($name)
 {
 	if(strlen($name) < 1 || strlen($name) > 255) {
