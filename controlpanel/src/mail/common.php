@@ -83,8 +83,7 @@ function mailboxList($domainID)
 <tbody>
 HTML;
 	foreach($GLOBALS["database"]->stdList("mailAddress", array("domainID"=>$domainID), array("addressID", "localpart", "quota"), array("localpart"=>"asc")) as $mailbox) {
-		$quota = round($mailbox["quota"] / 1024 / 1024, 2);
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}mail/mailbox.php?id={$mailbox["addressID"]}\">{$mailbox["localpart"]}@$domain</a></td><td>$quota MB</td></tr>\n";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}mail/mailbox.php?id={$mailbox["addressID"]}\">{$mailbox["localpart"]}@$domain</a></td><td>{$mailbox["quota"]} MB</td></tr>\n";
 	}
 	$output .= <<<HTML
 </tbody>
@@ -406,11 +405,8 @@ HTML;
 
 function mailboxSummary($mailboxID)
 {
-	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$mailboxID), array("domainID", "localpart", "spambox", "virusbox", "quota", "spamQuota", "virusQuota"));
+	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$mailboxID), array("domainID", "localpart", "spambox", "virusbox", "quota", "spamQuota", "virusQuota", "canUseSmtp", "canUseImap"));
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$mailbox["domainID"]), "name");
-	
-	$quota = round($mailbox["quota"] / 1024 / 1024, 2);
-	
 	
 	if($mailbox["spambox"] === null) {
 		$spambox = "No spambox";
@@ -420,8 +416,7 @@ function mailboxSummary($mailboxID)
 		if($mailbox["spamQuota"] === null) {
 			$spambox = $mailbox["spambox"] . " (no quota)";
 		} else {
-			$spamQuota = round($mailbox["spamQuota"] / 1024 / 1024, 2);
-			$spambox = $mailbox["spambox"] . " (quota " . $spamQuota . " MB)";
+			$spambox = $mailbox["spambox"] . " (quota " . $mailbox["spamQuota"] . " MiB)";
 		}
 	}
 	
@@ -433,20 +428,153 @@ function mailboxSummary($mailboxID)
 		if($mailbox["virusQuota"] === null) {
 			$virusbox = $mailbox["virusbox"] . " (no quota)";
 		} else {
-			$virusQuota = round($mailbox["virusQuota"] / 1024 / 1024, 2);
-			$virusbox = $mailbox["virusbox"] . " (quota " . $virusQuota . " MB)";
+			$virusbox = $mailbox["virusbox"] . " (quota " . $mailbox["virusQuota"] . " MiB)";
 		}
 	}
+	
+	$smtp = $mailbox["canUseSmtp"] == 0 ? "Disabled" : "Enabled";
+	$imap = $mailbox["canUseImap"] == 0 ? "Disabled" : "Enabled";
 	
 	return <<<HTML
 <div class="operation">
 <h2>Mailbox {$mailbox["localpart"]}@$domain</h2>
 <table>
-<tr><th>Quota</th><td>$quota MB</td></tr>
+<tr><th>Quota</th><td>{$mailbox["quota"]} MB</td></tr>
 <tr><th>Spambox</th><td>$spambox</td></tr>
 <tr><th>Virusbox</th><td>$virusbox</td></tr>
+<tr><th>SMTP</th><td>$smtp</td></tr>
+<tr><th>IMAP</th><td>$imap</td></tr>
 </table>
 </div>
+HTML;
+}
+
+function editMailboxForm($addressID, $error, $quota, $spamQuota, $virusQuota, $spambox, $virusbox)
+{
+	$quotaValue = inputValue($quota);
+	$spamQuotaValue = $spamQuota === null ? inputValue(100) : inputValue($spamQuota);
+	$virusQuotaValue = $virusQuota === null ? inputValue(100) : inputValue($virusQuota);
+	$domainID = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), "domainID");
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+	}
+	
+	$spamboxNospamSelected = "";
+	$spamboxInboxSelected = "";
+	$spamboxfolderSelected = "";
+	$spamboxFolderValue = inputValue("spam");
+	if($spambox == "none" || $spambox == null) {
+		$spamboxNospamSelected = "checked=\"checked\"";
+	} else if($spambox == "inbox") {
+		$spamboxInboxSelected = "checked=\"checked\"";
+	} else {
+		$spamboxfolderSelected = "checked=\"checked\"";
+		$spamboxFolderValue = inputValue($spambox);
+	}
+	
+	$virusboxNospamSelected = "";
+	$virusboxInboxSelected = "";
+	$virusboxfolderSelected = "";
+	$virusboxFolderValue = inputValue("virus");
+	if($virusbox == "none" || $virusbox == null) {
+		$virusboxNospamSelected = "checked=\"checked\"";
+	} else if($virusbox == "inbox") {
+		$virusboxInboxSelected = "checked=\"checked\"";
+	} else {
+		$virusboxfolderSelected = "checked=\"checked\"";
+		$virusboxFolderValue = inputValue($virusbox);
+	}
+	
+	return <<<HTML
+<div class="operation">
+<h2>Edit mailbox</h2>
+$messageHtml
+<form action="editmailbox.php?id=$addressID" method="post">
+$confirmHtml
+<table>
+<tr>
+<th>Quota:</th>
+<td><input type="text" name="quota" $readonly $quotaValue /></td><td>MB</td>
+</tr>
+<tr>
+<th>Spambox:</th>
+<td colspan="2">
+<label><input type="radio" name="spambox" value="none" $spamboxNospamSelected />No spambox</label><br />
+<label><input type="radio" name="spambox" value="inbox" $spamboxInboxSelected />Spam in inbox</label><br />
+<label><input type="radio" name="spambox" value="folder" $spamboxfolderSelected />Place spam in the specified folder:</label><br />
+<input type="text" name="spambox-folder" id="spambox-folder" $spamboxFolderValue /></td>
+</tr>
+<tr id="spambox-quota">
+<th>Spambox quota:</th>
+<td><input type="text" name="spamquota" $readonly $spamQuotaValue /></td><td>MB</td>
+</tr>
+<tr>
+<tr>
+<th>Virusbox:</th>
+<td colspan="2">
+<label><input type="radio" name="virusbox" value="none" $virusboxNospamSelected />No virusbox</label><br />
+<label><input type="radio" name="virusbox" value="inbox" $virusboxInboxSelected />Virus in inbox</label><br />
+<label><input type="radio" name="virusbox" value="folder" $virusboxfolderSelected />Place virus mails in the specified folder:</label><br />
+<input type="text" name="virusbox-folder" id="virusbox-folder" $virusboxFolderValue /></td>
+</tr>
+<tr id="virusbox-quota">
+<th>Spambox quota:</th>
+<td><input type="text" name="virusquota" $readonly $virusQuotaValue /></td><td>MB</td>
+</tr>
+<tr>
+<tr class="submit"><td colspan="3"><input type="submit" value="Edit mailbox" /></td></tr>
+</table>
+<script type="text/javascript">
+$(document).ready(function(){
+	$("input:radio[name=spambox]").change(updateSpambox);
+	$("input:radio[name=virusbox]").change(updateVirusbox);
+	updateSpambox();
+	updateVirusbox();
+});
+
+function updateSpambox()
+{
+	if($("input:radio[name=spambox]:checked").val() == "none") {
+		$("#spambox-folder").hide();
+		$("#spambox-quota").hide();
+	} else if($("input:radio[name=spambox]:checked").val() == "inbox") {
+		$("#spambox-folder").hide();
+		$("#spambox-quota").hide();
+	} else {
+		$("#spambox-folder").show();
+		$("#spambox-quota").show();
+	}
+}
+function updateVirusbox()
+{
+	if($("input:radio[name=virusbox]:checked").val() == "none") {
+		$("#virusbox-folder").hide();
+		$("#virusbox-quota").hide();
+	} else if($("input:radio[name=virusbox]:checked").val() == "inbox") {
+		$("#virusbox-folder").hide();
+		$("#virusbox-quota").hide();
+	} else {
+		$("#virusbox-folder").show();
+		$("#virusbox-quota").show();
+	}
+}
+
+</script>
+</form>
+</div>
+
 HTML;
 }
 

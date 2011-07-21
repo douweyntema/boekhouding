@@ -7,7 +7,7 @@ function main()
 	$addressID = get("id");
 	doMailAddress($addressID);
 	
-	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart"));
+	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart", "spambox", "virusbox", "quota", "spamQuota", "virusQuota"));
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$mailbox["domainID"]), "name");
 	$localpart = $mailbox["localpart"];
 	
@@ -20,6 +20,8 @@ function main()
 	$content .= mailboxSummary($addressID);
 	
 	$content .= changePasswordForm("{$GLOBALS["root"]}mail/editmailboxpassword.php?id=$addressID");
+	$content .= editMailboxForm($addressID, "", $mailbox["quota"], $mailbox["spamQuota"], $mailbox["virusQuota"], $mailbox["spambox"], $mailbox["virusbox"]);
+	$content .= trivialActionForm("{$GLOBALS["root"]}mail/removemailbox.php?id=$addressID", "", "Remove mailbox");
 	
 	echo page($content);
 }
