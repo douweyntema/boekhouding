@@ -208,37 +208,6 @@ $confirmHtml
 HTML;
 }
 
-function removeMailAliasForm($aliasID, $error)
-{
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n<p class=\"confirmdelete\">Are you sure you want to remove this alias?</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Remove alias</h2>
-$messageHtml
-<form action="removealias.php?id=$aliasID" method="post">
-$confirmHtml
-<table><tr class="submit"><td>
-<input type="submit" value="Remove Alias" />
-</td></tr></table>
-</form>
-</div>
-
-HTML;
-}
-
 function addMailDomainForm($error, $domainName)
 {
 	$domainNameValue = inputValue($domainName);
@@ -270,55 +239,6 @@ $confirmHtml
 </tr>
 <tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
 </table>
-</form>
-</div>
-
-HTML;
-}
-
-function removeMailDomainForm($domainID, $error)
-{
-	if($error === null) {
-		$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-		$aliasses = "";
-		foreach($GLOBALS["database"]->stdList("mailAlias", array("domainID"=>$domainID), "localpart") as $name) {
-			$aliasses .= "<li>$name@$domain</li>\n";
-		}
-		if($aliasses == "") {
-			$aliasses = "<li>none</li>";
-		}
-		$messageHtml = <<<HTML
-<p class="confirm">Confirm your input</p>
-<p class="confirmdelete">Are you sure you want to remove this domain, and all it's mailboxes and aliasses?</p>
-<p>
-The following aliasses will also be removed:
-<ul>
-$aliasses
-</ul>
-</p>
-
-HTML;
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Remove domain</h2>
-$messageHtml
-<form action="removedomain.php?id=$domainID" method="post">
-$confirmHtml
-<table><tr class="submit"><td>
-<input type="submit" value="Remove Domain" />
-</td></tr></table>
 </form>
 </div>
 
