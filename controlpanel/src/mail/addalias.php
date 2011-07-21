@@ -21,6 +21,11 @@ function main()
 		die(page($content));
 	}
 	
+	if($GLOBALS["database"]->stdGetTry("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart), "addressID", null) !== null) {
+		$content .= addMailAliasForm($domainID, "A mailbox with the same name already exists", $localpart, $targetAddress);
+		die(page($content));
+	}
+	
 	if(!validEmail($targetAddress)) {
 		$content .= addMailAliasForm($domainID, "Invalid target address", $localpart, $targetAddress);
 		die(page($content));
