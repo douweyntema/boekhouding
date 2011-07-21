@@ -274,7 +274,7 @@ function checkPassword($content, $postUrl)
 	return $password;
 }
 
-function trivialActionForm($postUrl, $error, $title, $warning = null, $extraInfo = "")
+function trivialActionForm($postUrl, $error, $title, $warning = null, $extraInfo = "", $removeDataWarning = null)
 {
 	if($error === null) {
 		if($warning === null) {
@@ -282,7 +282,11 @@ function trivialActionForm($postUrl, $error, $title, $warning = null, $extraInfo
 		} else {
 			$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n<p class=\"confirmdelete\">$warning</p>\n";
 		}
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		if($removeDataWarning === null) {
+			$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		} else {
+			$confirmHtml = "<tr><td><label><input type=\"checkbox\" name=\"confirm\" value=\"1\" />$removeDataWarning</label></td></tr>\n";
+		}
 		$readonly = "readonly=\"readonly\"";
 	} else if($error == "") {
 		$messageHtml = "";
@@ -301,8 +305,9 @@ function trivialActionForm($postUrl, $error, $title, $warning = null, $extraInfo
 <h2>$title</h2>
 $messageHtml
 <form action="$postUrl" method="post">
+<table>
 $confirmHtml
-<table><tr class="submit"><td>
+<tr class="submit"><td>
 <input type="submit" value="$title" />
 </td></tr></table>
 </form>
@@ -311,10 +316,10 @@ $confirmHtml
 HTML;
 }
 
-function checkTrivialAction($content, $postUrl, $title, $warning = null, $extraInfo = "")
+function checkTrivialAction($content, $postUrl, $title, $warning = null, $extraInfo = "", $removeDataWarning = null)
 {
 	if(post("confirm") === null) {
-		$content .= trivialActionForm($postUrl, null, $title, $warning, $extraInfo);
+		$content .= trivialActionForm($postUrl, null, $title, $warning, $extraInfo, $removeDataWarning);
 		die(page($content));
 	}
 	return true;
