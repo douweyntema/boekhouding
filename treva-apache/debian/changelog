@@ -1,3 +1,9 @@
+treva-apache (0.4.1) squeeze; urgency=medium
+
+  * Added dependancies to some libapache2-svn
+
+ -- Stef Louwers <s.louwers@treva.nl>  Wed, 21 Jul 2011 04:00:42 +0200
+
 treva-apache (0.4) squeeze; urgency=medium
 
   * Added dependancies to some usefull php-addons
