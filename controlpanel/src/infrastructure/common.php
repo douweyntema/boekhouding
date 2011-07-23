@@ -9,7 +9,7 @@ function doInfrastructure()
 	useCustomer(0);
 }
 
-function filesystemList()
+function fileSystemList()
 {
 	$output  = "<div class=\"sortable list\">\n";
 	$output .= "<table>\n";
@@ -18,10 +18,10 @@ function filesystemList()
 	$output .= "<tr><th>Name</th><th>Description</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach($GLOBALS["database"]->stdList("infrastructureFilesystem", array(), array("filesystemID", "name", "description"), array("name"=>"ASC")) as $filesystem) {
-		$nameHtml = htmlentities($filesystem["name"]);
-		$descriptionHtml = htmlentities($filesystem["description"]);
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$filesystem["filesystemID"]}\">$nameHtml</a></td><td>$descriptionHtml</td></tr>\n";
+	foreach($GLOBALS["database"]->stdList("infrastructureFileSystem", array(), array("fileSystemID", "name", "description"), array("name"=>"ASC")) as $fileSystem) {
+		$nameHtml = htmlentities($fileSystem["name"]);
+		$descriptionHtml = htmlentities($fileSystem["description"]);
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$fileSystem["fileSystemID"]}\">$nameHtml</a></td><td>$descriptionHtml</td></tr>\n";
 	}
 	$output .= "</tbody>\n";
 	$output .= "</table>\n";
@@ -49,34 +49,34 @@ function hostList()
 	return $output;
 }
 
-function filesystemDetail($filesystemID)
+function fileSystemDetail($fileSystemID)
 {
-	$filesystem = $GLOBALS["database"]->stdGet("infrastructureFilesystem", array("filesystemID"=>$filesystemID), array("name", "description"));
-	$filesystemNameHtml = htmlentities($filesystem["name"]);
-	$filesystemDescriptionHtml = htmlentities($filesystem["description"]);
+	$fileSystem = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), array("name", "description"));
+	$fileSystemNameHtml = htmlentities($fileSystem["name"]);
+	$fileSystemDescriptionHtml = htmlentities($fileSystem["description"]);
 	
 	$output  = "<div class=\"operation\">\n";
-	$output .= "<h2>Filesystem $filesystemNameHtml</h2>";
+	$output .= "<h2>Filesystem $fileSystemNameHtml</h2>";
 	$output .= "<table>";
-	$output .= "<tr><th>Name:</th><td class=\"stretch\">$filesystemNameHtml</td></tr>";
-	$output .= "<tr><th>Description:</th><td class=\"stretch\">$filesystemDescriptionHtml</td></tr>";
+	$output .= "<tr><th>Name:</th><td class=\"stretch\">$fileSystemNameHtml</td></tr>";
+	$output .= "<tr><th>Description:</th><td class=\"stretch\">$fileSystemDescriptionHtml</td></tr>";
 	$output .= "</table>";
 	$output .= "</div>";
 	return $output;
 }
 
-function filesystemCustomersList($filesystemID)
+function fileSystemCustomersList($fileSystemID)
 {
-	$filesystem = $GLOBALS["database"]->stdGet("infrastructureFilesystem", array("filesystemID"=>$filesystemID), array("name", "description"));
-	$filesystemNameHtml = htmlentities($filesystem["name"]);
+	$fileSystem = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), array("name", "description"));
+	$fileSystemNameHtml = htmlentities($fileSystem["name"]);
 	$output  = "<div class=\"sortable list\">\n";
 	$output .= "<table>\n";
-	$output .= "<caption>Customers using filesystem $filesystemNameHtml</caption>";
+	$output .= "<caption>Customers using filesystem $fileSystemNameHtml</caption>";
 	$output .= "<thead>\n";
 	$output .= "<tr><th>Nickname</th><th>Name</th><th>Email</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array("filesystemID"=>$filesystemID), array("customerID", "name", "realname", "email"), array("name"=>"ASC")) as $customer) {
+	foreach($GLOBALS["database"]->stdList("adminCustomer", array("fileSystemID"=>$fileSystemID), array("customerID", "name", "realname", "email"), array("name"=>"ASC")) as $customer) {
 		$nicknameHtml = htmlentities($customer["name"]);
 		$nameHtml = htmlentities($customer["realname"]);
 		$emailHtml = htmlentities($customer["email"]);
@@ -88,31 +88,31 @@ function filesystemCustomersList($filesystemID)
 	return $output;
 }
 
-function filesystemHostList($filesystemID)
+function fileSystemHostList($fileSystemID)
 {
-	$filesystem = $GLOBALS["database"]->stdGet("infrastructureFilesystem", array("filesystemID"=>$filesystemID), array("name", "description", "filesystemVersion", "httpVersion"));
-	$filesystemNameHtml = htmlentities($filesystem["name"]);
+	$fileSystem = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), array("name", "description", "fileSystemVersion", "httpVersion"));
+	$fileSystemNameHtml = htmlentities($fileSystem["name"]);
 	$output  = "<div class=\"sortable list\">\n";
 	$output .= "<table>\n";
-	$output .= "<caption>Hosts in filesystem $filesystemNameHtml</caption>";
+	$output .= "<caption>Hosts in filesystem $fileSystemNameHtml</caption>";
 	$output .= "<thead>\n";
 	$output .= "<tr><th>Name</th><th>Hostname</th><th>Login</th><th>Mount</th><th>Webhosting</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach(magicQuery(array("filesystem.filesystemID"=>$filesystemID)) as $host) {
+	foreach(magicQuery(array("fileSystem.fileSystemID"=>$fileSystemID)) as $host) {
 		$hostnameHtml = htmlentities($host["hostname"]);
 		$nameHtml = htmlentities($host["name"]);
 		$customerLogin = $host["allowCustomerLogin"] == 1 ? "Yes" : "No";
 		if($host["mountVersion"] == null) {
 			$mountOK = "-";
-		} else if($host["mountVersion"] == $filesystem["filesystemVersion"]) {
+		} else if($host["mountVersion"] == $fileSystem["fileSystemVersion"]) {
 			$mountOK = "OK";
 		} else {
 			$mountOK = "Out of date";
 		}
 		if($host["webserverVersion"] == null) {
 			$webserverOK = "-";
-		} else if($host["webserverVersion"] == $filesystem["httpVersion"]) {
+		} else if($host["webserverVersion"] == $fileSystem["httpVersion"]) {
 			$webserverOK = "OK";
 		} else {
 			$webserverOK = "Out of date";
@@ -145,7 +145,7 @@ function hostDetail($hostID)
 	return $output;
 }
 
-function hostFilesystemList($hostID)
+function hostFileSystemList($hostID)
 {
 	$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("name", "description"));
 	$hostNameHtml = htmlentities($host["name"]);
@@ -156,24 +156,24 @@ function hostFilesystemList($hostID)
 	$output .= "<tr><th>Name</th><th>Login</th><th>Mount</th><th>Webhosting</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach(magicQuery(array("host.hostID"=>$hostID)) as $filesystem) {
-		$nameHtml = htmlentities($filesystem["name"]);
-		$customerLogin = $filesystem["allowCustomerLogin"] == 1 ? "Yes" : "No";
-		if($filesystem["mountVersion"] == null) {
+	foreach(magicQuery(array("host.hostID"=>$hostID)) as $fileSystem) {
+		$nameHtml = htmlentities($fileSystem["name"]);
+		$customerLogin = $fileSystem["allowCustomerLogin"] == 1 ? "Yes" : "No";
+		if($fileSystem["mountVersion"] == null) {
 			$mountOK = "-";
-		} else if($filesystem["mountVersion"] == $filesystem["filesystemVersion"]) {
+		} else if($fileSystem["mountVersion"] == $fileSystem["fileSystemVersion"]) {
 			$mountOK = "OK";
 		} else {
 			$mountOK = "Out of date";
 		}
-		if($filesystem["webserverVersion"] == null) {
+		if($fileSystem["webserverVersion"] == null) {
 			$webserverOK = "-";
-		} else if($filesystem["webserverVersion"] == $filesystem["httpVersion"]) {
+		} else if($fileSystem["webserverVersion"] == $fileSystem["httpVersion"]) {
 			$webserverOK = "OK";
 		} else {
 			$webserverOK = "Out of date";
 		}
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$filesystem["filesystemID"]}\">$nameHtml</a></td><td>$customerLogin</td><td>$mountOK</td><td>$webserverOK</td></tr>\n";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$fileSystem["fileSystemID"]}\">$nameHtml</a></td><td>$customerLogin</td><td>$mountOK</td><td>$webserverOK</td></tr>\n";
 	}
 	$output .= "</tbody>\n";
 	$output .= "</table>\n";
@@ -202,13 +202,13 @@ function magicQuery($where = null)
 			$whereSql = $where;
 		}
 	}
-	return $GLOBALS["database"]->query("SELECT host.hostID, host.hostname, host.name, filesystem.filesystemID, filesystem.name, filesystem.description, filesystem.filesystemVersion, filesystem.httpVersion, mount.version AS mountVersion, mount.allowCustomerLogin, webServer.version AS webserverVersion 
+	return $GLOBALS["database"]->query("SELECT host.hostID, host.hostname, host.name, fileSystem.fileSystemID, fileSystem.name, fileSystem.description, fileSystem.fileSystemVersion, fileSystem.httpVersion, mount.version AS mountVersion, mount.allowCustomerLogin, webServer.version AS webserverVersion 
 	FROM infrastructureHost AS host 
-	CROSS JOIN infrastructureFilesystem AS filesystem 
-	LEFT JOIN infrastructureMount AS mount ON mount.hostID = host.hostID AND mount.filesystemID = filesystem.filesystemID 
-	LEFT JOIN infrastructureWebServer AS webServer ON webServer.hostID = host.hostID AND webServer.filesystemID = filesystem.filesystemID 
-	WHERE (filesystem.filesystemID IN (SELECT filesystemID FROM infrastructureMount WHERE infrastructureMount.hostID = host.hostID) 
-	OR filesystem.filesystemID IN (SELECT filesystemID FROM infrastructureWebServer WHERE infrastructureWebServer.hostID = host.hostID)) " . $whereSql)->fetchList();
+	CROSS JOIN infrastructureFileSystem AS fileSystem 
+	LEFT JOIN infrastructureMount AS mount ON mount.hostID = host.hostID AND mount.fileSystemID = fileSystem.fileSystemID 
+	LEFT JOIN infrastructureWebServer AS webServer ON webServer.hostID = host.hostID AND webServer.fileSystemID = fileSystem.fileSystemID 
+	WHERE (fileSystem.fileSystemID IN (SELECT fileSystemID FROM infrastructureMount WHERE infrastructureMount.hostID = host.hostID) 
+	OR fileSystem.fileSystemID IN (SELECT fileSystemID FROM infrastructureWebServer WHERE infrastructureWebServer.hostID = host.hostID)) " . $whereSql)->fetchList();
 }
 
 function hostRefresh($hostID)
@@ -223,7 +223,7 @@ function hostRefresh($hostID)
 	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id=$hostID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"all\"><input type=\"submit\" value=\"Refresh everything\"></form>";
 	$output .= "</td></tr>";
 	$output .= "<tr class=\"submit\"><td>";
-	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id=$hostID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"filesystem\"><input type=\"submit\" value=\"Refresh filesystem\"></form>";
+	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id=$hostID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"fileSystem\"><input type=\"submit\" value=\"Refresh fileSystem\"></form>";
 	$output .= "</td></tr>";
 	$output .= "<tr class=\"submit\"><td>";
 	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id=$hostID\"  method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"webserver\"><input type=\"submit\" value=\"Refresh webserver\"></form>";
@@ -233,22 +233,22 @@ function hostRefresh($hostID)
 	return $output;
 }
 
-function filesystemRefresh($filesystemID)
+function fileSystemRefresh($fileSystemID)
 {
-	$filesystemName = $GLOBALS["database"]->stdGet("infrastructureFilesystem", array("filesystemID"=>$filesystemID), "name");
-	$filesystemNameHtml = htmlentities($filesystemName);
+	$fileSystemName = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "name");
+	$fileSystemNameHtml = htmlentities($fileSystemName);
 	
 	$output  = "<div class=\"operation\">\n";
-	$output .= "<h2>Refresh filesystem $filesystemNameHtml</h2>";
+	$output .= "<h2>Refresh filesystem $fileSystemNameHtml</h2>";
 	$output .= "<table>";
 	$output .= "<tr class=\"submit\"><td>";
-	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id=$filesystemID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"all\"><input type=\"submit\" value=\"Refresh everything\"></form>";
+	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id=$fileSystemID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"all\"><input type=\"submit\" value=\"Refresh everything\"></form>";
 	$output .= "</td></tr>";
 	$output .= "<tr class=\"submit\"><td>";
-	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id=$filesystemID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"filesystem\"><input type=\"submit\" value=\"Refresh mounts\"></form>";
+	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id=$fileSystemID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"fileSystem\"><input type=\"submit\" value=\"Refresh mounts\"></form>";
 	$output .= "</td></tr>";
 	$output .= "<tr class=\"submit\"><td>";
-	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id=$filesystemID\"  method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"webserver\"><input type=\"submit\" value=\"Refresh webservers\"></form>";
+	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id=$fileSystemID\"  method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"webserver\"><input type=\"submit\" value=\"Refresh webservers\"></form>";
 	$output .= "</td></tr>";
 	$output .= "</table>";
 	$output .= "</div>";
@@ -265,15 +265,15 @@ function refreshHostWebServer($hostID)
 	updateHosts(array($hostID), "update-treva-apache --force");
 }
 
-function refreshFilesystemMount($filesystemID)
+function refreshFileSystemMount($fileSystemID)
 {
-	$hosts = $GLOBALS["database"]->stdList("infrastructureMount", array("filesystemID"=>$filesystemID), "hostID");
+	$hosts = $GLOBALS["database"]->stdList("infrastructureMount", array("fileSystemID"=>$fileSystemID), "hostID");
 	updateHosts($hosts, "update-treva-passwd --force");
 }
 
-function refreshFilesystemWebServer($filesystemID)
+function refreshFileSystemWebServer($fileSystemID)
 {
-	$hosts = $GLOBALS["database"]->stdList("infrastructureWebServer", array("filesystemID"=>$filesystemID), "hostID");
+	$hosts = $GLOBALS["database"]->stdList("infrastructureWebServer", array("fileSystemID"=>$fileSystemID), "hostID");
 	updateHosts($hosts, "update-treva-apache --force");
 }
 

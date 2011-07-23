@@ -20,14 +20,14 @@ function main()
 	if(post("refresh") == "all") {
 		refreshHostMount($hostID);
 		refreshHostWebServer($hostID);
-	} else if(post("refresh") == "filesystem") {
+	} else if(post("refresh") == "fileSystem") {
 		refreshHostMount($hostID);
 	} else if(post("refresh") == "webserver") {
 		refreshHostWebServer($hostID);
 	}
 	
 	$content .= hostDetail($hostID);
-	$content .= hostFilesystemList($hostID);
+	$content .= hostFileSystemList($hostID);
 	$content .= hostRefresh($hostID);
 	
 	echo page($content);

@@ -12,7 +12,7 @@ function main()
 		array("name"=>"Infrastructure", "url"=>"{$GLOBALS["root"]}infrastructure/")
 		));
 	
-	$content .= filesystemList();
+	$content .= fileSystemList();
 	$content .= hostList();
 	
 	echo page($content);
