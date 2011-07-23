@@ -1,0 +1,10 @@
+Source: treva-dovecot
+Maintainer: Ruud Koolen <r.koolen@treva.nl>
+Section: treva
+Priority: optional
+Standards-Version: 3.9.1.0
+
+Package: treva-dovecot
+Architecture: all
+Description: Treva dovecot configuration generator
+Depends: php5-cli, libphpdatabase, treva-infrastructure-common, dovecot-common, dovecot-imapd, dovecot-pop3d

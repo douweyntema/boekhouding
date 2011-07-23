@@ -1,0 +1,27 @@
+#!/bin/sh -e
+
+if [ ! -n "`grep ^dovecot-auth: /etc/passwd`" ]
+then
+	adduser --system --group --home /etc/dovecot --no-create-home dovecot-auth
+fi
+
+if [ ! -n "`grep ^mailbox: /etc/passwd`" ]
+then
+	adduser --system --group --home /var/mail --no-create-home mailbox
+fi
+
+touch /var/mail/passwd
+touch /var/mail/passwd-master
+chmod 600 /var/mail/passwd /var/mail/passwd-master
+chown dovecot-auth:dovecot-auth /var/mail/passwd /var/mail/passwd-master
+
+chmod -R -s /var/mail
+chown -R mailbox:mailbox /var/mail
+
+if [ "`dpkg-divert --truename /etc/dovecot/dovecot.conf`" != /etc/dovecot/dovecot.conf.old ]
+then
+	dpkg-divert --add --rename --divert /etc/dovecot/dovecot.conf.old /etc/dovecot/dovecot.conf
+	ln -s /usr/share/treva-dovecot/dovecot.conf /etc/dovecot/dovecot.conf
+fi
+
+/etc/init.d/dovecot restart
