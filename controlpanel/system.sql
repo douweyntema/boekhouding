@@ -45,13 +45,16 @@ CREATE TABLE IF NOT EXISTS `adminComponent` (
 
 CREATE TABLE IF NOT EXISTS `adminCustomer` (
   `customerID` int(11) NOT NULL AUTO_INCREMENT,
-  `filesystemID` int(11) NOT NULL,
+  `fileSystemID` int(11) NOT NULL,
+  `mailSystemID` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `realname` varchar(255) NOT NULL DEFAULT '',
   `email` varchar(255) NOT NULL,
   `groupname` varchar(255) NOT NULL,
+  `mailQuota` int(11) NOT NULL COMMENT 'in MiB',
   PRIMARY KEY (`customerID`),
-  KEY `filesystemID` (`filesystemID`)
+  KEY `fileSystemID` (`fileSystemID`),
+  KEY `mailSystemID` (`mailSystemID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -328,16 +331,16 @@ CREATE TABLE IF NOT EXISTS `httpUserDatabase` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `infrastructureFilesystem`
+-- Table structure for table `infrastructureFileSystem`
 --
 
-CREATE TABLE IF NOT EXISTS `infrastructureFilesystem` (
-  `filesystemID` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS `infrastructureFileSystem` (
+  `fileSystemID` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `description` text NOT NULL,
-  `filesystemVersion` int(11) NOT NULL,
+  `fileSystemVersion` int(11) NOT NULL,
   `httpVersion` int(11) NOT NULL,
-  PRIMARY KEY (`filesystemID`)
+  PRIMARY KEY (`fileSystemID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -359,16 +362,44 @@ CREATE TABLE IF NOT EXISTS `infrastructureHost` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `infrastructureMailServer`
+--
+
+CREATE TABLE IF NOT EXISTS `infrastructureMailServer` (
+  `hostID` int(11) NOT NULL,
+  `mailSystemID` int(11) NOT NULL,
+  `version` int(11) NOT NULL,
+  `primary` tinyint(1) NOT NULL,
+  PRIMARY KEY (`hostID`,`mailSystemID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `infrastructureMailSystem`
+--
+
+CREATE TABLE IF NOT EXISTS `infrastructureMailSystem` (
+  `mailSystemID` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `version` int(11) NOT NULL,
+  PRIMARY KEY (`mailSystemID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `infrastructureMount`
 --
 
 CREATE TABLE IF NOT EXISTS `infrastructureMount` (
   `hostID` int(11) NOT NULL,
-  `filesystemID` int(11) NOT NULL,
+  `fileSystemID` int(11) NOT NULL,
   `version` int(11) NOT NULL DEFAULT '-1',
   `allowCustomerLogin` tinyint(1) NOT NULL,
-  PRIMARY KEY (`hostID`,`filesystemID`),
-  KEY `filesystemID` (`filesystemID`)
+  PRIMARY KEY (`hostID`,`fileSystemID`),
+  KEY `fileSystemID` (`fileSystemID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -379,10 +410,10 @@ CREATE TABLE IF NOT EXISTS `infrastructureMount` (
 
 CREATE TABLE IF NOT EXISTS `infrastructureWebServer` (
   `hostID` int(11) NOT NULL,
-  `filesystemID` int(11) NOT NULL,
+  `fileSystemID` int(11) NOT NULL,
   `version` int(11) NOT NULL DEFAULT '-1',
-  PRIMARY KEY (`hostID`,`filesystemID`),
-  KEY `filesystemID` (`filesystemID`)
+  PRIMARY KEY (`hostID`,`fileSystemID`),
+  KEY `fileSystemID` (`fileSystemID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -398,10 +429,11 @@ CREATE TABLE IF NOT EXISTS `mailAddress` (
   `password` varchar(255) CHARACTER SET latin1 COLLATE latin1_general_cs NOT NULL,
   `canUseSmtp` tinyint(1) NOT NULL DEFAULT '1',
   `canUseImap` tinyint(1) NOT NULL DEFAULT '1',
-  `spamThreshold` int(11) NOT NULL DEFAULT '50',
-  `spambox` varchar(255) NOT NULL,
-  `virusbox` varchar(255) NOT NULL,
-  `quota` bigint(20) NOT NULL,
+  `spambox` varchar(255) DEFAULT NULL,
+  `virusbox` varchar(255) DEFAULT NULL,
+  `quota` bigint(20) DEFAULT NULL,
+  `spamQuota` bigint(20) DEFAULT NULL,
+  `virusQuota` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`addressID`),
   UNIQUE KEY `domainID` (`domainID`,`localpart`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -448,7 +480,8 @@ CREATE TABLE IF NOT EXISTS `ticketReply` (
   `text` text NOT NULL,
   `date` int(11) NOT NULL,
   PRIMARY KEY (`replyID`),
-  KEY `threadID` (`threadID`,`userID`)
+  KEY `threadID` (`threadID`,`userID`),
+  KEY `userID` (`userID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -478,7 +511,8 @@ CREATE TABLE IF NOT EXISTS `ticketThread` (
 -- Constraints for table `adminCustomer`
 --
 ALTER TABLE `adminCustomer`
-  ADD CONSTRAINT `adminCustomer_ibfk_1` FOREIGN KEY (`filesystemID`) REFERENCES `infrastructureFilesystem` (`filesystemID`);
+  ADD CONSTRAINT `adminCustomer_ibfk_1` FOREIGN KEY (`fileSystemID`) REFERENCES `infrastructureFileSystem` (`fileSystemID`),
+  ADD CONSTRAINT `adminCustomer_ibfk_2` FOREIGN KEY (`mailSystemID`) REFERENCES `infrastructureMailSystem` (`mailSystemID`);
 
 --
 -- Constraints for table `adminCustomerRight`
@@ -584,18 +618,25 @@ ALTER TABLE `httpUserDatabase`
   ADD CONSTRAINT `httpUserDatabase_ibfk_1` FOREIGN KEY (`customerID`) REFERENCES `adminCustomer` (`customerID`);
 
 --
+-- Constraints for table `infrastructureMailServer`
+--
+ALTER TABLE `infrastructureMailServer`
+  ADD CONSTRAINT `infrastructureMailServer_ibfk_1` FOREIGN KEY (`hostID`) REFERENCES `infrastructureHost` (`hostID`),
+  ADD CONSTRAINT `infrastructureMailServer_ibfk_2` FOREIGN KEY (`mailSystemID`) REFERENCES `infrastructureMailSystem` (`mailSystemID`);
+
+--
 -- Constraints for table `infrastructureMount`
 --
 ALTER TABLE `infrastructureMount`
   ADD CONSTRAINT `infrastructureMount_ibfk_1` FOREIGN KEY (`hostID`) REFERENCES `infrastructureHost` (`hostID`),
-  ADD CONSTRAINT `infrastructureMount_ibfk_2` FOREIGN KEY (`filesystemID`) REFERENCES `infrastructureFilesystem` (`filesystemID`);
+  ADD CONSTRAINT `infrastructureMount_ibfk_2` FOREIGN KEY (`fileSystemID`) REFERENCES `infrastructureFileSystem` (`fileSystemID`);
 
 --
 -- Constraints for table `infrastructureWebServer`
 --
 ALTER TABLE `infrastructureWebServer`
   ADD CONSTRAINT `infrastructureWebServer_ibfk_1` FOREIGN KEY (`hostID`) REFERENCES `infrastructureHost` (`hostID`),
-  ADD CONSTRAINT `infrastructureWebServer_ibfk_2` FOREIGN KEY (`filesystemID`) REFERENCES `infrastructureFilesystem` (`filesystemID`);
+  ADD CONSTRAINT `infrastructureWebServer_ibfk_2` FOREIGN KEY (`fileSystemID`) REFERENCES `infrastructureFileSystem` (`fileSystemID`);
 
 --
 -- Constraints for table `mailAddress`
@@ -620,6 +661,9 @@ ALTER TABLE `mailDomain`
 ALTER TABLE `ticketReply`
   ADD CONSTRAINT `ticketReply_ibfk_1` FOREIGN KEY (`threadID`) REFERENCES `ticketThread` (`threadID`);
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+--
+-- Constraints for table `ticketThread`
+--
+ALTER TABLE `ticketThread`
+  ADD CONSTRAINT `ticketThread_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `adminUser` (`userID`),
+  ADD CONSTRAINT `ticketThread_ibfk_1` FOREIGN KEY (`customerID`) REFERENCES `adminCustomer` (`customerID`);
