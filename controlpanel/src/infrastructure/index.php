@@ -12,7 +12,8 @@ function main()
 		array("name"=>"Infrastructure", "url"=>"{$GLOBALS["root"]}infrastructure/")
 		));
 	
-	$content .= filesystemList();
+	$content .= fileSystemList();
+	$content .= mailSystemList();
 	$content .= hostList();
 	
 	echo page($content);

@@ -343,3 +343,7 @@ h3 {
 	color: black;
 	font-style: italic;
 }
+
+.nowrap {
+	white-space: nowrap;
+}

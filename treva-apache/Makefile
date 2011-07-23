@@ -12,6 +12,8 @@ install:
 	mkdir -p -m 755 $(DESTDIR)/etc/apache2/mods-enabled
 	ln -s ../mods-available/rewrite.load $(DESTDIR)/etc/apache2/mods-enabled
 	mkdir -p -m 755 $(DESTDIR)/etc/apache2/sites-scripted
+	mkdir -p -m 755 $(DESTDIR)${PREFIX}/share/treva-apache
+	install -m 644 config/suphp.conf $(DESTDIR)${PREFIX}/share/treva-apache
 
 clean:
 

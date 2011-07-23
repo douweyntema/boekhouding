@@ -237,64 +237,6 @@ $js
 HTML;
 }
 
-function changeAccountPasswordForm($userID, $error = "", $password = null)
-{
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	if($readonly == "") {
-		$passwordHtml = <<<HTML
-<tr>
-<th>Password:</th>
-<td class="stretch"><input type="password" name="accountPassword1" /></td>
-</tr>
-<tr>
-<th>Confirm password:</th>
-<td class="stretch"><input type="password" name="accountPassword2" /></td>
-</tr>
-
-HTML;
-	} else {
-		$encryptedPassword = encryptPassword($password);
-		$masked = str_repeat("*", strlen($password));
-		$passwordHtml = <<<HTML
-<tr>
-<th>Password:</th>
-<td><input type="password" value="$masked" readonly="readonly" /><input type="hidden" name="accountEncryptedPassword" value="$encryptedPassword" /></td>
-</tr>
-
-HTML;
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Change password</h2>
-$messageHtml
-<form action="editpassword.php?id=$userID" method="post">
-$confirmHtml
-<table>
-$passwordHtml
-<tr class="submit">
-<td colspan="2"><input type="submit" value="Change Password" /></td>
-</tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
 function changeAccountRightsForm($userID, $error = "", $rights = null)
 {
 	if($rights === null) {
@@ -535,64 +477,6 @@ $confirmHtml
 $passwordHtml
 <tr class="submit">
 <td colspan="2"><input type="submit" value="Add" /></td>
-</tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
-function changeAdminAccountPasswordForm($userID, $error = "", $password = null)
-{
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	if($readonly == "") {
-		$passwordHtml = <<<HTML
-<tr>
-<th>Password:</th>
-<td><input type="password" name="accountPassword1" /></td>
-</tr>
-<tr>
-<th>Confirm password:</th>
-<td><input type="password" name="accountPassword2" /></td>
-</tr>
-
-HTML;
-	} else {
-		$encryptedPassword = encryptPassword($password);
-		$masked = str_repeat("*", strlen($password));
-		$passwordHtml = <<<HTML
-<tr>
-<th>Password:</th>
-<td><input type="password" value="$masked" readonly="readonly" /><input type="hidden" name="accountEncryptedPassword" value="$encryptedPassword" /></td>
-</tr>
-
-HTML;
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Change password</h2>
-$messageHtml
-<form action="editadminpassword.php?id=$userID" method="post">
-$confirmHtml
-<table>
-$passwordHtml
-<tr class="submit">
-<td colspan="2"><input type="submit" value="Change Password" /></td>
 </tr>
 </table>
 </form>

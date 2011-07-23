@@ -100,7 +100,7 @@ function welcomeHeader()
 		$customerHtml = htmlentities(impersonatedCustomer());
 		return <<<HTML
 <div class="welcome">
-<span>Logged in as $usernameHtml@$customerHtml - <a href="{$GLOBALS["rootHtml"]}logout.php">log out</a> - <a href="{$GLOBALS["rootHtml"]}index.php?customerID=0">back to $usernameHtml</a></span>
+<span>Logged in as $usernameHtml@$customerHtml - <a href="{$GLOBALS["rootHtml"]}logout.php">log out</a> - <a href="{$GLOBALS["rootHtml"]}customers/?customerID=0">back to $usernameHtml</a></span>
 </div>
 
 HTML;
@@ -185,6 +185,146 @@ function decryptPassword($cipher)
 	return $password;
 }
 
+function changePasswordForm($postUrl, $error = "", $password = null)
+{
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+	}
+	
+	if($readonly == "") {
+		$passwordHtml = <<<HTML
+<tr>
+<th>Password:</th>
+<td class="stretch"><input type="password" name="password1" /></td>
+</tr>
+<tr>
+<th>Confirm password:</th>
+<td class="stretch"><input type="password" name="password2" /></td>
+</tr>
+
+HTML;
+	} else {
+		$encryptedPassword = encryptPassword($password);
+		$masked = str_repeat("*", strlen($password));
+		$passwordHtml = <<<HTML
+<tr>
+<th>Password:</th>
+<td><input type="password" value="$masked" readonly="readonly" /><input type="hidden" name="encryptedPassword" value="$encryptedPassword" /></td>
+</tr>
+
+HTML;
+	}
+	
+	return <<<HTML
+<div class="operation">
+<h2>Change password</h2>
+$messageHtml
+<form action="$postUrl" method="post">
+$confirmHtml
+<table>
+$passwordHtml
+<tr class="submit">
+<td colspan="2"><input type="submit" value="Change Password" /></td>
+</tr>
+</table>
+</form>
+</div>
+
+HTML;
+}
+
+function checkPassword($content, $postUrl)
+{
+	if(post("confirm") === null) {
+		if(post("password1") === null || post("password2") === null) {
+			$content .= changePasswordForm($postUrl);
+			die(page($content));
+		}
+		
+		if(post("password1") != post("password2")) {
+			$content .= changePasswordForm($postUrl, "The entered passwords do not match.", null);
+			die(page($content));
+		}
+		
+		if(post("password1") == "") {
+			$content .= changePasswordForm($postUrl, "Passwords must be at least one character long.", null);
+			die(page($content));
+		}
+		
+		$content .= changePasswordForm($postUrl, null, post("password1"));
+		die(page($content));
+	}
+	
+	$password = decryptPassword(post("encryptedPassword"));
+	if($password === null) {
+		$content .= changePasswordForm($postUrl, "Internal error: invalid encrypted password. Please enter password again.", null);
+		die(page($content));
+	}
+	
+	return $password;
+}
+
+function trivialActionForm($postUrl, $error, $title, $warning = null, $extraInfo = "", $removeDataWarning = null)
+{
+	if($error === null) {
+		if($warning === null) {
+			$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		} else {
+			$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n<p class=\"confirmdelete\">$warning</p>\n";
+		}
+		if($removeDataWarning === null) {
+			$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		} else {
+			$confirmHtml = "<tr><td><label><input type=\"checkbox\" name=\"confirm\" value=\"1\" />$removeDataWarning</label></td></tr>\n";
+		}
+		$readonly = "readonly=\"readonly\"";
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+	}
+	
+	$messageHtml .= $extraInfo;
+	
+	return <<<HTML
+<div class="operation">
+<h2>$title</h2>
+$messageHtml
+<form action="$postUrl" method="post">
+<table>
+$confirmHtml
+<tr class="submit"><td>
+<input type="submit" value="$title" />
+</td></tr></table>
+</form>
+</div>
+
+HTML;
+}
+
+function checkTrivialAction($content, $postUrl, $title, $warning = null, $extraInfo = "", $removeDataWarning = null)
+{
+	if(post("confirm") === null) {
+		$content .= trivialActionForm($postUrl, null, $title, $warning, $extraInfo, $removeDataWarning);
+		die(page($content));
+	}
+	return true;
+}
+
 function updateHosts($hosts, $command)
 {
 	foreach($hosts as $hostID) {
@@ -195,12 +335,12 @@ function updateHosts($hosts, $command)
 
 function updateAccounts($customerID)
 {
-	// Update the filesystem version
-	$filesystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "filesystemID");
-	$GLOBALS["database"]->stdIncrement("infrastructureFilesystem", array("filesystemID"=>$filesystemID), "filesystemVersion", 1000000000);
+	// Update the fileSystem version
+	$fileSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "fileSystemID");
+	$GLOBALS["database"]->stdIncrement("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "fileSystemVersion", 1000000000);
 	
 	// Update all servers
-	$hosts = $GLOBALS["database"]->stdList("infrastructureMount", array("filesystemID"=>$filesystemID), "hostID");
+	$hosts = $GLOBALS["database"]->stdList("infrastructureMount", array("fileSystemID"=>$fileSystemID), "hostID");
 	updateHosts($hosts, "update-treva-passwd");
 }
 

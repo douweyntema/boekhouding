@@ -6,30 +6,30 @@ function main()
 {
 	doInfrastructure();
 	
-	$filesystemID = get("id");
-	$filesystemName = $GLOBALS["database"]->stdGet("infrastructureFilesystem", array("filesystemID"=>$filesystemID), "name");
-	$filesystemNameHtml = htmlentities($filesystemName);
+	$fileSystemID = get("id");
+	$fileSystemName = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "name");
+	$fileSystemNameHtml = htmlentities($fileSystemName);
 	
-	$content = "<h1>Infrastructure - filesystem $filesystemNameHtml</h1>\n";
+	$content = "<h1>Infrastructure - filesystem $fileSystemNameHtml</h1>\n";
 	
 	$content .= breadcrumbs(array(
 		array("name"=>"Infrastructure", "url"=>"{$GLOBALS["root"]}infrastructure/"),
-		array("name"=>"$filesystemName", "url"=>"{$GLOBALS["root"]}infrastructure/filesystem.php?id=$filesystemID")
+		array("name"=>"$fileSystemName", "url"=>"{$GLOBALS["root"]}infrastructure/filesystem.php?id=$fileSystemID")
 		));
 	
 	if(post("refresh") == "all") {
-		refreshFilesystemMount($filesystemID);
-		refreshFilesystemWebServer($filesystemID);
-	} else if(post("refresh") == "filesystem") {
-		refreshFilesystemMount($filesystemID);
+		refreshFileSystemMount($fileSystemID);
+		refreshFileSystemWebServer($fileSystemID);
+	} else if(post("refresh") == "fileSystem") {
+		refreshFileSystemMount($fileSystemID);
 	} else if(post("refresh") == "webserver") {
-		refreshFilesystemWebServer($filesystemID);
+		refreshFileSystemWebServer($fileSystemID);
 	}
 	
-	$content .= filesystemDetail($filesystemID);
-	$content .= filesystemHostList($filesystemID);
-	$content .= filesystemCustomersList($filesystemID);
-	$content .= filesystemRefresh($filesystemID);
+	$content .= fileSystemDetail($fileSystemID);
+	$content .= fileSystemHostList($fileSystemID);
+	$content .= fileSystemCustomersList($fileSystemID);
+	$content .= fileSystemRefresh($fileSystemID);
 	
 	echo page($content);
 }

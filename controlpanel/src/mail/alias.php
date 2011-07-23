@@ -17,8 +17,10 @@ function main()
 	
 	$content = "<h1>Alias {$alias["localpart"]}@$domain</h1>\n";
 	
-	$content .= editMailAliasForm($aliasID, "", $alias["localpart"], $alias["targetAddress"]);
-	$content .= removeMailAliasForm($aliasID, "");
+	$content .= domainBreadcrumbs($alias["domainID"], array(array("name"=>"Alias {$alias["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/alias.php?id=$aliasID")));
+	
+	$content .= editMailAliasForm($aliasID, "", $alias["targetAddress"]);
+	$content .= trivialActionForm("{$GLOBALS["root"]}mail/removealias.php?id=$aliasID", "", "Remove alias");
 	
 	echo page($content);
 }

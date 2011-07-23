@@ -13,10 +13,9 @@ function main()
 	
 	$content = "<h1>Alias {$alias["localpart"]}@$domain</h1>\n";
 	
-	if(post("confirm") === null) {
-		$content .= removeMailAliasForm($aliasID, null);
-		die(page($content));
-	}
+	$content .= domainBreadcrumbs($alias["domainID"], array(array("name"=>"Alias {$alias["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/alias.php?id=$aliasID")));
+	
+	checkTrivialAction($content, "{$GLOBALS["root"]}mail/removealias.php?id=$aliasID", "Remove alias", "Are you sure you want to remove this alias?");
 	
 	$GLOBALS["database"]->stdDel("mailAlias", array("aliasID"=>$aliasID));
 	

@@ -7,4 +7,4 @@ Standards-Version: 3.9.1.0
 Package: treva-apache
 Architecture: all
 Description: Treva apache configuration generator
-Depends: php5-cli, apache2, libapache2-mod-suphp, libphpdatabase, treva-infrastructure-common, treva-passwd
+Depends: php5-cli, apache2, libapache2-mod-suphp, libphpdatabase, treva-infrastructure-common, treva-passwd, treva-mysql, php5, php5-gd, php5-gmp, php5-mcrypt, php5-sqlite, libapache2-svn

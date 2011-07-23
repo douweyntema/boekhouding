@@ -9,7 +9,7 @@ binary: build
 	mkdir debian/tmp/DEBIAN
 	DESTDIR=debian/tmp PREFIX=/usr make install
 	dpkg-gencontrol -Pdebian/tmp
-	cp debian/conffiles debian/tmp/DEBIAN
+	cp debian/conffiles debian/postinst debian/prerm debian/tmp/DEBIAN
 	dpkg-deb -b debian/tmp ..
 	touch binary
 

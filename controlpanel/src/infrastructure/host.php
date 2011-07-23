@@ -20,14 +20,21 @@ function main()
 	if(post("refresh") == "all") {
 		refreshHostMount($hostID);
 		refreshHostWebServer($hostID);
-	} else if(post("refresh") == "filesystem") {
+		refreshHostDovecot($hostID);
+		refreshHostExim($hostID);
+	} else if(post("refresh") == "fileSystem") {
 		refreshHostMount($hostID);
 	} else if(post("refresh") == "webserver") {
 		refreshHostWebServer($hostID);
+	} else if(post("refresh") == "dovecot") {
+		refreshHostDovecot($hostID);
+	} else if(post("refresh") == "exim") {
+		refreshHostExim($hostID);
 	}
 	
 	$content .= hostDetail($hostID);
-	$content .= hostFilesystemList($hostID);
+	$content .= hostFileSystemList($hostID);
+	$content .= hostMailSystemList($hostID);
 	$content .= hostRefresh($hostID);
 	
 	echo page($content);

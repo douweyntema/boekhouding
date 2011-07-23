@@ -7,7 +7,7 @@ function main()
 	doCustomers();
 	
 	$customerID = get("id");
-	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "realname", "email", "groupname", "filesystemID"), false);
+	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "realname", "email", "groupname", "fileSystemID"), false);
 	
 	if($customer === false) {
 		customerNotFound($customerID);
