@@ -13,6 +13,7 @@ function main()
 		));
 	
 	$content .= fileSystemList();
+	$content .= mailSystemList();
 	$content .= hostList();
 	
 	echo page($content);

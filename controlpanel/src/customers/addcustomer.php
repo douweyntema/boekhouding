@@ -17,24 +17,25 @@ function main()
 	$email = post("customerEmail");
 	$group = post("customerGroup");
 	$fileSystemID = post("customerFileSystem");
+	$mailSystemID = post("customerMailSystem");
 	
-	if(trim($nickname) == "" || trim($name) == "" || trim($email) == "" || trim($group) == "" || $GLOBALS["database"]->stdGetTry("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "fileSystemID", null) === null) {
-		$content .= addCustomerForm("", $nickname, $name, $email, $group, $fileSystemID);
+	if(trim($nickname) == "" || trim($name) == "" || trim($email) == "" || trim($group) == "" || $GLOBALS["database"]->stdGetTry("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "fileSystemID", null) === null || $GLOBALS["database"]->stdGetTry("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID), "mailSystemID", null) === null) {
+		$content .= addCustomerForm("", $nickname, $name, $email, $group, $fileSystemID, $mailSystemID);
 		die(page($content));
 	}
 	
 	$exists = $GLOBALS["database"]->stdGetTry("adminCustomer", array("name"=>$nickname), "customerID", false) !== false;
 	if($exists) {
-		$content .= addCustomerForm("A customer with the chosen name already exists.", $nickname, $name, $email, $group, $fileSystemID);
+		$content .= addCustomerForm("A customer with the chosen name already exists.", $nickname, $name, $email, $group, $fileSystemID, $mailSystemID);
 		die(page($content));
 	}
 	
 	if(post("confirm") === null) {
-		$content .= addCustomerForm(null, $nickname, $name, $email, $group, $fileSystemID);
+		$content .= addCustomerForm(null, $nickname, $name, $email, $group, $fileSystemID, $mailSystemID);
 		die(page($content));
 	}
 	
-	$customerID = $GLOBALS["database"]->stdNew("adminCustomer", array("name"=>$nickname, "realname"=>$name, "email"=>$email, "groupname"=>$group, "fileSystemID"=>$fileSystemID));
+	$customerID = $GLOBALS["database"]->stdNew("adminCustomer", array("name"=>$nickname, "realname"=>$name, "email"=>$email, "groupname"=>$group, "fileSystemID"=>$fileSystemID, "mailSystemID"=>$mailSystemID));
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}customers/customer.php?id=$customerID");
