@@ -38,6 +38,8 @@ function main()
 	
 	$aliasID = $GLOBALS["database"]->stdNew("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart, "targetAddress"=>$targetAddress));
 	
+	updateMail(customerID());
+	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}mail/domain.php?id={$domainID}");
 }
