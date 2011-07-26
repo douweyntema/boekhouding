@@ -75,7 +75,7 @@ function main()
 		die(page($content));
 	}
 	
-	$mailboxID = $GLOBALS["database"]->stdSet("mailAddress", array("addressID"=>$mailboxID), array("spambox"=>$spambox, "virusbox"=>$virusbox, "quota"=>$quota, "spamQuota"=>$spamQuota, "virusQuota"=>$virusQuota));
+	$GLOBALS["database"]->stdSet("mailAddress", array("addressID"=>$mailboxID), array("spambox"=>$spambox, "virusbox"=>$virusbox, "quota"=>$quota, "spamQuota"=>$spamQuota, "virusQuota"=>$virusQuota));
 	
 	updateMail(customerID());
 	
