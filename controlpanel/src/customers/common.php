@@ -38,12 +38,13 @@ function customerList()
 	return $output;
 }
 
-function addCustomerForm($error = "", $nickname = "", $name = "", $email = "", $group = "", $fileSystemID = "", $mailSystemID = "")
+function addCustomerForm($error = "", $nickname = "", $name = "", $email = "", $group = "", $mailQuota = "", $fileSystemID = "", $mailSystemID = "")
 {
 	$nicknameValue = inputValue($nickname);
 	$nameValue = inputValue($name);
 	$emailValue = inputValue($email);
 	$groupValue = inputValue($group);
+	$mailQuotaValue = inputValue($mailQuota);
 	if($error === null) {
 		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
 		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
@@ -91,30 +92,34 @@ $confirmHtml
 <table>
 <tr>
 <th>Nickname:</th>
-<td><input type="text" name="customerNickname" $nicknameValue $readonly /></td>
+<td colspan="2"><input type="text" name="customerNickname" $nicknameValue $readonly /></td>
 </tr>
 <tr>
 <th>Name:</th>
-<td><input type="text" name="customerName" $nameValue $readonly /></td>
+<td colspan="2"><input type="text" name="customerName" $nameValue $readonly /></td>
 </tr>
 <tr>
 <th>Email:</th>
-<td><input type="text" name="customerEmail" $emailValue $readonly /></td>
+<td colspan="2"><input type="text" name="customerEmail" $emailValue $readonly /></td>
 </tr>
 <tr>
 <th>Group:</th>
-<td><input type="text" name="customerGroup" $groupValue $readonly /></td>
+<td colspan="2"><input type="text" name="customerGroup" $groupValue $readonly /></td>
+</tr>
+<tr>
+<th>Mail quota:</th>
+<td><input type="text" name="mailQuota" $mailQuotaValue $readonly /></td><td>MB</td>
 </tr>
 <tr>
 <th>Filesystem:</th>
-<td>$fileSystemOptions</td>
+<td colspan="2">$fileSystemOptions</td>
 </tr>
 <tr>
 <th>Mailsystem:</th>
-<td>$mailSystemOptions</td>
+<td colspan="2">$mailSystemOptions</td>
 </tr>
 <tr>
-<td colspan="2" class="submitCell"><input type="submit" value="Add" /></td>
+<td colspan="3" class="submitCell"><input type="submit" value="Add" /></td>
 </tr>
 </table>
 </form>
@@ -123,12 +128,13 @@ $confirmHtml
 HTML;
 }
 
-function editCustomerForm($customerID, $error, $name, $email)
+function editCustomerForm($customerID, $error, $name, $email, $mailQuota)
 {
 	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "groupname", "fileSystemID", "mailSystemID"), false);
 	$nicknameHtml = htmlentities($customer["name"]);
 	$nameValue = inputValue($name);
 	$emailValue = inputValue($email);
+	$mailQuotaValue = inputValue($mailQuota);
 	$groupHtml = htmlentities($customer["groupname"]);
 	$fileSystemNameHtml = htmlentities($GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), "name"));
 	$mailSystemNameHtml = htmlentities($GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), "name"));
@@ -155,30 +161,34 @@ $confirmHtml
 <table>
 <tr>
 <th>Nickname:</th>
-<td>$nicknameHtml</td>
+<td colspan="2">$nicknameHtml</td>
 </tr>
 <tr>
 <th>Name:</th>
-<td><input type="text" name="customerName" $nameValue $readonly /></td>
+<td colspan="2"><input type="text" name="customerName" $nameValue $readonly /></td>
 </tr>
 <tr>
 <th>Email:</th>
-<td><input type="text" name="customerEmail" $emailValue $readonly /></td>
+<td colspan="2"><input type="text" name="customerEmail" $emailValue $readonly /></td>
 </tr>
 <tr>
 <th>Group:</th>
-<td>$groupHtml</td>
+<td colspan="2">$groupHtml</td>
+</tr>
+<tr>
+<th>Mail quota:</th>
+<td><input type="text" name="mailQuota" $mailQuotaValue $readonly /></td><td>MB</td>
 </tr>
 <tr>
 <th>Filesystem:</th>
-<td><a href="{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$customer["fileSystemID"]}">$fileSystemNameHtml</select></td>
+<td colspan="2"><a href="{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$customer["fileSystemID"]}">$fileSystemNameHtml</select></td>
 </tr>
 <tr>
 <th>Mailsystem:</th>
-<td><a href="{$GLOBALS["rootHtml"]}infrastructure/mailsystem.php?id={$customer["mailSystemID"]}">$mailSystemNameHtml</select></td>
+<td colspan="2"><a href="{$GLOBALS["rootHtml"]}infrastructure/mailsystem.php?id={$customer["mailSystemID"]}">$mailSystemNameHtml</select></td>
 </tr>
 <tr>
-<td colspan="2" class="submit"><input type="submit" value="Save" /></td>
+<td colspan="3" class="submit"><input type="submit" value="Save" /></td>
 </tr>
 </table>
 </form>
