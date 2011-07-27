@@ -10,13 +10,15 @@ then
 	adduser --system --group --home /var/mail --no-create-home mailbox
 fi
 
-touch /var/mail/passwd
-touch /var/mail/passwd-master
-chmod 600 /var/mail/passwd /var/mail/passwd-master
-chown dovecot-auth:dovecot-auth /var/mail/passwd /var/mail/passwd-master
+touch /etc/dovecot/passwd
+touch /etc/dovecot/passwd-master
+chmod 600 /etc/dovecot/passwd /etc/dovecot/passwd-master
+chown dovecot-auth:dovecot-auth /etc/dovecot/passwd /etc/dovecot/passwd-master
 
 chmod -R -s /var/mail
 chown -R mailbox:mailbox /var/mail
+
+mkdir /var/backups/mail
 
 if [ "`dpkg-divert --truename /etc/dovecot/dovecot.conf`" != /etc/dovecot/dovecot.conf.old ]
 then
