@@ -33,6 +33,8 @@ function main()
 	
 	$GLOBALS["database"]->stdSet("mailAlias", array("aliasID"=>$aliasID), array("targetAddress"=>$targetAddress));
 	
+	updateMail(customerID());
+	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}mail/domain.php?id={$alias["domainID"]}");
 }

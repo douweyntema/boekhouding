@@ -24,6 +24,8 @@ function main()
 	
 	$domainID = $GLOBALS["database"]->stdNew("mailDomain", array("customerID"=>customerID(), "name"=>$domainName));
 	
+	updateMail(customerID());
+	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}mail/domain.php?id=$domainID");
 }

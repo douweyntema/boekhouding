@@ -6,7 +6,7 @@ $controlpanelDisabledNotice = "<p>The Treva control panel is currently disabled 
 $database_hostname = "treva.nl";
 $database_username = "fhp";
 $database_password = "stef45";
-$database_name = "treva-controlpanel-test";
+$database_name = "treva-panel";
 
 $crypto_key = "aiulfdsfhkasdfouglasdfasjd,fgksdfj";
 

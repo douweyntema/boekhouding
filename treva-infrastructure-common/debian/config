@@ -1,0 +1,10 @@
+#!/bin/bash -e
+
+. /usr/share/debconf/confmodule
+
+if [ -e /usr/share/treva-infrastructure-common/treva.pem.md5 -a "`md5sum /usr/share/treva-infrastructure-common/treva.pem`" == "`cat /usr/share/treva-infrastructure-common/treva.pem.md5`" ]; then
+	exit 0
+fi
+
+db_input critical treva-infrastructure-common/ssl-password || true
+db_go

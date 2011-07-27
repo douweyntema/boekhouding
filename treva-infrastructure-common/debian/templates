@@ -1,0 +1,7 @@
+Template: treva-infrastructure-common/ssl-password
+Type: password
+Description: Please enter the password for the treva SSL key
+
+Template: treva-infrastructure-common/ssl-password-retry
+Type: password
+Description: The entered password was wrong, please enter the password for the treva SSL key again

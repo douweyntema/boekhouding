@@ -20,6 +20,8 @@ function main()
 	
 	$GLOBALS["database"]->stdSet("mailAddress", array("addressID"=>$mailboxID), array("password"=>$password));
 	
+	updateMail(customerID());
+	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}mail/mailbox.php?id=$mailboxID");
 }

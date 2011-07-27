@@ -27,6 +27,7 @@ function main()
 		$spamQuota = null;
 		$checkspambox = false;
 	} else if($spambox == "inbox") {
+		$spamQuota = null;
 		$checkspambox = false;
 	} else {
 		$spambox = post("spambox-folder");
@@ -39,6 +40,7 @@ function main()
 		$virusQuota = null;
 		$checkvirusbox = false;
 	} else if($virusbox == "inbox") {
+		$virusQuota = null;
 		$checkvirusbox = false;
 	} else {
 		$virusbox = post("virusbox-folder");
@@ -75,7 +77,9 @@ function main()
 		die(page($content));
 	}
 	
-	$mailboxID = $GLOBALS["database"]->stdSet("mailAddress", array("addressID"=>$mailboxID), array("spambox"=>$spambox, "virusbox"=>$virusbox, "quota"=>$quota, "spamQuota"=>$spamQuota, "virusQuota"=>$virusQuota));
+	$GLOBALS["database"]->stdSet("mailAddress", array("addressID"=>$mailboxID), array("spambox"=>$spambox, "virusbox"=>$virusbox, "quota"=>$quota, "spamQuota"=>$spamQuota, "virusQuota"=>$virusQuota));
+	
+	updateMail(customerID());
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}mail/mailbox.php?id=$mailboxID");

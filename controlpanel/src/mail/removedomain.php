@@ -33,6 +33,8 @@ function main()
 	$GLOBALS["database"]->stdDel("mailDomain", array("domainID"=>$domainID));
 	$GLOBALS["database"]->commitTransaction();
 	
+	updateMail(customerID());
+	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}mail/");
 }

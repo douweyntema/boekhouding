@@ -21,6 +21,8 @@ function main()
 	
 	$GLOBALS["database"]->stdDel("mailAddress", array("addressID"=>$addressID));
 	
+	updateMail(customerID());
+	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}mail/domain.php?id={$mailbox["domainID"]}");
 }
