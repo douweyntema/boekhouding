@@ -6,7 +6,8 @@ Standards-Version: 3.9.1.0
 
 Package: treva-infrastructure-common
 Architecture: all
-Depends: php5-cli, libphpdatabase
+Pre-Depends: debconf
+Depends: php5-cli, libphpdatabase, openssl
 Description: Treva infrastructure common configuration files
  Contains common configuration files for the different treva-infrastructure
  utilities.
