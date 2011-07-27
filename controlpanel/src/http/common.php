@@ -19,15 +19,6 @@ function doHttpPath($pathID)
 	doHttpDomain($GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$pathID), "domainID", null));
 }
 
-function updateHttp($customerID)
-{
-	$fileSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "fileSystemID");
-	$GLOBALS["database"]->stdIncrement("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "httpVersion", 1000000000);
-	
-	$hosts = $GLOBALS["database"]->stdList("infrastructureWebServer", array("fileSystemID"=>$fileSystemID), "hostID");
-	updateHosts($hosts, "update-treva-apache");
-}
-
 function validSubdomain($name)
 {
 	if(strlen($name) < 1 || strlen($name) > 255) {

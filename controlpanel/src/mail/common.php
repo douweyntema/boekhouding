@@ -37,16 +37,6 @@ function domainBreadcrumbs($domainID, $postfix = array())
 	return mailBreadcrumbs(array_merge(array(array("name"=>$domain, "url"=>"{$GLOBALS["root"]}mail/domain.php?id=$domainID")), $postfix));
 }
 
-function updateMail($customerID)
-{
-	$mailSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "mailSystemID");
-	$GLOBALS["database"]->stdIncrement("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID), "version", 1000000000);
-	
-	$hosts = $GLOBALS["database"]->stdList("infrastructureMailServer", array("mailSystemID"=>$mailSystemID), "hostID");
-	updateHosts($hosts, "update-treva-dovecot");
-	updateHosts($hosts, "update-treva-exim");
-}
-
 function aliasNotFound($aliasID)
 {
 	header("HTTP/1.1 404 Not Found");

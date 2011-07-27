@@ -42,9 +42,9 @@ function main()
 		die(page($content));
 	}
 	
-	var_dump($realname);
-	
 	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("realname"=>$realname, "email"=>$email, "mailQuota"=>$mailQuota));
+	
+	updateMail($customerID);
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}customers/customer.php?id=$customerID");

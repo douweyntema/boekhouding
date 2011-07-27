@@ -27,6 +27,7 @@ function main()
 		$spamQuota = null;
 		$checkspambox = false;
 	} else if($spambox == "inbox") {
+		$spamQuota = null;
 		$checkspambox = false;
 	} else {
 		$spambox = post("spambox-folder");
@@ -39,6 +40,7 @@ function main()
 		$virusQuota = null;
 		$checkvirusbox = false;
 	} else if($virusbox == "inbox") {
+		$virusQuota = null;
 		$checkvirusbox = false;
 	} else {
 		$virusbox = post("virusbox-folder");

@@ -344,6 +344,25 @@ function updateAccounts($customerID)
 	updateHosts($hosts, "update-treva-passwd");
 }
 
+function updateMail($customerID)
+{
+	$mailSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "mailSystemID");
+	$GLOBALS["database"]->stdIncrement("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID), "version", 1000000000);
+	
+	$hosts = $GLOBALS["database"]->stdList("infrastructureMailServer", array("mailSystemID"=>$mailSystemID), "hostID");
+	updateHosts($hosts, "update-treva-dovecot");
+	updateHosts($hosts, "update-treva-exim");
+}
+
+function updateHttp($customerID)
+{
+	$fileSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "fileSystemID");
+	$GLOBALS["database"]->stdIncrement("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "httpVersion", 1000000000);
+	
+	$hosts = $GLOBALS["database"]->stdList("infrastructureWebServer", array("fileSystemID"=>$fileSystemID), "hostID");
+	updateHosts($hosts, "update-treva-apache");
+}
+
 function breadcrumbs($breadcrumbs)
 {
 	$output = "";
