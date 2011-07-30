@@ -71,6 +71,12 @@ if(!(isset($GLOBALS["noLoginChecks"]) && $GLOBALS["noLoginChecks"])) {
 	require_once(dirname(__FILE__) . "/login.php");
 }
 
+function getRootUser()
+{
+	$userID = $GLOBALS["database"]->stdList("adminUser", array("customerID"=>null), "userID", array("userID"=>"asc"), 1);
+	return $userID[0];
+}
+
 function htmlHeader($content)
 {
 return <<<HTML
