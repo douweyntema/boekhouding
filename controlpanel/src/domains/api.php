@@ -21,13 +21,41 @@ function domainDetails($domain)
 function updateContactInfo()
 {
 	global $mijnDomainResellerAdminID, $mijnDomainResellerTechID, $mijnDomainResellerBillID;
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array("mijnDomeinResellerContactID"=>null), array("customerID", "nameSystemID", "name", "bedrijfsnaam", "voorletters", "tussenvoegsel", "achternaam", "straat", "huisnummer", "postcode", "plaats", "land", "email", "telefoon")) as $contact) {
+	foreach($GLOBALS["database"]->stdList("adminCustomer", array("mijnDomeinResellerContactID"=>null), array("customerID", "nameSystemID", "name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber")) as $contact) {
 		$customerID = $contact["customerID"];
-		preg_match("/^([0-9]*)([^0-9].*)?\$/", trim($contact["huisnummer"]), $regex);
-		$huisnummer = $regex[1];
-		$huisnummerToevoeging = $regex[2];
 		
-		$contactID = contact_add($contact["bedrijfsnaam"], null, null, $contact["voorletters"], $contact["tussenvoegsel"], $contact["achternaam"], $contact["straat"], $huisnummer, $huisnummerToevoeging, $contact["postcode"], $contact["plaats"], $contact["land"], $contact["email"], $contact["telefoon"]);
+		preg_match("/^(.*) ([0-9]+)([^0-9 ][^ ]*)?\$/", trim($contact["address"]), $regex);
+		if(count($regex) >= 3) {
+			$straat = $regex[1];
+			$huisnummer = $regex[2];
+			if(isset($regex[3])) {
+				$huisnummerToevoeging = $regex[3];
+			} else {
+				$huisnummerToevoeging = null;
+			}
+		} else {
+			$straat = $contact["address"];
+			$huisnummer = "0";
+			$huisnummerToevoeging = null;
+		}
+		
+		if($contact["postalCode"] === null || trim($contact["postalCode"]) == "") {
+			$postcode = "0000 AA";
+		} else {
+			$postcode = $contact["postalCode"];
+		}
+		
+		if(!ctype_digit($contact["countryCode"])) {
+			$telefoonnummer = "0000000000";
+		} else if($contact["countryCode"] == "nl" && strlen($contact["phoneNumber"]) != 10) {
+			$telefoonnummer = "0000000000";
+		} else if(strlen($contact["phoneNumber"]) < 2 || $contact["phoneNumber"] > 12) {
+			$telefoonnummer = "0000000000";
+		} else {
+			$telefoonnummer = $contact["phoneNumber"];
+		}
+		
+		$contactID = contact_add($contact["companyName"], null, null, $contact["initials"], null, $contact["lastName"], $straat, $huisnummer, $huisnummerToevoeging, $postcode, $contact["city"], $contact["countryCode"], $contact["email"], $telefoonnummer);
 		
 		$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("mijnDomeinResellerContactID"=>$contactID));
 		

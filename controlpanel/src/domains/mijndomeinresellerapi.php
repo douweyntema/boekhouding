@@ -174,11 +174,11 @@ function request($type, $params)
 	
 	foreach($params as $key=>$value) {
 		if($value !== null) {
-			$url .= "&$key=$value";
+			$url .= "&$key=" . urlencode($value);
 		}
 	}
-	$ctx = stream_context_create(array("http"=>array("timeout"=>1))); 
-	$ret = file_get_contents($url);
+	$context = stream_context_create(array("http"=>array("timeout"=>5)));
+	$ret = file_get_contents($url, false, $context);
 	
 	if($ret === false) {
 		throw new DomainResellerError("Unable to connect to the api-server");
@@ -210,15 +210,15 @@ class DomainResellerError extends Exception {
 	public $code;
 	public $type;
 	public $request;
-	public $responce;
+	public $response;
 	
-	public function __construct($text, $code = null, $type = null, $request = null, $responce = null)
+	public function __construct($text, $code = null, $type = null, $request = null, $response = null)
 	{
 		$this->text = $text;
 		$this->code = $code;
 		$this->type = $type;
 		$this->request = $request;
-		$this->responce = $responce;
+		$this->response = $response;
 	}
 }
 
