@@ -1,6 +1,7 @@
 <?php
 
 require_once(dirname(__FILE__) . "/../common.php");
+require_once("api.php");
 
 function doTicket()
 {
@@ -11,7 +12,9 @@ function doTicket()
 function doTicketThread($threadID)
 {
 	doTicket();
-	useCustomer($GLOBALS["database"]->stdGetTry("ticketThread", array("threadID"=>$threadID), "customerID", false));
+	if(!isRoot()) {
+		useCustomer($GLOBALS["database"]->stdGetTry("ticketThread", array("threadID"=>$threadID), "customerID", false));
+	}
 }
 
 function threadList($status = "OPEN")
@@ -42,7 +45,11 @@ HTML;
 	foreach($threads as $thread) {
 		$customerHtml = "";
 		if(isRoot()) {
-			$customerHtml = "<td>" . htmlentities($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$thread["customerID"]), "name")) . "</td>";
+			if($thread["customerID"] === null) {
+				$customerHtml = "<td>-</td>";
+			} else {
+				$customerHtml = "<td>" . htmlentities($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$thread["customerID"]), "name")) . "</td>";
+			}
 		}
 		$userName = htmlentities($GLOBALS["database"]->stdGet("adminUser", array("userID"=>$thread["userID"]), "username"));
 		$title = htmlentities($thread["title"]);
@@ -70,7 +77,11 @@ function showThread($threadID)
 	
 	$customerHtml = "";
 	if(isRoot()) {
-		$customerHtml = "<tr><th>Customer:</th><td>" . htmlentities($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$thread["customerID"]), "name")) . "</td></tr>\n";
+		if($thread["customerID"] === null) {
+			$customerHtml = "<tr><th>Customer:</th><td> - </td></tr>\n";
+		} else {
+			$customerHtml = "<tr><th>Customer:</th><td>" . htmlentities($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$thread["customerID"]), "name")) . "</td></tr>\n";
+		}
 	}
 	$userName = htmlentities($GLOBALS["database"]->stdGet("adminUser", array("userID"=>$thread["userID"]), "username"));
 	$status = htmlentities(strtolower($thread["status"]));
