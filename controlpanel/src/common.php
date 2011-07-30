@@ -10,6 +10,8 @@ function exceptionHandler($exception)
 	die($exception->__toString());
 }
 
+ignore_user_abort(true);
+
 // set_exception_handler("exceptionHandler");
 error_reporting(0);
 
@@ -19,8 +21,6 @@ if($_SERVER["REMOTE_ADDR"] == "127.0.0.1") {
 
 $GLOBALS["database"] = new MysqlConnection();
 $GLOBALS["database"]->open($database_hostname, $database_username, $database_password, $database_name);
-
-
 
 if(get_magic_quotes_gpc()) {
 	foreach($_GET as $key=>$value) {
