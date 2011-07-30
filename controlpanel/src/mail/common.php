@@ -416,7 +416,7 @@ function mailboxSummary($mailboxID)
 	
 	if($mailbox["spambox"] === null) {
 		$spambox = "No spambox";
-	} else if($mailbox["spambox"] == "inbox") {
+	} else if($mailbox["spambox"] == "") {
 		$spambox = "inbox";
 	} else { 
 		if($mailbox["spamQuota"] === null) {
@@ -428,7 +428,7 @@ function mailboxSummary($mailboxID)
 	
 	if($mailbox["virusbox"] === null) {
 		$virusbox = "No virusbox";
-	} else if($mailbox["virusbox"] == "inbox") {
+	} else if($mailbox["virusbox"] == "") {
 		$virusbox = "inbox";
 	} else {
 		if($mailbox["virusQuota"] === null) {
