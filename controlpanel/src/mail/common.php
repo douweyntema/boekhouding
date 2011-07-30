@@ -246,6 +246,12 @@ HTML;
 
 function addMailboxForm($domainID, $error, $localpart, $password, $quota, $spamQuota, $virusQuota, $spambox, $virusbox)
 {
+	if($spambox === "") {
+		$spambox = "inbox";
+	}
+	if($virusbox === "") {
+		$virusbox = "inbox";
+	}
 	$localpartValue = inputValue($localpart);
 	$quotaValue = inputValue($quota);
 	$spamQuotaValue = $spamQuota === null ? inputValue(100) : inputValue($spamQuota);
@@ -451,6 +457,12 @@ HTML;
 
 function editMailboxForm($addressID, $error, $quota, $spamQuota, $virusQuota, $spambox, $virusbox)
 {
+	if($spambox === "") {
+		$spambox = "inbox";
+	}
+	if($virusbox === "") {
+		$virusbox = "inbox";
+	}
 	$quotaValue = inputValue($quota);
 	$spamQuotaValue = $spamQuota === null ? inputValue(100) : inputValue($spamQuota);
 	$virusQuotaValue = $virusQuota === null ? inputValue(100) : inputValue($virusQuota);
@@ -475,7 +487,7 @@ function editMailboxForm($addressID, $error, $quota, $spamQuota, $virusQuota, $s
 	$spamboxInboxSelected = "";
 	$spamboxfolderSelected = "";
 	$spamboxFolderValue = inputValue("spam");
-	if($spambox == "none" || $spambox == null) {
+	if($spambox == "none" || $spambox === null) {
 		$spamboxNospamSelected = "checked=\"checked\"";
 	} else if($spambox == "inbox") {
 		$spamboxInboxSelected = "checked=\"checked\"";
@@ -488,7 +500,7 @@ function editMailboxForm($addressID, $error, $quota, $spamQuota, $virusQuota, $s
 	$virusboxInboxSelected = "";
 	$virusboxfolderSelected = "";
 	$virusboxFolderValue = inputValue("virus");
-	if($virusbox == "none" || $virusbox == null) {
+	if($virusbox == "none" || $virusbox === null) {
 		$virusboxNospamSelected = "checked=\"checked\"";
 	} else if($virusbox == "inbox") {
 		$virusboxInboxSelected = "checked=\"checked\"";
