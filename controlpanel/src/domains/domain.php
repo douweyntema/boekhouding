@@ -9,7 +9,7 @@ function main()
 	
 	$content = "<h1>Domain " . domainName($domainID) . "</h1>\n";
 	
-	$content .= addDomainDetails($domainID);
+	$content .= domainDetail($domainID);
 	
 	echo page($content);
 }

@@ -1,6 +1,7 @@
 <?php
 
 require_once(dirname(__FILE__) . "/../common.php");
+require_once(dirname(__FILE__) . "/../ticket/api.php");
 
 function doDomains()
 {
@@ -16,7 +17,7 @@ function doDomain($domainID)
 	}
 }
 
-function addDomainsList()
+function domainsList()
 {
 	$output = "";
 	$domains = array();
@@ -45,11 +46,80 @@ HTML;
 	return $output;
 }
 
-function addDomainDetails($domainID)
+function domainDetail($domainID)
 {
-	$output = "TODO";
+	$domain = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), array("name"));
+	$domainName = domainName($domainID);
+	$domainNameHtml = htmlentities($domainName);
 	
+	$output  = "<div class=\"operation\">\n";
+	$output .= "<h2>Domain $domainNameHtml</h2>";
+	$output .= "<table>";
+	$output .= "<tr><th>Name:</th><td class=\"stretch\">$domainNameHtml</td></tr>";
+	$output .= "<tr><th>...</th><td class=\"stretch\">...</td></tr>";
+	$output .= "</table>";
+	$output .= "</div>";
 	return $output;
+}
+
+function addDomain()
+{
+	
+}
+
+function addSubdomain($domainID, $error = "", $name = null, $trevaNameServers = null, $trevaMailServers = null)
+{
+	$parentName = domainName($domainID);
+	$parentNameHtml = htmlentities($parentName);
+	
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+		$stub = false;
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = false;
+	} else if($error == "STUB") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = true;
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = false;
+	}
+	
+	if($stub) {
+		$operationsHtml = "";
+		$submitHTML = "<tr class=\"submit\"><td colspan=\"3\"><input type=\"submit\" value=\"Add\"></td></tr>";
+	} else {
+		$operationsHtml = pathFunctionSubform($readonly != "", $type, null, $hostedUserID, $hostedPath, $redirectTarget, $mirrorTargetPathID);
+		$submitHTML = "";
+	}
+	
+	$nameValue = inputValue($name);
+	return <<<HTML
+<div class="operation">
+<h2>Add subdomain</h2>
+$messageHtml
+<form action="addsubdomain.php?id=$domainID" method="post">
+$confirmHtml
+<table>
+<tr><th>Subdomain name:</th><td class="stretch"><input type="text" name="name" $nameValue /></td><td>.$parentNameHtml</td></tr>
+$submitHTML
+</table>
+
+$operationsHtml
+
+</form>
+</div>
+
+HTML;
 }
 
 function domainName($domainID)
