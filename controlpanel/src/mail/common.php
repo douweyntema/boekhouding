@@ -83,7 +83,7 @@ function mailboxList($domainID)
 <tbody>
 HTML;
 	foreach($GLOBALS["database"]->stdList("mailAddress", array("domainID"=>$domainID), array("addressID", "localpart", "quota"), array("localpart"=>"asc")) as $mailbox) {
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}mail/mailbox.php?id={$mailbox["addressID"]}\">{$mailbox["localpart"]}@$domain</a></td><td>{$mailbox["quota"]} MB</td></tr>\n";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}mail/mailbox.php?id={$mailbox["addressID"]}\">{$mailbox["localpart"]}@$domain</a></td><td>{$mailbox["quota"]} MiB</td></tr>\n";
 	}
 	$output .= <<<HTML
 </tbody>
@@ -337,7 +337,7 @@ $confirmHtml
 $passwordHtml
 <tr>
 <th>Quota:</th>
-<td><input type="text" name="quota" $readonly $quotaValue /></td><td>MB</td>
+<td><input type="text" name="quota" $readonly $quotaValue /></td><td>MiB</td>
 </tr>
 <tr>
 <th>Spambox:</th>
@@ -349,7 +349,7 @@ $passwordHtml
 </tr>
 <tr id="spambox-quota">
 <th>Spambox quota:</th>
-<td><input type="text" name="spamquota" $readonly $spamQuotaValue /></td><td>MB</td>
+<td><input type="text" name="spamquota" $readonly $spamQuotaValue /></td><td>MiB</td>
 </tr>
 <tr>
 <tr>
@@ -362,7 +362,7 @@ $passwordHtml
 </tr>
 <tr id="virusbox-quota">
 <th>Spambox quota:</th>
-<td><input type="text" name="virusquota" $readonly $virusQuotaValue /></td><td>MB</td>
+<td><input type="text" name="virusquota" $readonly $virusQuotaValue /></td><td>MiB</td>
 </tr>
 <tr>
 <tr class="submit"><td colspan="3"><input type="submit" value="Create mailbox" /></td></tr>
@@ -445,7 +445,7 @@ function mailboxSummary($mailboxID)
 <div class="operation">
 <h2>Mailbox {$mailbox["localpart"]}@$domain</h2>
 <table>
-<tr><th>Quota</th><td>{$mailbox["quota"]} MB</td></tr>
+<tr><th>Quota</th><td>{$mailbox["quota"]} MiB</td></tr>
 <tr><th>Spambox</th><td>$spambox</td></tr>
 <tr><th>Virusbox</th><td>$virusbox</td></tr>
 <tr><th>SMTP</th><td>$smtp</td></tr>
@@ -518,7 +518,7 @@ $confirmHtml
 <table>
 <tr>
 <th>Quota:</th>
-<td><input type="text" name="quota" $readonly $quotaValue /></td><td>MB</td>
+<td><input type="text" name="quota" $readonly $quotaValue /></td><td>MiB</td>
 </tr>
 <tr>
 <th>Spambox:</th>
@@ -530,7 +530,7 @@ $confirmHtml
 </tr>
 <tr id="spambox-quota">
 <th>Spambox quota:</th>
-<td><input type="text" name="spamquota" $readonly $spamQuotaValue /></td><td>MB</td>
+<td><input type="text" name="spamquota" $readonly $spamQuotaValue /></td><td>MiB</td>
 </tr>
 <tr>
 <tr>
@@ -543,7 +543,7 @@ $confirmHtml
 </tr>
 <tr id="virusbox-quota">
 <th>Spambox quota:</th>
-<td><input type="text" name="virusquota" $readonly $virusQuotaValue /></td><td>MB</td>
+<td><input type="text" name="virusquota" $readonly $virusQuotaValue /></td><td>MiB</td>
 </tr>
 <tr>
 <tr class="submit"><td colspan="3"><input type="submit" value="Edit mailbox" /></td></tr>
