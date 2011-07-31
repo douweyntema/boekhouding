@@ -57,7 +57,7 @@ function main()
 		die(page($content));
 	}
 	
-	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("initials"=>$initials, "lastName"=>$lastName, "companyName"=>$companyName, "address"=>$address, "postalCode"=>$postalCode, "city"=>$city, "countryCode"=>$countryCode, "email"=>$email, "phoneNumber"=>$phoneNumber, "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota));
+	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("initials"=>$initials, "lastName"=>$lastName, "companyName"=>$companyName, "address"=>$address, "postalCode"=>$postalCode, "city"=>$city, "countryCode"=>$countryCode, "email"=>$email, "phoneNumber"=>$phoneNumber, "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "mijnDomeinResellerContactID"=>null));
 	
 	updateMail($customerID);
 	updateDns($customerID);
