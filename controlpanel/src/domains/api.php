@@ -34,7 +34,11 @@ function updateContactInfo()
 				$huisnummerToevoeging = null;
 			}
 		} else {
-			$straat = $contact["address"];
+			if($contact["address"] == "") {
+				$straat = "-";
+			} else {
+				$straat = $contact["address"];
+			}
 			$huisnummer = "0";
 			$huisnummerToevoeging = null;
 		}
@@ -43,6 +47,12 @@ function updateContactInfo()
 			$postcode = "0000 AA";
 		} else {
 			$postcode = $contact["postalCode"];
+		}
+		
+		if($contact["city"] == "") {
+			$city = "-";
+		} else {
+			$city = $contact["city"];
 		}
 		
 		if(!ctype_digit($contact["countryCode"])) {
@@ -55,7 +65,7 @@ function updateContactInfo()
 			$telefoonnummer = $contact["phoneNumber"];
 		}
 		
-		$contactID = contact_add($contact["companyName"], null, null, $contact["initials"], null, $contact["lastName"], $straat, $huisnummer, $huisnummerToevoeging, $postcode, $contact["city"], $contact["countryCode"], $contact["email"], $telefoonnummer);
+		$contactID = contact_add($contact["companyName"], null, null, $contact["initials"], null, $contact["lastName"], $straat, $huisnummer, $huisnummerToevoeging, $postcode, $city, $contact["countryCode"], $contact["email"], $telefoonnummer);
 		
 		$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("mijnDomeinResellerContactID"=>$contactID));
 		

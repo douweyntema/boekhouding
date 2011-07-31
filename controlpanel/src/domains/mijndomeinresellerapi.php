@@ -2,7 +2,7 @@
 
 function contact_add($bedrijfsnaam, $rechtsvorm, $regnummer, $voorletter, $tussenvoegsel, $achternaam, $straat, $huisnr, $huisnrtoev, $postcode, $plaats, $land, $email, $tel)
 {
-	$ret = request("contact_add", array("bedrijfsnaam"=>$bedrijfsnaam, "rechtsvorm"=>$rechtsvorm, "regnummer"=>$regnummer, "voorletter"=>$voorletter, "tussenvoegsel"=>$tussenvoegsel, "achternaam"=>$achternaam, "straat"=>$straat, "huisnr"=>$huisnr, "huisnrtoev"=>$huisnrtoev, "postcode"=>$postcode, "plaats"=>$plaats, "land"=>$land, "email"=>$email, "tel"=>$tel));
+	$ret = request("contact_add", array("bedrijfsnaam"=>$bedrijfsnaam, "rechtsvorm"=>$rechtsvorm, "regnummer"=>$regnummer, "voorletter"=>$voorletter, "tussenvoegsel"=>$tussenvoegsel, "achternaam"=>$achternaam, "straat"=>$straat, "huisnr"=>$huisnr, "huisnrtoev"=>$huisnrtoev, "postcode"=>$postcode, "plaats"=>$plaats, "land"=>strtolower($land), "email"=>$email, "tel"=>$tel));
 	return $ret["contact_id"];
 }
 
