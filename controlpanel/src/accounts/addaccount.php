@@ -22,13 +22,12 @@ function main()
 	if(post("rights") == "full") {
 		$rights = true;
 	} else {
-		$components = customerComponents();
 		$rights = array();
-		foreach($components as $component) {
-			if(post("right" . $component["componentID"]) !== null) {
-				$rights[$component["componentID"]] = true;
+		foreach(rights() as $right) {
+			if(post("right-" . $right["name"]) !== null) {
+				$rights[$right["name"]] = true;
 			} else {
-				$rights[$component["componentID"]] = false;
+				$rights[$right["name"]] = false;
 			}
 		}
 	}
@@ -68,11 +67,12 @@ function main()
 	$GLOBALS["database"]->startTransaction();
 	$accountID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>customerID(), "username"=>$username, "password"=>hashPassword($password)));
 	if($rights === true) {
-		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$accountID, "componentID"=>null));
+		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$accountID, "customerRightID"=>null));
 	} else {
-		foreach(customerComponents() as $component) {
-			if($rights[$component["componentID"]]) {
-				$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$accountID, "componentID"=>$component["componentID"]));
+		foreach($rights as $right=>$value) {
+			if($value) {
+				$customerRightID = $GLOBALS["database"]->stdGet("adminCustomerRight", array("customerID"=>customerID(), "right"=>$right), "customerRightID");
+				$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$accountID, "customerRightID"=>$customerRightID));
 			}
 		}
 	}

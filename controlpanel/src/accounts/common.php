@@ -54,18 +54,6 @@ function reservedAccountName($username)
 	return false;
 }
 
-function customerComponents()
-{
-	$components = components();
-	$customerComponents = array();
-	foreach($components as $component) {
-		if($GLOBALS["database"]->stdGetTry("adminCustomerRight", array("customerID"=>customerID(), "componentID"=>$component["componentID"]), "componentID", false) !== false) {
-			$customerComponents[] = $component;
-		}
-	}
-	return $customerComponents;
-}
-
 function accountList()
 {
 	$output  = "<div class=\"list sortable\">\n";
@@ -75,10 +63,10 @@ function accountList()
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
 	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username"), array("username"=>"ASC")) as $account) {
-		if($GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>$account["userID"], "componentID"=>null), "userID", false) === false) {
-			$type = "Limited rights";
-		} else {
+		if($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$account["userID"], "customerRightID"=>null))) {
 			$type = "Full access";
+		} else {
+			$type = "Limited rights";
 		}
 		$usernameHtml = htmlentities($account["username"]);
 		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}accounts/account.php?id={$account["userID"]}\">$usernameHtml</a></td><td>$type</td></tr>\n";
@@ -130,8 +118,7 @@ HTML;
 HTML;
 	}
 	
-	$components = customerComponents();
-	$rowspan = count($components) + 2;
+	$rowspan = count(rights()) + 2;
 	$rightsHtml = "";
 	
 	if($readonly) {
@@ -176,23 +163,26 @@ HTML;
 		$rightsHtml .= "</tr>\n";
 	}
 	
-	foreach($components as $component) {
-		$titleHtml = htmlentities($component["title"]);
-		$descriptionHtml = htmlentities($component["description"]);
-		$checkedHtml = (is_array($rights) && $rights[$component["componentID"]]) ? "checked=\"checked\"" : "";
+	foreach(rights() as $right) {
+		if(!$GLOBALS["database"]->stdExists("adminCustomerRight", array("customerID"=>customerID(), "right"=>$right["name"]))) {
+			continue;
+		}
+		$titleHtml = htmlentities($right["title"]);
+		$descriptionHtml = htmlentities($right["description"]);
+		$checkedHtml = (is_array($rights) && $rights[$right["name"]]) ? "checked=\"checked\"" : "";
 		
 		$rightsHtml .= "<tr>\n";
 		$rightsHtml .= "<td></td>\n";
 		if($readonly) {
 			if($checkedHtml != "") {
-				$rightsHtml .= "<td><input type=\"checkbox\" disabled=\"disabled\" $checkedHtml /><input type=\"hidden\" name=\"right{$component["componentID"]}\" value=\"1\" /></td>\n";
+				$rightsHtml .= "<td><input type=\"checkbox\" disabled=\"disabled\" $checkedHtml /><input type=\"hidden\" name=\"right-{$right["name"]}\" value=\"1\" /></td>\n";
 			} else {
 				$rightsHtml .= "<td><input type=\"checkbox\" disabled=\"disabled\" /></td>\n";
 			}
 			$rightsHtml .= "<td>$titleHtml</td>\n";
 		} else {
-			$rightsHtml .= "<td><input type=\"checkbox\" name=\"right{$component["componentID"]}\" id=\"right{$component["componentID"]}\" class=\"right\" value=\"1\" $checkedHtml /></td>\n";
-			$rightsHtml .= "<td><label for=\"right{$component["componentID"]}\">$titleHtml</label></td>\n";
+			$rightsHtml .= "<td><input type=\"checkbox\" name=\"right-{$right["name"]}\" id=\"right-{$right["name"]}\" class=\"right\" value=\"1\" $checkedHtml /></td>\n";
+			$rightsHtml .= "<td><label for=\"right-{$right["name"]}\">$titleHtml</label></td>\n";
 		}
 		$rightsHtml .= "<td>$descriptionHtml</td>\n";
 		$rightsHtml .= "</tr>\n";
@@ -239,17 +229,14 @@ HTML;
 
 function changeAccountRightsForm($userID, $error = "", $rights = null)
 {
+	$customerID = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$userID), "customerID");
 	if($rights === null) {
-		if($GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>$userID, "componentID"=>null), "userID", false) !== false) {
+		if($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>null))) {
 			$rights = true;
 		} else {
-			$components = customerComponents();
 			$rights = array();
-			foreach($components as $component) {
-				$rights[$component["componentID"]] = false;
-			}
-			foreach($GLOBALS["database"]->stdList("adminUserRight", array("userID"=>$userID), "componentID") as $componentID) {
-				$rights[$componentID] = true;
+			foreach($GLOBALS["database"]->stdList("adminCustomerRight", array("customerID"=>$customerID), array("customerRightID", "right")) as $right) {
+				$rights[$right["right"]] = $GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>$right["customerRightID"]));
 			}
 		}
 	}
@@ -267,8 +254,7 @@ function changeAccountRightsForm($userID, $error = "", $rights = null)
 		$readonly = "";
 	}
 	
-	$components = customerComponents();
-	$rowspan = count($components) + 2;
+	$rowspan = count(rights()) + 2;
 	$rightsHtml = "";
 	
 	if($readonly) {
@@ -313,23 +299,26 @@ function changeAccountRightsForm($userID, $error = "", $rights = null)
 		$rightsHtml .= "</tr>\n";
 	}
 	
-	foreach($components as $component) {
-		$titleHtml = htmlentities($component["title"]);
-		$descriptionHtml = htmlentities($component["description"]);
-		$checkedHtml = (is_array($rights) && $rights[$component["componentID"]]) ? "checked=\"checked\"" : "";
+	foreach(rights() as $right) {
+		if(!$GLOBALS["database"]->stdExists("adminCustomerRight", array("customerID"=>$customerID, "right"=>$right["name"]))) {
+			continue;
+		}
+		$titleHtml = htmlentities($right["title"]);
+		$descriptionHtml = htmlentities($right["description"]);
+		$checkedHtml = (is_array($rights) && $rights[$right["name"]]) ? "checked=\"checked\"" : "";
 		
 		$rightsHtml .= "<tr>\n";
 		$rightsHtml .= "<td></td>\n";
 		if($readonly) {
 			if($checkedHtml != "") {
-				$rightsHtml .= "<td><input type=\"checkbox\" disabled=\"disabled\" $checkedHtml /><input type=\"hidden\" name=\"right{$component["componentID"]}\" value=\"1\" /></td>\n";
+				$rightsHtml .= "<td><input type=\"checkbox\" disabled=\"disabled\" $checkedHtml /><input type=\"hidden\" name=\"right-{$right["name"]}\" value=\"1\" /></td>\n";
 			} else {
 				$rightsHtml .= "<td><input type=\"checkbox\" disabled=\"disabled\" /></td>\n";
 			}
 			$rightsHtml .= "<td>$titleHtml</td>\n";
 		} else {
-			$rightsHtml .= "<td><input type=\"checkbox\" name=\"right{$component["componentID"]}\" id=\"right{$component["componentID"]}\" value=\"1\" class=\"right\" $checkedHtml /></td>\n";
-			$rightsHtml .= "<td><label for=\"right{$component["componentID"]}\">$titleHtml</label></td>\n";
+			$rightsHtml .= "<td><input type=\"checkbox\" name=\"right-{$right["name"]}\" id=\"right-{$right["name"]}\" value=\"1\" class=\"right\" $checkedHtml /></td>\n";
+			$rightsHtml .= "<td><label for=\"right-{$right["name"]}\">$titleHtml</label></td>\n";
 		}
 		$rightsHtml .= "<td>$descriptionHtml</td>\n";
 		$rightsHtml .= "</tr>\n";

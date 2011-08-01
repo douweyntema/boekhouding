@@ -36,7 +36,7 @@ function main()
 		$mailQuota = null;
 	}
 	
-	if(trim($nickname) == "" || trim($initials) == "" || trim($lastName) == "" || trim($email) == "" || trim($group) == "" || $GLOBALS["database"]->stdGetTry("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "fileSystemID", null) === null || $GLOBALS["database"]->stdGetTry("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID), "mailSystemID", null) === null || $GLOBALS["database"]->stdGetTry("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "nameSystemID", null) === null) {
+	if(trim($nickname) == "" || trim($initials) == "" || trim($lastName) == "" || trim($email) == "" || trim($group) == "" || !$GLOBALS["database"]->stdExists("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID)) || !$GLOBALS["database"]->stdExists("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID)) || !$GLOBALS["database"]->stdExists("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID))) {
 		$content .= addCustomerForm("Please fill in more fields", $nickname, $initials, $lastName, $companyName, $address, $postalCode, $city, $countryCode, $email, $phoneNumber, $group, $diskQuota, $mailQuota, $fileSystemID, $mailSystemID, $nameSystemID);
 		die(page($content));
 	}

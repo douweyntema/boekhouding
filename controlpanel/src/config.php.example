@@ -19,4 +19,13 @@ $mijnDomainResellerAdminID = 22310;
 $mijnDomainResellerTechID = 22310;
 $mijnDomainResellerBillID = 22310;
 
+$componentsEnabled = array();
+$componentsEnabled[] = "infrastructure";
+$componentsEnabled[] = "customers";
+$componentsEnabled[] = "accounts";
+$componentsEnabled[] = "ticket";
+$componentsEnabled[] = "domains";
+$componentsEnabled[] = "http";
+$componentsEnabled[] = "mail";
+
 ?>

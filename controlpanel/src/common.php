@@ -2,15 +2,14 @@
 
 require_once(dirname(__FILE__) . "/config.php");
 require_once("/usr/lib/phpdatabase/database.php");
-require_once(dirname(__FILE__) . "/menu.php");
+
+ignore_user_abort(true);
 
 function exceptionHandler($exception)
 {
 	// TODO: netjes formatten
 	die($exception->__toString());
 }
-
-ignore_user_abort(true);
 
 // set_exception_handler("exceptionHandler");
 error_reporting(0);
@@ -71,6 +70,51 @@ if(!(isset($GLOBALS["noLoginChecks"]) && $GLOBALS["noLoginChecks"])) {
 	require_once(dirname(__FILE__) . "/login.php");
 }
 
+$GLOBALS["components"] = array();
+$GLOBALS["componentRights"] = array();
+
+function defineRight($module, $rightName, $rightTitle, $rightDescription)
+{
+	$GLOBALS["componentRights"][$module][] = array("name"=>$rightName, "title"=>$rightTitle, "description"=>$rightDescription);
+}
+
+foreach($componentsEnabled as $component) {
+	$GLOBALS["componentRights"][$component] = array();
+	require_once(dirname(__FILE__) . "/$component/api.php");
+	$title = $GLOBALS[$component . "Title"];
+	$target = $GLOBALS[$component . "Target"];
+	$GLOBALS["components"][$component] = array("name"=>$component, "title"=>$title, "target"=>$target);
+	if(!in_array($target, array("admin", "both", "customer"))) {
+		die("Internal error: undefined target '$target' in component '$component'");
+	}
+	if($target == "customer" || $target == "both") {
+		$description = $GLOBALS[$component . "Description"];
+		array_unshift($GLOBALS["componentRights"][$component], array("name"=>$component, "title"=>$title, "description"=>$description));
+	}
+}
+
+$GLOBALS["rights"] = array();
+foreach($GLOBALS["componentRights"] as $componentRights) {
+	foreach($componentRights as $right) {
+		$GLOBALS["rights"][] = $right;
+	}
+}
+
+function components()
+{
+	return $GLOBALS["components"];
+}
+
+function componentExists($component)
+{
+	return isset($GLOBALS[$component]);
+}
+
+function rights()
+{
+	return $GLOBALS["rights"];
+}
+
 function getRootUser()
 {
 	$userID = $GLOBALS["database"]->stdList("adminUser", array("customerID"=>null), "userID", array("userID"=>"asc"), 1);
@@ -129,19 +173,54 @@ HTML;
 	}
 }
 
+function menu()
+{
+	$output = "";
+	
+	if(isRoot()) {
+		$output .= "<ul>\n";
+		$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}\">Welcome</a></li>\n";
+		foreach(components() as $component) {
+			if($component["target"] == "customer") {
+				continue;
+			}
+			$titleHtml = htmlentities($component["title"]);
+			$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}{$component["name"]}/\">$titleHtml</a></li>\n";
+		}
+		$output .= "</ul>\n";
+	} else {
+		$blocked = array();
+		$output .= "<ul>\n";
+		$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}\">Welcome</a></li>\n";
+		foreach(components() as $component) {
+			if($component["target"] == "admin") {
+				continue;
+			}
+			if(!canAccessCustomerComponent($component["name"])) {
+				$blocked[] = $component;
+				continue;
+			}
+			$titleHtml = htmlentities($component["title"]);
+			$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}{$component["name"]}/\">$titleHtml</a></li>\n";
+		}
+		$output .= "</ul>\n";
+		
+		if(isImpersonating() && count($blocked) > 0) {
+			$output .= "<ul class=\"menu-admin\">\n";
+			foreach($blocked as $component) {
+				$titleHtml = htmlentities($component["title"]);
+				$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}{$component["name"]}/\">$titleHtml</a></li>\n";
+			}
+			$output .= "</ul>\n";
+		}
+	}
+	
+	return $output;
+}
+
 function page($content)
 {
 	echo htmlHeader(welcomeHeader() . "<div class=\"menu\">\n" . menu() . "</div>\n<div class=\"main\">\n" . $content . "</div>");
-}
-
-function componentExists($component)
-{
-	return $GLOBALS["database"]->stdGetTry("adminComponent", array("name"=>$component), "componentID", false) !== false;
-}
-
-function components()
-{
-	return $GLOBALS["database"]->stdList("adminComponent", array(), array("componentID", "name", "title", "description", "rootOnly"), array("order"=>"ASC", "name"=>"ASC"));
 }
 
 function inputValue($value)

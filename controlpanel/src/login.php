@@ -131,37 +131,53 @@ function isRoot()
 	return isLoggedIn() && customerID() == 0;
 }
 
-function canAccessComponent($component, $advisory = false)
+function canAccessCustomerComponent($component)
 {
-	$data = $GLOBALS["database"]->stdGetTry("adminComponent", array("name"=>$component), array("componentID", "rootOnly"), false);
-	if($data === false) {
+	$components = components();
+	if(!isset($components[$component])) {
 		return false;
 	}
-	if($advisory && isRoot()) {
-		return false;
-	} else if(isRoot()) {
+	
+	if(customerID() == 0) {
 		return true;
 	}
-	if(!$advisory && isImpersonating()) {
-		return true;
-	}
-	if($data["rootOnly"] != 0) {
+	
+	if($components[$component]["target"] == "admin") {
 		return false;
 	}
-	$componentID = $data["componentID"];
-	if($GLOBALS["database"]->stdGetTry("adminCustomerRight", array("customerID"=>customerID(), "componentID"=>$componentID), "componentID", false) === false) {
+	
+	$customerRightID = $GLOBALS["database"]->stdGetTry("adminCustomerRight", array("customerID"=>customerID(), "right"=>$component), "customerRightID", false);
+	if($customerRightID === false) {
 		return false;
 	}
+	
 	if(isImpersonating()) {
 		return true;
 	}
-	if($GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>userID(), "componentID"=>null), "userID", false) !== false) {
+	
+	if($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>userID(), "customerRightID"=>null))) {
 		return true;
 	}
-	if($GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>userID(), "componentID"=>$componentID), "userID", false) !== false) {
+	
+	if($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>userID(), "customerRightID"=>$customerRightID))) {
 		return true;
 	}
+	
 	return false;
+}
+
+function canAccessComponent($component)
+{
+	$components = components();
+	if(!isset($components[$component])) {
+		return false;
+	}
+	
+	if(isRoot() || isImpersonating()) {
+		return true;
+	}
+	
+	return canAccessCustomerComponent($component);
 }
 
 function useComponent($component)

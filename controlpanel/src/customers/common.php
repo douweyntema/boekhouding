@@ -211,6 +211,7 @@ function editCustomerForm($customerID, $error, $initials, $lastName, $companyNam
 	
 	if($error === null) {
 		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$messageHtml .= "<p class=\"warning\">This will unrecoverably remove rights from this customer's users!</p>\n";
 		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
 		$readonly = "readonly=\"readonly\"";
 	} else if($error === "") {
@@ -314,13 +315,12 @@ HTML;
 function editCustomerRightsForm($customerID, $error = "", $rights = null)
 {
 	if($rights === null) {
-		$components = components();
 		$rights = array();
-		foreach($components as $component) {
-			$rights[$component["componentID"]] = false;
+		foreach(rights() as $right) {
+			$rights[$right["name"]] = false;
 		}
-		foreach($GLOBALS["database"]->stdList("adminCustomerRight", array("customerID"=>$customerID), "componentID") as $componentID) {
-			$rights[$componentID] = true;
+		foreach($GLOBALS["database"]->stdList("adminCustomerRight", array("customerID"=>$customerID), "right") as $right) {
+			$rights[$right] = true;
 		}
 	}
 	if($error === null) {
@@ -349,26 +349,22 @@ function editCustomerRightsForm($customerID, $error = "", $rights = null)
 	$html .= "<th>Description</th>\n";
 	$html .= "</tr>\n";
 	
-	foreach(components() as $component) {
-		if($component["rootOnly"] != 0) {
-			continue;
-		}
-		
-		$titleHtml = htmlentities($component["title"]);
-		$descriptionHtml = htmlentities($component["description"]);
-		$checkedHtml = ($rights[$component["componentID"]] ? "checked=\"checked\"" : "");
+	foreach(rights() as $right) {
+		$titleHtml = htmlentities($right["title"]);
+		$descriptionHtml = htmlentities($right["description"]);
+		$checkedHtml = ($rights[$right["name"]] ? "checked=\"checked\"" : "");
 		
 		$html .= "<tr class=\"right\">\n";
 		if($readonly) {
-			if($rights[$component["componentID"]]) {
-				$html .= "<td><input type=\"checkbox\" value=\"1\" disabled=\"disabled\" checked=\"checked\" /><input type=\"hidden\" name=\"right{$component["componentID"]}\" value=\"1\" /></td>\n";
+			if($rights[$right["name"]]) {
+				$html .= "<td><input type=\"checkbox\" value=\"1\" disabled=\"disabled\" checked=\"checked\" /><input type=\"hidden\" name=\"right-{$right["name"]}\" value=\"1\" /></td>\n";
 			} else {
 				$html .= "<td><input type=\"checkbox\" disabled=\"disabled\" /></td>\n";
 			}
 			$html .= "<td>$titleHtml</td>\n";
 		} else {
-			$html .= "<td><input type=\"checkbox\" name=\"right{$component["componentID"]}\" id=\"right{$component["componentID"]}\" value=\"1\" $checkedHtml /></td>\n";
-			$html .= "<td><label for=\"right{$component["componentID"]}\">$titleHtml</label></td>\n";
+			$html .= "<td><input type=\"checkbox\" name=\"right-{$right["name"]}\" id=\"right-{$right["name"]}\" value=\"1\" $checkedHtml /></td>\n";
+			$html .= "<td><label for=\"right-{$right["name"]}\">$titleHtml</label></td>\n";
 		}
 		$html .= "<td>$descriptionHtml</td>\n";
 		$html .= "</tr>\n";
@@ -657,4 +653,5 @@ function countryName($code)
 		return $code;
 	}
 }
+
 ?>

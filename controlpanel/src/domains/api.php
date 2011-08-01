@@ -1,24 +1,28 @@
 <?php
 
+$domainsTitle = "Domains";
+$domainsDescription = "Domains";
+$domainsTarget = "customer";
+
 require_once("mijndomeinresellerapi.php");
 
-function registerDomain($customerID, $domain, $tld)
+function domainsRegisterDomain($customerID, $domain, $tld)
 {
 }
 
-function disableAutoRenew($domain)
+function domainsDisableAutoRenew($domain)
 {
 }
 
-function enableAutoRenew($domain)
+function domainsEnableAutoRenew($domain)
 {
 }
 
-function domainDetails($domain)
+function domainsDomainDetails($domain)
 {
 }
 
-function updateContactInfo()
+function domainsUpdateContactInfo()
 {
 	global $mijnDomainResellerAdminID, $mijnDomainResellerTechID, $mijnDomainResellerBillID;
 	foreach($GLOBALS["database"]->stdList("adminCustomer", array("mijnDomeinResellerContactID"=>null), array("customerID", "nameSystemID", "name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber")) as $contact) {

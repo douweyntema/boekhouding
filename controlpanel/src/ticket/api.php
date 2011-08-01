@@ -1,5 +1,9 @@
 <?php
 
+$ticketTitle = "Tickets";
+$ticketDescription = "Tickets";
+$ticketTarget = "both";
+
 function ticketNewThread($customerID, $userID, $title, $text)
 {
 	return $GLOBALS["database"]->stdNew("ticketThread", array("customerID"=>$customerID, "userID"=>$userID, "title"=>$title, "text"=>$text, "status"=>"OPEN", "date"=>time()));

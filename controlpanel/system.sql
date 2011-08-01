@@ -1,41 +1,17 @@
 -- phpMyAdmin SQL Dump
--- version 3.4.3.1
+-- version 3.3.7deb5
 -- http://www.phpmyadmin.net
 --
--- Host: earth.treva.nl
--- Generation Time: Jul 21, 2011 at 04:01 AM
+-- Host: localhost
+-- Generation Time: Aug 01, 2011 at 03:33 AM
 -- Server version: 5.1.49
 -- PHP Version: 5.3.3-7+squeeze3
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
 
 --
 -- Database: `treva-panel`
 --
-
--- --------------------------------------------------------
-
---
--- Table structure for table `adminComponent`
---
-
-CREATE TABLE IF NOT EXISTS `adminComponent` (
-  `componentID` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` text NOT NULL,
-  `order` int(11) NOT NULL,
-  `rootOnly` tinyint(1) NOT NULL,
-  PRIMARY KEY (`componentID`),
-  UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -47,14 +23,25 @@ CREATE TABLE IF NOT EXISTS `adminCustomer` (
   `customerID` int(11) NOT NULL AUTO_INCREMENT,
   `fileSystemID` int(11) NOT NULL,
   `mailSystemID` int(11) NOT NULL,
+  `nameSystemID` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `realname` varchar(255) NOT NULL DEFAULT '',
+  `companyName` varchar(255) DEFAULT NULL,
+  `initials` varchar(255) NOT NULL,
+  `lastName` varchar(255) NOT NULL,
+  `address` varchar(255) NOT NULL,
+  `postalCode` varchar(255) NOT NULL,
+  `city` varchar(255) NOT NULL,
+  `countryCode` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
+  `phoneNumber` varchar(255) NOT NULL,
   `groupname` varchar(255) NOT NULL,
-  `mailQuota` int(11) NOT NULL COMMENT 'in MiB',
+  `diskQuota` int(11) DEFAULT NULL COMMENT 'in MiB',
+  `mailQuota` int(11) DEFAULT NULL COMMENT 'in MiB',
+  `mijnDomeinResellerContactID` int(11) DEFAULT NULL,
   PRIMARY KEY (`customerID`),
   KEY `fileSystemID` (`fileSystemID`),
-  KEY `mailSystemID` (`mailSystemID`)
+  KEY `mailSystemID` (`mailSystemID`),
+  KEY `nameSystemID` (`nameSystemID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -64,11 +51,12 @@ CREATE TABLE IF NOT EXISTS `adminCustomer` (
 --
 
 CREATE TABLE IF NOT EXISTS `adminCustomerRight` (
+  `customerRightID` int(11) NOT NULL AUTO_INCREMENT,
   `customerID` int(11) NOT NULL,
-  `componentID` int(11) NOT NULL,
-  PRIMARY KEY (`customerID`,`componentID`),
-  KEY `componentID` (`componentID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+  `right` varchar(255) NOT NULL,
+  PRIMARY KEY (`customerRightID`),
+  UNIQUE KEY `customerID` (`customerID`,`right`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -82,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `adminNews` (
   `date` int(11) NOT NULL,
   `text` text NOT NULL,
   PRIMARY KEY (`newsID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -109,9 +97,9 @@ CREATE TABLE IF NOT EXISTS `adminUser` (
 
 CREATE TABLE IF NOT EXISTS `adminUserRight` (
   `userID` int(11) NOT NULL,
-  `componentID` int(11) DEFAULT '0',
-  UNIQUE KEY `userID` (`userID`,`componentID`),
-  KEY `componentID` (`componentID`)
+  `customerRightID` int(11) DEFAULT NULL,
+  UNIQUE KEY `userID` (`userID`,`customerRightID`),
+  KEY `customerRightID` (`customerRightID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -122,17 +110,18 @@ CREATE TABLE IF NOT EXISTS `adminUserRight` (
 
 CREATE TABLE IF NOT EXISTS `dnsDomain` (
   `domainID` int(11) NOT NULL AUTO_INCREMENT,
-  `customerID` int(11) NOT NULL,
+  `customerID` int(11) DEFAULT NULL,
   `parentDomainID` int(11) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
-  `hostmaster` varchar(255) NOT NULL,
-  `timestamp` int(11) NOT NULL,
   `serial` int(11) NOT NULL DEFAULT '1',
-  `refresh` int(11) NOT NULL DEFAULT '28800',
+  `ttl` int(11) NOT NULL DEFAULT '28800',
+  `useTrevaNameservers` tinyint(1) NOT NULL DEFAULT '1',
+  `useTrevaMailservers` tinyint(1) NOT NULL DEFAULT '1',
+  `syncContactInfo` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`domainID`),
   UNIQUE KEY `parentDomainID` (`parentDomainID`,`name`),
   KEY `customerID` (`customerID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -145,53 +134,9 @@ CREATE TABLE IF NOT EXISTS `dnsHost` (
   `domainID` int(11) NOT NULL,
   `hostname` varchar(255) NOT NULL,
   `type` varchar(255) NOT NULL,
-  `value` varchar(255) NOT NULL,
+  `value` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`hostID`),
   KEY `domainID` (`domainID`,`hostname`,`type`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `dnsMailServer`
---
-
-CREATE TABLE IF NOT EXISTS `dnsMailServer` (
-  `mailServerID` int(11) NOT NULL AUTO_INCREMENT,
-  `domainID` int(11) NOT NULL,
-  `serverID` int(11) NOT NULL,
-  `priority` int(11) NOT NULL,
-  PRIMARY KEY (`mailServerID`),
-  KEY `domainID` (`domainID`),
-  KEY `serverID` (`serverID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `dnsNameServer`
---
-
-CREATE TABLE IF NOT EXISTS `dnsNameServer` (
-  `nameServerID` int(11) NOT NULL AUTO_INCREMENT,
-  `domainID` int(11) NOT NULL,
-  `serverID` int(11) NOT NULL,
-  `priority` int(11) NOT NULL,
-  PRIMARY KEY (`nameServerID`),
-  KEY `domainID` (`domainID`),
-  KEY `serverID` (`serverID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `dnsServer`
---
-
-CREATE TABLE IF NOT EXISTS `dnsServer` (
-  `serverID` int(11) NOT NULL AUTO_INCREMENT,
-  `hostname` varchar(255) NOT NULL,
-  PRIMARY KEY (`serverID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -338,8 +283,8 @@ CREATE TABLE IF NOT EXISTS `infrastructureFileSystem` (
   `fileSystemID` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `description` text NOT NULL,
-  `fileSystemVersion` int(11) NOT NULL,
-  `httpVersion` int(11) NOT NULL,
+  `fileSystemVersion` int(11) NOT NULL DEFAULT '1',
+  `httpVersion` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`fileSystemID`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
@@ -368,9 +313,11 @@ CREATE TABLE IF NOT EXISTS `infrastructureHost` (
 CREATE TABLE IF NOT EXISTS `infrastructureMailServer` (
   `hostID` int(11) NOT NULL,
   `mailSystemID` int(11) NOT NULL,
-  `version` int(11) NOT NULL,
+  `dovecotVersion` int(11) NOT NULL DEFAULT '-1',
+  `eximVersion` int(11) NOT NULL DEFAULT '-1',
   `primary` tinyint(1) NOT NULL,
-  PRIMARY KEY (`hostID`,`mailSystemID`)
+  PRIMARY KEY (`hostID`,`mailSystemID`),
+  KEY `infrastructureMailServer_ibfk_2` (`mailSystemID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -383,9 +330,9 @@ CREATE TABLE IF NOT EXISTS `infrastructureMailSystem` (
   `mailSystemID` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `description` text NOT NULL,
-  `version` int(11) NOT NULL,
+  `version` int(11) NOT NULL DEFAULT '1',
   PRIMARY KEY (`mailSystemID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -401,6 +348,36 @@ CREATE TABLE IF NOT EXISTS `infrastructureMount` (
   PRIMARY KEY (`hostID`,`fileSystemID`),
   KEY `fileSystemID` (`fileSystemID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `infrastructureNameServer`
+--
+
+CREATE TABLE IF NOT EXISTS `infrastructureNameServer` (
+  `hostID` int(11) NOT NULL,
+  `nameSystemID` int(11) NOT NULL,
+  `version` int(11) NOT NULL DEFAULT '-1',
+  `primary` tinyint(1) NOT NULL,
+  PRIMARY KEY (`hostID`,`nameSystemID`),
+  KEY `nameSystemID` (`nameSystemID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `infrastructureNameSystem`
+--
+
+CREATE TABLE IF NOT EXISTS `infrastructureNameSystem` (
+  `nameSystemID` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `version` int(11) NOT NULL DEFAULT '1',
+  `mijnDomeinResellerNameServerSetID` int(11) DEFAULT NULL,
+  PRIMARY KEY (`nameSystemID`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -436,7 +413,7 @@ CREATE TABLE IF NOT EXISTS `mailAddress` (
   `virusQuota` bigint(20) DEFAULT NULL,
   PRIMARY KEY (`addressID`),
   UNIQUE KEY `domainID` (`domainID`,`localpart`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -451,7 +428,7 @@ CREATE TABLE IF NOT EXISTS `mailAlias` (
   `targetAddress` varchar(255) NOT NULL,
   PRIMARY KEY (`aliasID`),
   KEY `domainID` (`domainID`,`localpart`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -465,7 +442,7 @@ CREATE TABLE IF NOT EXISTS `mailDomain` (
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`domainID`),
   KEY `customerID` (`customerID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -492,7 +469,7 @@ CREATE TABLE IF NOT EXISTS `ticketReply` (
 
 CREATE TABLE IF NOT EXISTS `ticketThread` (
   `threadID` int(11) NOT NULL AUTO_INCREMENT,
-  `customerID` int(11) NOT NULL,
+  `customerID` int(11) DEFAULT NULL,
   `userID` int(11) NOT NULL,
   `status` enum('OPEN','CLOSED') NOT NULL,
   `title` varchar(255) NOT NULL,
@@ -512,14 +489,14 @@ CREATE TABLE IF NOT EXISTS `ticketThread` (
 --
 ALTER TABLE `adminCustomer`
   ADD CONSTRAINT `adminCustomer_ibfk_1` FOREIGN KEY (`fileSystemID`) REFERENCES `infrastructureFileSystem` (`fileSystemID`),
-  ADD CONSTRAINT `adminCustomer_ibfk_2` FOREIGN KEY (`mailSystemID`) REFERENCES `infrastructureMailSystem` (`mailSystemID`);
+  ADD CONSTRAINT `adminCustomer_ibfk_2` FOREIGN KEY (`mailSystemID`) REFERENCES `infrastructureMailSystem` (`mailSystemID`),
+  ADD CONSTRAINT `adminCustomer_ibfk_3` FOREIGN KEY (`nameSystemID`) REFERENCES `infrastructureNameSystem` (`nameSystemID`);
 
 --
 -- Constraints for table `adminCustomerRight`
 --
 ALTER TABLE `adminCustomerRight`
-  ADD CONSTRAINT `adminCustomerRight_ibfk_1` FOREIGN KEY (`customerID`) REFERENCES `adminCustomer` (`customerID`),
-  ADD CONSTRAINT `adminCustomerRight_ibfk_2` FOREIGN KEY (`componentID`) REFERENCES `adminComponent` (`componentID`);
+  ADD CONSTRAINT `adminCustomerRight_ibfk_1` FOREIGN KEY (`customerID`) REFERENCES `adminCustomer` (`customerID`);
 
 --
 -- Constraints for table `adminUser`
@@ -531,8 +508,8 @@ ALTER TABLE `adminUser`
 -- Constraints for table `adminUserRight`
 --
 ALTER TABLE `adminUserRight`
-  ADD CONSTRAINT `adminUserRight_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `adminUser` (`userID`),
-  ADD CONSTRAINT `adminUserRight_ibfk_2` FOREIGN KEY (`componentID`) REFERENCES `adminComponent` (`componentID`);
+  ADD CONSTRAINT `adminUserRight_ibfk_2` FOREIGN KEY (`customerRightID`) REFERENCES `adminCustomerRight` (`customerRightID`),
+  ADD CONSTRAINT `adminUserRight_ibfk_1` FOREIGN KEY (`userID`) REFERENCES `adminUser` (`userID`);
 
 --
 -- Constraints for table `dnsDomain`
@@ -546,20 +523,6 @@ ALTER TABLE `dnsDomain`
 --
 ALTER TABLE `dnsHost`
   ADD CONSTRAINT `dnsHost_ibfk_1` FOREIGN KEY (`domainID`) REFERENCES `dnsDomain` (`domainID`);
-
---
--- Constraints for table `dnsMailServer`
---
-ALTER TABLE `dnsMailServer`
-  ADD CONSTRAINT `dnsMailServer_ibfk_1` FOREIGN KEY (`domainID`) REFERENCES `dnsDomain` (`domainID`),
-  ADD CONSTRAINT `dnsMailServer_ibfk_2` FOREIGN KEY (`serverID`) REFERENCES `dnsServer` (`serverID`);
-
---
--- Constraints for table `dnsNameServer`
---
-ALTER TABLE `dnsNameServer`
-  ADD CONSTRAINT `dnsNameServer_ibfk_1` FOREIGN KEY (`domainID`) REFERENCES `dnsDomain` (`domainID`),
-  ADD CONSTRAINT `dnsNameServer_ibfk_2` FOREIGN KEY (`serverID`) REFERENCES `dnsServer` (`serverID`);
 
 --
 -- Constraints for table `httpDomain`
@@ -632,6 +595,13 @@ ALTER TABLE `infrastructureMount`
   ADD CONSTRAINT `infrastructureMount_ibfk_2` FOREIGN KEY (`fileSystemID`) REFERENCES `infrastructureFileSystem` (`fileSystemID`);
 
 --
+-- Constraints for table `infrastructureNameServer`
+--
+ALTER TABLE `infrastructureNameServer`
+  ADD CONSTRAINT `infrastructureNameServer_ibfk_2` FOREIGN KEY (`nameSystemID`) REFERENCES `infrastructureNameSystem` (`nameSystemID`),
+  ADD CONSTRAINT `infrastructureNameServer_ibfk_1` FOREIGN KEY (`hostID`) REFERENCES `infrastructureHost` (`hostID`);
+
+--
 -- Constraints for table `infrastructureWebServer`
 --
 ALTER TABLE `infrastructureWebServer`
@@ -655,6 +625,7 @@ ALTER TABLE `mailAlias`
 --
 ALTER TABLE `mailDomain`
   ADD CONSTRAINT `mailDomain_ibfk_1` FOREIGN KEY (`customerID`) REFERENCES `adminCustomer` (`customerID`);
+
 --
 -- Constraints for table `ticketReply`
 --
@@ -665,5 +636,5 @@ ALTER TABLE `ticketReply`
 -- Constraints for table `ticketThread`
 --
 ALTER TABLE `ticketThread`
-  ADD CONSTRAINT `ticketThread_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `adminUser` (`userID`),
-  ADD CONSTRAINT `ticketThread_ibfk_1` FOREIGN KEY (`customerID`) REFERENCES `adminCustomer` (`customerID`);
+  ADD CONSTRAINT `ticketThread_ibfk_1` FOREIGN KEY (`customerID`) REFERENCES `adminCustomer` (`customerID`),
+  ADD CONSTRAINT `ticketThread_ibfk_2` FOREIGN KEY (`userID`) REFERENCES `adminUser` (`userID`);
