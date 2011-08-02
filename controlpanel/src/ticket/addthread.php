@@ -38,7 +38,7 @@ function main()
 		die();
 	}
 
-	$newThreadID = newThead($customerID, $userID, $title, $text);
+	$newThreadID = ticketNewThread($customerID, $userID, $title, $text);
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}ticket/thread.php?id=$newThreadID");
