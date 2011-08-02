@@ -234,6 +234,12 @@ h3 {
 	padding: 4px;
 }
 
+.billing {
+	border: 3px solid #c11b17;
+	background-color: #ffffcd;
+	padding: 4px;
+}
+
 .confirm:before {
 /* 	content: url(img/apply.png); */
 }

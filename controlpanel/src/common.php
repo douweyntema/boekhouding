@@ -410,6 +410,11 @@ function checkTrivialAction($content, $postUrl, $title, $warning = null, $extraI
 	return true;
 }
 
+function formatPrice($cents)
+{
+	return "&euro; " . floor($cents / 100) . "," . str_pad($cents % 100, 2, "0");
+}
+
 function updateHosts($hosts, $command)
 {
 	foreach($hosts as $hostID) {

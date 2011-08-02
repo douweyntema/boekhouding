@@ -23,6 +23,7 @@ $componentsEnabled = array();
 $componentsEnabled[] = "infrastructure";
 $componentsEnabled[] = "customers";
 $componentsEnabled[] = "accounts";
+$componentsEnabled[] = "billing";
 $componentsEnabled[] = "ticket";
 $componentsEnabled[] = "domains";
 $componentsEnabled[] = "http";
