@@ -174,7 +174,13 @@ function request($type, $params)
 	
 	foreach($params as $key=>$value) {
 		if($value !== null) {
-			$url .= "&$key=" . urlencode($value);
+			if($value === true) {
+				$url .= "&$key=true";
+			} else if($value === false) {
+				$url .= "&$key=false";
+			} else {
+				$url .= "&$key=" . urlencode($value);
+			}
 		}
 	}
 	$context = stream_context_create(array("http"=>array("timeout"=>5)));
