@@ -1,0 +1,16 @@
+Source: treva-mta
+Maintainer: Ruud Koolen <r.koolen@treva.nl>
+Section: treva
+Priority: optional
+Standards-Version: 3.9.1.0
+
+Package: treva-mta
+Architecture: all
+Description: Treva trivial mail-transport-agent exim installation
+Depends: treva-mta-config, exim4-daemon-light
+
+Package: treva-mta-config
+Architecture: all
+Description: Treva trivial mail-transport-agent exim configuration
+Provides: exim4-config-2
+Conflicts: exim4-config-2, exim4-config
