@@ -8,7 +8,8 @@ function main()
 	
 	$content = "<h1>Domains</h1>\n";
 	
-	$content .= addDomainsList();
+	$content .= domainsList();
+	$content .= addDomainForm();
 	
 	echo page($content);
 }

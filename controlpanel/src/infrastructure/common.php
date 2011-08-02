@@ -96,9 +96,9 @@ function fileSystemCustomersList($fileSystemID)
 	$output .= "<tr><th>Nickname</th><th>Name</th><th>Email</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array("fileSystemID"=>$fileSystemID), array("customerID", "name", "realname", "email"), array("name"=>"ASC")) as $customer) {
+	foreach($GLOBALS["database"]->stdList("adminCustomer", array("fileSystemID"=>$fileSystemID), array("customerID", "name", "initials", "lastName", "email"), array("name"=>"ASC")) as $customer) {
 		$nicknameHtml = htmlentities($customer["name"]);
-		$nameHtml = htmlentities($customer["realname"]);
+		$nameHtml = htmlentities($customer["initials"] . " " . $customer["lastName"]);
 		$emailHtml = htmlentities($customer["email"]);
 		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a></td><td>$nameHtml</td><td><a href=\"mailto:{$customer["email"]}\">$emailHtml</a></td></tr>\n";
 	}
@@ -173,9 +173,9 @@ function mailSystemCustomersList($mailSystemID)
 	$output .= "<tr><th>Nickname</th><th>Name</th><th>Email</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array("mailSystemID"=>$mailSystemID), array("customerID", "name", "realname", "email"), array("name"=>"ASC")) as $customer) {
+	foreach($GLOBALS["database"]->stdList("adminCustomer", array("mailSystemID"=>$mailSystemID), array("customerID", "name", "initials", "lastName", "email"), array("name"=>"ASC")) as $customer) {
 		$nicknameHtml = htmlentities($customer["name"]);
-		$nameHtml = htmlentities($customer["realname"]);
+		$nameHtml = htmlentities($customer["initials"] . " " . $customer["lastName"]);
 		$emailHtml = htmlentities($customer["email"]);
 		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a></td><td>$nameHtml</td><td><a href=\"mailto:{$customer["email"]}\">$emailHtml</a></td></tr>\n";
 	}

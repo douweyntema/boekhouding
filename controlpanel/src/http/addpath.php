@@ -68,11 +68,7 @@ function main()
 	}
 	
 	if($type == "HOSTED") {
-		$httpComponentID = $GLOBALS["database"]->stdGet("adminComponent", array("name"=>"http"), "componentID");
-		if($GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$hostedUserID, "customerID"=>customerID()), "userID") === null ||
-			($GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>$hostedUserID, "componentID"=>$httpComponentID), "userID") === null &&
-			$GLOBALS["database"]->stdGetTry("adminUserRight", array("userID"=>$hostedUserID, "componentID"=>null), "userID") === null)
-		) {
+		if(!$GLOBALS["database"]->stdExists("adminUser", array("userID"=>$hostedUserID, "customerID"=>customerID()))) {
 			$content .= addPathForm($pathID, "", $directoryName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
 			die(page($content));
 		}

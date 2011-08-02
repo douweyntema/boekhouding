@@ -16,7 +16,6 @@ function main()
 	
 	$userID = userID();
 	$text = post("text");
-	$date = time();
 	$status = post("status");
 	if($status === null) {
 		$status = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "status");
@@ -43,10 +42,7 @@ function main()
 		die();
 	}
 	
-	$GLOBALS["database"]->startTransaction();
-	$GLOBALS["database"]->stdNew("ticketReply", array("threadID"=>$threadID, "userID"=>$userID, "text"=>$text, "date"=>$date));
-	$GLOBALS["database"]->stdSet("ticketThread", array("threadID"=>$threadID), array("status"=>$status));
-	$GLOBALS["database"]->commitTransaction();
+	ticketNewReply($threadID, $userID, $text, $status);
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}ticket/thread.php?id=$threadID");

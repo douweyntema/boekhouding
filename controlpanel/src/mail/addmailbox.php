@@ -15,30 +15,34 @@ function main()
 	
 	$localpart = post("localpart");
 	$quota = post("quota");
-	$spamQuota = post("spamquota");
-	$virusQuota = post("virusquota");
 	
-	$spambox = post("spambox");
-	if($spambox == "none") {
+	$spamboxType = post("spambox");
+	if($spamboxType == "none") {
 		$spambox = null;
 		$spamQuota = null;
 		$checkspambox = false;
-	} else if($spambox == "inbox") {
+	} else if($spamboxType == "inbox") {
+		$spambox = "";
+		$spamQuota = null;
 		$checkspambox = false;
 	} else {
 		$spambox = post("spambox-folder");
+		$spamQuota = post("spamquota");
 		$checkspambox = true;
 	}
 	
-	$virusbox = post("virusbox");
-	if($virusbox == "none") {
+	$virusboxType = post("virusbox");
+	if($virusboxType == "none") {
 		$virusbox = null;
 		$virusQuota = null;
 		$checkvirusbox = false;
-	} else if($virusbox == "inbox") {
+	} else if($virusboxType == "inbox") {
+		$virusbox = "";
+		$virusQuota = null;
 		$checkvirusbox = false;
 	} else {
 		$virusbox = post("virusbox-folder");
+		$virusQuota = post("virusquota");
 		$checkvirusbox = true;
 	}
 	

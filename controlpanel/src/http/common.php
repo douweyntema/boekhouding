@@ -264,7 +264,7 @@ function pathFunctionSubformHosted($confirm, $selected, $hostedUserID, $hostedPa
 	$usersHtml = "<input type=\"hidden\" name=\"documentOwner\" value=\"\">";
 	$usersHtml = "<select name=\"documentOwner\" $readonlyHtml>";
 	$usersHtmlDisabled = "";
-	foreach($GLOBALS["database"]->query("SELECT DISTINCT adminUser.userID AS userID, username FROM adminUser INNER JOIN adminUserRight ON adminUser.userID = adminUserRight.userID LEFT JOIN adminComponent ON adminUserRight.componentID = adminComponent.componentID WHERE (adminComponent.name = 'http' OR adminComponent.name IS NULL) AND adminUser.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' ORDER BY username ASC")->fetchList() as $user) {
+	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username")) as $user) {
 		$usernameHtml = htmlentities($user["username"]);
 		$selectedHtml = ($hostedUserID == $user["userID"]) ? "selected=\"selected\"" : "";
 		$usersHtml .= "<option value=\"{$user["userID"]}\" $selectedHtml>$usernameHtml</option>";

@@ -18,32 +18,33 @@ function main()
 	$content .= domainBreadcrumbs($mailbox["domainID"], array(array("name"=>"Mailbox {$mailbox["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/mailbox.php?id=$mailboxID")));
 	
 	$quota = post("quota");
-	$spamQuota = post("spamquota");
-	$virusQuota = post("virusquota");
-	
-	$spambox = post("spambox");
-	if($spambox == "none") {
+	$spamboxType = post("spambox");
+	if($spamboxType == "none") {
 		$spambox = null;
 		$spamQuota = null;
 		$checkspambox = false;
-	} else if($spambox == "inbox") {
+	} else if($spamboxType == "inbox") {
+		$spambox = "";
 		$spamQuota = null;
 		$checkspambox = false;
 	} else {
 		$spambox = post("spambox-folder");
+		$spamQuota = post("spamquota");
 		$checkspambox = true;
 	}
 	
-	$virusbox = post("virusbox");
-	if($virusbox == "none") {
+	$virusboxType = post("virusbox");
+	if($virusboxType == "none") {
 		$virusbox = null;
 		$virusQuota = null;
 		$checkvirusbox = false;
-	} else if($virusbox == "inbox") {
+	} else if($virusboxType == "inbox") {
+		$virusbox = "";
 		$virusQuota = null;
 		$checkvirusbox = false;
 	} else {
 		$virusbox = post("virusbox-folder");
+		$virusQuota = post("virusquota");
 		$checkvirusbox = true;
 	}
 	
@@ -62,12 +63,12 @@ function main()
 		die(page($content));
 	}
 	
-	if($checkspambox && !(is_numeric($spamQuota) && 1 < $spamQuota && $spamQuota < 100000)) {
+	if($checkspambox && !($spamQuota == "" || (is_numeric($spamQuota) && 1 < $spamQuota && $spamQuota < 100000))) {
 		$content .= editMailboxForm($mailboxID, "Invalid spambox quota", $quota, $spamQuota, $virusQuota, $spambox, $virusbox);
 		die(page($content));
 	}
 	
-	if($checkvirusbox && !(is_numeric($virusQuota) && 1 < $virusQuota && $virusQuota < 100000)) {
+	if($checkvirusbox && !($virusQuota == "" || (is_numeric($virusQuota) && 1 < $virusQuota && $virusQuota < 100000))) {
 		$content .= editMailboxForm($mailboxID, "Invalid virusbox quota", $quota, $spamQuota, $virusQuota, $spambox, $virusbox);
 		die(page($content));
 	}
@@ -75,6 +76,13 @@ function main()
 	if(post("confirm") === null) {
 		$content .= editMailboxForm($mailboxID, null, $quota, $spamQuota, $virusQuota, $spambox, $virusbox);
 		die(page($content));
+	}
+	
+	if($spamQuota === "") {
+		$spamQuota = null;
+	}
+	if($virusQuota === "") {
+		$virusQuota = null;
 	}
 	
 	$GLOBALS["database"]->stdSet("mailAddress", array("addressID"=>$mailboxID), array("spambox"=>$spambox, "virusbox"=>$virusbox, "quota"=>$quota, "spamQuota"=>$spamQuota, "virusQuota"=>$virusQuota));

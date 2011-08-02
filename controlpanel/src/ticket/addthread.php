@@ -16,7 +16,6 @@ function main()
 	$userID = userID();
 	$title = post("title");
 	$text = post("text");
-	$date = time();
 	
 	if($title == null && $text == null) {
 		$content .= newThreadForm();
@@ -39,7 +38,7 @@ function main()
 		die();
 	}
 
-	$newThreadID = $GLOBALS["database"]->stdNew("ticketThread", array("customerID"=>$customerID, "userID"=>$userID, "title"=>$title, "text"=>$text, "status"=>"OPEN", "date"=>$date));
+	$newThreadID = ticketNewThread($customerID, $userID, $title, $text);
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}ticket/thread.php?id=$newThreadID");

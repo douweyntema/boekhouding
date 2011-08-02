@@ -13,35 +13,50 @@ function main()
 		));
 	
 	$nickname = post("customerNickname");
-	$name = post("customerName");
+	$initials = post("customerInitials");
+	$lastName = post("customerLastName");
+	$companyName = post("customerCompanyName");
+	$address = post("customerAddress");
+	$postalCode = post("customerPostalCode");
+	$city = post("customerCity");
+	$countryCode = post("customerCountryCode");
 	$email = post("customerEmail");
+	$phoneNumber = post("customerPhoneNumber");
 	$group = post("customerGroup");
+	$diskQuota = post("diskQuota");
 	$mailQuota = post("mailQuota");
 	$fileSystemID = post("customerFileSystem");
 	$mailSystemID = post("customerMailSystem");
+	$nameSystemID = post("customerNameSystem");
 	
-	if(trim($nickname) == "" || trim($name) == "" || trim($email) == "" || trim($group) == "" || trim($mailQuota) == "" || $GLOBALS["database"]->stdGetTry("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "fileSystemID", null) === null || $GLOBALS["database"]->stdGetTry("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID), "mailSystemID", null) === null) {
-		$content .= addCustomerForm("", $nickname, $name, $email, $group, $mailQuota, $fileSystemID, $mailSystemID);
+	if($diskQuota == "") {
+		$diskQuota = null;
+	}
+	if($mailQuota == "") {
+		$mailQuota = null;
+	}
+	
+	if(trim($nickname) == "" || trim($initials) == "" || trim($lastName) == "" || trim($email) == "" || trim($group) == "" || !$GLOBALS["database"]->stdExists("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID)) || !$GLOBALS["database"]->stdExists("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID)) || !$GLOBALS["database"]->stdExists("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID))) {
+		$content .= addCustomerForm("Please fill in more fields", $nickname, $initials, $lastName, $companyName, $address, $postalCode, $city, $countryCode, $email, $phoneNumber, $group, $diskQuota, $mailQuota, $fileSystemID, $mailSystemID, $nameSystemID);
 		die(page($content));
 	}
 	
-	if(!is_numeric($mailQuota) || $mailQuota < 1) {
-		$content .= addCustomerForm("Invalid mail quota", $nickname, $name, $email, $group, $mailQuota, $fileSystemID, $mailSystemID);
+	if(($diskQuota !== null && !ctype_digit($diskQuota)) || ($mailQuota !== null && !ctype_digit($mailQuota))) {
+		$content .= addCustomerForm("Invalid quota", $nickname, $initials, $lastName, $companyName, $address, $postalCode, $city, $countryCode, $email, $phoneNumber, $group, $diskQuota, $mailQuota, $fileSystemID, $mailSystemID, $nameSystemID);
 		die(page($content));
 	}
 	
-	$exists = $GLOBALS["database"]->stdGetTry("adminCustomer", array("name"=>$nickname), "customerID", false) !== false;
-	if($exists) {
-		$content .= addCustomerForm("A customer with the chosen name already exists.", $nickname, $name, $email, $group, $mailQuota, $fileSystemID, $mailSystemID);
+	if($GLOBALS["database"]->stdGetTry("adminCustomer", array("name"=>$nickname), "customerID", false) !== false) {
+		$content .= addCustomerForm("A customer with the chosen nickname already exists.", $nickname, $initials, $lastName, $companyName, $address, $postalCode, $city, $countryCode, $email, $phoneNumber, $group, $diskQuota, $mailQuota, $fileSystemID, $mailSystemID, $nameSystemID);
 		die(page($content));
 	}
 	
 	if(post("confirm") === null) {
-		$content .= addCustomerForm(null, $nickname, $name, $email, $group, $mailQuota, $fileSystemID, $mailSystemID);
+		$content .= addCustomerForm(null, $nickname, $initials, $lastName, $companyName, $address, $postalCode, $city, $countryCode, $email, $phoneNumber, $group, $diskQuota, $mailQuota, $fileSystemID, $mailSystemID, $nameSystemID);
 		die(page($content));
 	}
 	
-	$customerID = $GLOBALS["database"]->stdNew("adminCustomer", array("name"=>$nickname, "realname"=>$name, "email"=>$email, "groupname"=>$group, "mailQuota"=>$mailQuota, "fileSystemID"=>$fileSystemID, "mailSystemID"=>$mailSystemID));
+	$customerID = $GLOBALS["database"]->stdNew("adminCustomer", array("name"=>$nickname, "initials"=>$initials, "lastName"=>$lastName, "companyName"=>$companyName, "address"=>$address, "postalCode"=>$postalCode, "city"=>$city, "countryCode"=>$countryCode, "email"=>$email, "phoneNumber"=>$phoneNumber, "groupname"=>$group, "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "fileSystemID"=>$fileSystemID, "mailSystemID"=>$mailSystemID, "nameSystemID"=>$nameSystemID));
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}customers/customer.php?id=$customerID");

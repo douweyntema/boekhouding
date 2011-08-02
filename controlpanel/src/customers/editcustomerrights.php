@@ -13,14 +13,12 @@ function main()
 		customerNotFound($customerID);
 	}
 	
-	$components = components();
 	$rights = array();
-	foreach($components as $component) {
-		$componentID = $component["componentID"];
-		if(post("right" . $componentID) !== null) {
-			$rights[$componentID] = true;
+	foreach(rights() as $right) {
+		if(post("right-" . $right["name"]) !== null) {
+			$rights[$right["name"]] = true;
 		} else {
-			$rights[$componentID] = false;
+			$rights[$right["name"]] = false;
 		}
 	}
 	
@@ -44,15 +42,19 @@ function main()
 	}
 	
 	$GLOBALS["database"]->startTransaction();
-	$GLOBALS["database"]->stdDel("adminCustomerRight", array("customerID"=>$customerID));
-	foreach($components as $component) {
-		$componentID = $component["componentID"];
-		if($rights[$componentID] && $component["rootOnly"] == 0) {
-			$GLOBALS["database"]->stdNew("adminCustomerRight", array("componentID"=>$componentID, "customerID"=>$customerID));
+	foreach(rights() as $right) {
+		$customerRightID = $GLOBALS["database"]->stdGetTry("adminCustomerRight", array("customerID"=>$customerID, "right"=>$right["name"]), "customerRightID", null);
+		if($rights[$right["name"]] && $customerRightID !== null) {
+			// No change, customer already has the right
+		} else if($rights[$right["name"]] && $customerRightID === null) {
+			// Add the right
+			$GLOBALS["database"]->stdNew("adminCustomerRight", array("customerID"=>$customerID, "right"=>$right["name"]));
+		} else if(!$rights[$right["name"]] && $customerRightID !== null) {
+			// Remove the right
+			$GLOBALS["database"]->stdDel("adminUserRight", array("customerRightID"=>$customerRightID));
+			$GLOBALS["database"]->stdDel("adminCustomerRight", array("customerRightID"=>$customerRightID));
 		} else {
-			foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>$customerID), "userID") as $userID) {
-				$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID, "componentID"=>$componentID));
-			}
+			// No change, customer already has the right not
 		}
 	}
 	$GLOBALS["database"]->commitTransaction();
