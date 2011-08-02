@@ -75,7 +75,7 @@ if(!$updateNeeded && !$force) {
 
 $hostIDSql = $GLOBALS["database"]->addSlashes($hostID);
 
-$mailboxes = $GLOBALS["database"]->query("SELECT addressID AS id, localpart, mailDomain.name AS domain, password, canUseImap, quota, spambox, spamQuota, virusbox, virusQuota, groupname, adminCustomer.email AS customerEmail, adminCustomer.mailQuota AS customerQuota FROM mailAddress INNER JOIN mailDomain USING(domainID) INNER JOIN adminCustomer USING(customerID) INNER JOIN infrastructureMailServer USING(mailSystemID) WHERE infrastructureMailServer.hostID = '$hostIDSql' AND infrastructureMailServer.primary = 1")->fetchList();
+$mailboxes = $GLOBALS["database"]->query("SELECT addressID AS id, localpart, mailDomain.name AS domain, password, canUseImap, quota, spambox, virusbox, groupname, adminCustomer.email AS customerEmail, adminCustomer.mailQuota AS customerQuota FROM mailAddress INNER JOIN mailDomain USING(domainID) INNER JOIN adminCustomer USING(customerID) INNER JOIN infrastructureMailServer USING(mailSystemID) WHERE infrastructureMailServer.hostID = '$hostIDSql' AND infrastructureMailServer.primary = 1")->fetchList();
 
 $allMailboxes = array();
 $allDomains = array();
@@ -112,7 +112,6 @@ foreach($mailboxes as $mailbox) {
 }
 
 // Write passwd file.
-$quotaDictionary = "/var/mail/quota";
 $passwd = "";
 foreach($mailboxes as $mailbox) {
 	$customerDirectory = "/var/mail/{$mailbox["groupname"]}";
@@ -147,15 +146,6 @@ foreach($mailboxes as $mailbox) {
 	if($mailbox["quota"] !== null) {
 		$passwd .= " userdb_quota2=dict:Mailbox::file:$mailboxDirectory/quota";
 		$passwd .= " userdb_quota2_rule=*:storage={$mailbox["quota"]}MB";
-	}
-	// Higher quotas send no warnings at all.
-	if($mailbox["spamQuota"] !== null) {
-		$passwd .= " userdb_quota3=dict:Spambox::file:$mailboxDirectory/quota_spam";
-		$passwd .= " userdb_quota3_rule={$mailbox["spambox"]}:storage={$mailbox["spamQuota"]}MB";
-	}
-	if($mailbox["virusQuota"] !== null) {
-		$passwd .= " userdb_quota4=dict:Virusbox::file:$mailboxDirectory/quota_virus";
-		$passwd .= " userdb_quota4_rule={$mailbox["virusbox"]}:storage={$mailbox["virusQuota"]}MB";
 	}
 	
 	$passwd .= "\n";

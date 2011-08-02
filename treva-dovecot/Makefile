@@ -9,6 +9,8 @@ install:
 	install -m 644 src/dovecot.conf $(DESTDIR)/usr/share/treva-dovecot/
 	mkdir -p -m 755 $(DESTDIR)/etc/cron.d
 	install -m 644 config/cron $(DESTDIR)/etc/cron.d/update-treva-dovecot
+	mkdir -p -m 755 $(DESTDIR)/etc/logrotate.d
+	install -m 644 config/logrotate $(DESTDIR)/etc/logrotate.d/dovecot
 
 clean:
 

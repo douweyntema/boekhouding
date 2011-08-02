@@ -18,7 +18,11 @@ chown dovecot-auth:dovecot-auth /etc/dovecot/passwd /etc/dovecot/passwd-master
 chmod -R -s /var/mail
 chown -R mailbox:mailbox /var/mail
 
-mkdir /var/backups/mail
+touch /var/log/dovecot.log /var/log/dovecot.info.log
+chmod 640 /var/log/dovecot.log /var/log/dovecot.info.log
+chown mailbox:mailbox /var/log/dovecot.log /var/log/dovecot.info.log
+
+mkdir -p /var/backups/mail
 
 if [ "`dpkg-divert --truename /etc/dovecot/dovecot.conf`" != /etc/dovecot/dovecot.conf.old ]
 then
