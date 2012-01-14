@@ -4,135 +4,131 @@ $domainsTitle = "Domains";
 $domainsDescription = "Domains";
 $domainsTarget = "customer";
 
-require_once("mijndomeinresellerapi.php");
-
-function domainsUpdate($customerID)
+function domainsRegisterDomain($customerID, $domainName, $tldID)
 {
-	
+	return getApi($tldID)->domainsRegisterDomain($customerID, $domainName, $tldID);
 }
 
-function domainsRegisterDomain($customerID, $domain, $tld)
+function domainsDisableAutoRenew($domainID)
 {
-	global $mijnDomainResellerAdminID, $mijnDomainResellerTechID, $mijnDomainResellerBillID;
-	$registrantID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "mijnDomeinResellerContactID");
-	if($registrantID === null) {
-		domainsUpdateContactInfo();
-		$registrantID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "mijnDomeinResellerContactID");
-		if($registrantID === null) {
-			return false;
-		}
-	}
-	$nameSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "nameSystemID");
-	$nsID = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "mijnDomeinResellerNameServerSetID");
-	if($nsID === null) {
-		return false;
-	}
-	
-	$verloopdatum = domain_register($domain, $tld, $registrantID, $mijnDomainResellerAdminID, $mijnDomainResellerTechID, $mijnDomainResellerBillID, true, true, false, 1, $nsID);
-	return $verloopdatum !== null;
+	return getApi(getTldID($domainID))->disableAutoRenew($domainID);
 }
 
-function domainsDisableAutoRenew($domain)
+function domainsEnableAutoRenew($domainID)
 {
-	$domainParts = explode(".", $domain);
-	if(count($domainParts) != 2) {
-		return false;
-	}
-	
-	return domain_set_autorenew($domainParts[0], $domainParts[1], true, true);
+	return getApi(getTldID($domainID))->enableAutoRenew($domainID);
 }
 
-function domainsEnableAutoRenew($domain)
+function domainsDomainStatus($domainID)
 {
-	$domainParts = explode(".", $domain);
-	if(count($domainParts) != 2) {
-		return false;
+	try {
+		return getApi(getTldID($domainID))->domainStatus($domainID);
+	} catch(DomainsNoApiException $e) {
+		return "Externally hosted";
 	}
-	
-	return domain_set_autorenew($domainParts[0], $domainParts[1], false, true);
 }
 
-function domainsDomainDetails($domain)
+function domainsDomainExpiredate($domainID)
 {
-	$domainParts = explode(".", $domain);
-	if(count($domainParts) != 2) {
-		return false;
+	try {
+		return getApi(getTldID($domainID))->domainExpiredate($domainID);
+	} catch(DomainsNoApiException $e) {
+		return "Unknown";
 	}
-	
-	return domain_get_details($domainParts[0], $domainParts[1]);
 }
 
-function domainsDomainAvailable($domain)
+function domainsDomainAutorenew($domainID)
 {
-	$status = whois_bulk($domain);
-	return $status[0]["status"] == 1;
+	try {
+		return getApi(getTldID($domainID))->domainAutorenew($domainID);
+	} catch(DomainsNoApiException $e) {
+		return null;
+	}
+}
+
+function domainsDomainAvailable($domainName, $tldID)
+{
+	return getApi($tldID)->domainAvailable($domainName, $tldID);
 }
 
 function domainsUpdateContactInfo()
 {
-	global $mijnDomainResellerAdminID, $mijnDomainResellerTechID, $mijnDomainResellerBillID;
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array("mijnDomeinResellerContactID"=>null), array("customerID", "nameSystemID", "name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber")) as $contact) {
-		try {
-			$customerID = $contact["customerID"];
-			
-			preg_match("/^(.*) ([0-9]+)([^0-9 ][^ ]*)?\$/", trim($contact["address"]), $regex);
-			if(count($regex) >= 3) {
-				$straat = $regex[1];
-				$huisnummer = $regex[2];
-				if(isset($regex[3])) {
-					$huisnummerToevoeging = $regex[3];
-				} else {
-					$huisnummerToevoeging = null;
-				}
-			} else {
-				if($contact["address"] == "") {
-					$straat = "-";
-				} else {
-					$straat = $contact["address"];
-				}
-				$huisnummer = "0";
-				$huisnummerToevoeging = null;
-			}
-			
-			if($contact["postalCode"] === null || trim($contact["postalCode"]) == "") {
-				$postcode = "0000 AA";
-			} else {
-				$postcode = $contact["postalCode"];
-			}
-			
-			if($contact["city"] == "") {
-				$city = "-";
-			} else {
-				$city = $contact["city"];
-			}
-			
-			if(!ctype_digit($contact["countryCode"])) {
-				$telefoonnummer = "0000000000";
-			} else if($contact["countryCode"] == "nl" && strlen($contact["phoneNumber"]) != 10) {
-				$telefoonnummer = "0000000000";
-			} else if(strlen($contact["phoneNumber"]) < 2 || $contact["phoneNumber"] > 12) {
-				$telefoonnummer = "0000000000";
-			} else {
-				$telefoonnummer = $contact["phoneNumber"];
-			}
-			
-			$contactID = contact_add($contact["companyName"], null, null, $contact["initials"], null, $contact["lastName"], $straat, $huisnummer, $huisnummerToevoeging, $postcode, $city, $contact["countryCode"], $contact["email"], $telefoonnummer);
-			
-			$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("mijnDomeinResellerContactID"=>$contactID));
-			
-			$nameServerID = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$contact["nameSystemID"]), "mijnDomeinResellerNameServerSetID");
-			
-			foreach($GLOBALS["database"]->query("SELECT domain.domainID, domain.name AS domain, tld.name AS tld FROM dnsDomain AS domain INNER JOIN dnsDomain AS tld ON domain.parentDomainID = tld.domainID WHERE domain.customerID = $customerID AND tld.customerID IS NULL")->fetchList() as $domain) {
-				if($domain["tld"] == "nl" || $domain["tld"] == "eu") {
-					domain_trade($domain["domain"], $domain["tld"], $contactID, $mijnDomainResellerAdminID, $mijnDomainResellerTechID, null, $nameServerID);
-				} else if($domain["tld"] == "be") {
-					ticketNewThread(null, getRootUser(), "Gegevens {$domain["domain"]}.{$domain["tld"]} gewijzigd", "De gegevens van het domein {$domain["domain"]}.{$domain["tld"]} van klant {$contact["name"]} zijn gewijzigd.\nOm die aan te passen bij MijnDomeinReseller is een autorisatiekey nodig.");
-				} else {
-					domain_modify_contacts($domain["domain"], $domain["tld"], $contactID, $mijnDomainResellerAdminID, $mijnDomainResellerTechID, $mijnDomainResellerBillID);
-				}
-			}
-		} catch(DomainResellerError $e) {}
+	getApiName("mijndomeinreseller")->updateContactInfo();
+}
+
+function domainsDomainAutorenewDescription($domainID)
+{
+	$autorenew = domainsDomainAutorenew($domainID);
+	if($autorenew === null) {
+		return "Unknown";
+	} else if($autorenew) {
+		return "Enabled";
+	} else {
+		return "Disabled";
 	}
+}
+
+function domainsDomainStatusDescription($domainID)
+{
+	$status = domainsDomainStatus($domainID);
+	if($status == "active") {
+		if(domainsDomainAutorenew($domainID)) {
+			return "Active, renewing at " . domainsDomainExpiredate($domainID);
+		} else {
+			return "Expiring at " . domainsDomainExpiredate($domainID);
+		}
+	} else if($status == "requested") {
+		return "Requested";
+	} else if($status == "expired" || $status == "quarantaine") {
+		return "Expired";
+	} else if($status == "activeforever") {
+		return "Active";
+	} else {
+		return "Unknown";
+	}
+}
+
+function updateDomains($customerID)
+{
+	// TODO
+}
+
+$GLOBAL["domainsCachedApis"] = array();
+
+function getApiName($identifier)
+{
+	if(!isset($GLOBALS["domainsCachedApis"][$identifier])) {
+		$parameters = $GLOBALS["database"]->stdGet("infrastructureDomainRegistrar", array("identifier"=>$identifier), "parameters");
+		
+		$name = $identifier . "api";
+		require_once(dirname(__FILE__) . "/" . $name . ".php");
+		$GLOBALS["domainsCachedApis"][$identifier] = new $name($parameters);
+	}
+	return $GLOBALS["domainsCachedApis"][$identifier];
+}
+
+function getApi($tldID)
+{
+	if($tldID === null) {
+		throw new DomainsNoApiException();
+	}
+	$registrar = $GLOBALS["database"]->query("SELECT identifier, parameters FROM infrastructureDomainTld INNER JOIN infrastructureDomainRegistrar USING(domainRegistrarID) WHERE domainTldID=" . $GLOBALS["database"]->addSlashes($tldID) . ";")->fetchList();
+	
+	if(!isset($GLOBALS["domainsCachedApis"][$registrar["identifier"]])) {
+		$name = $registrar["identifier"] . "api";
+		require_once(dirname(__FILE__) . "/" . $name . ".php");
+		$GLOBALS["domainsCachedApis"][$registrar["identifier"]] = new $name($registrar["parameters"]);
+	}
+	return $GLOBALS["domainsCachedApis"][$registrar["identifier"]];
+}
+
+function getTldID($domainID)
+{
+	return $GLOBALS["database"]->stdGetTry("dnsDomain", array("domainID"=>$domainID), "domainTldID", null);
+}
+
+class DomainsNoApiException extends Exception
+{
 }
 
 ?>
