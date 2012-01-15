@@ -1,0 +1,10 @@
+Source: treva-bind
+Maintainer: Ruud Koolen <r.koolen@treva.nl>
+Section: treva
+Priority: optional
+Standards-Version: 3.9.1.0
+
+Package: treva-bind
+Architecture: all
+Description: Treva bind configuration generator
+Depends: php5-cli, libphpdatabase, treva-infrastructure-common, bind9
