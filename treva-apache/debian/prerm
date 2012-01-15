@@ -5,11 +5,3 @@ then
 	rm /etc/suphp/suphp.conf
 	dpkg-divert --remove --rename /etc/suphp/suphp.conf
 fi
-
-if [ "`dpkg-divert --truename /usr/bin/chfn`" = /usr/sbin/real-chfn ]
-then
-	rm /usr/bin/chfn
-	dpkg-divert --remove --rename /usr/bin/chfn
-	chmod u+s /usr/bin/chfn
-fi
-

@@ -55,13 +55,13 @@ function hostList()
 	$output .= "<table>\n";
 	$output .= "<caption>Hosts</caption>";
 	$output .= "<thead>\n";
-	$output .= "<tr><th>Name</th><th>Description</th></tr>\n";
+	$output .= "<tr><th>Hostname</th><th>Description</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach($GLOBALS["database"]->stdList("infrastructureHost", array(), array("hostID", "name", "description"), array("name"=>"ASC")) as $host) {
-		$nameHtml = htmlentities($host["name"]);
+	foreach($GLOBALS["database"]->stdList("infrastructureHost", array(), array("hostID", "hostname", "description"), array("hostname"=>"ASC")) as $host) {
+		$hostnameHtml = htmlentities($host["hostname"]);
 		$descriptionHtml = htmlentities($host["description"]);
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id={$host["hostID"]}\">$nameHtml</a></td><td>$descriptionHtml</td></tr>\n";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id={$host["hostID"]}\">$hostnameHtml</a></td><td>$descriptionHtml</td></tr>\n";
 	}
 	$output .= "</tbody>\n";
 	$output .= "</table>\n";
@@ -137,7 +137,7 @@ function fileSystemHostList($fileSystemID)
 		} else {
 			$webserverOK = "Out of date";
 		}
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id={$host["hostID"]}\">$nameHtml</a></td><td>$hostnameHtml</td><td>$customerLogin</td><td>$mountOK</td><td>$webserverOK</td></tr>\n";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id={$host["hostID"]}\">$hostnameHtml</a></td><td>$hostnameHtml</td><td>$customerLogin</td><td>$mountOK</td><td>$webserverOK</td></tr>\n";
 	}
 	$output .= "</tbody>\n";
 	$output .= "</table>\n";
@@ -193,18 +193,17 @@ function mailSystemHostList($mailSystemID)
 	$output .= "<table>\n";
 	$output .= "<caption>Hosts in mailsystem $mailSystemNameHtml</caption>";
 	$output .= "<thead>\n";
-	$output .= "<tr><th>Name</th><th>Hostname</th><th>Primary</th><th>Dovecot</th><th>Exim</th></tr>\n";
+	$output .= "<tr><th>Hostname</th><th>Primary</th><th>Dovecot</th><th>Exim</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach($GLOBALS["database"]->query("SELECT host.hostID, host.hostname, host.name, mailSystem.mailSystemID, mailSystem.description, mailSystem.version AS systemVersion, mailServer.dovecotVersion, mailServer.eximVersion, mailServer.primary
+	foreach($GLOBALS["database"]->query("SELECT host.hostID, host.hostname, mailSystem.mailSystemID, mailSystem.description, mailSystem.version AS systemVersion, mailServer.dovecotVersion, mailServer.eximVersion, mailServer.primary
 	FROM infrastructureMailSystem AS mailSystem 
 	LEFT JOIN infrastructureMailServer AS mailServer ON mailServer.mailSystemID = mailSystem.mailSystemID 
 	LEFT JOIN infrastructureHost AS host ON mailServer.hostID = host.hostID 
 	WHERE mailSystem.mailSystemID = $mailSystemID
-	ORDER BY mailServer.primary DESC, host.name
+	ORDER BY mailServer.primary DESC, host.hostname
 	")->fetchList() as $host) {
 		$hostnameHtml = htmlentities($host["hostname"]);
-		$nameHtml = htmlentities($host["name"]);
 		$customerLogin = $host["primary"] == 1 ? "Yes" : "No";
 		if($host["dovecotVersion"] == null) {
 			$dovecotOK = "-";
@@ -220,7 +219,7 @@ function mailSystemHostList($mailSystemID)
 		} else {
 			$eximOK = "Out of date";
 		}
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id={$host["hostID"]}\">$nameHtml</a></td><td>$hostnameHtml</td><td>$customerLogin</td><td>$dovecotOK</td><td>$eximOK</td></tr>\n";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id={$host["hostID"]}\">$hostnameHtml</a></td><td>$customerLogin</td><td>$dovecotOK</td><td>$eximOK</td></tr>\n";
 	}
 	$output .= "</tbody>\n";
 	$output .= "</table>\n";
@@ -231,16 +230,14 @@ function mailSystemHostList($mailSystemID)
 
 function hostDetail($hostID)
 {
-	$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("name", "hostname", "sshPort", "description"));
-	$hostNameHtml = htmlentities($host["name"]);
+	$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("hostname", "sshPort", "description"));
 	$hostHostnameHtml = htmlentities($host["hostname"]);
 	$hostSshPortHtml = htmlentities($host["sshPort"]);
 	$hostDescriptionHtml = htmlentities($host["description"]);
 	
 	$output  = "<div class=\"operation\">\n";
-	$output .= "<h2>Host $hostNameHtml</h2>";
+	$output .= "<h2>Host $hostHostnameHtml</h2>";
 	$output .= "<table>";
-	$output .= "<tr><th>Name:</th><td class=\"stretch\">$hostNameHtml</td></tr>";
 	$output .= "<tr><th>Hostname:</th><td class=\"stretch\">$hostHostnameHtml</td></tr>";
 	$output .= "<tr><th>SSH port:</th><td class=\"stretch\">$hostSshPortHtml</td></tr>";
 	$output .= "<tr><th>Description:</th><td class=\"stretch\">$hostDescriptionHtml</td></tr>";
@@ -251,17 +248,17 @@ function hostDetail($hostID)
 
 function hostFileSystemList($hostID)
 {
-	$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("name", "description"));
-	$hostNameHtml = htmlentities($host["name"]);
+	$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("hostname", "description"));
+	$hostnameHtml = htmlentities($host["hostname"]);
 	$output  = "<div class=\"sortable list\">\n";
 	$output .= "<table>\n";
-	$output .= "<caption>Filesystems used by host $hostNameHtml</caption>";
+	$output .= "<caption>Filesystems used by host $hostnameHtml</caption>";
 	$output .= "<thead>\n";
 	$output .= "<tr><th>Name</th><th>Login</th><th>Mount</th><th>Webhosting</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
 	foreach(magicQuery(array("host.hostID"=>$hostID)) as $fileSystem) {
-		$nameHtml = htmlentities($fileSystem["name"]);
+		$hostnameHtml = htmlentities($fileSystem["hostname"]);
 		$customerLogin = $fileSystem["allowCustomerLogin"] == 1 ? "Yes" : "No";
 		if($fileSystem["mountVersion"] == null) {
 			$mountOK = "-";
@@ -277,7 +274,7 @@ function hostFileSystemList($hostID)
 		} else {
 			$webserverOK = "Out of date";
 		}
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$fileSystem["fileSystemID"]}\">$nameHtml</a></td><td>$customerLogin</td><td>$mountOK</td><td>$webserverOK</td></tr>\n";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$fileSystem["fileSystemID"]}\">$hostnameHtml</a></td><td>$customerLogin</td><td>$mountOK</td><td>$webserverOK</td></tr>\n";
 	}
 	$output .= "</tbody>\n";
 	$output .= "</table>\n";
@@ -287,21 +284,21 @@ function hostFileSystemList($hostID)
 
 function hostMailSystemList($hostID)
 {
-	$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("name", "description"));
-	$hostNameHtml = htmlentities($host["name"]);
+	$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("hostname", "description"));
+	$hostnameHtml = htmlentities($host["hostname"]);
 	$output  = "<div class=\"sortable list\">\n";
 	$output .= "<table>\n";
-	$output .= "<caption>Mailsystems used by host $hostNameHtml</caption>";
+	$output .= "<caption>Mailsystems used by host $hostnameHtml</caption>";
 	$output .= "<thead>\n";
 	$output .= "<tr><th>Name</th><th>Primary</th><th>Dovecot</th><th>Exim</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach($GLOBALS["database"]->query("SELECT host.hostID, host.hostname, host.name, mailSystem.name AS systemName, mailSystem.mailSystemID, mailSystem.description, mailSystem.version AS systemVersion, mailServer.dovecotVersion, mailServer.eximVersion, mailServer.primary
+	foreach($GLOBALS["database"]->query("SELECT host.hostID, host.hostname, mailSystem.name AS systemName, mailSystem.mailSystemID, mailSystem.description, mailSystem.version AS systemVersion, mailServer.dovecotVersion, mailServer.eximVersion, mailServer.primary
 	FROM infrastructureMailSystem AS mailSystem 
 	LEFT JOIN infrastructureMailServer AS mailServer ON mailServer.mailSystemID = mailSystem.mailSystemID 
 	LEFT JOIN infrastructureHost AS host ON mailServer.hostID = host.hostID 
 	WHERE host.hostID = $hostID
-	ORDER BY mailServer.primary DESC, host.name
+	ORDER BY mailServer.primary DESC, host.hostname
 	")->fetchList() as $mailsystem) {
 		$nameHtml = htmlentities($mailsystem["systemName"]);
 		$customerLogin = $mailsystem["primary"] == 1 ? "Yes" : "No";
@@ -348,7 +345,7 @@ function magicQuery($where = null)
 			$whereSql = $where;
 		}
 	}
-	return $GLOBALS["database"]->query("SELECT host.hostID, host.hostname, host.name, fileSystem.fileSystemID, fileSystem.name, fileSystem.description, fileSystem.fileSystemVersion, fileSystem.httpVersion, mount.version AS mountVersion, mount.allowCustomerLogin, webServer.version AS webserverVersion 
+	return $GLOBALS["database"]->query("SELECT host.hostID, host.hostname, fileSystem.fileSystemID, fileSystem.name, fileSystem.description, fileSystem.fileSystemVersion, fileSystem.httpVersion, mount.version AS mountVersion, mount.allowCustomerLogin, webServer.version AS webserverVersion 
 	FROM infrastructureHost AS host 
 	CROSS JOIN infrastructureFileSystem AS fileSystem 
 	LEFT JOIN infrastructureMount AS mount ON mount.hostID = host.hostID AND mount.fileSystemID = fileSystem.fileSystemID 
@@ -359,11 +356,11 @@ function magicQuery($where = null)
 
 function hostRefresh($hostID)
 {
-	$hostName = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), "name");
-	$hostNameHtml = htmlentities($hostName);
+	$hostname = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), "hostname");
+	$hostnameHtml = htmlentities($hostname);
 	
 	$output  = "<div class=\"operation\">\n";
-	$output .= "<h2>Refresh host $hostNameHtml</h2>";
+	$output .= "<h2>Refresh host $hostnameHtml</h2>";
 	$output .= "<table>";
 	$output .= "<tr class=\"submit\"><td>";
 	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id=$hostID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"all\"><input type=\"submit\" value=\"Refresh everything\"></form>";

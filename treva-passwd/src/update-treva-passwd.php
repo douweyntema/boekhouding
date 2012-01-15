@@ -119,6 +119,7 @@ foreach($users as $user) {
 		$chpasswd = popen("chpasswd -e", "w");
 		fwrite($chpasswd, "{$user["username"]}:{$user["password"]}\n");
 		pclose($chpasswd);
+		symlink("/var/log/apache2/{$user["groupname"]}/", "/home/{$user["username"]}/logs/");
 	} else if($pw["name"] == $user["username"]) {
 		`usermod $disabled -s {$user["shell"]} -g $gid {$user["username"]} >/dev/null 2>/dev/null`;
 		$chpasswd = popen("chpasswd -e", "w");

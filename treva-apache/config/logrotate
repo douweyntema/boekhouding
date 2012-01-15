@@ -1,0 +1,12 @@
+/var/log/apache2/*/*/access.log /var/log/apache2/*/*/error.log {
+	rotate 30
+	daily
+	create
+	compress
+	delaycompress
+	missingok
+	dateext
+	lastaction
+		/etc/init.d/apache2 reload > /dev/null
+	endscript
+}

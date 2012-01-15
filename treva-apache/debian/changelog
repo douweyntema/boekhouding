@@ -1,3 +1,9 @@
+treva-apache (0.5) squeeze; urgency=medium
+
+  * Added logrotate support
+
+ -- Ruud Koolen <r.koolen@treva.nl>  Sun, 15 Jan 2012 05:42:42 +0200
+
 treva-apache (0.4.1) squeeze; urgency=medium
 
   * Added dependancies to some libapache2-svn
@@ -6,7 +12,7 @@ treva-apache (0.4.1) squeeze; urgency=medium
 
 treva-apache (0.4) squeeze; urgency=medium
 
-  * Added dependancies to some usefull php-addons
+  * Added dependancies to some useful php-addons
 
  -- Stef Louwers <s.louwers@treva.nl>  Wed, 13 Jul 2011 17:19:42 +0200
 
