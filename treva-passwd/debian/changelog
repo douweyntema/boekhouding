@@ -1,3 +1,9 @@
+treva-passwd (0.2.1) squeeze; urgency=medium
+
+  * Added a symbolic link to a user's group apache log directory when creating a user home directory
+
+ -- Ruud Koolen <r.koolen@treva.nl>  Sun, 15 Jan 2012 05:42:42 +0200
+
 treva-passwd (0.2) squeeze; urgency=medium
 
   * Moved part of the configuration to a -common package.
