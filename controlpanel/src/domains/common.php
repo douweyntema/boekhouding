@@ -742,7 +742,20 @@ function editAddressTypeForm($domainID, $error = "", $type = null, $ipv4 = null,
 	}
 	
 	if($stub) {
-		if($type == "INHERIT") {
+		if($type == "NONE") {
+			return <<<HTML
+<div class="operation">
+<h2>Address configuration</h2>
+<form action="editaddress.php?id=$domainID" method="post">
+<table>
+<tr><th>Status:</th><td class="stretch">No address settings.</td></tr>
+<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
+</table>
+</form>
+</div>
+
+HTML;
+		} else if($type == "INHERIT") {
 			return <<<HTML
 <div class="operation">
 <h2>Address configuration</h2>
@@ -824,6 +837,19 @@ HTML;
 <tr><th>Delegation servers:</th><th>Hostname</th><th>IPv4</th><th>IPv6</th></tr>
 $delegationServersHtml
 <tr class="submit"><td colspan="4"><input type="submit" name="type" value="Edit" /></td></tr>
+</table>
+</form>
+</div>
+
+HTML;
+		} else if($type == "TREVA-DELEGATION") {
+			return <<<HTML
+<div class="operation">
+<h2>Address configuration</h2>
+<form action="editaddress.php?id=$domainID" method="post">
+<table>
+<tr><th>Status:</th><td class="stretch">Internal delegation</td></tr>
+<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
 </table>
 </form>
 </div>
