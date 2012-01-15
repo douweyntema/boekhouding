@@ -12,13 +12,13 @@ class mijndomeinresellerapi
 	
 	public function __construct($parameters)
 	{
-		foreach(explode($parameters, "\n") as $parameter) {
+		foreach(explode("\n", $parameters) as $parameter) {
 			$pos = strpos($parameter, "=");
 			if($pos === false) {
 				continue;
 			}
-			$name = substr($parameter, 0, $pos);
-			$value = substr($parameter, $pos + 1);
+			$name = trim(substr($parameter, 0, $pos));
+			$value = trim(substr($parameter, $pos + 1));
 			$this->$name = $value;
 		}
 		
@@ -225,10 +225,9 @@ class mijndomeinresellerapi
 	
 	private function domain_list($tld = null, $sort = null, $order = null, $begin = null)
 	{
+		die("domain_list() not tested");
 		$ret = $this->request("domain_list", array("tld"=>$tld, "sort"=>$sort, "order"=>$order, "begin"=>$begin));
 		$domains = array();
-		var_dump($ret);
-		die();
 		for($i = 0; $i < $ret["domeincount"]; $i++) {
 			$domain = array();
 			foreach(array("domain", "registrant", "registrant_id", "admin", "admin_id", "tech", "tech_id", "verloopdatum", "status") as $key) {

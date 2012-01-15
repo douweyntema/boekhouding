@@ -6,25 +6,34 @@ function main()
 {
 	doDomains();
 	
-// 	$content .= breadcrumbs($domainID, array(array("name"=>"Add alias", "url"=>"{$GLOBALS["root"]}mail/addalias.php?id=$domainID")));
-	
 	$domainName = post("name");
-	$tldID = post("rootDomainID");
-	$tld = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$tldID), "name");
+	$tldID = post("tldID");
 	
-	$content = "<h1>Register new domain - $domainName.$tld</h1>\n";
+	if($tldID == null || $domainName == null) {
+		$content = "<h1>Register new domain</h1>\n";
+		
+		$content .= breadcrumbs(array(array("name"=>"Domains", "url"=>"{$GLOBALS["root"]}domains/"), array("name"=>"Register domain", "url"=>"{$GLOBALS["root"]}domains/adddomain.php")));
+		$content .= addDomainForm();
+		die(page($content));
+	}
+	
+	$tldName = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "name");
+	
+	$content = "<h1>Register new domain - $domainName.$tldName</h1>\n";
+	
+	$content .= breadcrumbs(array(array("name"=>"Domains", "url"=>"{$GLOBALS["root"]}domains/"), array("name"=>"Register domain $domainName.$tldName", "url"=>"{$GLOBALS["root"]}domains/adddomain.php")));
 	
 	if(!validDomainPart($domainName)) {
 		$content .= addDomainForm("Invalid domain name.", $tldID, $domainName);
 		die(page($content));
 	}
 	
-	if($GLOBALS["database"]->stdExists("dnsDomain", array("parentDomainID"=>$tldID, "name"=>$domainName))) {
+	if($GLOBALS["database"]->stdExists("dnsDomain", array("domainTldID"=>$tldID, "name"=>$domainName))) {
 		$content .= addDomainForm("The chosen domain name is already registered.", $tldID, $domainName);
 		die(page($content));
 	}
 	
-	if(!domainsDomainAvailable($domainName . "." . $tld)) {
+	if(!domainsDomainAvailable($domainName, $tldID)) {
 		$content .= addDomainForm("The chosen domain name is already registered.", $tldID, $domainName);
 		die(page($content));
 	}
@@ -35,17 +44,17 @@ function main()
 	}
 	
 	$GLOBALS["database"]->startTransaction();
-	$domainID = $GLOBALS["database"]->stdNew("dnsDomain", array("customerID"=>customerID(), "parentDomainID"=>$tldID, "name"=>$domainName));
+	$domainID = $GLOBALS["database"]->stdNew("dnsDomain", array("customerID"=>customerID(), "domainTldID"=>$tldID, "name"=>$domainName, "addressType"=>"NONE", "mailType"=>"NONE"));
 	
-	domainsUpdate(customerID());
-	
-	$ok = domainsRegisterDomain(customerID(), $domainName, $tld);
+	$ok = domainsRegisterDomain(customerID(), $domainName, $tldID);
 	if(!$ok) {
 		$content .= "<p class=\"error\">An error occured while registering this domain. Please try again later or <a href=\"{$GLOBALS["root"]}ticket/addthread.php\">contact us</a>.</p>";
 		$GLOBALS["database"]->rollbackTransaction();
 		die(page($content));
 	}
 	$GLOBALS["database"]->commitTransaction();
+	
+	updateDomains(customerID());
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}domains/domain.php?id={$domainID}");

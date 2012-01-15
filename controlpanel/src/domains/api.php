@@ -6,7 +6,7 @@ $domainsTarget = "customer";
 
 function domainsRegisterDomain($customerID, $domainName, $tldID)
 {
-	return getApi($tldID)->domainsRegisterDomain($customerID, $domainName, $tldID);
+	return getApi($tldID)->registerDomain($customerID, $domainName, $tldID);
 }
 
 function domainsDisableAutoRenew($domainID)
@@ -112,8 +112,7 @@ function getApi($tldID)
 	if($tldID === null) {
 		throw new DomainsNoApiException();
 	}
-	$registrar = $GLOBALS["database"]->query("SELECT identifier, parameters FROM infrastructureDomainTld INNER JOIN infrastructureDomainRegistrar USING(domainRegistrarID) WHERE domainTldID=" . $GLOBALS["database"]->addSlashes($tldID) . ";")->fetchList();
-	
+	$registrar = $GLOBALS["database"]->query("SELECT identifier, parameters FROM infrastructureDomainTld INNER JOIN infrastructureDomainRegistrar USING(domainRegistrarID) WHERE domainTldID=" . $GLOBALS["database"]->addSlashes($tldID) . ";")->fetchArray();
 	if(!isset($GLOBALS["domainsCachedApis"][$registrar["identifier"]])) {
 		$name = $registrar["identifier"] . "api";
 		require_once(dirname(__FILE__) . "/" . $name . ".php");

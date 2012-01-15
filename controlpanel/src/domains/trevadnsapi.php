@@ -56,24 +56,26 @@ class trevadnsapi
 	
 	public function domainAvailable($domainName, $tldID)
 	{
-		return $GLOBALS["database"]->stdExists("dnsDomain", array("parentDomainID"=>$this->tldParentDomainID($tldID), "name"=>$domainName));
+		return !$GLOBALS["database"]->stdExists("dnsDomain", array("parentDomainID"=>$this->tldParentDomainID($tldID), "name"=>$domainName));
 	}
 	
 	private function tldParentDomainID($tldID)
 	{
 		$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "name");
-		$tldParts = explode($tld, ".");
+		$tldParts = explode(".", $tld);
 		$tldParts = array_reverse($tldParts);
 		$tld = "";
-		$separator = "";
+		$parentDomainID = null;
 		for($i = 0; $i < count($tldParts); $i++) {
-			$tld = $tldParts[$i] . $separator . $tld;
-			$separator = ".";
+			if($i == 0) {
+				$tld = $tldParts[$i];
+			} else {
+				$tld = $tldParts[$i] . "." . $tld;
+			}
 			$domainTldID = $GLOBALS["database"]->stdGetTry("infrastructureDomainTld", array("name"=>$tld), "domainTldID", null);
 			if($domainTldID === null) {
 				continue;
 			}
-			$parentDomainID = null;
 			for($j = $i + 1; $j < count($tldParts); $j++) {
 				$parentDomainID = $GLOBALS["database"]->stdGetTry("dnsDomain", array("name"=>$tldParts[$j], "parentDomainID"=>$parentDomainID, "domainTldID"=>$domainTldID), "domainID", null);
 				$domainTldID = null;

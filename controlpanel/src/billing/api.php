@@ -4,9 +4,9 @@ $billingTitle = "Billing";
 $billingDescription = "Billing";
 $billingTarget = "both";
 
-function billingDomainPrice($customerID, $tld)
+function billingDomainPrice($customerID, $tldID)
 {
-	return 1000;
+	return $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "price");
 }
 
 ?>
