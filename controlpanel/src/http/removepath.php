@@ -40,7 +40,14 @@ function main()
 	
 	$GLOBALS["database"]->startTransaction();
 	removePath($pathID, $keepsubs);
-	// TODO: NONE-type parents ook opruimen
+	while($parentPathID !== null &&
+		$GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$parentPathID), "type") == "NONE" &&
+		!$GLOBALS["database"]->stdExists("httpPath", array("parentPathID"=>$parentPathID)))
+	{
+		$grandparentPathID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$parentPathID), "parentPathID");
+		$GLOBALS["database"]->stdDel("httpPath", array("pathID"=>$parentPathID));
+		$parentPathID = $grandparentPathID;
+	}
 	$GLOBALS["database"]->commitTransaction();
 	
 	// Distribute the accounts database

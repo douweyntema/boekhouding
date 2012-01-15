@@ -7,10 +7,6 @@
  * - Een redirect neemt nu zijn postfix mee naar de nieuwe url, willen we dit?
  */
 
-/*
- * TODO: recursieve mirrors afvangen
- */
-
 chdir("/");
 
 $force = false;

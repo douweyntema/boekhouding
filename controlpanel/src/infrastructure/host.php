@@ -7,14 +7,14 @@ function main()
 	doInfrastructure();
 	
 	$hostID = get("id");
-	$hostName = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), "name");
-	$hostNameHtml = htmlentities($hostName);
+	$hostname = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), "hostname");
+	$hostnameHtml = htmlentities($hostname);
 	
-	$content = "<h1>Infrastructure - host $hostNameHtml</h1>\n";
+	$content = "<h1>Infrastructure - host $hostnameHtml</h1>\n";
 	
 	$content .= breadcrumbs(array(
 		array("name"=>"Infrastructure", "url"=>"{$GLOBALS["root"]}infrastructure/"),
-		array("name"=>"$hostName", "url"=>"{$GLOBALS["root"]}infrastructure/host.php?id=$hostID")
+		array("name"=>"$hostname", "url"=>"{$GLOBALS["root"]}infrastructure/host.php?id=$hostID")
 		));
 	
 	if(post("refresh") == "all") {
