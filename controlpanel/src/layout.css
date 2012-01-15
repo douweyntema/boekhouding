@@ -193,7 +193,10 @@ h3 {
 	color: #cbdfff;
 	background: #153e7e;
 }
-
+.operation p {
+	margin: 0px;
+	padding: 4px;
+}
 .operation .list {
 	margin-left: 15px;
 	margin-right: 15px;
