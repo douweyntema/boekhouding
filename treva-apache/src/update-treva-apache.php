@@ -69,18 +69,18 @@ if($hostID === null) {
 	exit(1);
 }
 
-$filesystems = $database->stdList("infrastructureWebServer", array("hostID"=>$hostID), array("filesystemID", "version"));
+$fileSystems = $database->stdList("infrastructureWebServer", array("hostID"=>$hostID), array("fileSystemID", "version"));
 
 $updateNeeded = false;
-foreach($filesystems as $filesystem) {
-	$id = $filesystem["filesystemID"];
-	$version = $filesystem["version"];
+foreach($fileSystems as $fileSystem) {
+	$id = $fileSystem["fileSystemID"];
+	$version = $fileSystem["version"];
 	
-	$databaseVersion = $database->stdGet("infrastructureFilesystem", array("filesystemID"=>$id), "httpVersion");
+	$databaseVersion = $database->stdGet("infrastructureFileSystem", array("fileSystemID"=>$id), "httpVersion");
 	
 	if($version != $databaseVersion) {
 		$updateNeeded = true;
-		$database->stdSet("infrastructureWebServer", array("hostID"=>$hostID, "filesystemID"=>$id), array("version"=>$databaseVersion));
+		$database->stdSet("infrastructureWebServer", array("hostID"=>$hostID, "fileSystemID"=>$id), array("version"=>$databaseVersion));
 	}
 }
 
@@ -89,7 +89,7 @@ if(!$updateNeeded && !$force) {
 }
 
 $hostIDSql = $GLOBALS["database"]->addSlashes($hostID);
-$customerList = $GLOBALS["database"]->query("SELECT customerID from adminCustomer INNER JOIN infrastructureWebServer USING(filesystemID) WHERE hostID='$hostIDSql'")->fetchList();
+$customerList = $GLOBALS["database"]->query("SELECT customerID from adminCustomer INNER JOIN infrastructureWebServer USING(fileSystemID) WHERE hostID='$hostIDSql'")->fetchList();
 $customers = array();
 foreach($customerList as $customer) {
 	$customers[$customer["customerID"]] = $customer["customerID"];
