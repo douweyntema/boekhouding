@@ -2,6 +2,7 @@
 
 require_once(dirname(__FILE__) . "/config.php");
 require_once("/usr/lib/phpdatabase/database.php");
+require_once("/usr/lib/phpmail/mimemail.php");
 
 ignore_user_abort(true);
 
@@ -466,6 +467,43 @@ function breadcrumbs($breadcrumbs)
 	}
 	$output .= "</div>\n\n";
 	return $output;
+}
+
+function mailCustomer($customerID, $subject, $body, $bccAdmin = false)
+{
+	global $adminMail, $adminMailName;
+	
+	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("email", "name", "companyName", "initials", "lastName"));
+	
+	$name = trim($customer["initials"] . " " . $customer["lastName"]);
+	if($name == "") {
+		$name = trim($customer["companyName"]);
+		if($name == "") {
+			$name = $customer["name"];
+		}
+	}
+	
+	$mail = new mimemail();
+	$mail->addReceiver($customer["email"], $name);
+	$mail->setSender($adminMail, $adminMailName);
+	$mail->setSubject($subject);
+	if($bccAdmin) {
+		$mail->addBcc($adminMail, $adminMailName);
+	}
+	$mail->setTextMessage($body);
+	$mail->send();
+}
+
+function mailAdmin($subject, $body)
+{
+	global $adminMail, $adminMailName;
+	
+	$mail = new mimemail();
+	$mail->addReceiver($adminMail, $adminMailName);
+	$mail->setSender($adminMail, "Controlpanel");
+	$mail->setSubject($subject);
+	$mail->setTextMessage($body);
+	$mail->send();
 }
 
 function error404()
