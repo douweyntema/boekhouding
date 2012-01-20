@@ -151,7 +151,7 @@ class mijndomeinresellerapi
 					$telefoonnummer = $contact["phoneNumber"];
 				}
 				
-				$contactID = contact_add($contact["companyName"], null, null, $contact["initials"], null, $contact["lastName"], $straat, $huisnummer, $huisnummerToevoeging, $postcode, $city, $contact["countryCode"], $contact["email"], $telefoonnummer);
+				$contactID = $this->contact_add($contact["companyName"], null, null, $contact["initials"], null, $contact["lastName"], $straat, $huisnummer, $huisnummerToevoeging, $postcode, $city, $contact["countryCode"], $contact["email"], $telefoonnummer);
 				
 				$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("mijnDomeinResellerContactID"=>$contactID));
 				
