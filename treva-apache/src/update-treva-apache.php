@@ -178,7 +178,8 @@ MESSAGE;
 	
 	foreach($rootDomainIDs as $rootDomainID) {
 		$domainName = domainName($rootDomainID);
-		$customerName = customerName($rootDomainID);
+		$customerID = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$rootDomainID), "customerID");
+		$customerName = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "name");
 		
 		$header = <<<HEADER
 #
@@ -567,25 +568,6 @@ function pathName($pathID)
 		return domainName($path["domainID"]);
 	} else {
 		return pathName($path["parentPathID"]) . "/" . $path["name"];
-	}
-}
-
-function customerName($domainID)
-{
-	$customerID = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "customerID");
-	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("name", "realname", "email"));
-	if($customer["realname"] == "" || $customer["realname"] === null) {
-		if($customer["email"] == "" || $customer["email"] === null) {
-			return $customer["name"] . " (id: " . $customerID . ")";
-		} else {
-			return $customer["name"] . " <" . $customer["email"] . "> (id: " . $customerID . ")";
-		}
-	} else {
-		if($customer["email"] == "" || $customer["email"] === null) {
-			return $customer["realname"] . " (" . $customer["name"] . ", id: " . $customerID . ")";
-		} else {
-			return $customer["realname"] . "<" . $customer["email"] . "> (" . $customer["name"] . ", id: " . $customerID . ")";
-		}
 	}
 }
 

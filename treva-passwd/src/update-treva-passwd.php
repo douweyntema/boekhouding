@@ -56,18 +56,18 @@ if($hostID === null) {
 	exit(1);
 }
 
-$filesystems = $database->stdList("infrastructureMount", array("hostID"=>$hostID), array("filesystemID", "version", "allowCustomerLogin"));
+$fileSystems = $database->stdList("infrastructureMount", array("hostID"=>$hostID), array("fileSystemID", "version", "allowCustomerLogin"));
 
 $updateNeeded = false;
-foreach($filesystems as $filesystem) {
-	$id = $filesystem["filesystemID"];
-	$version = $filesystem["version"];
+foreach($fileSystems as $fileSystem) {
+	$id = $fileSystem["fileSystemID"];
+	$version = $fileSystem["version"];
 	
-	$databaseVersion = $database->stdGet("infrastructureFilesystem", array("filesystemID"=>$id), "filesystemVersion");
+	$databaseVersion = $database->stdGet("infrastructureFileSystem", array("fileSystemID"=>$id), "fileSystemVersion");
 	
 	if($version != $databaseVersion) {
 		$updateNeeded = true;
-		$database->stdSet("infrastructureMount", array("hostID"=>$hostID, "filesystemID"=>$id), array("version"=>$databaseVersion));
+		$database->stdSet("infrastructureMount", array("hostID"=>$hostID, "fileSystemID"=>$id), array("version"=>$databaseVersion));
 	}
 }
 
@@ -75,13 +75,11 @@ if(!$updateNeeded && !$force) {
 	exit(0);
 }
 
-$shellComponentID = $database->stdGet("adminComponent", array("name"=>"shell"), "componentID");
-
 $allusers = array();
 $allgroups = array();
 
 $hostIDEscaped = $database->addSlashes($hostID);
-$users = $database->query("SELECT adminUser.userID AS userID, adminUser.username AS username, adminUser.password AS password, adminUser.shell AS shell, adminCustomer.customerID AS customerID, adminCustomer.groupname AS groupname, infrastructureMount.allowCustomerLogin as loginAllowed FROM infrastructureMount INNER JOIN infrastructureFilesystem ON infrastructureMount.filesystemID = infrastructureFilesystem.filesystemID INNER JOIN adminCustomer ON infrastructureFilesystem.filesystemID = adminCustomer.filesystemID LEFT JOIN adminUser ON adminCustomer.customerID = adminUser.customerID WHERE infrastructureMount.hostID = '$hostIDEscaped' ORDER BY adminUser.userID ASC")->fetchList();
+$users = $database->query("SELECT adminUser.userID AS userID, adminUser.username AS username, adminUser.password AS password, adminUser.shell AS shell, adminCustomer.customerID AS customerID, adminCustomer.groupname AS groupname, infrastructureMount.allowCustomerLogin as loginAllowed FROM infrastructureMount INNER JOIN infrastructureFileSystem ON infrastructureMount.fileSystemID = infrastructureFileSystem.fileSystemID INNER JOIN adminCustomer ON infrastructureFileSystem.fileSystemID = adminCustomer.fileSystemID LEFT JOIN adminUser ON adminCustomer.customerID = adminUser.customerID WHERE infrastructureMount.hostID = '$hostIDEscaped' ORDER BY adminUser.userID ASC")->fetchList();
 
 foreach($users as $user) {
 	$gid = $user["customerID"] + CUSTOMER_UID_MIN;
@@ -102,11 +100,11 @@ foreach($users as $user) {
 	
 	if(!$user["loginAllowed"]) {
 		$isDisabled = true;
-	} else if($database->stdGetTry("adminCustomerRight", array("customerID"=>$user["customerID"], "componentID"=>$shellComponentID), "customerID", null) === null) {
+	} else if(($customerRightID = $database->stdGetTry("adminCustomerRight", array("customerID"=>$user["customerID"], "right"=>"shell"), "customerRightID", null)) === null) {
 		$isDisabled = true;
-	} else if($database->stdGetTry("adminUserRight", array("userID"=>$user["userID"], "componentID"=>null), "userID", null) !== null) {
+	} else if($database->stdGetTry("adminUserRight", array("userID"=>$user["userID"], "customerRightID"=>null), "userID", null) !== null) {
 		$isDisabled = false;
-	} else if($database->stdGetTry("adminUserRight", array("userID"=>$user["userID"], "componentID"=>$shellComponentID), "userID", null) === null) {
+	} else if($database->stdGetTry("adminUserRight", array("userID"=>$user["userID"], "customerRightID"=>$customerRightID), "userID", null) === null) {
 		$isDisabled = true;
 	} else {
 		$isDisabled = false;
@@ -119,7 +117,9 @@ foreach($users as $user) {
 		$chpasswd = popen("chpasswd -e", "w");
 		fwrite($chpasswd, "{$user["username"]}:{$user["password"]}\n");
 		pclose($chpasswd);
-		symlink("/var/log/apache2/{$user["groupname"]}/", "/home/{$user["username"]}/logs/");
+		if(!file_exists("/home/{$user["username"]}/logs/") && file_exists("/var/log/apache2/{$user["groupname"]}/")) {
+			symlink("/var/log/apache2/{$user["groupname"]}/", "/home/{$user["username"]}/logs/");
+		}
 	} else if($pw["name"] == $user["username"]) {
 		`usermod $disabled -s {$user["shell"]} -g $gid {$user["username"]} >/dev/null 2>/dev/null`;
 		$chpasswd = popen("chpasswd -e", "w");
