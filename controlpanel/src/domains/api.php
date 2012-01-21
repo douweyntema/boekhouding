@@ -90,7 +90,11 @@ function domainsDomainStatusDescription($domainID)
 
 function updateDomains($customerID)
 {
-	// TODO
+	$nameSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "nameSystemID");
+	$GLOBALS["database"]->stdIncrement("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "version", 1000000000);
+	
+	$hosts = $GLOBALS["database"]->stdList("infrastructureNameServer", array("nameSystemID"=>$nameSystemID), "hostID");
+	updateHosts($hosts, "update-treva-bind");
 }
 
 $GLOBAL["domainsCachedApis"] = array();

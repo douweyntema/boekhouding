@@ -157,13 +157,13 @@ class mijndomeinresellerapi
 				
 				$nameServerID = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$contact["nameSystemID"]), "mijnDomeinResellerNameServerSetID");
 				
-				foreach($GLOBALS["database"]->query("SELECT domain.domainID, domain.name AS domain, tld.name AS tld FROM dnsDomain AS domain INNER JOIN dnsDomain AS tld ON domain.parentDomainID = tld.domainID WHERE domain.customerID = $customerID AND tld.customerID IS NULL")->fetchList() as $domain) {
+				foreach($GLOBALS["database"]->query("SELECT dnsDomain.domainID, dnsDomain.name, infrastructureDomainTld.domainTldID, infrastructureDomainTld.name AS tld FROM dnsDomain INNER JOIN infrastructureDomainTld USING(domainTldID) INNER JOIN infrastructureDomainRegistrar USING(domainRegistrarID) WHERE dnsDomain.customerID = $customerID AND dnsDomain.syncContactInfo = 1 AND infrastructureDomainRegistrar.identifier = mijndomeinreseller")->fetchList() as $domain) {
 					if($domain["tld"] == "nl" || $domain["tld"] == "eu") {
-						$this->domain_trade($domain["domain"], $domain["tld"], $contactID, $this->adminID, $this->techID, null, $nameServerID);
+						$this->domain_trade($domain["name"], $domain["tld"], $contactID, $this->adminID, $this->techID, null, $nameServerID);
 					} else if($domain["tld"] == "be") {
-						ticketNewThread(null, getRootUser(), "Gegevens {$domain["domain"]}.{$domain["tld"]} gewijzigd", "De gegevens van het domein {$domain["domain"]}.{$domain["tld"]} van klant {$contact["name"]} zijn gewijzigd.\nOm die aan te passen bij MijnDomeinReseller is een autorisatiekey nodig.");
+						ticketNewThread(null, getRootUser(), "Gegevens {$domain["name"]}.{$domain["tld"]} gewijzigd", "De gegevens van het domein {$domain["name"]}.{$domain["tld"]} van klant {$contact["name"]} zijn gewijzigd.\nOm die aan te passen bij MijnDomeinReseller is een autorisatiekey nodig.");
 					} else {
-						$this->domain_modify_contacts($domain["domain"], $domain["tld"], $contactID, $this->adminID, $this->techID, $this->billingID);
+						$this->domain_modify_contacts($domain["name"], $domain["tld"], $contactID, $this->adminID, $this->techID, $this->billingID);
 					}
 				}
 			} catch(DomainResellerError $e) {}

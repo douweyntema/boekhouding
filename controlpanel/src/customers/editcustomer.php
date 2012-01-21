@@ -60,7 +60,7 @@ function main()
 	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("initials"=>$initials, "lastName"=>$lastName, "companyName"=>$companyName, "address"=>$address, "postalCode"=>$postalCode, "city"=>$city, "countryCode"=>$countryCode, "email"=>$email, "phoneNumber"=>$phoneNumber, "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "mijnDomeinResellerContactID"=>null));
 	
 	updateMail($customerID);
-	updateDns($customerID);
+	updateDomains($customerID);
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}customers/customer.php?id=$customerID");
