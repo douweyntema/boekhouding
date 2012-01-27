@@ -128,7 +128,7 @@ file_put_contents("$databaseDirectory/relay_addresses-$time", $relayAddresses);
 
 $authPasswords = "";
 foreach($database->query("SELECT mailDomain.name AS domain, localpart, password FROM infrastructureMailServer INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN mailAddress USING(domainID) WHERE infrastructureMailServer.hostID='$hostIDSql'")->fetchList() as $account) {
-	$encodedPassword = rfc2047_encode($account["password"]);
+	$encodedPassword = rfc2047_encode(base64_decode($account["password"]));
 	$authPasswords .= "{$account["localpart"]}@{$account["domain"]}:$encodedPassword\n";
 }
 file_put_contents("$databaseDirectory/auth_passwords-$time", $authPasswords);
