@@ -157,7 +157,7 @@ class mijndomeinresellerapi
 				
 				$nameServerID = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$contact["nameSystemID"]), "mijnDomeinResellerNameServerSetID");
 				
-				foreach($GLOBALS["database"]->query("SELECT dnsDomain.domainID, dnsDomain.name, infrastructureDomainTld.domainTldID, infrastructureDomainTld.name AS tld FROM dnsDomain INNER JOIN infrastructureDomainTld USING(domainTldID) INNER JOIN infrastructureDomainRegistrar USING(domainRegistrarID) WHERE dnsDomain.customerID = $customerID AND dnsDomain.syncContactInfo = 1 AND infrastructureDomainRegistrar.identifier = mijndomeinreseller")->fetchList() as $domain) {
+				foreach($GLOBALS["database"]->query("SELECT dnsDomain.domainID, dnsDomain.name, infrastructureDomainTld.domainTldID, infrastructureDomainTld.name AS tld FROM dnsDomain INNER JOIN infrastructureDomainTld USING(domainTldID) INNER JOIN infrastructureDomainRegistrar USING(domainRegistrarID) WHERE dnsDomain.customerID = $customerID AND dnsDomain.syncContactInfo = 1 AND infrastructureDomainRegistrar.identifier = 'mijndomeinreseller'")->fetchList() as $domain) {
 					if($domain["tld"] == "nl" || $domain["tld"] == "eu") {
 						$this->domain_trade($domain["name"], $domain["tld"], $contactID, $this->adminID, $this->techID, null, $nameServerID);
 					} else if($domain["tld"] == "be") {
