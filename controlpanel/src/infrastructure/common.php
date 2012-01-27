@@ -49,6 +49,26 @@ function mailSystemList()
 	return $output;
 }
 
+function nameSystemList()
+{
+	$output  = "<div class=\"sortable list\">\n";
+	$output .= "<table>\n";
+	$output .= "<caption>namesystems</caption>";
+	$output .= "<thead>\n";
+	$output .= "<tr><th>Name</th><th>Description</th></tr>\n";
+	$output .= "</thead>\n";
+	$output .= "<tbody>\n";
+	foreach($GLOBALS["database"]->stdList("infrastructureNameSystem", array(), array("nameSystemID", "name", "description"), array("name"=>"ASC")) as $nameSystem) {
+		$nameHtml = htmlentities($nameSystem["name"]);
+		$descriptionHtml = htmlentities($nameSystem["description"]);
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/namesystem.php?id={$nameSystem["nameSystemID"]}\">$nameHtml</a></td><td>$descriptionHtml</td></tr>\n";
+	}
+	$output .= "</tbody>\n";
+	$output .= "</table>\n";
+	$output .= "</div>\n";
+	return $output;
+}
+
 function hostList()
 {
 	$output  = "<div class=\"sortable list\">\n";
@@ -228,6 +248,81 @@ function mailSystemHostList($mailSystemID)
 }
 
 
+
+function nameSystemDetail($nameSystemID)
+{
+	$nameSystem = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), array("name", "description"));
+	$nameSystemNameHtml = htmlentities($nameSystem["name"]);
+	$nameSystemDescriptionHtml = htmlentities($nameSystem["description"]);
+	
+	$output  = "<div class=\"operation\">\n";
+	$output .= "<h2>Namesystem $nameSystemNameHtml</h2>";
+	$output .= "<table>";
+	$output .= "<tr><th>Name:</th><td class=\"stretch\">$nameSystemNameHtml</td></tr>";
+	$output .= "<tr><th>Description:</th><td class=\"stretch\">$nameSystemDescriptionHtml</td></tr>";
+	$output .= "</table>";
+	$output .= "</div>";
+	return $output;
+}
+
+function nameSystemCustomersList($nameSystemID)
+{
+	$nameSystem = $GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$nameSystemID), array("name", "description"));
+	$nameSystemNameHtml = htmlentities($nameSystem["name"]);
+	$output  = "<div class=\"sortable list\">\n";
+	$output .= "<table>\n";
+	$output .= "<caption>Customers using namesystem $nameSystemNameHtml</caption>";
+	$output .= "<thead>\n";
+	$output .= "<tr><th>Nickname</th><th>Name</th><th>Email</th></tr>\n";
+	$output .= "</thead>\n";
+	$output .= "<tbody>\n";
+	foreach($GLOBALS["database"]->stdList("adminCustomer", array("nameSystemID"=>$nameSystemID), array("customerID", "name", "initials", "lastName", "email"), array("name"=>"ASC")) as $customer) {
+		$nicknameHtml = htmlentities($customer["name"]);
+		$nameHtml = htmlentities($customer["initials"] . " " . $customer["lastName"]);
+		$emailHtml = htmlentities($customer["email"]);
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a></td><td>$nameHtml</td><td><a href=\"mailto:{$customer["email"]}\">$emailHtml</a></td></tr>\n";
+	}
+	$output .= "</tbody>\n";
+	$output .= "</table>\n";
+	$output .= "</div>\n";
+	return $output;
+}
+
+function nameSystemHostList($nameSystemID)
+{
+	$nameSystem = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), array("name", "description", "version"));
+	$nameSystemNameHtml = htmlentities($nameSystem["name"]);
+	$output  = "<div class=\"sortable list\">\n";
+	$output .= "<table>\n";
+	$output .= "<caption>Hosts in namesystem $nameSystemNameHtml</caption>";
+	$output .= "<thead>\n";
+	$output .= "<tr><th>Hostname</th><th>Bind</th></tr>\n";
+	$output .= "</thead>\n";
+	$output .= "<tbody>\n";
+	foreach($GLOBALS["database"]->query("SELECT host.hostID, host.hostname, nameSystem.nameSystemID, nameSystem.description, nameSystem.version AS systemVersion, nameServer.version AS hostVersion
+	FROM infrastructureNameSystem AS nameSystem 
+	LEFT JOIN infrastructureNameServer AS nameServer USING(nameSystemID)
+	LEFT JOIN infrastructureHost AS host USING(hostID)
+	WHERE nameSystem.nameSystemID = $nameSystemID
+	ORDER BY host.hostname
+	")->fetchList() as $host) {
+		$hostnameHtml = htmlentities($host["hostname"]);
+		if($host["hostVersion"] == null) {
+			$bindOK = "-";
+		} else if($host["hostVersion"] == $host["systemVersion"]) {
+			$bindOK = "OK";
+		} else {
+			$bindOK = "Out of date";
+		}
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id={$host["hostID"]}\">$hostnameHtml</a></td><td>$bindOK</td></tr>\n";
+	}
+	$output .= "</tbody>\n";
+	$output .= "</table>\n";
+	$output .= "</div>\n";
+	return $output;
+}
+
+
 function hostDetail($hostID)
 {
 	$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("hostname", "sshPort", "description"));
@@ -324,6 +419,40 @@ function hostMailSystemList($hostID)
 	return $output;
 }
 
+function hostNameSystemList($hostID)
+{
+	$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("hostname", "description"));
+	$hostnameHtml = htmlentities($host["hostname"]);
+	$output  = "<div class=\"sortable list\">\n";
+	$output .= "<table>\n";
+	$output .= "<caption>Namesystems used by host $hostnameHtml</caption>";
+	$output .= "<thead>\n";
+	$output .= "<tr><th>Name</th><th>Bind</th></tr>\n";
+	$output .= "</thead>\n";
+	$output .= "<tbody>\n";
+	foreach($GLOBALS["database"]->query("SELECT host.hostID, host.hostname, nameSystem.name AS systemName, nameSystem.nameSystemID, nameSystem.description, nameSystem.version AS systemVersion, nameServer.version AS hostVersion
+	FROM infrastructureNameSystem AS nameSystem 
+	LEFT JOIN infrastructureNameServer AS nameServer USING(nameSystemID) 
+	LEFT JOIN infrastructureHost AS host USING(hostID) 
+	WHERE host.hostID = $hostID
+	ORDER BY host.hostname
+	")->fetchList() as $namesystem) {
+		$nameHtml = htmlentities($namesystem["systemName"]);
+		if($namesystem["hostVersion"] == null) {
+			$bindOK = "-";
+		} else if($namesystem["hostVersion"] == $namesystem["systemVersion"]) {
+			$bindOK = "OK";
+		} else {
+			$bindOK = "Out of date";
+		}
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/mailsystem.php?id={$namesystem["nameSystemID"]}\">$nameHtml</a></td><td>$bindOK</td></tr>\n";
+	}
+	$output .= "</tbody>\n";
+	$output .= "</table>\n";
+	$output .= "</div>\n";
+	return $output;
+}
+
 function magicQuery($where = null)
 {
 	if($where === null) {
@@ -377,6 +506,9 @@ function hostRefresh($hostID)
 	$output .= "<tr class=\"submit\"><td>";
 	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id=$hostID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"exim\"><input type=\"submit\" value=\"Refresh exim\"></form>";
 	$output .= "</td></tr>";
+	$output .= "<tr class=\"submit\"><td>";
+	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/host.php?id=$hostID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"bind\"><input type=\"submit\" value=\"Refresh bind\"></form>";
+	$output .= "</td></tr>";
 	$output .= "</table>";
 	$output .= "</div>";
 	return $output;
@@ -426,48 +558,85 @@ function mailSystemRefresh($mailSystemID)
 	return $output;
 }
 
+function nameSystemRefresh($nameSystemID)
+{
+	$nameSystemName = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "name");
+	$nameSystemNameHtml = htmlentities($nameSystemName);
+	
+	$output  = "<div class=\"operation\">\n";
+	$output .= "<h2>Refresh mailsystem $nameSystemNameHtml</h2>";
+	$output .= "<table>";
+	$output .= "<tr class=\"submit\"><td>";
+	$output .= "<form action=\"{$GLOBALS["rootHtml"]}infrastructure/namesystem.php?id=$nameSystemID\" method=\"post\"><input type=\"hidden\" name=\"refresh\" value=\"bind\"><input type=\"submit\" value=\"Refresh bind\"></form>";
+	$output .= "</td></tr>";
+	$output .= "</table>";
+	$output .= "</div>";
+	return $output;
+}
+
 function refreshHostMount($hostID)
 {
+	$GLOBALS["database"]->stdSet("infrastructureMount", array("hostID"=>$hostID), array("version"=>-1));
 	updateHosts(array($hostID), "update-treva-passwd --force");
 }
 
 function refreshHostWebServer($hostID)
 {
+	$GLOBALS["database"]->stdSet("infrastructureWebServer", array("hostID"=>$hostID), array("version"=>-1));
 	updateHosts(array($hostID), "update-treva-apache --force");
 }
 
 function refreshHostDovecot($hostID)
 {
+	$GLOBALS["database"]->stdSet("infrastructureMailServer", array("hostID"=>$hostID), array("dovecotVersion"=>-1));
 	updateHosts(array($hostID), "update-treva-dovecot --force");
 }
 
 function refreshHostExim($hostID)
 {
+	$GLOBALS["database"]->stdSet("infrastructureMailServer", array("hostID"=>$hostID), array("eximVersion"=>-1));
 	updateHosts(array($hostID), "update-treva-exim --force");
+}
+
+function refreshHostBind($hostID)
+{
+	$GLOBALS["database"]->stdSet("infrastructureNameServer", array("hostID"=>$hostID), array("version"=>-1));
+	updateHosts(array($hostID), "update-treva-bind --force");
 }
 
 function refreshFileSystemMount($fileSystemID)
 {
 	$hosts = $GLOBALS["database"]->stdList("infrastructureMount", array("fileSystemID"=>$fileSystemID), "hostID");
+	$GLOBALS["database"]->stdSet("infrastructureMount", array("fileSystemID"=>$fileSystemID), array("version"=>-1));
 	updateHosts($hosts, "update-treva-passwd --force");
 }
 
 function refreshFileSystemWebServer($fileSystemID)
 {
 	$hosts = $GLOBALS["database"]->stdList("infrastructureWebServer", array("fileSystemID"=>$fileSystemID), "hostID");
+	$GLOBALS["database"]->stdSet("infrastructureWebServer", array("fileSystemID"=>$fileSystemID), array("version"=>-1));
 	updateHosts($hosts, "update-treva-apache --force");
 }
 
 function refreshMailSystemDovecot($mailSystemID)
 {
 	$hosts = $GLOBALS["database"]->stdList("infrastructureMailServer", array("mailSystemID"=>$mailSystemID), "hostID");
+	$GLOBALS["database"]->stdSet("infrastructureMailServer", array("mailSystemID"=>$mailSystemID), array("dovecotVersion"=>-1));
 	updateHosts($hosts, "update-treva-dovecot --force");
 }
 
 function refreshMailSystemExim($mailSystemID)
 {
 	$hosts = $GLOBALS["database"]->stdList("infrastructureMailServer", array("mailSystemID"=>$mailSystemID), "hostID");
+	$GLOBALS["database"]->stdSet("infrastructureMailServer", array("mailSystemID"=>$mailSystemID), array("eximVersion"=>-1));
 	updateHosts($hosts, "update-treva-dovecot --force");
+}
+
+function refreshNameSystem($nameSystemID)
+{
+	$hosts = $GLOBALS["database"]->stdList("infrastructureNameServer", array("nameSystemID"=>$nameSystemID), "hostID");
+	$GLOBALS["database"]->stdSet("infrastructureNameServer", array("nameSystemID"=>$nameSystemID), array("version"=>-1));
+	updateHosts($hosts, "update-treva-bind --force");
 }
 
 ?>

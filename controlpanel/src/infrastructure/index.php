@@ -14,6 +14,7 @@ function main()
 	
 	$content .= fileSystemList();
 	$content .= mailSystemList();
+	$content .= nameSystemList();
 	$content .= hostList();
 	
 	echo page($content);

@@ -22,6 +22,7 @@ function main()
 		refreshHostWebServer($hostID);
 		refreshHostDovecot($hostID);
 		refreshHostExim($hostID);
+		refreshHostBind($hostID);
 	} else if(post("refresh") == "fileSystem") {
 		refreshHostMount($hostID);
 	} else if(post("refresh") == "webserver") {
@@ -30,11 +31,14 @@ function main()
 		refreshHostDovecot($hostID);
 	} else if(post("refresh") == "exim") {
 		refreshHostExim($hostID);
+	} else if(post("refresh") == "bind") {
+		refreshHostBind($hostID);
 	}
 	
 	$content .= hostDetail($hostID);
 	$content .= hostFileSystemList($hostID);
 	$content .= hostMailSystemList($hostID);
+	$content .= hostNameSystemList($hostID);
 	$content .= hostRefresh($hostID);
 	
 	echo page($content);
