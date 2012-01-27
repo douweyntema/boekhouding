@@ -122,7 +122,8 @@ foreach($mailboxes as $mailbox) {
 	$passwd .= "{$mailbox["localpart"]}@{$mailbox["domain"]}:";
 	// Password
 	if($mailbox["canUseImap"]) {
-		$passwd .= "{PLAIN.b64}" . base64_encode($mailbox["password"]) . ":";
+		// Base64'd in the database
+		$passwd .= "{PLAIN.b64}" . $mailbox["password"] . ":";
 	} else {
 		$passwd .= ":";
 	}

@@ -107,7 +107,7 @@ function main()
 		die(page($content));
 	}
 	
-	$mailboxID = $GLOBALS["database"]->stdNew("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart, "password"=>$password, "canUseSmtp"=>1, "canUseImap"=>1, "spambox"=>$spambox, "virusbox"=>$virusbox, "quota"=>$quota, "spamQuota"=>$spamQuota, "virusQuota"=>$virusQuota));
+	$mailboxID = $GLOBALS["database"]->stdNew("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart, "password"=>base64_encode($password), "canUseSmtp"=>1, "canUseImap"=>1, "spambox"=>$spambox, "virusbox"=>$virusbox, "quota"=>$quota, "spamQuota"=>$spamQuota, "virusQuota"=>$virusQuota));
 	
 	updateMail(customerID());
 	

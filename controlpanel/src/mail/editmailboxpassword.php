@@ -18,7 +18,7 @@ function main()
 	
 	$password = checkPassword($content, "{$GLOBALS["root"]}mail/editmailboxpassword.php?id=" . $mailboxID);
 	
-	$GLOBALS["database"]->stdSet("mailAddress", array("addressID"=>$mailboxID), array("password"=>$password));
+	$GLOBALS["database"]->stdSet("mailAddress", array("addressID"=>$mailboxID), array("password"=>base64_encode($password)));
 	
 	updateMail(customerID());
 	
