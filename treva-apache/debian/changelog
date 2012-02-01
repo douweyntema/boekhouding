@@ -1,3 +1,9 @@
+treva-apache (0.5.2) squeeze; urgency=medium
+
+  * Fixed the cron file
+
+ -- Stef Louwers <s.louwers@treva.nl>  Wed, 01 Feb 2012 01:42:42 +0100
+
 treva-apache (0.5.1) squeeze; urgency=medium
 
   * Fixed the non-conflict with mod_php5
