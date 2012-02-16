@@ -1,3 +1,9 @@
+treva-dovecot (0.2) squeeze; urgency=medium
+
+  * Removing a mailbox now flushes the quota properly and kills any active sessions.
+
+ -- Stef Louwers <r.koolen@treva.nl>  Fri, 17 Feb 2012 00:30:42 +0100
+
 treva-dovecot (0.1) squeeze; urgency=medium
 
   * Start of the treva-dovecot package
