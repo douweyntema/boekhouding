@@ -26,6 +26,10 @@ function main()
 		die(page($content));
 	}
 	
+	if(strpos($targetAddress, "@") === false) {
+		$targetAddress .= "@" . $domain;
+	}
+	
 	if(!validEmail($targetAddress)) {
 		$content .= addMailAliasForm($domainID, "Invalid target address", $localpart, $targetAddress);
 		die(page($content));

@@ -118,7 +118,16 @@ function main()
 		}
 		$GLOBALS["database"]->commitTransaction();
 	} else if($type == "CNAME") {
-	
+		if(substr($cname, -1) == ".") {
+			$cname = substr($cname, 0, -1);
+		} else if(strpos($cname, ".") === false) {
+			if(isSubDomain($domainID)) {
+				$cname .= "." . domainName($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID"));
+			} else {
+				$cname .= "." . domainName($domainID);
+			}
+		}
+		
 		if(!validDomain($cname)) {
 			$content .= editAddressTypeForm($domainID, "Invalid cname target", $type, $ipv4, $ipv6, $cname, $delegationServers);
 			die(page($content));
