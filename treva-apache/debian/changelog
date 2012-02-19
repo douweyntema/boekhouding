@@ -1,3 +1,9 @@
+treva-apache (0.5.3) squeeze; urgency=medium
+
+  * Added FollowSymLinks to the AllowOverride list. 
+
+ -- Stef Louwers <s.louwers@treva.nl>  Sun, 19 Feb 2012 23:29:42 +0100
+
 treva-apache (0.5.2) squeeze; urgency=medium
 
   * Fixed the cron file

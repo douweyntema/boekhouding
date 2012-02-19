@@ -408,7 +408,7 @@ function getPathConfig($pathID, $location, $ancestors)
 		} else {
 			$directoryBlocks[] = "Options SymLinksIfOwnerMatch";
 		}
-		$directoryBlocks[] = "AllowOverride AuthConfig FileInfo Indexes Limit Options=Indexes,IncludesNOEXEC,SymLinksIfOwnerMatch,MultiViews";
+		$directoryBlocks[] = "AllowOverride AuthConfig FileInfo Indexes Limit Options=Indexes,IncludesNOEXEC,SymLinksIfOwnerMatch,FollowSymLinks,MultiViews";
 		if($location == "") {
 			$output .= "DocumentRoot $directoryPath\n";
 		} else {
