@@ -445,7 +445,7 @@ function hostNameSystemList($hostID)
 		} else {
 			$bindOK = "Out of date";
 		}
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/mailsystem.php?id={$namesystem["nameSystemID"]}\">$nameHtml</a></td><td>$bindOK</td></tr>\n";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/namesystem.php?id={$namesystem["nameSystemID"]}\">$nameHtml</a></td><td>$bindOK</td></tr>\n";
 	}
 	$output .= "</tbody>\n";
 	$output .= "</table>\n";

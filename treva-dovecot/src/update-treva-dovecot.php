@@ -199,7 +199,12 @@ while(($customer = readdir($dir)) !== false) {
 			}
 			
 			if($delete) {
+				// HACK: This kills all remaining connections to this mailbox.
+				`fuser /var/mail/$customer/$domain/$mailbox -k -TERM`;
+				
 				rename("/var/mail/$customer/$domain/$mailbox", "/var/backups/mail/mailbox-$time-$mailbox");
+				
+				unlink("/var/mail/$customer/quota");
 			}
 		}
 		closedir($mailboxDir);
