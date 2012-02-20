@@ -1,3 +1,9 @@
+treva-passwd (0.2.2) squeeze; urgency=medium
+
+  * Fixed the cron file
+
+ -- Stef Louwers <s.louwers@treva.nl>  Wed, 01 Feb 2012 01:42:42 +0100
+
 treva-passwd (0.2.1) squeeze; urgency=medium
 
   * Added a symbolic link to a user's group apache log directory when creating a user home directory
