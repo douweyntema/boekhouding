@@ -54,7 +54,6 @@ function domainBreadcrumbs($domainID, $postfix = array())
 	return breadcrumbs(array_merge($crumbs, $postfix));
 }
 
-
 function domainsList()
 {
 	$output = "";
@@ -655,7 +654,7 @@ Delegate to these servers.
 <tbody id="DelegationServerList">
 $delecationServersHtml
 </tbody>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use delegation" /></td></tr>
+<tr class="submit"><td colspan="4"><input type="submit" name="type" value="Use delegation" /></td></tr>
 </table>
 </div>
 

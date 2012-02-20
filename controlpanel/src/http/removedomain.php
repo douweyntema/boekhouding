@@ -53,7 +53,7 @@ function main()
 	if($isRootDomain) {
 		header("Location: {$GLOBALS["root"]}http/");
 	} else {
-		while($GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$parentDomainID, "parentPathID"=>null))) {
+		while(!$GLOBALS["database"]->stdExists("httpPath", array("domainID"=>$parentDomainID, "parentPathID"=>null))) {
 			$parentDomainID = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$parentDomainID), "parentDomainID");
 		}
 		header("Location: {$GLOBALS["root"]}http/domain.php?id=$parentDomainID");
