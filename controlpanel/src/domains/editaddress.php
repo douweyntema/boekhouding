@@ -133,16 +133,26 @@ function main()
 			die(page($content));
 		}
 		
+		$warning = "";
+		if($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "mailType") != "NONE") {
+			$warning .= "<p class=\"confirmdelete\">This will disable email for this domain</p>";
+		}
+		foreach($GLOBALS["database"]->stdList("dnsRecord", array("domainID"=>$domainID), array("type", "value")) as $record) {
+			if($record["type"] == "A" || $record["type"] == "AAAA") {
+				continue;
+			}
+			$warning .= "<p class=\"confirmdelete\">This record will be deleted: {$record["type"]}: {$record["value"]}</p>";
+		}
+		
 		if(post("confirm") === null) {
-			$content .= editAddressTypeForm($domainID, null, $type, $ipv4, $ipv6, $cname, $delegationServers);
+			$content .= editAddressTypeForm($domainID, null, $type, $ipv4, $ipv6, $cname, $delegationServers, $warning);
 			die(page($content));
 		}
 		
 		$GLOBALS["database"]->startTransaction();
-		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("addressType"=>"CNAME", "cnameTarget"=>$cname));
+		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("addressType"=>"CNAME", "cnameTarget"=>$cname, "mailType"=>"NONE"));
 		$GLOBALS["database"]->stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
-		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"A"));
-		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA"));
+		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID));
 		$GLOBALS["database"]->commitTransaction();
 	} else if($type == "DELEGATION") {
 		$error = "";
@@ -162,16 +172,32 @@ function main()
 			die(page($content));
 		}
 		
+		$warning = "";
+		if($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "mailType") != "NONE") {
+			$warning .= "<p class=\"confirmdelete\">This will disable email for this domain</p>";
+		}
+		foreach($GLOBALS["database"]->stdList("dnsRecord", array("domainID"=>$domainID), array("type", "value")) as $record) {
+			if($record["type"] == "A" || $record["type"] == "AAAA") {
+				continue;
+			}
+			$warning .= "<p class=\"confirmdelete\">This record will be deleted: {$record["type"]}: {$record["value"]}</p>";
+		}
+		foreach(subdomains($domainID) as $subDomainID) {
+			$warning .= "<p class=\"confirmdelete\">This domain will be deleted: " . domainName($subDomainID) . "</p>";
+		}
+		
 		if(post("confirm") === null) {
-			$content .= editAddressTypeForm($domainID, null, $type, $ipv4, $ipv6, $cname, $delegationServers);
+			$content .= editAddressTypeForm($domainID, null, $type, $ipv4, $ipv6, $cname, $delegationServers, $warning);
 			die(page($content));
 		}
 		
 		$GLOBALS["database"]->startTransaction();
-		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("addressType"=>"DELEGATION", "cnameTarget"=>null));
+		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("addressType"=>"DELEGATION", "cnameTarget"=>null, "mailType"=>"NONE"));
 		$GLOBALS["database"]->stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
-		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"A"));
-		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA"));
+		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID));
+		foreach($GLOBALS["database"]->stdList("dnsDomain", array("parentDomainID"=>$domainID), "domainID") as $subDomainID) {
+			removeDomain($subDomainID);
+		}
 		foreach($delegationServers as $server) {
 			$GLOBALS["database"]->stdNew("dnsDelegatedNameServer", array_merge(array("domainID"=>$domainID), $server));
 		}

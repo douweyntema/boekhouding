@@ -228,6 +228,20 @@ HTML;
 
 function addSubdomainForm($domainID, $error = "", $name = null)
 {
+	$addressType = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "addressType");
+	if($addressType == "DELEGATION" || $addressType == "TREVA-DELEGATION") {
+		return <<<HTML
+<div class="operation">
+<h2>Add subdomain</h2>
+<table>
+<tr><td>Adding subdomains is not available for this domain, because the domain address is configured as "Hosted externally".</td></tr>
+</table>
+</form>
+</div>
+
+HTML;
+	}
+	
 	$parentName = domainName($domainID);
 	$parentNameHtml = htmlentities($parentName);
 	
@@ -395,6 +409,21 @@ function mailTypeSubform($confirm = false, $type = null, $mailservers = null)
 
 function editMailTypeForm($domainID, $error = "", $type = null, $mailservers = null)
 {
+	$addressType = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "addressType");
+	if($addressType == "CNAME" || $addressType == "DELEGATION" || $addressType == "TREVA-DELEGATION") {
+		$type = $addressType == "CNAME" ? "\"CNAME to another site\"" : "\"Hosted externally\"";
+		return <<<HTML
+<div class="operation">
+<h2>Email configuration</h2>
+<table>
+<tr><td>Email is not available for this domain, because the domain address is configured as $type.</td></tr>
+</table>
+</form>
+</div>
+
+HTML;
+	}
+	
 	$domainName = domainName($domainID);
 	$domainNameHtml = htmlentities($domainName);
 	
@@ -702,10 +731,16 @@ function addressTypeSubform($confirm = false, $type = null, $ipv4 = null, $ipv6 
 	return $output;
 }
 
-function editAddressTypeForm($domainID, $error = "", $type = null, $ipv4 = null, $ipv6 = null, $cname = null, $delegationServers = null)
+function editAddressTypeForm($domainID, $error = "", $type = null, $ipv4 = null, $ipv6 = null, $cname = null, $delegationServers = null, $warning = null) // TODO: $warning na error zetten ofzo
 {
 	$domainName = domainName($domainID);
 	$domainNameHtml = htmlentities($domainName);
+	
+	if($warning === null) {
+		$warningHtml = "";
+	} else {
+		$warningHtml = $warning;
+	}
 	
 	if($error === null) {
 		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
@@ -864,6 +899,7 @@ HTML;
 <div class="operation">
 <h2>Edit address configuration for $domainNameHtml</h2>
 $messageHtml
+$warningHtml
 <form action="editaddress.php?id=$domainID" method="post">
 $confirmHtml
 
@@ -873,6 +909,15 @@ $operationsHtml
 </div>
 
 HTML;
+}
+
+function subdomains($domainID) {
+	$subDomains = $GLOBALS["database"]->stdList("dnsDomain", array("parentDomainID"=>$domainID), "domainID");
+	$subSubDomains = array();
+	foreach($subDomains as $subDomainID) {
+		$subSubDomains = array_merge($subSubDomains, subdomains($subDomainID));
+	}
+	return array_merge($subDomains, $subSubDomains);
 }
 
 function addressTypeFromTitle($title)
