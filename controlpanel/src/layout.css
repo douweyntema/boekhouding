@@ -287,6 +287,13 @@ h3 {
 	padding-top: 4px;
 	padding-bottom: 4px;
 }
+.list table tfoot tr td {
+	background-color: #cbdfff;
+	padding-left: 4px;
+	padding-right: 20px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
 .list table thead tr .header {
 	background-image: url(img/bg.gif);
 	background-repeat: no-repeat;
@@ -310,6 +317,13 @@ h3 {
 	border: 2px solid #153e7e;
 	margin-bottom: -2px;
 	font-weight: bold;
+}
+
+table.inline {
+	margin: 0px;
+}
+table.inline, table.inline tr, table.inline td, table.inline th {
+	border: 0px;
 }
 
 /* table sorter layout */
