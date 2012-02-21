@@ -61,6 +61,11 @@ function main()
 		die(page($content));
 	}
 	
+	if($GLOBALS["database"]->stdGetTry("mailList", array("domainID"=>$domainID, "localpart"=>$localpart), "listID", null) !== null) {
+		$content .= addMailboxForm($domainID, "A mailinglist with the same name already exists", $localpart, null, $quota, $spamQuota, $virusQuota, $spambox, $virusbox);
+		die(page($content));
+	}
+	
 	if($checkspambox && !validDirectory($spambox)) {
 		$content .= addMailboxForm($domainID, "Invalid spambox", $localpart, null, $quota, $spamQuota, $virusQuota, $spambox, $virusbox);
 		die(page($content));

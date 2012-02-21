@@ -20,6 +20,12 @@ function doMailAlias($aliasID)
 	doMailDomain($domainID);
 }
 
+function doMailList($listID)
+{
+	$domainID = $GLOBALS["database"]->stdGetTry("mailList", array("listID"=>$listID), "domainID", false);
+	doMailDomain($domainID);
+}
+
 function doMailAddress($addressID)
 {
 	$domainID = $GLOBALS["database"]->stdGetTry("mailAddress", array("addressID"=>$addressID), "domainID", false);
@@ -42,6 +48,13 @@ function aliasNotFound($aliasID)
 	header("HTTP/1.1 404 Not Found");
 	
 	die("Mail alias #$aliasID not found");
+}
+
+function listNotFound($listID)
+{
+	header("HTTP/1.1 404 Not Found");
+	
+	die("Mailing list #$listID not found");
 }
 
 function mailDomainsList()
@@ -78,7 +91,7 @@ function mailboxList($domainID)
 <div class="sortable list">
 <table>
 <thead>
-<tr><th>Mailbox</th><th>Quota</th></tr>
+<tr><th width="60%">Mailbox</th><th>Quota</th></tr>
 </thead>
 <tbody>
 HTML;
@@ -103,7 +116,7 @@ function mailAliasList($domainID)
 <div class="sortable list">
 <table>
 <thead>
-<tr><th>Alias</th><th>Forward to</th></tr>
+<tr><th width="60%">Alias</th><th>Forward to</th></tr>
 </thead>
 <tbody>
 HTML;
@@ -114,6 +127,70 @@ HTML;
 </tbody>
 </table>
 </div>
+
+HTML;
+	return $output;
+}
+
+function mailListList($domainID)
+{
+	$output = "";
+	
+	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	$output .= <<<HTML
+<div class="sortable list">
+<table>
+<thead>
+<tr><th width="60%">Mailinglist</th><th>Members</th></tr>
+</thead>
+<tbody>
+HTML;
+	foreach($GLOBALS["database"]->stdList("mailList", array("domainID"=>$domainID), array("listID", "localpart"), array("localpart"=>"asc")) as $list) {
+		$count = $GLOBALS["database"]->stdCount("mailListMember", array("listID"=>$list["listID"]));
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}mail/list.php?id={$list["listID"]}\">{$list["localpart"]}@$domain</a></td><td>{$count} members</td></tr>\n";
+	}
+	$output .= <<<HTML
+</tbody>
+</table>
+</div>
+
+HTML;
+	return $output;
+}
+
+function mailListMemberList($listID)
+{
+	$output = "";
+	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
+	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	$output .= <<<HTML
+<div class="sortable list">
+<form action="removemember.php?id=$listID" method="post">
+<table>
+<thead>
+<tr><th>Member</th></tr>
+</thead>
+<tbody>
+HTML;
+	foreach($GLOBALS["database"]->stdList("mailListMember", array("listID"=>$listID), array("memberID", "targetAddress"), array("targetAddress"=>"asc")) as $member) {
+		$output .= "<tr><td>{$member["targetAddress"]} <input type=\"checkbox\" name=\"member-{$member["memberID"]}\" class=\"rightalign membercheckbox\" value=\"delete\"></td></tr>\n";
+	}
+	$output .= <<<HTML
+</tbody>
+<tfoot>
+<tr><td style="margin: 0px; padding: 0px;"><table class="inline" style="width: 100%"><tr><td style="width: 100%; text-align: center; margin: 10px -6px -6px -6px; padding: 10px 27px 6px 27px; background-color: #ffffff;"><input type="submit" value="Delete selected members" style="width: 100%" /></td><td style="white-space: nowrap; background-color: #ffffff; vertical-align: middle;"><a href="#" id="selectallmembers" class="rightalign" style="margin-right: 2px;" id="selectall">Select all</a></td></tr></table></td></tr>
+</tfoot>
+</table>
+</form>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+	$("#selectallmembers").click(function() {
+		$(".membercheckbox").prop("checked", true);
+	});
+});
+</script>
 
 HTML;
 	return $output;
@@ -200,6 +277,208 @@ $confirmHtml
 <td colspan="2" class="stretch"><input type="text" name="targetAddress" $readonly $targetAddressValue /></td>
 </tr>
 <tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
+</table>
+</form>
+</div>
+
+HTML;
+}
+
+function editMailListForm($listID, $error, $localpart)
+{
+	$localpartValue = inputValue($localpart);
+	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+	}
+	
+	return <<<HTML
+<div class="operation">
+<h2>Change mailinglist address</h2>
+$messageHtml
+<form action="editlist.php?id=$listID" method="post">
+$confirmHtml
+<table>
+<tr>
+<th>Mailinglist:</th>
+<td class="stretch"><input type="text" name="localpart" $readonly $localpartValue /></td>
+<td class="nowrap">@{$domainName}</td>
+</tr>
+<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
+</table>
+</form>
+</div>
+
+HTML;
+}
+
+function addMailListForm($domainID, $error, $localpart, $members)
+{
+	$localpartValue = inputValue($localpart);
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+	}
+	
+	if($members === null) {
+		$members = array();
+	}
+	
+	$members = implode("\n", $members);
+	
+	$membersHtml = "<textarea name=\"members\" $readonly />";
+	$membersHtml .= $members;
+	$membersHtml .= "</textarea>";
+	
+	return <<<HTML
+<div class="operation">
+<h2>Add mailinglist</h2>
+$messageHtml
+<form action="addlist.php?id=$domainID" method="post">
+$confirmHtml
+<table>
+<tr>
+<th>Mailinglist:</th>
+<td class="stretch"><input type="text" name="localpart" $readonly $localpartValue /></td>
+<td class="nowrap">@{$domainName}</td>
+</tr>
+<tr>
+<th>Members:</th>
+<td colspan="2" class="stretch">$membersHtml</td>
+</tr>
+<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
+</table>
+</form>
+</div>
+
+HTML;
+}
+
+function addMailListMemberForm($listID, $error, $members)
+{
+	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+	}
+	
+	if($members === null) {
+		$members = array();
+	}
+	
+	$members = implode("\n", $members);
+	
+	$membersHtml = "<textarea name=\"members\" $readonly />";
+	$membersHtml .= $members;
+	$membersHtml .= "</textarea>";
+	
+	return <<<HTML
+<div class="operation">
+<h2>Add members</h2>
+$messageHtml
+<form action="addlistmember.php?id=$listID" method="post">
+$confirmHtml
+<table>
+<tr>
+<th>Members:</th>
+<td colspan="2" class="stretch">$membersHtml</td>
+</tr>
+<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
+</table>
+</form>
+</div>
+
+HTML;
+}
+
+function editMailListMemberForm($listID, $error = "", $members = null)
+{
+	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	if($error === null) {
+		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
+		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
+		$readonly = "readonly=\"readonly\"";
+		$stub = false;
+	} else if($error == "") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = false;
+	} else if($error == "STUB") {
+		$messageHtml = "";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = true;
+	} else {
+		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
+		$confirmHtml = "";
+		$readonly = "";
+		$stub = false;
+	}
+	
+	if($members === null) {
+		$members = $GLOBALS["database"]->stdList("mailListMember", array("listID"=>$listID), "targetAddress");
+	}
+	
+	$members = implode("\n", $members);
+	
+	if(!$stub) {
+		$membersHtml = "<tr><th>Members:</th><td colspan=\"2\" class=\"stretch\">";
+		$membersHtml .= "<textarea name=\"members\" $readonly />";
+		$membersHtml .= $members;
+		$membersHtml .= "</textarea>";
+		$membersHtml .= "</td></tr>";
+		$action = "Save members";
+	} else {
+		$membersHtml = "";
+		$action = "Edit members";
+	}
+	
+	return <<<HTML
+<div class="operation">
+<h2>Edit members</h2>
+$messageHtml
+<form action="editlistmember.php?id=$listID" method="post">
+$confirmHtml
+<table>
+$membersHtml
+<tr class="submit"><td colspan="3"><input type="submit" value="$action" /></td></tr>
 </table>
 </form>
 </div>
@@ -644,5 +923,6 @@ function validEmail($email)
 	}
 	return true;
 }
+
 
 ?>

@@ -360,7 +360,7 @@ function checkPassword($content, $postUrl)
 	return $password;
 }
 
-function trivialActionForm($postUrl, $error, $title, $warning = null, $extraInfo = "", $removeDataWarning = null)
+function trivialActionForm($postUrl, $error, $title, $warning = null, $extraInfo = "", $removeDataWarning = null, $data = null)
 {
 	if($error === null) {
 		if($warning === null) {
@@ -384,6 +384,13 @@ function trivialActionForm($postUrl, $error, $title, $warning = null, $extraInfo
 		$readonly = "";
 	}
 	
+	$dataHtml = "";
+	if($data !== null) {
+		foreach($data as $name=>$value) {
+			$dataHtml .= "<input type=\"hidden\" name=\"$name\" value=\"$value\">\n";
+		}
+	}
+	
 	$messageHtml .= $extraInfo;
 	
 	return <<<HTML
@@ -391,6 +398,7 @@ function trivialActionForm($postUrl, $error, $title, $warning = null, $extraInfo
 <h2>$title</h2>
 $messageHtml
 <form action="$postUrl" method="post">
+$dataHtml
 <table>
 $confirmHtml
 <tr class="submit"><td>
@@ -402,10 +410,10 @@ $confirmHtml
 HTML;
 }
 
-function checkTrivialAction($content, $postUrl, $title, $warning = null, $extraInfo = "", $removeDataWarning = null)
+function checkTrivialAction($content, $postUrl, $title, $warning = null, $extraInfo = "", $removeDataWarning = null, $data = null)
 {
 	if(post("confirm") === null) {
-		$content .= trivialActionForm($postUrl, null, $title, $warning, $extraInfo, $removeDataWarning);
+		$content .= trivialActionForm($postUrl, null, $title, $warning, $extraInfo, $removeDataWarning, $data);
 		die(page($content));
 	}
 	return true;
