@@ -58,6 +58,8 @@ function main()
 	
 	$customerID = $GLOBALS["database"]->stdNew("adminCustomer", array("name"=>$nickname, "initials"=>$initials, "lastName"=>$lastName, "companyName"=>$companyName, "address"=>$address, "postalCode"=>$postalCode, "city"=>$city, "countryCode"=>$countryCode, "email"=>$email, "phoneNumber"=>$phoneNumber, "groupname"=>$group, "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "fileSystemID"=>$fileSystemID, "mailSystemID"=>$mailSystemID, "nameSystemID"=>$nameSystemID));
 	
+	domainsUpdateContactInfo($customerID);
+	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}customers/customer.php?id=$customerID");
 }
