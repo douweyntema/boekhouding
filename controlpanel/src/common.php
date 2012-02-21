@@ -3,6 +3,7 @@
 require_once(dirname(__FILE__) . "/config.php");
 require_once("/usr/lib/phpdatabase/database.php");
 require_once("/usr/lib/phpmail/mimemail.php");
+require_once(dirname(__FILE__) . "/ui.php");
 
 ignore_user_abort(true);
 

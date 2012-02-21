@@ -119,92 +119,33 @@ HTML;
 	return $output;
 }
 
+function addMailAliasForm($domainID, $error, $alias, $targetAddress)
+{
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	return operationForm("addalias.php?id=$domainID", $error, "Add alias", "Save",
+		array(
+			array("title"=>"Alias", "type"=>"multipart", "parts"=>array(
+				array("type"=>"text", "name"=>"localpart", "fill"=>true),
+				array("type"=>"label", "class"=>"nowrap", "html"=>"@$domainName")
+			)),
+			array("title"=>"Target address", "type"=>"text", "name"=>"targetAddress")
+		),
+		array("localpart"=>$alias, "targetAddress"=>$targetAddress));
+}
+
 function editMailAliasForm($aliasID, $error, $targetAddress)
 {
-	$targetAddressValue = inputValue($targetAddress);
 	$domainID = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), "domainID");
 	$alias = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), "localpart");
 	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
 	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Change alias</h2>
-$messageHtml
-<form action="editalias.php?id=$aliasID" method="post">
-$confirmHtml
-<table>
-<tr>
-<th>Alias:</th>
-<td class="nowrap">$alias@$domainName</td>
-</tr>
-<tr>
-<th>Target address:</th>
-<td class="stretch" colspan="2"><input type="text" name="targetAddress" $readonly $targetAddressValue /></td>
-</tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
-function addMailAliasForm($domainID, $error, $alias, $targetAddress)
-{
-	$aliasValue = inputValue($alias);
-	$targetAddressValue = inputValue($targetAddress);
-	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Add alias</h2>
-$messageHtml
-<form action="addalias.php?id=$domainID" method="post">
-$confirmHtml
-<table>
-<tr>
-<th>Alias:</th>
-<td class="stretch"><input type="text" name="localpart" $readonly $aliasValue /></td>
-<td class="nowrap">@{$domainName}</td>
-</tr>
-<tr>
-<th>Target address:</th>
-<td colspan="2" class="stretch"><input type="text" name="targetAddress" $readonly $targetAddressValue /></td>
-</tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
+	return operationForm("editalias.php?id=$aliasID", $error, "Change alias", "Save",
+		array(
+			array("title"=>"Alias", "type"=>"label", "class"=>"nowrap", "html"=>"$alias@$domainName"),
+			array("title"=>"Target address", "type"=>"text", "name"=>"targetAddress")
+		),
+		array("targetAddress"=>$targetAddress));
 }
 
 function addMailDomainForm($error, $domainName)
