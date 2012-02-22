@@ -51,11 +51,6 @@ function domainsDomainAvailable($domainName, $tldID)
 	return getApi($tldID)->domainAvailable($domainName, $tldID);
 }
 
-function domainsUpdateContactInfo()
-{
-	getApiName("mijndomeinreseller")->updateContactInfo();
-}
-
 function domainsDomainAutorenewDescription($domainID)
 {
 	$autorenew = domainsDomainAutorenew($domainID);
@@ -86,6 +81,11 @@ function domainsDomainStatusDescription($domainID)
 	} else {
 		return "Unknown";
 	}
+}
+
+function domainsUpdateContactInfo($customerID)
+{
+	getApiName("mijndomeinreseller")->updateContactInfo($customerID);
 }
 
 function updateDomains($customerID)

@@ -104,70 +104,74 @@ class mijndomeinresellerapi
 		return $status[0]["status"] == 1;
 	}
 	
-	public function updateContactInfo()
+	public function updateContactInfo($customerID)
 	{
-		foreach($GLOBALS["database"]->stdList("adminCustomer", array("mijnDomeinResellerContactID"=>null), array("customerID", "nameSystemID", "name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber")) as $contact) {
-			try {
-				$customerID = $contact["customerID"];
-				
-				preg_match("/^(.*) ([0-9]+)([^0-9 ][^ ]*)?\$/", trim($contact["address"]), $regex);
-				if(count($regex) >= 3) {
-					$straat = $regex[1];
-					$huisnummer = $regex[2];
-					if(isset($regex[3])) {
-						$huisnummerToevoeging = $regex[3];
-					} else {
-						$huisnummerToevoeging = null;
-					}
-				} else {
-					if($contact["address"] == "") {
-						$straat = "-";
-					} else {
-						$straat = $contact["address"];
-					}
-					$huisnummer = "0";
-					$huisnummerToevoeging = null;
-				}
-				
-				if($contact["postalCode"] === null || trim($contact["postalCode"]) == "") {
-					$postcode = "0000 AA";
-				} else {
-					$postcode = $contact["postalCode"];
-				}
-				
-				if($contact["city"] == "") {
-					$city = "-";
-				} else {
-					$city = $contact["city"];
-				}
-				
-				if(!ctype_digit($contact["countryCode"])) {
-					$telefoonnummer = "0000000000";
-				} else if($contact["countryCode"] == "nl" && strlen($contact["phoneNumber"]) != 10) {
-					$telefoonnummer = "0000000000";
-				} else if(strlen($contact["phoneNumber"]) < 2 || $contact["phoneNumber"] > 12) {
-					$telefoonnummer = "0000000000";
-				} else {
-					$telefoonnummer = $contact["phoneNumber"];
-				}
-				
-				$contactID = $this->contact_add($contact["companyName"], null, null, $contact["initials"], null, $contact["lastName"], $straat, $huisnummer, $huisnummerToevoeging, $postcode, $city, $contact["countryCode"], $contact["email"], $telefoonnummer);
-				
-				$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("mijnDomeinResellerContactID"=>$contactID));
-				
-				$nameServerID = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$contact["nameSystemID"]), "mijnDomeinResellerNameServerSetID");
-				
-				foreach($GLOBALS["database"]->query("SELECT dnsDomain.domainID, dnsDomain.name, infrastructureDomainTld.domainTldID, infrastructureDomainTld.name AS tld FROM dnsDomain INNER JOIN infrastructureDomainTld USING(domainTldID) INNER JOIN infrastructureDomainRegistrar USING(domainRegistrarID) WHERE dnsDomain.customerID = $customerID AND dnsDomain.syncContactInfo = 1 AND infrastructureDomainRegistrar.identifier = 'mijndomeinreseller'")->fetchList() as $domain) {
-					if($domain["tld"] == "nl" || $domain["tld"] == "eu") {
-						$this->domain_trade($domain["name"], $domain["tld"], $contactID, $this->adminID, $this->techID, null, $nameServerID);
-					} else if($domain["tld"] == "be") {
-						ticketNewThread(null, getRootUser(), "Gegevens {$domain["name"]}.{$domain["tld"]} gewijzigd", "De gegevens van het domein {$domain["name"]}.{$domain["tld"]} van klant {$contact["name"]} zijn gewijzigd.\nOm die aan te passen bij MijnDomeinReseller is een autorisatiekey nodig.");
-					} else {
-						$this->domain_modify_contacts($domain["name"], $domain["tld"], $contactID, $this->adminID, $this->techID, $this->billingID);
-					}
-				}
-			} catch(DomainResellerError $e) {}
+		$contact = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("customerID", "mijnDomeinResellerContactID", "nameSystemID", "name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber"));
+		if($contact["mijnDomeinResellerContactID"] !== null) {
+			return true;
 		}
+		
+		preg_match("/^(.*) ([0-9]+)([^0-9 ][^ ]*)?\$/", trim($contact["address"]), $regex);
+		if(count($regex) >= 3) {
+			$straat = $regex[1];
+			$huisnummer = $regex[2];
+			if(isset($regex[3])) {
+				$huisnummerToevoeging = $regex[3];
+			} else {
+				$huisnummerToevoeging = null;
+			}
+		} else {
+			if($contact["address"] == "") {
+				$straat = "-";
+			} else {
+				$straat = $contact["address"];
+			}
+			$huisnummer = "0";
+			$huisnummerToevoeging = null;
+		}
+		
+		if($contact["postalCode"] === null || trim($contact["postalCode"]) == "") {
+			$postcode = "0000 AA";
+		} else {
+			$postcode = $contact["postalCode"];
+		}
+		
+		if($contact["city"] == "") {
+			$city = "-";
+		} else {
+			$city = $contact["city"];
+		}
+		
+		if(!ctype_digit($contact["phoneNumber"])) {
+			$telefoonnummer = "0000000000";
+		} else if($contact["countryCode"] == "nl" && strlen($contact["phoneNumber"]) != 10) {
+			$telefoonnummer = "0000000000";
+		} else if(strlen($contact["phoneNumber"]) < 2 || $contact["phoneNumber"] > 12) {
+			$telefoonnummer = "0000000000";
+		} else {
+			$telefoonnummer = $contact["phoneNumber"];
+		}
+		
+		$nameServerID = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$contact["nameSystemID"]), "mijnDomeinResellerNameServerSetID");
+		
+		try {
+			$contactID = $this->contact_add($contact["companyName"], null, null, $contact["initials"], null, $contact["lastName"], $straat, $huisnummer, $huisnummerToevoeging, $postcode, $city, $contact["countryCode"], $contact["email"], $telefoonnummer);
+			
+			foreach($GLOBALS["database"]->query("SELECT dnsDomain.domainID, dnsDomain.name, infrastructureDomainTld.domainTldID, infrastructureDomainTld.name AS tld FROM dnsDomain INNER JOIN infrastructureDomainTld USING(domainTldID) INNER JOIN infrastructureDomainRegistrar USING(domainRegistrarID) WHERE dnsDomain.customerID = $customerID AND dnsDomain.syncContactInfo = 1 AND infrastructureDomainRegistrar.identifier = 'mijndomeinreseller'")->fetchList() as $domain) {
+				if($domain["tld"] == "nl" || $domain["tld"] == "eu") {
+					$this->domain_trade($domain["name"], $domain["tld"], $contactID, $this->adminID, $this->techID, null, $nameServerID);
+				} else if($domain["tld"] == "be") {
+					ticketNewThread(null, getRootUser(), "Gegevens {$domain["name"]}.{$domain["tld"]} gewijzigd", "De gegevens van het domein {$domain["name"]}.{$domain["tld"]} van klant {$contact["name"]} zijn gewijzigd.\nOm die aan te passen bij MijnDomeinReseller is een autorisatiekey nodig.");
+				} else {
+					$this->domain_modify_contacts($domain["name"], $domain["tld"], $contactID, $this->adminID, $this->techID, $this->billingID);
+				}
+			}
+			
+			$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("mijnDomeinResellerContactID"=>$contactID));
+		} catch(DomainResellerError $e) {
+			return false;
+		}
+		return true;
 	}
 	
 	private function tld($tldID)
