@@ -7,24 +7,20 @@ function main()
 	$addressID = get("id");
 	doMailAddress($addressID);
 	
-	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart"));
-	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$mailbox["domainID"]), "name");
-	$localpart = $mailbox["localpart"];
+	$domainID = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), "domainID");
 	
-	$mailHtml = htmlentities($localpart . "@" . $domain);
+	$check = function($condition, $error) use($addressID) {
+		if(!$condition) die(page(addressHeader($addressID) . removeMailAddressForm($addressID, $error, $_POST)));
+	};
 	
-	$content = "<h1>Mailbox $mailHtml</h1>\n";
-	
-	$content .= domainBreadcrumbs($mailbox["domainID"], array(array("name"=>"Mailbox {$mailbox["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/mailbox.php?id=$addressID")));
-	
-	checkTrivialAction($content, "{$GLOBALS["root"]}mail/removemailbox.php?id=$addressID", "Remove mailbox", "Are you sure you want to remove this mailbox? This will permanently delete all mail stored in it.", "", "Yes, delete the mail");
+	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->stdDel("mailAddress", array("addressID"=>$addressID));
 	
 	updateMail(customerID());
 	
 	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}mail/domain.php?id={$mailbox["domainID"]}");
+	header("Location: {$GLOBALS["root"]}mail/domain.php?id=$domainID");
 }
 
 main();

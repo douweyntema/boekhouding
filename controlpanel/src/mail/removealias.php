@@ -7,22 +7,20 @@ function main()
 	$aliasID = get("id");
 	doMailAlias($aliasID);
 	
-	$alias = $GLOBALS["database"]->stdGetTry("mailAlias", array("aliasID"=>$aliasID), array("domainID", "localpart", "targetAddress"), false);
+	$domainID = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), "domainID");
 	
-	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$alias["domainID"]), "name");
+	$check = function($condition, $error) use($aliasID) {
+		if(!$condition) die(page(aliasHeader($aliasID) . removeMailAliasForm($aliasID, $error, $_POST)));
+	};
 	
-	$content = "<h1>Alias {$alias["localpart"]}@$domain</h1>\n";
-	
-	$content .= domainBreadcrumbs($alias["domainID"], array(array("name"=>"Alias {$alias["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/alias.php?id=$aliasID")));
-	
-	checkTrivialAction($content, "{$GLOBALS["root"]}mail/removealias.php?id=$aliasID", "Remove alias", "Are you sure you want to remove this alias?");
+	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->stdDel("mailAlias", array("aliasID"=>$aliasID));
 	
 	updateMail(customerID());
 	
 	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}mail/domain.php?id={$alias["domainID"]}");
+	header("Location: {$GLOBALS["root"]}mail/domain.php?id=$domainID");
 }
 
 main();

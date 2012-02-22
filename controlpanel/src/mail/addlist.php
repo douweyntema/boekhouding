@@ -7,51 +7,32 @@ function main()
 	$domainID = get("id");
 	doMailDomain($domainID);
 	
-	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
-	$content = "<h1>New mailinglist for doman $domain</h1>\n";
-	
-	$content .= domainBreadcrumbs($domainID, array(array("name"=>"Add mailinglist", "url"=>"{$GLOBALS["root"]}mail/addlist.php?id=$domainID")));
+	$check = function($condition, $error) use($domainID) {
+		if(!$condition) die(page(addHeader("Add list", "addlist.php", $domainID) . addMailListForm($domainID, $error, $_POST)));
+	};
 	
 	$localpart = post("localpart");
 	$members = explode("\n", post("members"));
-	
-	if(!validLocalPart($localpart)) {
-		$content .= addMailListForm($domainID, "Invalid mailinglist address", $localpart, $members);
-		die(page($content));
-	}
-	
-	if($GLOBALS["database"]->stdGetTry("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart), "addressID", null) !== null) {
-		$content .= addMailListForm($domainID, "A mailbox with the same name already exists", $localpart, $members);
-		die(page($content));
-	}
-	
-	if($GLOBALS["database"]->stdGetTry("mailList", array("domainID"=>$domainID, "localpart"=>$localpart), "listID", null) !== null) {
-		$content .= addMailListForm($domainID, "A mailinglist with the same name already exists", $localpart, $members);
-		die(page($content));
-	}
-	
+	$realMembers = array();
 	foreach($members as $member) {
-		if(trim($member) == "") {
-			continue;
-		}
-		if(!validEmail($member)) {
-			$content .= addMailListForm($domainID, "Invalid member address ($member)", $localpart, $members);
-			die(page($content));
+		$member = trim($member);
+		if($member != "") {
+			$realMembers[] = $member;
 		}
 	}
 	
-	if(post("confirm") === null) {
-		$content .= addMailListForm($domainID, null, $localpart, $members);
-		die(page($content));
+	$check(validLocalPart($localpart), "Invalid mailinglist address");
+	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailbox with the same name already exists");
+	$check(!$GLOBALS["database"]->stdExists("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart)), "An alias with the same name already exists");
+	$check(!$GLOBALS["database"]->stdExists("mailList", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailinglist with the same name already exists");
+	foreach($realMembers as $member) {
+		$check(validEmail($member), "Invalid member address ($member)");
 	}
+	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->startTransaction();
 	$listID = $GLOBALS["database"]->stdNew("mailList", array("domainID"=>$domainID, "localpart"=>$localpart));
-	foreach($members as $member) {
-		if(trim($member) == "") {
-			continue;
-		}
+	foreach($realMembers as $member) {
 		if($GLOBALS["database"]->stdExists("mailListMember", array("listID"=>$listID, "targetAddress"=>$member))) {
 			continue;
 		}

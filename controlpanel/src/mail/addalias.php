@@ -7,38 +7,23 @@ function main()
 	$domainID = get("id");
 	doMailDomain($domainID);
 	
-	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
-	$content = "<h1>New alias for doman $domain</h1>\n";
-	
-	$content .= domainBreadcrumbs($domainID, array(array("name"=>"Add alias", "url"=>"{$GLOBALS["root"]}mail/addalias.php?id=$domainID")));
+	$check = function($condition, $error) use($domainID) {
+		if(!$condition) die(page(addHeader("Add alias", "addalias.php", $domainID) . addMailAliasForm($domainID, $error, $_POST)));
+	};
 	
 	$localpart = post("localpart");
 	$targetAddress = post("targetAddress");
 	
-	if(!validLocalPart($localpart)) {
-		$content .= addMailAliasForm($domainID, "Invalid alias", $localpart, $targetAddress);
-		die(page($content));
-	}
-	
-	if($GLOBALS["database"]->stdGetTry("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart), "addressID", null) !== null) {
-		$content .= addMailAliasForm($domainID, "A mailbox with the same name already exists", $localpart, $targetAddress);
-		die(page($content));
-	}
-	
 	if(strpos($targetAddress, "@") === false) {
-		$targetAddress .= "@" . $domain;
+		$targetAddress .= "@" . $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+		$_POST["targetAddress"] = $targetAddress;
 	}
 	
-	if(!validEmail($targetAddress)) {
-		$content .= addMailAliasForm($domainID, "Invalid target address", $localpart, $targetAddress);
-		die(page($content));
-	}
-	
-	if(post("confirm") === null) {
-		$content .= addMailAliasForm($domainID, null, $localpart, $targetAddress);
-		die(page($content));
-	}
+	$check(validLocalPart($localpart), "Invalid alias");
+	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailbox with the same name already exists");
+	$check(!$GLOBALS["database"]->stdExists("mailList", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailing list with the same name already exists");
+	$check(validEmail($targetAddress), "Invalid target address");
+	$check(post("confirm") !== null, null);
 	
 	$aliasID = $GLOBALS["database"]->stdNew("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart, "targetAddress"=>$targetAddress));
 	

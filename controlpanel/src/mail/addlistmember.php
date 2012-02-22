@@ -5,39 +5,28 @@ require_once("common.php");
 function main()
 {
 	$listID = get("id");
-	$localpart = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "localpart");
-	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
+	doMailList($listID);
 	
-	doMailDomain($domainID);
-	
-	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
-	$content = "<h1>Mailinglist {$localpart}@$domain</h1>\n";
-	
-	$content .= domainBreadcrumbs($domainID, array(array("name"=>"Mailinglist {$localpart}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/list.php?id=$listID")));
+	$check = function($condition, $error) use($listID) {
+		if(!$condition) die(page(listHeader($listID) . addMailListMemberForm($listID, $error, $_POST)));
+	};
 	
 	$members = explode("\n", post("members"));
-	
+	$realMembers = array();
 	foreach($members as $member) {
-		if(trim($member) == "") {
-			continue;
-		}
-		if(!validEmail($member)) {
-			$content .= addMailListMemberForm($listID, "Invalid member address ($member)", $members);
-			die(page($content));
+		$member = trim($member);
+		if($member != "") {
+			$realMembers[] = $member;
 		}
 	}
 	
-	if(post("confirm") === null) {
-		$content .= addMailListMemberForm($listID, null, $members);
-		die(page($content));
+	foreach($realMembers as $member) {
+		$check(validEmail($member), "Invalid member address ($member)");
 	}
+	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->startTransaction();
-	foreach($members as $member) {
-		if(trim($member) == "") {
-			continue;
-		}
+	foreach($realMembers as $member) {
 		if($GLOBALS["database"]->stdExists("mailListMember", array("listID"=>$listID, "targetAddress"=>$member))) {
 			continue;
 		}
