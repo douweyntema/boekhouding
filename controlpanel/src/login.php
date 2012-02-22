@@ -180,6 +180,34 @@ function canAccessComponent($component)
 	return canAccessCustomerComponent($component);
 }
 
+function canUserAccessComponent($userID, $component)
+{
+	$components = components();
+	if(!isset($components[$component])) {
+		return false;
+	}
+	
+	if($components[$component]["target"] == "admin") {
+		return false;
+	}
+	
+	$customerID = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$userID), "customerID");
+	$customerRightID = $GLOBALS["database"]->stdGetTry("adminCustomerRight", array("customerID"=>$customerID, "right"=>$component), "customerRightID", false);
+	if($customerRightID === false) {
+		return false;
+	}
+	
+	if($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>null))) {
+		return true;
+	}
+	
+	if($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>$customerRightID))) {
+		return true;
+	}
+	
+	return false;
+}
+
 function useComponent($component)
 {
 	if(!canAccessComponent($component)) {
