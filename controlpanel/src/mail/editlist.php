@@ -7,46 +7,26 @@ function main()
 	$listID = get("id");
 	doMailList($listID);
 	
-	$list = $GLOBALS["database"]->stdGetTry("mailList", array("listID"=>$listID), array("domainID", "localpart"), false);
+	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
 	
-	if($list === false) {
-		listNotFound($listID);
-	}
-	
-	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$list["domainID"]), "name");
-	
-	$content = "<h1>Mailinglist {$list["localpart"]}@$domain</h1>\n";
-	
-	$content .= domainBreadcrumbs($list["domainID"], array(array("name"=>"Mailinglist {$list["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/list.php?id=$listID")));
+	$check = function($condition, $error) use($listID) {
+		if(!$condition) die(page(listHeader($listID) . editMailListForm($listID, $error, $_POST)));
+	};
 	
 	$localpart = post("localpart");
 	
-	if(!validLocalPart($localpart)) {
-		$content .= editMailListForm($listID, "Invalid mailinglist address", $localpart);
-		die(page($content));
-	}
-	
-	if($GLOBALS["database"]->stdGetTry("mailAddress", array("domainID"=>$list["domainID"], "localpart"=>$localpart), "addressID", null) !== null) {
-		$content .= editMailListForm($listID, "A mailbox with the same name already exists", $localpart);
-		die(page($content));
-	}
-	
-	if($GLOBALS["database"]->stdGetTry("mailList", array("domainID"=>$list["domainID"], "localpart"=>$localpart), "listID", null) !== null) {
-		$content .= editMailListForm($listID, "A mailinglist with the same name already exists", $localpart);
-		die(page($content));
-	}
-	
-	if(post("confirm") === null) {
-		$content .= editMailListForm($listID, null, $localpart);
-		die(page($content));
-	}
+	$check(validLocalPart($localpart), "Invalid mailinglist address");
+	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailbox with the same name already exists");
+	$check(!$GLOBALS["database"]->stdExists("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart)), "An alias with the same name already exists");
+	$check($GLOBALS["database"]->stdGetTry("mailList", array("domainID"=>$domainID, "localpart"=>$localpart), "listID", $listID) == $listID, "A mailinglist with the same name already exists");
+	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->stdSet("mailList", array("listID"=>$listID), array("localpart"=>$localpart));
 	
 	updateMail(customerID());
 	
 	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}mail/domain.php?id={$list["domainID"]}");
+	header("Location: {$GLOBALS["root"]}mail/domain.php?id={$domainID}");
 }
 
 main();

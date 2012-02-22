@@ -6,21 +6,15 @@ function main()
 {
 	doMail();
 	
-	$content = "<h1>New domain</h1>\n";
-	
-	$content .= mailBreadcrumbs(array(array("name"=>"Add domain", "url"=>"{$GLOBALS["root"]}mail/adddomain.php")));
+	$check = function($condition, $error) {
+		if(!$condition) die(page(addHeader("Add domain", "adddomain.php") . addMailDomainForm($error, $_POST)));
+	};
 	
 	$domainName = post("domainName");
 	
-	if(!validDomain($domainName)) {
-		$content .= addMailDomainForm("Invalid domain name", $domainName);
-		die(page($content));
-	}
-	
-	if(post("confirm") === null) {
-		$content .= addMailDomainForm(null, $domainName);
-		die(page($content));
-	}
+	$check(validDomain($domainName), "Invalid domain name");
+	$check(!$GLOBALS["database"]->stdExists("mailDomain", array("name"=>$domainName)), "A domain with the same name already exists");
+	$check(post("confirm") !== null, null);
 	
 	$domainID = $GLOBALS["database"]->stdNew("mailDomain", array("customerID"=>customerID(), "name"=>$domainName));
 	

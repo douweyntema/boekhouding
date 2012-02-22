@@ -43,18 +43,55 @@ function domainBreadcrumbs($domainID, $postfix = array())
 	return mailBreadcrumbs(array_merge(array(array("name"=>$domain, "url"=>"{$GLOBALS["root"]}mail/domain.php?id=$domainID")), $postfix));
 }
 
-function aliasNotFound($aliasID)
+function addHeader($title, $filename, $domainID = null)
 {
-	header("HTTP/1.1 404 Not Found");
+	$header = "<h1>$title</h1>\n";
 	
-	die("Mail alias #$aliasID not found");
+	if($domainID === null) {
+		$breadcrumbs = mailBreadcrumbs(array(array("name"=>$title, "url"=>"{$GLOBALS["root"]}mail/$filename")));
+	} else {
+		$breadcrumbs = domainBreadcrumbs($domainID, array(array("name"=>$title, "url"=>"{$GLOBALS["root"]}mail/$filename?id=$domainID")));
+	}
+	
+	return $header . $breadcrumbs;
 }
 
-function listNotFound($listID)
+function domainHeader($domainID)
 {
-	header("HTTP/1.1 404 Not Found");
-	
-	die("Mailing list #$listID not found");
+	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	$header = "<h1>Domain $domain</h1>\n";
+	$breadcrumbs = domainBreadcrumbs($domainID);
+	return $header . $breadcrumbs;
+}
+
+function aliasHeader($aliasID)
+{
+	$alias = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), array("domainID", "localpart"));
+	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$alias["domainID"]), "name");
+	$addressHtml = htmlentities($mailbox["localpart"] . "@" . $domain);
+	$header = "<h1>Alias $addressHtml</h1>\n";
+	$breadcrumbs = domainBreadcrumbs($alias["domainID"], array(array("name"=>"Alias {$alias["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/alias.php?id=$aliasID")));
+	return $header . $breadcrumbs;
+}
+
+function listHeader($listID)
+{
+	$list = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), array("domainID", "localpart"));
+	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$list["domainID"]), "name");
+	$addressHtml = htmlentities($list["localpart"] . "@" . $domain);
+	$header = "<h1>Alias $addressHtml</h1>\n";
+	$breadcrumbs = domainBreadcrumbs($list["domainID"], array(array("name"=>"Mailinglist {$list["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/list.php?id=$listID")));
+	return $header . $breadcrumbs;
+}
+
+function mailboxHeader($addressID)
+{
+	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart"));
+	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$mailbox["domainID"]), "name");
+	$addressHtml = htmlentities($mailbox["localpart"] . "@" . $domain);
+	$header = "<h1>Mailbox $addressHtml</h1>\n";
+	$breadcrumbs = domainBreadcrumbs($mailbox["domainID"], array(array("name"=>"Mailbox {$mailbox["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/mailbox.php?id=$addressID")));
+	return $header . $breadcrumbs;
 }
 
 function mailDomainsList()
@@ -174,7 +211,7 @@ function mailListMemberList($listID)
 <tbody>
 HTML;
 	foreach($GLOBALS["database"]->stdList("mailListMember", array("listID"=>$listID), array("memberID", "targetAddress"), array("targetAddress"=>"asc")) as $member) {
-		$output .= "<tr><td>{$member["targetAddress"]} <input type=\"checkbox\" name=\"member-{$member["memberID"]}\" class=\"rightalign membercheckbox\" value=\"delete\"></td></tr>\n";
+		$output .= "<tr><td><label>{$member["targetAddress"]} <input type=\"checkbox\" name=\"member-{$member["memberID"]}\" class=\"rightalign membercheckbox\" value=\"delete\"></label></td></tr>\n";
 	}
 	$output .= <<<HTML
 </tbody>
@@ -196,508 +233,16 @@ HTML;
 	return $output;
 }
 
-function editMailAliasForm($aliasID, $error, $targetAddress)
+function mailboxSummary($addressID)
 {
-	$targetAddressValue = inputValue($targetAddress);
-	$domainID = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), "domainID");
-	$alias = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), "localpart");
-	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Change alias</h2>
-$messageHtml
-<form action="editalias.php?id=$aliasID" method="post">
-$confirmHtml
-<table>
-<tr>
-<th>Alias:</th>
-<td class="nowrap">$alias@$domainName</td>
-</tr>
-<tr>
-<th>Target address:</th>
-<td class="stretch" colspan="2"><input type="text" name="targetAddress" $readonly $targetAddressValue /></td>
-</tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
-function addMailAliasForm($domainID, $error, $alias, $targetAddress)
-{
-	$aliasValue = inputValue($alias);
-	$targetAddressValue = inputValue($targetAddress);
-	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Add alias</h2>
-$messageHtml
-<form action="addalias.php?id=$domainID" method="post">
-$confirmHtml
-<table>
-<tr>
-<th>Alias:</th>
-<td class="stretch"><input type="text" name="localpart" $readonly $aliasValue /></td>
-<td class="nowrap">@{$domainName}</td>
-</tr>
-<tr>
-<th>Target address:</th>
-<td colspan="2" class="stretch"><input type="text" name="targetAddress" $readonly $targetAddressValue /></td>
-</tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
-function editMailListForm($listID, $error, $localpart)
-{
-	$localpartValue = inputValue($localpart);
-	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
-	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Change mailinglist address</h2>
-$messageHtml
-<form action="editlist.php?id=$listID" method="post">
-$confirmHtml
-<table>
-<tr>
-<th>Mailinglist:</th>
-<td class="stretch"><input type="text" name="localpart" $readonly $localpartValue /></td>
-<td class="nowrap">@{$domainName}</td>
-</tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
-function addMailListForm($domainID, $error, $localpart, $members)
-{
-	$localpartValue = inputValue($localpart);
-	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	if($members === null) {
-		$members = array();
-	}
-	
-	$members = implode("\n", $members);
-	
-	$membersHtml = "<textarea name=\"members\" $readonly />";
-	$membersHtml .= $members;
-	$membersHtml .= "</textarea>";
-	
-	return <<<HTML
-<div class="operation">
-<h2>Add mailinglist</h2>
-$messageHtml
-<form action="addlist.php?id=$domainID" method="post">
-$confirmHtml
-<table>
-<tr>
-<th>Mailinglist:</th>
-<td class="stretch"><input type="text" name="localpart" $readonly $localpartValue /></td>
-<td class="nowrap">@{$domainName}</td>
-</tr>
-<tr>
-<th>Members:</th>
-<td colspan="2" class="stretch">$membersHtml</td>
-</tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
-function addMailListMemberForm($listID, $error, $members)
-{
-	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
-	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	if($members === null) {
-		$members = array();
-	}
-	
-	$members = implode("\n", $members);
-	
-	$membersHtml = "<textarea name=\"members\" $readonly />";
-	$membersHtml .= $members;
-	$membersHtml .= "</textarea>";
-	
-	return <<<HTML
-<div class="operation">
-<h2>Add members</h2>
-$messageHtml
-<form action="addlistmember.php?id=$listID" method="post">
-$confirmHtml
-<table>
-<tr>
-<th>Members:</th>
-<td colspan="2" class="stretch">$membersHtml</td>
-</tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
-function editMailListMemberForm($listID, $error = "", $members = null)
-{
-	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
-	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-		$stub = false;
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	} else if($error == "STUB") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = true;
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	}
-	
-	if($members === null) {
-		$members = $GLOBALS["database"]->stdList("mailListMember", array("listID"=>$listID), "targetAddress");
-	}
-	
-	$members = implode("\n", $members);
-	
-	if(!$stub) {
-		$membersHtml = "<tr><th>Members:</th><td colspan=\"2\" class=\"stretch\">";
-		$membersHtml .= "<textarea name=\"members\" $readonly />";
-		$membersHtml .= $members;
-		$membersHtml .= "</textarea>";
-		$membersHtml .= "</td></tr>";
-		$action = "Save members";
-	} else {
-		$membersHtml = "";
-		$action = "Edit members";
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Edit members</h2>
-$messageHtml
-<form action="editlistmember.php?id=$listID" method="post">
-$confirmHtml
-<table>
-$membersHtml
-<tr class="submit"><td colspan="3"><input type="submit" value="$action" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
-function addMailDomainForm($error, $domainName)
-{
-	$domainNameValue = inputValue($domainName);
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Add domain</h2>
-$messageHtml
-<form action="adddomain.php" method="post">
-$confirmHtml
-<table>
-<tr>
-<th>Domain name:</th>
-<td class="stretch"><input type="text" name="domainName" $readonly $domainNameValue /></td>
-</tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
-function addMailboxForm($domainID, $error, $localpart, $password, $quota, $spamQuota, $virusQuota, $spambox, $virusbox)
-{
-	if($spambox === "") {
-		$spambox = "inbox";
-	}
-	if($virusbox === "") {
-		$virusbox = "inbox";
-	}
-	$localpartValue = inputValue($localpart);
-	$quotaValue = inputValue($quota);
-	$spamQuotaValue = $spamQuota === null ? inputValue(100) : inputValue($spamQuota);
-	$virusQuotaValue = $virusQuota === null ? inputValue(100) : inputValue($virusQuota);
-	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	if($readonly == "") {
-		$passwordHtml = <<<HTML
-<tr>
-<th>Password:</th>
-<td colspan="2"><input type="password" name="password1" /></td>
-</tr>
-<tr>
-<th>Confirm password:</th>
-<td colspan="2"><input type="password" name="password2" /></td>
-</tr>
-
-HTML;
-	} else {
-		$encryptedPassword = encryptPassword($password);
-		$masked = str_repeat("*", strlen($password));
-		$passwordHtml = <<<HTML
-<tr>
-<th>Password:</th>
-<td colspan="2"><input type="password" value="$masked" readonly="readonly" /><input type="hidden" name="encryptedPassword" value="$encryptedPassword" /></td>
-</tr>
-
-HTML;
-	}
-	
-	$spamboxNospamSelected = "";
-	$spamboxInboxSelected = "";
-	$spamboxfolderSelected = "";
-	$spamboxFolderValue = inputValue("spam");
-	if($spambox == "none" || $spambox == null) {
-		$spamboxNospamSelected = "checked=\"checked\"";
-	} else if($spambox == "inbox") {
-		$spamboxInboxSelected = "checked=\"checked\"";
-	} else {
-		$spamboxfolderSelected = "checked=\"checked\"";
-		$spamboxFolderValue = inputValue($spambox);
-	}
-	
-	$virusboxNospamSelected = "";
-	$virusboxInboxSelected = "";
-	$virusboxfolderSelected = "";
-	$virusboxFolderValue = inputValue("virus");
-	if($virusbox == "none" || $virusbox == null) {
-		$virusboxNospamSelected = "checked=\"checked\"";
-	} else if($virusbox == "inbox") {
-		$virusboxInboxSelected = "checked=\"checked\"";
-	} else {
-		$virusboxfolderSelected = "checked=\"checked\"";
-		$virusboxFolderValue = inputValue($virusbox);
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Add mailbox</h2>
-$messageHtml
-<form action="addmailbox.php?id=$domainID" method="post">
-$confirmHtml
-<table>
-<tr>
-<th>Mailbox:</th>
-<td class="nowrap"><input type="text" name="localpart" $readonly $localpartValue /></td>
-<td>@{$domainName}</td>
-</tr>
-$passwordHtml
-<tr>
-<th>Quota:</th>
-<td><input type="text" name="quota" $readonly $quotaValue /></td><td>MiB</td>
-</tr>
-<tr>
-<th>Spambox:</th>
-<td colspan="2">
-<label><input type="radio" name="spambox" value="none" $spamboxNospamSelected />No spambox</label><br />
-<label><input type="radio" name="spambox" value="inbox" $spamboxInboxSelected />Spam in inbox</label><br />
-<label><input type="radio" name="spambox" value="folder" $spamboxfolderSelected />Place spam in the specified folder:</label><br />
-<input type="text" name="spambox-folder" id="spambox-folder" $spamboxFolderValue /></td>
-</tr>
-<tr id="spambox-quota">
-<th>Spambox quota:</th>
-<td><input type="text" name="spamquota" $readonly $spamQuotaValue /></td><td>MiB</td>
-</tr>
-<tr>
-<tr>
-<th>Virusbox:</th>
-<td colspan="2">
-<label><input type="radio" name="virusbox" value="none" $virusboxNospamSelected />No virusbox</label><br />
-<label><input type="radio" name="virusbox" value="inbox" $virusboxInboxSelected />Virus in inbox</label><br />
-<label><input type="radio" name="virusbox" value="folder" $virusboxfolderSelected />Place virus mails in the specified folder:</label><br />
-<input type="text" name="virusbox-folder" id="virusbox-folder" $virusboxFolderValue /></td>
-</tr>
-<tr id="virusbox-quota">
-<th>Spambox quota:</th>
-<td><input type="text" name="virusquota" $readonly $virusQuotaValue /></td><td>MiB</td>
-</tr>
-<tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Create mailbox" /></td></tr>
-</table>
-<script type="text/javascript">
-$(document).ready(function(){
-	$("input:radio[name=spambox]").change(updateSpambox);
-	$("input:radio[name=virusbox]").change(updateVirusbox);
-	updateSpambox();
-	updateVirusbox();
-});
-
-function updateSpambox()
-{
-	if($("input:radio[name=spambox]:checked").val() == "none") {
-		$("#spambox-folder").hide();
-		$("#spambox-quota").hide();
-	} else if($("input:radio[name=spambox]:checked").val() == "inbox") {
-		$("#spambox-folder").hide();
-		$("#spambox-quota").hide();
-	} else {
-		$("#spambox-folder").show();
-		$("#spambox-quota").show();
-	}
-}
-function updateVirusbox()
-{
-	if($("input:radio[name=virusbox]:checked").val() == "none") {
-		$("#virusbox-folder").hide();
-		$("#virusbox-quota").hide();
-	} else if($("input:radio[name=virusbox]:checked").val() == "inbox") {
-		$("#virusbox-folder").hide();
-		$("#virusbox-quota").hide();
-	} else {
-		$("#virusbox-folder").show();
-		$("#virusbox-quota").show();
-	}
-}
-
-</script>
-</form>
-</div>
-
-HTML;
-}
-
-function mailboxSummary($mailboxID)
-{
-	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$mailboxID), array("domainID", "localpart", "spambox", "virusbox", "quota", "spamQuota", "virusQuota", "canUseSmtp", "canUseImap"));
+	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart", "spambox", "virusbox", "quota", "spamQuota", "virusQuota", "canUseSmtp", "canUseImap"));
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$mailbox["domainID"]), "name");
 	
 	if($mailbox["spambox"] === null) {
 		$spambox = "No spambox";
 	} else if($mailbox["spambox"] == "") {
 		$spambox = "inbox";
-	} else { 
+	} else {
 		if($mailbox["spamQuota"] === null) {
 			$spambox = $mailbox["spambox"] . " (no quota)";
 		} else {
@@ -734,139 +279,302 @@ function mailboxSummary($mailboxID)
 HTML;
 }
 
-function editMailboxForm($addressID, $error, $quota, $spamQuota, $virusQuota, $spambox, $virusbox)
+function addMailDomainForm($error = "", $values = null)
 {
-	if($spambox === "") {
-		$spambox = "inbox";
-	}
-	if($virusbox === "") {
-		$virusbox = "inbox";
-	}
-	$quotaValue = inputValue($quota);
-	$spamQuotaValue = $spamQuota === null ? inputValue(100) : inputValue($spamQuota);
-	$virusQuotaValue = $virusQuota === null ? inputValue(100) : inputValue($virusQuota);
-	$domainID = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), "domainID");
+	return operationForm("adddomain.php", $error, "Add domain", "Save",
+		array(
+			array("title"=>"Domain name", "type"=>"text", "name"=>"domainName")
+		),
+		$values);
+}
+
+function removeMailDomainForm($domainID, $error = "", $values = null)
+{
+	return operationForm("removedomain.php?id=$domainID", $error, "Remove domain", "Remove Domain", array(), $values);
+}
+
+function addMailAliasForm($domainID, $error = "", $values = null)
+{
 	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
 	
+	return operationForm("addalias.php?id=$domainID", $error, "Add alias", "Save",
+		array(
+			array("title"=>"Alias", "type"=>"multipart", "parts"=>array(
+				array("type"=>"text", "name"=>"localpart", "fill"=>true),
+				array("type"=>"label", "class"=>"nowrap", "html"=>"@$domainName")
+			)),
+			array("title"=>"Target address", "type"=>"text", "name"=>"targetAddress")
+		),
+		$values);
+}
+
+function editMailAliasForm($aliasID, $error = "", $values = null)
+{
+	$alias = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), array("domainID", "localpart", "targetAddress"));
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$alias["domainID"]), "name");
+	
+	if($values === null) {
+		$values = array("targetAddress"=>$alias["targetAddress"]);
+	}
+	
+	return operationForm("editalias.php?id=$aliasID", $error, "Change alias", "Save",
+		array(
+			array("title"=>"Alias", "type"=>"label", "class"=>"nowrap", "html"=>"{$alias["localpart"]}@$domainName"),
+			array("title"=>"Target address", "type"=>"text", "name"=>"targetAddress")
+		),
+		$values);
+}
+
+function removeMailAliasForm($aliasID, $error = "", $values = null)
+{
+	return operationForm("removealias.php?id=$aliasID", $error, "Remove alias", "Remove Alias", array(), $values, array("confirmdelete"=>"Are you sure you want to remove this alias?"));
+}
+
+function addMailListForm($domainID, $error = "", $values = null)
+{
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	return operationForm("addlist.php?id=$domainID", $error, "Add mailinglist", "Save",
+		array(
+			array("title"=>"Mailinglist", "type"=>"multipart", "parts"=>array(
+				array("type"=>"text", "name"=>"localpart", "fill"=>true),
+				array("type"=>"label", "class"=>"nowrap", "html"=>"@$domainName")
+			)),
+			array("title"=>"Members", "type"=>"textarea", "name"=>"members")
+		),
+		$values);
+}
+
+function editMailListForm($listID, $error = "", $values = null)
+{
+	$list = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), array("domainID", "localpart"));
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$list["domainID"]), "name");
+	
+	if($values === null) {
+		$values = array("localpart"=>$list["localpart"]);
+	}
+	
+	return operationForm("editlist.php?id=$listID", $error, "Change mailinglist address", "Save",
+		array(
+			array("title"=>"Mailinglist", "type"=>"multipart", "parts"=>array(
+				array("type"=>"text", "name"=>"localpart", "fill"=>true),
+				array("type"=>"label", "class"=>"nowrap", "html"=>"@$domainName")
+			))
+		),
+		$values);
+}
+
+function removeMailListForm($listID, $error = "", $values = null)
+{
+	return operationForm("removelist.php?id=$listID", $error, "Remove mailing list", "Remove Mailing List", array(), $values, array("confirmdelete"=>"Are you sure you want to remove this mailing list?"));
+}
+
+function addMailListMemberForm($listID, $error = "", $values = null)
+{
+	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	return operationForm("addlistmember.php?id=$listID", $error, "Add members", "Save",
+		array(
+			array("title"=>"Members", "type"=>"textarea", "name"=>"members")
+		),
+		$values);
+}
+
+function editMailListMemberForm($listID, $error = "", $values = null)
+{
+	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	if($error == "STUB") {
+		return operationForm("editlistmember.php?id=$listID", "", "Edit members", "Edit members", array(), array());
+	}
+	
+	if($values === null) {
+		$members = $GLOBALS["database"]->stdList("mailListMember", array("listID"=>$listID), "targetAddress");
+		$values = array("members"=>(implode("\n", $members) . "\n"));
+	}
+	
+	return operationForm("editlistmember.php?id=$listID", $error, "Edit members", "Save",
+		array(
+			array("title"=>"Members", "type"=>"textarea", "name"=>"members"),
+		),
+		$values);
+}
+
+function removeMailListMemberForm($listID, $error = "", $values = null)
+{
 	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
+		$fields = array();
+		$memberList = "<ul>\n";
+		foreach($GLOBALS["database"]->stdList("mailListMember", array("listID"=>$listID), array("memberID", "targetAddress")) as $member) {
+			if(isset($values["member-{$member["memberID"]}"])) {
+				$memberList .= "<li>" . htmlentities($member["targetAddress"]) . "</li>\n";
+				$fields[] = array("type"=>"hidden", "name"=>"member-{$member["memberID"]}");
+			}
+		}
+		$memberList .= "</ul>\n";
+		$messages = array("confirmdelete"=>"Are you sure you want to remove these members?", "custom"=>$memberList);
 	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
+		$messages = null;
+		$fields = array();
 	}
-	
-	$spamboxNospamSelected = "";
-	$spamboxInboxSelected = "";
-	$spamboxfolderSelected = "";
-	$spamboxFolderValue = inputValue("spam");
-	if($spambox == "none" || $spambox === null) {
-		$spamboxNospamSelected = "checked=\"checked\"";
-	} else if($spambox == "inbox") {
-		$spamboxInboxSelected = "checked=\"checked\"";
-	} else {
-		$spamboxfolderSelected = "checked=\"checked\"";
-		$spamboxFolderValue = inputValue($spambox);
-	}
-	
-	$virusboxNospamSelected = "";
-	$virusboxInboxSelected = "";
-	$virusboxfolderSelected = "";
-	$virusboxFolderValue = inputValue("virus");
-	if($virusbox == "none" || $virusbox === null) {
-		$virusboxNospamSelected = "checked=\"checked\"";
-	} else if($virusbox == "inbox") {
-		$virusboxInboxSelected = "checked=\"checked\"";
-	} else {
-		$virusboxfolderSelected = "checked=\"checked\"";
-		$virusboxFolderValue = inputValue($virusbox);
-	}
-	
+	return operationForm("removemember.php?id=$listID", $error, "Remove mailinglist members", "Remove Members", $fields, $values, $messages);
+}
+
+function spamVirusJavascript()
+{
 	return <<<HTML
-<div class="operation">
-<h2>Edit mailbox</h2>
-$messageHtml
-<form action="editmailbox.php?id=$addressID" method="post">
-$confirmHtml
-<table>
-<tr>
-<th>Quota:</th>
-<td><input type="text" name="quota" $readonly $quotaValue /></td><td>MiB</td>
-</tr>
-<tr>
-<th>Spambox:</th>
-<td colspan="2">
-<label><input type="radio" name="spambox" value="none" $spamboxNospamSelected />No spambox</label><br />
-<label><input type="radio" name="spambox" value="inbox" $spamboxInboxSelected />Spam in inbox</label><br />
-<label><input type="radio" name="spambox" value="folder" $spamboxfolderSelected />Place spam in the specified folder:</label><br />
-<input type="text" name="spambox-folder" id="spambox-folder" $spamboxFolderValue /></td>
-</tr>
-<tr id="spambox-quota">
-<th>Spambox quota:</th>
-<td><input type="text" name="spamquota" $readonly $spamQuotaValue /></td><td>MiB</td>
-</tr>
-<tr>
-<tr>
-<th>Virusbox:</th>
-<td colspan="2">
-<label><input type="radio" name="virusbox" value="none" $virusboxNospamSelected />No virusbox</label><br />
-<label><input type="radio" name="virusbox" value="inbox" $virusboxInboxSelected />Virus in inbox</label><br />
-<label><input type="radio" name="virusbox" value="folder" $virusboxfolderSelected />Place virus mails in the specified folder:</label><br />
-<input type="text" name="virusbox-folder" id="virusbox-folder" $virusboxFolderValue /></td>
-</tr>
-<tr id="virusbox-quota">
-<th>Spambox quota:</th>
-<td><input type="text" name="virusquota" $readonly $virusQuotaValue /></td><td>MiB</td>
-</tr>
-<tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Edit mailbox" /></td></tr>
-</table>
 <script type="text/javascript">
 $(document).ready(function(){
-	$("input:radio[name=spambox]").change(updateSpambox);
-	$("input:radio[name=virusbox]").change(updateVirusbox);
+	$(".field-spambox input").change(updateSpambox);
+	$(".field-virusbox input").change(updateVirusbox);
 	updateSpambox();
 	updateVirusbox();
 });
 
 function updateSpambox()
 {
-	if($("input:radio[name=spambox]:checked").val() == "none") {
-		$("#spambox-folder").hide();
-		$("#spambox-quota").hide();
-	} else if($("input:radio[name=spambox]:checked").val() == "inbox") {
-		$("#spambox-folder").hide();
-		$("#spambox-quota").hide();
+	if($(".field-spambox input:checked").val() == "none") {
+		$(".spambox-folder").hide();
+		$(".spambox-quota").hide();
+	} else if($(".field-spambox input:checked").val() == "inbox") {
+		$(".spambox-folder").hide();
+		$(".spambox-quota").hide();
 	} else {
-		$("#spambox-folder").show();
-		$("#spambox-quota").show();
+		$(".spambox-folder").show();
+		$(".spambox-quota").show();
 	}
 }
 function updateVirusbox()
 {
-	if($("input:radio[name=virusbox]:checked").val() == "none") {
-		$("#virusbox-folder").hide();
-		$("#virusbox-quota").hide();
-	} else if($("input:radio[name=virusbox]:checked").val() == "inbox") {
-		$("#virusbox-folder").hide();
-		$("#virusbox-quota").hide();
+	if($(".field-virusbox input:checked").val() == "none") {
+		$(".virusbox-folder").hide();
+		$(".virusbox-quota").hide();
+	} else if($(".field-virusbox input:checked").val() == "inbox") {
+		$(".virusbox-folder").hide();
+		$(".virusbox-quota").hide();
 	} else {
-		$("#virusbox-folder").show();
-		$("#virusbox-quota").show();
+		$(".virusbox-folder").show();
+		$(".virusbox-quota").show();
 	}
 }
 
 </script>
-</form>
-</div>
 
 HTML;
+}
+
+function addMailboxForm($domainID, $error = "", $values = null)
+{
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+	
+	if($values === null) {
+		$values = array(
+			"spambox"=>"inbox",
+			"spamQuota"=>100,
+			"spambox-folder"=>"spam",
+			"virusbox"=>"inbox",
+			"virusQuota"=>100,
+			"virusbox-folder"=>"virus"
+		);
+	}
+	
+	return operationForm("addmailbox.php?id=$domainID", $error, "Add mailbox", "Create mailbox",
+		array(
+			array("title"=>"Mailbox", "type"=>"multipart", "parts"=>array(
+				array("type"=>"text", "name"=>"localpart", "fill"=>true),
+				array("type"=>"label", "class"=>"nowrap", "html"=>"@$domainName")
+			)),
+			array("title"=>"Password", "type"=>"password", "name"=>"password", "confirmtitle"=>"Confirm password"),
+			array("title"=>"Quota", "type"=>"multipart", "parts"=>array(
+				array("type"=>"text", "name"=>"quota", "fill"=>true),
+				array("type"=>"label", "class"=>"nowrap", "html"=>"MiB")
+			)),
+			array("title"=>"Spambox", "type"=>"radio", "name"=>"spambox", "class"=>"field-spambox", "options"=>array(
+				array("value"=>"none", "title"=>"No spambox"),
+				array("value"=>"inbox", "title"=>"Spam in inbox"),
+				array("value"=>"folder", "title"=>"Place spam in the specified folder")
+			)),
+			array("title"=>"Spam folder", "type"=>"text", "name"=>"spambox-folder", "rowclass"=>"spambox-folder"),
+			array("title"=>"Spambox quota", "type"=>"multipart", "rowclass"=>"spambox-quota", "parts"=>array(
+				array("type"=>"text", "name"=>"spamquota", "fill"=>true),
+				array("type"=>"label", "class"=>"nowrap", "html"=>"MiB")
+			)),
+			array("title"=>"Virusbox", "type"=>"radio", "name"=>"virusbox", "class"=>"field-virusbox", "options"=>array(
+				array("value"=>"none", "title"=>"No virusbox"),
+				array("value"=>"inbox", "title"=>"Virus in inbox"),
+				array("value"=>"folder", "title"=>"Place virus mails in the specified folder")
+			)),
+			array("title"=>"Virus folder", "type"=>"text", "name"=>"virusbox-folder", "rowclass"=>"virusbox-folder"),
+			array("title"=>"Virusbox quota", "type"=>"multipart", "rowclass"=>"virusbox-quota", "parts"=>array(
+				array("type"=>"text", "name"=>"virusquota", "fill"=>true),
+				array("type"=>"label", "class"=>"nowrap", "html"=>"MiB")
+			))
+		),
+		$values) . spamVirusJavascript();
+}
+
+function editMailboxForm($addressID, $error = "", $values = null)
+{
+	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart", "quota", "spambox", "spamQuota", "virusbox", "virusQuota"));
+	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$mailbox["domainID"]), "name");
+	
+	if($values === null) {
+		$values = array(
+			"quota"=>($mailbox["quota"] === null ? "" : $mailbox["quota"]),
+			"spambox"=>($mailbox["spambox"] === null ? "none" : ($mailbox["spambox"] === "" ? "inbox" : "folder")),
+			"spambox-folder"=>(($mailbox["spambox"] === null || $mailbox["spambox"] === "") ? "" : $mailbox["spambox"]),
+			"spamquota"=>$mailbox["spamQuota"],
+			"virusbox"=>($mailbox["virusbox"] === null ? "none" : ($mailbox["virusbox"] === "" ? "inbox" : "folder")),
+			"virusbox-folder"=>(($mailbox["virusbox"] === null || $mailbox["virusbox"] === "") ? "" : $mailbox["virusbox"]),
+			"virusquota"=>$mailbox["virusQuota"]
+			);
+	}
+	
+	
+	return operationForm("editmailbox.php?id={$mailbox["domainID"]}", $error, "Edit mailbox", "Save",
+		array(
+			array("title"=>"Quota", "type"=>"multipart", "parts"=>array(
+				array("type"=>"text", "name"=>"quota", "fill"=>true),
+				array("type"=>"label", "class"=>"nowrap", "html"=>"MiB")
+			)),
+			array("title"=>"Spambox", "type"=>"radio", "name"=>"spambox", "class"=>"field-spambox", "options"=>array(
+				array("value"=>"none", "title"=>"No spambox"),
+				array("value"=>"inbox", "title"=>"Spam in inbox"),
+				array("value"=>"folder", "title"=>"Place spam in the specified folder")
+			)),
+			array("title"=>"Spam folder", "type"=>"text", "name"=>"spambox-folder", "rowclass"=>"spambox-folder"),
+			array("title"=>"Spambox quota", "type"=>"multipart", "rowclass"=>"spambox-quota", "parts"=>array(
+				array("type"=>"text", "name"=>"spamquota", "fill"=>true),
+				array("type"=>"label", "class"=>"nowrap", "html"=>"MiB")
+			)),
+			array("title"=>"Virusbox", "type"=>"radio", "name"=>"virusbox", "class"=>"field-virusbox", "options"=>array(
+				array("value"=>"none", "title"=>"No virusbox"),
+				array("value"=>"inbox", "title"=>"Virus in inbox"),
+				array("value"=>"folder", "title"=>"Place virus mails in the specified folder")
+			)),
+			array("title"=>"Virus folder", "type"=>"text", "name"=>"virusbox-folder", "rowclass"=>"virusbox-folder"),
+			array("title"=>"Virusbox quota", "type"=>"multipart", "rowclass"=>"virusbox-quota", "parts"=>array(
+				array("type"=>"text", "name"=>"virusquota", "fill"=>true),
+				array("type"=>"label", "class"=>"nowrap", "html"=>"MiB")
+			))
+		),
+		$values) . spamVirusJavascript();
+}
+
+function editMailboxPasswordForm($addressID, $error = "", $values = null)
+{
+	return operationForm("editmailboxpassword.php?id=$addressID", $error, "Change password", "Change Password",
+		array(
+			array("title"=>"Password", "type"=>"password", "name"=>"password", "confirmtitle"=>"Confirm password")
+		),
+		$values);
+}
+
+function removeMailboxForm($addressID, $error = "", $values = null)
+{
+	return operationForm("removemailbox.php?id=$addressID", $error, "Remove mailbox", "Yes, delete the mail", array(), $values, array("confirmdelete"=>"Are you sure you want to remove this mailbox? This will permanently delete all mail stored in it."));
 }
 
 function validDomain($name)
@@ -923,6 +631,5 @@ function validEmail($email)
 	}
 	return true;
 }
-
 
 ?>
