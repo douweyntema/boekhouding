@@ -44,41 +44,12 @@ HTML;
 	return $output;
 }
 
-function addDatabaseForm($error = "", $databaseName = null)
+function addDatabaseForm($error = "", $values = null)
 {
-	$databaseNameValue = inputValue($databaseName);
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Add database</h2>
-$messageHtml
-<form action="adddatabase.php" method="post">
-$confirmHtml
-<table>
-<tr>
-<th>Database name:</th>
-<td class="stretch"><input type="text" name="databaseName" $readonly $databaseNameValue /></td>
-</tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Save" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
+	return operationForm("adddatabase.php", $error, "Add database", "Save",
+		array(
+			array("title"=>"Database name", "type"=>"text", "name"=>"databaseName")
+		), $values);
 }
 
 function validDatabaseName($name)

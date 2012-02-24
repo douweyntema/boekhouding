@@ -6,26 +6,17 @@ function main()
 {
 	doMysql();
 	
-	$content = "<h1>Add database</h1>\n";
-	
-	$content .= mysqlBreadcrumbs(array(array("name"=>"Add database", "url"=>"{$GLOBALS["root"]}mysql/adddatabase.php")));
+	$check = function($condition, $error) {
+		$title = "<h1>Add database</h1>\n";
+		$breadcrumbs = mysqlBreadcrumbs(array(array("name"=>"Add database", "url"=>"{$GLOBALS["root"]}mysql/adddatabase.php")));
+		if(!$condition) die(page($title . $breadcrumbs . addDatabaseForm($error, $_POST)));
+	};
 	
 	$name = post("databaseName");
 	
-	if(!validDatabaseName($name)) {
-		$content .= addDatabaseForm("Invalid database name", $name);
-		die(page($content));
-	}
-	
-	if(mysqlDatabaseExists($name)) {
-		$content .= addDatabaseForm("A database with the chosen name already exists", $name);
-		die(page($content));
-	}
-	
-	if(post("confirm") === null) {
-		$content .= addDatabaseForm(null, $name);
-		die(page($content));
-	}
+	$check(validDatabaseName($name), "Invalid database name");
+	$check(!mysqlDatabaseExists($name), "A database with the chosen name already exists");
+	$check(post("confirm") !== null, null);
 	
 	mysqlCreateDatabase($name);
 	

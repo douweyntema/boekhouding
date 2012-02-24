@@ -35,8 +35,9 @@ function mysqlRevokeRights($database, $db = null)
 	if($db === null) {
 		$db = mysqlDatabaseConnection();
 	}
-	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), "username") as $user) {
-		$db->setQuery("REVOKE ALL ON $database.* FROM '$user'@'%'");
+	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username")) as $user) {
+		$host = (canUserAccessComponent($user["userID"], "mysql")) ? "%" : "0.0.0.0";
+		$db->setQuery("REVOKE ALL ON $database.* FROM '{$user["username"]}'@'$host'");
 	}
 }
 
