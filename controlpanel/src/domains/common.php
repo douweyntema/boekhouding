@@ -989,7 +989,7 @@ function validDomainPart($name)
 	if(strlen($name) < 1 || strlen($name) > 255) {
 		return false;
 	}
-	if(preg_match('/^[-a-zA-Z0-9]*$/', $name) != 1) {
+	if(preg_match('/^[_-a-zA-Z0-9]*$/', $name) != 1) {
 		return false;
 	}
 	return true;
@@ -1000,7 +1000,7 @@ function validDomain($name)
 	if(strlen($name) < 1 || strlen($name) > 255) {
 		return false;
 	}
-	if(preg_match('/^[-a-zA-Z0-9]+(\\.[-a-zA-Z0-9]+)*$/', $name) != 1) {
+	if(preg_match('/^[_-a-zA-Z0-9]+(\\.[_-a-zA-Z0-9]+)*$/', $name) != 1) {
 		return false;
 	}
 	return true;
