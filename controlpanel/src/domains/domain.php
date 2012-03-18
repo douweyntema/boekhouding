@@ -7,7 +7,7 @@ function main()
 	$domainID = get("id");
 	doDomain($domainID);
 	
-	$domainName = domainName($domainID);
+	$domainName = domainsFormatDomainName($domainID);
 	$title = isSubDomain($domainID) ? "Subdomain" : "Domain";
 	$content = "<h1>$title " . $domainName . "</h1>\n";
 	

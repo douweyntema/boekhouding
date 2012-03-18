@@ -130,6 +130,27 @@ function getTldID($domainID)
 	return $GLOBALS["database"]->stdGetTry("dnsDomain", array("domainID"=>$domainID), "domainTldID", null);
 }
 
+function domainsFormatDomainName($domainID)
+{
+	$name = "";
+	$separator = "";
+	while(true) {
+		$domain = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), array("parentDomainID", "domainTldID", "name"));
+		$name .= $separator . $domain["name"];
+		$separator = ".";
+		if($domain["domainTldID"] != null) {
+			$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
+			$name .= $separator . $tld;
+			break;
+		}
+		if($domain["parentDomainID"] == null) {
+			break;
+		}
+		$domainID = $domain["parentDomainID"];
+	}
+	return $name;
+}
+
 class DomainsNoApiException extends Exception
 {
 }

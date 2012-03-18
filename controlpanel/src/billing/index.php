@@ -2,6 +2,18 @@
 
 require_once("common.php");
 
-die(page("<h1>Billing</h1><p>TODO</p>"));
+function main()
+{
+	doBilling();
+	
+	$content = "<h1>Billing</h1>\n";
+	$content .= billingBreadcrumbs();
+	$content .= customerSubscriptionList();
+	$content .= invoiceList(3);
+	
+	echo page($content);
+}
+
+main();
 
 ?>

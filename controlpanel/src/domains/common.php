@@ -32,7 +32,7 @@ function domainBreadcrumbs($domainID, $postfix = array())
 			$parts[] = array("id"=>0, "name"=>$tld, "show"=>false);
 			break;
 		} else if($domain["customerID"] != customerID()) {
-			$parts[] = array("id"=>$nextDomainID, "name"=>fullDomainName($domain["name"], $domain["parentDomainID"]), "show"=>false);
+			$parts[] = array("id"=>$nextDomainID, "name"=>domainsFormatDomainName($nextDomainID), "show"=>false);
 			break;
 		} else {
 			$parts[] = array("id"=>$nextDomainID, "name"=>$domain["name"], "show"=>true);
@@ -65,7 +65,7 @@ function domainsList()
 			removeDomain($domainID);
 			continue;
 		}
-		$domainName = domainName($domainID);
+		$domainName = domainsFormatDomainName($domainID);
 		$status = domainsDomainStatusDescription($domainID);
 		$domains[$domainName] = array("domainID"=>$domainID, "name"=>$domainName, "status"=>$status);
 	}
@@ -97,7 +97,7 @@ function subDomainsList($parentDomainID)
 	
 	$domains = array();
 	foreach($GLOBALS["database"]->stdList("dnsDomain", array("customerID"=>customerID(), "parentDomainID"=>$parentDomainID), array("domainID", "parentDomainID", "name")) as $domain) {
-		$domainName = domainName($domain["domainID"]);
+		$domainName = domainsFormatDomainName($domain["domainID"]);
 		$domains[$domainName] = array("domainID"=>$domain["domainID"], "name"=>$domainName);
 	}
 	ksort($domains);
@@ -129,7 +129,7 @@ HTML;
 function domainDetail($domainID)
 {
 	$tldID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID");
-	$domainName = domainName($domainID);
+	$domainName = domainsFormatDomainName($domainID);
 	$domainNameHtml = htmlentities($domainName);
 	
 	$output  = "<div class=\"operation\">\n";
@@ -242,7 +242,7 @@ function addSubdomainForm($domainID, $error = "", $name = null)
 HTML;
 	}
 	
-	$parentName = domainName($domainID);
+	$parentName = domainsFormatDomainName($domainID);
 	$parentNameHtml = htmlentities($parentName);
 	
 	if($error === null) {
@@ -424,7 +424,7 @@ function editMailTypeForm($domainID, $error = "", $type = null, $mailservers = n
 HTML;
 	}
 	
-	$domainName = domainName($domainID);
+	$domainName = domainsFormatDomainName($domainID);
 	$domainNameHtml = htmlentities($domainName);
 	
 	if($error === null) {
@@ -733,7 +733,7 @@ function addressTypeSubform($confirm = false, $type = null, $ipv4 = null, $ipv6 
 
 function editAddressTypeForm($domainID, $error = "", $type = null, $ipv4 = null, $ipv6 = null, $cname = null, $delegationServers = null, $warning = null) // TODO: $warning na error zetten ofzo
 {
-	$domainName = domainName($domainID);
+	$domainName = domainsFormatDomainName($domainID);
 	$domainNameHtml = htmlentities($domainName);
 	
 	if($warning === null) {
@@ -961,27 +961,6 @@ function rootDomainID($domainID)
 function isSubDomain($domainID)
 {
 	return $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID") != null;
-}
-
-function domainName($domainID)
-{
-	$name = "";
-	$separator = "";
-	while(true) {
-		$domain = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), array("parentDomainID", "domainTldID", "name"));
-		$name .= $separator . $domain["name"];
-		$separator = ".";
-		if($domain["domainTldID"] != null) {
-			$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
-			$name .= $separator . $tld;
-			break;
-		}
-		if($domain["parentDomainID"] == null) {
-			break;
-		}
-		$domainID = $domain["parentDomainID"];
-	}
-	return $name;
 }
 
 function validDomainPart($name)

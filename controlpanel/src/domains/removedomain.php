@@ -6,7 +6,7 @@ function main()
 {
 	$domainID = get("id");
 	doDomain($domainID);
-	$domainName = domainName($domainID);
+	$domainName = domainsFormatDomainName($domainID);
 	
 	$content = "<h1>Domain " . $domainName . "</h1>\n";
 	

@@ -7,7 +7,7 @@ function main()
 	$domainID = get("id");
 	doDomain($domainID);
 	
-	$content = "<h1>Domain " . domainName($domainID) . "</h1>\n";
+	$content = "<h1>Domain " . domainsFormatDomainName($domainID) . "</h1>\n";
 	
 	$content .= domainBreadcrumbs($domainID, array(array("name"=>"Edit email", "url"=>"{$GLOBALS["root"]}domains/editpath.php?id=$domainID")));
 	

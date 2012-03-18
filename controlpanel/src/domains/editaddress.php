@@ -7,7 +7,7 @@ function main()
 	$domainID = get("id");
 	doDomain($domainID);
 	
-	$content = "<h1>Domain " . domainName($domainID) . "</h1>\n";
+	$content = "<h1>Domain " . domainsFormatDomainName($domainID) . "</h1>\n";
 	
 	$content .= domainBreadcrumbs($domainID, array(array("name"=>"Edit address", "url"=>"{$GLOBALS["root"]}domains/editaddress.php?id=$domainID")));
 	
@@ -122,9 +122,9 @@ function main()
 			$cname = substr($cname, 0, -1);
 		} else if(strpos($cname, ".") === false) {
 			if(isSubDomain($domainID)) {
-				$cname .= "." . domainName($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID"));
+				$cname .= "." . domainsFormatDomainName($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID"));
 			} else {
-				$cname .= "." . domainName($domainID);
+				$cname .= "." . domainsFormatDomainName($domainID);
 			}
 		}
 		
@@ -183,7 +183,7 @@ function main()
 			$warning .= "<p class=\"confirmdelete\">This record will be deleted: {$record["type"]}: {$record["value"]}</p>";
 		}
 		foreach(subdomains($domainID) as $subDomainID) {
-			$warning .= "<p class=\"confirmdelete\">This domain will be deleted: " . domainName($subDomainID) . "</p>";
+			$warning .= "<p class=\"confirmdelete\">This domain will be deleted: " . domainsFormatDomainName($subDomainID) . "</p>";
 		}
 		
 		if(post("confirm") === null) {

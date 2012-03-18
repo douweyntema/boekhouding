@@ -8,7 +8,7 @@ function main()
 	$subDomainName = post("name");
 	doDomain($parentDomainID);
 	
-	$parentDomainName = domainName($parentDomainID);
+	$parentDomainName = domainsFormatDomainName($parentDomainID);
 	
 	$content = "<h1>Add subdomain - $subDomainName.$parentDomainName</h1>\n";
 	
