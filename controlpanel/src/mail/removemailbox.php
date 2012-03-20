@@ -7,10 +7,10 @@ function main()
 	$addressID = get("id");
 	doMailAddress($addressID);
 	
-	$domainID = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), "domainID");
+	$domainID = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), "domainID");
 	
 	$check = function($condition, $error) use($addressID) {
-		if(!$condition) die(page(addressHeader($addressID) . removeMailAddressForm($addressID, $error, $_POST)));
+		if(!$condition) die(page(mailboxHeader($addressID) . removeMailboxForm($addressID, $error, $_POST)));
 	};
 	
 	$check(post("confirm") !== null, null);

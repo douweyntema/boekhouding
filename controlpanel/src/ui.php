@@ -1,120 +1,222 @@
 <?php
 
-function renderField($field, $values, $readOnly, $columns)
+function getHtmlID()
 {
-	if($field["type"] == "multipart") {
-		$output = "";
-		foreach($field["parts"] as $part) {
-			$output .= renderField($part, $values, $readOnly, $columns - count($field["parts"]) + 1);
+	static $id = 1;
+	return "l" . ($id++);
+}
+
+function getField($key/*, sources...*/)
+{
+	$sources = func_get_args();
+	array_shift($sources);
+	foreach($sources as $source) {
+		if(isset($source[$key])) {
+			return $source[$key];
 		}
-		return $output;
+	}
+	return null;
+}
+
+function renderCell($cell, $values, $readOnly)
+{
+	$output = array();
+	if(isset($cell["cellclass"])) {
+		$output["cellclass"] = $cell["cellclass"];
+	}
+	$output["content"] = "";
+	
+	if(isset($cell["name"])) {
+		$oldName = isset($cell["confirm"]) ? "{$cell["name"]}-{$cell["confirm"]}" : $cell["name"];
+		$value = isset($values[$oldName]) ? $values[$oldName] : null;
+		$name = $readOnly ? $cell["name"] : $oldName;
+		$fieldClass = isset($cell["fieldClass"]) ? $cell["fieldClass"] : null;
 	}
 	
-	if($field["type"] == "custom") {
-		return $field["html"];
-	}
-	
-	$output = "<td";
-	if(isset($field["fill"]) && $field["fill"]) {
-		if($columns != 1) {
-			$output .= " colspan=\"$columns\"";
+	if($cell["type"] == "html") {
+		$output["content"] = $cell["html"];
+	} else if($cell["type"] == "label") {
+		$output["content"] .= "<label for=\"{$cell["id"]}\">{$cell["label"]}</label>";
+	} else if($cell["type"] == "text") {
+		$output["content"] = "<input type=\"text\" name=\"$name\"";
+		if($fieldClass !== null) {
+			$output["content"] .= " class=\"$fieldClass\"";
 		}
-		if(isset($field["class"])) {
-			$output .= " class=\"{$field["class"]} stretch\"";
+		if($readOnly) {
+			$output["content"] .= " readonly=\"readonly\"";
+		}
+		if($value !== null) {
+			$valueHtml = htmlentities($value);
+			$output["content"] .= " value=\"$valueHtml\"";
+		}
+		$output["content"] .= " />";
+	} else if($cell["type"] == "textarea") {
+		$output["content"] = "<textarea name=\"$name\"";
+		if($fieldClass !== null) {
+			$output["content"] .= " class=\"$fieldClass\"";
+		}
+		if($readOnly) {
+			$output["content"] .= " readonly=\"readonly\"";
+		}
+		$output["content"] .= ">";
+		if($value !== null) {
+			$output["content"] .= htmlentities($value);
+		}
+		$output["content"] .= "</textarea>";
+	} else if($cell["type"] == "password") {
+		if($readOnly) {
+			$output["content"] = "<input type=\"password\" readonly=\"readonly\"";
+			if($fieldClass !== null) {
+				$output["content"] .= " class=\"$fieldClass\"";
+			}
+			if($value !== null) {
+				$masked = str_repeat("*", strlen($value));
+				$output["content"] .= " value=\"$masked\"";
+			}
+			$output["content"] .= " />";
+			if($value !== null) {
+				$encryptedPassword = encryptPassword($value);
+				$output["content"] .= "<input type=\"hidden\" name=\"encrypted-$name\" value=\"$encryptedPassword\" />";
+			}
 		} else {
-			$output .= " class=\"stretch\"";
-		}
-	} else {
-		if(isset($field["class"])) {
-			$output .= " class=\"{$field["class"]}\"";
-		}
-	}
-	$output .= ">";
-	
-	if(isset($field["header"])) {
-		$output .= $field["header"];
-	}
-	
-	if($field["type"] == "text") {
-		$output .= "<input type=\"text\" name=\"{$field["name"]}\"";
-		if($readOnly) {
-			$output .= " readonly=\"readonly\"";
-		}
-		if(isset($values[$field["name"]]) && $values[$field["name"]] !== null) {
-			$value = htmlentities($values[$field["name"]]);
-			$output .= " value=\"$value\"";
-		}
-		$output .= " />";
-	} else if($field["type"] == "textarea") {
-		$output .= "<textarea name=\"{$field["name"]}\"";
-		if($readOnly) {
-			$output .= " readonly=\"readonly\"";
-		}
-		$output .= ">";
-		if(isset($values[$field["name"]]) && $values[$field["name"]] !== null) {
-			$output .= htmlentities($values[$field["name"]]);
-		}
-		$output .= "</textarea>";
-	} else if($field["type"] == "password") {
-		if($readOnly) {
-			$oldName = $field["name"] . "-1";
-			if(isset($values[$oldName]) && $values[$oldName] !== null) {
-				$password = $values[$oldName];
-			} else {
-				$password = null;
+			$output["content"] = "<input type=\"password\" name=\"$name\"";
+			if($fieldClass !== null) {
+				$output["content"] .= " class=\"$fieldClass\"";
 			}
-			$output .= "<input type=\"password\"";
-			if($password !== null) {
-				$masked = str_repeat("*", strlen($password));
-				$output .= " value=\"$masked\"";
-			}
-			$output .= " readonly=\"readonly\" />";
-			if($password !== null) {
-				$encryptedPassword = encryptPassword($password);
-				$output .= "<input type=\"hidden\" name=\"encrypted-{$field["name"]}\" value=\"$encryptedPassword\" />";
-			}
+			$output["content"] .= " />";
+		}
+	} else if($cell["type"] == "radioentry") {
+		$output["content"] = "<label><input type=\"radio\" value=\"{$cell["value"]}\"";
+		if($value == $cell["value"]) {
+			$output["content"] .= " checked=\"checked\"";
+		}
+		if($readOnly) {
+			$output["content"] .= " disabled=\"disabled\"";
 		} else {
-			$name = (isset($field["confirm"]) && $field["confirm"]) ? $field["name"] . "-1" : $field["name"] . "-2";
-			$output .= "<input type=\"password\" name=\"$name\" />";
+			$output["content"] .= " name=\"$name\"";
 		}
-	} else if($field["type"] == "checkbox") {
-	
-	} else if($field["type"] == "radio") {
-		$first = true;
-		foreach($field["options"] as $option) {
-			if(!$first) {
-				$output .= "<br />\n";
-			} else {
-				$first = false;
-			}
-			$output .= "<label><input type=\"radio\" value=\"{$option["value"]}\"";
-			if(isset($values[$field["name"]]) && $values[$field["name"]] == $option["value"]) {
-				$output .= " checked=\"checked\"";
-			}
-			if($readOnly) {
-				$output .= " disabled=\"disabled\"";
-			} else {
-				$output .= " name=\"{$field["name"]}\"";
-			}
-			$output .= " />{$option["title"]}</label>";
+		if($fieldClass !== null) {
+			$output["content"] .= " class=\"$fieldClass\"";
 		}
-		if($readOnly && isset($values[$field["name"]])) {
-			$output .= "<input type=\"hidden\" name=\"{$field["name"]}\" value=\"{$values[$field["name"]]}\" />";
+		$output["content"] .= " /> {$cell["label"]}</label>";
+		if($readOnly && ($value == $cell["value"])) {
+			$output["content"] .= "<input type=\"hidden\" name=\"$name\" value=\"$value\" />";
 		}
-	} else if($field["type"] == "dropdown") {
-	
-	} else if($field["type"] == "label") {
-		$output .= $field["html"];
+	} else if($cell["type"] == "bareradioentry") {
+		$output["content"] = "<input type=\"radio\" value=\"{$cell["value"]}\" id=\"{$cell["id"]}\"";
+		if($value == $cell["value"]) {
+			$output["content"] .= " checked=\"checked\"";
+		}
+		if($readOnly) {
+			$output["content"] .= " disabled=\"disabled\"";
+		} else {
+			$output["content"] .= " name=\"$name\"";
+		}
+		if($fieldClass !== null) {
+			$output["content"] .= " class=\"$fieldClass\"";
+		}
+		$output["content"] .= " />";
+		if($readOnly && ($value == $cell["value"])) {
+			$output["content"] .= "<input type=\"hidden\" name=\"$name\" value=\"$value\" />";
+		}
+	} else if($cell["type"] == "checkbox") {
+		die("Not implemented");
+	} else if($cell["type"] == "dropdown") {
+		die("Not implemented");
 	} else {
-		die("Invalid field type {$field["type"]}");
+		die("Invalid field type {$cell["type"]}");
 	}
 	
-	if(isset($field["footer"])) {
-		$output .= $field["footer"];
+	if(isset($cell["header"]) && $cell["header"] !== null) {
+		$output["content"] = $cell["header"] . $output["content"];
+	}
+	if(isset($cell["footer"]) && $cell["footer"] !== null) {
+		$output["content"] .= $cell["footer"];
 	}
 	
-	$output .= "</td>\n";
 	return $output;
+}
+
+function renderRow($row, $values, $readOnly)
+{
+	$output = array();
+	$output["cells"] = array();
+	if($row["type"] == "colspan") {
+		foreach($row["columns"] as $column) {
+			$c = $column;
+			$c["fieldclass"] = getField("fieldclass", $column, $row);
+			$c["cellclass"] = getField("cellclass", $column, $row);
+			
+			$cell = renderCell($c, $values, $readOnly);
+			if(isset($column["fill"]) && $column["fill"]) {
+				$cell["width"] = "stretch";
+			} else {
+				$cell["width"] = null;
+			}
+			$output["cells"][] = $cell;
+		}
+	} else if($row["type"] == "splitradioentry") {
+		$c = $row;
+		$c["type"] = "bareradioentry";
+		$cell = renderCell($c, $values, $readOnly);
+		$cell["width"] = "left-merge";
+		$output["cells"][] = $cell;
+		
+		$c["type"] = "label";
+		$cell = renderCell($c, $values, $readOnly);
+		$cell["width"] = "stretch";
+		$output["cells"][] = $cell;
+	} else {
+		$cell = renderCell($row, $values, $readOnly);
+		$cell["width"] = "stretch";
+		$output["cells"] = array($cell);
+	}
+	if(isset($row["rowclass"])) {
+		$output["rowclass"] = $row["rowclass"];
+	}
+	return $output;
+}
+
+function renderRowspan($rowspan, $values, $readOnly)
+{
+	if($rowspan["type"] == "rowspan") {
+		$rows = array();
+		foreach($rowspan["rows"] as $row) {
+			$rows[] = renderRow($row, $values, $readOnly);
+		}
+		return $rows;
+	} else if($rowspan["type"] == "subformchooser") {
+		$rows = array();
+		foreach($rowspan["subforms"] as $subform) {
+			$rows[] = renderRow(array("type"=>"splitradioentry", "name"=>$rowspan["name"], "value"=>$subform["value"], "label"=>$subform["label"], "id"=>getHtmlID()), $values, $readOnly);
+			foreach($subform["subform"] as $subfield) {
+				if(!isset($subfield["title"])) {
+					$f = $subfield;
+					$f["fieldclass"] = getField("fieldclass", $subfield, $subform, $rowspan);
+					$f["cellclass"] = getField("cellclass", $subfield, $subform, $rowspan);
+					$f["rowclass"] = getField("rowclass", $subfield, $subform, $rowspan);
+					
+					$row = renderRow($f, $values, $readOnly);
+					$row["cells"] = array_merge(array("width"=>"left-merge"), $row["cells"]);
+					$rows[] = $row;
+				}
+			}
+		}
+		return $rows;
+	} else if($rowspan["type"] == "radio") {
+		$rows = array();
+		foreach($rowspan["options"] as $option) {
+			$row = array("type"=>"radioentry", "name"=>$rowspan["name"], "value"=>$option["value"], "label"=>$option["label"]);
+			$row["fieldclass"] = getField("fieldclass", $option, $rowspan);
+			$row["cellclass"] = getField("cellclass", $option, $rowspan);
+			$row["rowclass"] = getField("rowclass", $option, $rowspan);
+			
+			$rows[] = renderRow($row, $values, $readOnly);
+		}
+		return $rows;
+	} else {
+		return array(renderRow($rowspan, $values, $readOnly));
+	}
 }
 
 function operationForm($postUrl, $error, $title, $submitCaption, $fields, $values, $messages = null)
@@ -138,10 +240,10 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	}
 	
 	if($messages !== null) {
-		if(isset($messages["confirmdelete"])) {
+		if(isset($messages["confirmdelete"]) && $error === null) {
 			$messageHtml .= "<p class=\"confirmdelete\">" . $messages["confirmdelete"] . "</p>\n";
 		}
-		if(isset($messages["confirmbilling"])) {
+		if(isset($messages["confirmbilling"]) && $error === null) {
 			$messageHtml .= "<p class=\"confirmbilling\">" . $messages["confirmbilling"] . "</p>\n";
 		}
 		if(isset($messages["custom"])) {
@@ -149,49 +251,212 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 		}
 	}
 	
-	$content = "";
-	$columns = 2;
-	foreach($fields as $field) {
-		if($field["type"] == "multipart") {
-			if(count($field["parts"]) + 1 > $columns) {
-				$columns = count($field["parts"]) + 1;
-			}
-		}
-	}
+	$hiddenFields = "";
+	$rowspans = array();
 	foreach($fields as $field) {
 		if($field["type"] == "hidden") {
-			if(isset($values[$field["name"]])) {
-				$valueHtml = htmlentities($values[$field["name"]]);
-				$content .= "<input type=\"hidden\" name=\"{$field["name"]}\" value=\"$valueHtml\" />\n";
-			}
+			$valueHtml = htmlentities($values[$field["name"]]);
+			$hiddenFields .= "<input type=\"hidden\" name=\"{$field["name"]}\" value=\"$valueHtml\" />";
 			continue;
 		}
-		if($field["type"] != "multipart") {
-			$field["fill"] = true;
-		}
-		if(isset($field["rowclass"])) {
-			$rowclass = " class=\"{$field["rowclass"]}\"";
+		
+		
+		$f = $field;
+		$rowspan = array();
+		if(!isset($field["title"]) || $field["title"] === null) {
+			$rowspan["title"] = null;
 		} else {
-			$rowclass = "";
+			$rowspan["title"] = $field["title"];
 		}
-		$content .= "<tr$rowclass>\n<th>{$field["title"]}:</th>\n" . renderField($field, $values, $readOnly, $columns - 1) . "</tr>\n";
-		if($field["type"] == "password" && !$readOnly) {
-			$field["confirm"] = true;
-			$content .= "<tr$rowclass>\n<th>{$field["confirmtitle"]}:</th>\n" . renderField($field, $values, $readOnly, $columns - 1) . "</tr>\n";
+		
+		if(isset($field["titleclass"])) {
+			$rowspan["titleclass"] = $field["titleclass"];
+		}
+		
+		if(isset($field["confirmtitle"])) {
+			$f["confirm"] = 1;
+		}
+		
+		$rowspan["rows"] = renderRowspan($f, $values, $readOnly);
+		$rowspans[] = $rowspan;
+		
+		if(isset($field["confirmtitle"]) && !$readOnly) {
+			$f = $field;
+			$f["confirm"] = 2;
+			$rowspan = array();
+			$rowspan["title"] = $field["confirmtitle"];
+			$rowspan["rows"] = renderRowspan($f, $values, $readOnly);
+			$rowspans[] = $rowspan;
+		}
+		
+		if($field["type"] == "subformchooser") {
+			foreach($field["subforms"] as $subform) {
+				foreach($subform["subform"] as $subfield) {
+					if(isset($subfield["title"])) {
+						$rowspan = array();
+						$rowspan["title"] = $subfield["title"];
+						if(isset($field["titleclass"])) {
+							$rowspan["titleclass"] = $field["titleclass"];
+						}
+						$rowspan["rows"] = renderRowspan($subfield, $values, $readOnly);
+						$rowspans[] = $rowspan;
+					}
+				}
+			}
 		}
 	}
 	
+	$leftMergeUsed = false;
+	$maxLeftFields = 0;
+	$maxRightFields = 0;
+	foreach($rowspans as $rowspan) {
+		foreach($rowspan["rows"] as $row) {
+			$leftFields = 0;
+			$rightFields = 0;
+			if(isset($rowspan["title"]) && $rowspan["title"] !== null) {
+				$leftFields++;
+			}
+			
+			$stretchSeen = false;
+			foreach($row["cells"] as $cell) {
+				if(isset($cell["width"]) && $cell["width"] == "left-merge") {
+					$leftMergeUsed = true;
+				} else if(isset($cell["width"]) && $cell["width"] == "stretch") {
+					$stretchSeen = true;
+				} else if($stretchSeen) {
+					$rightFields++;
+				} else {
+					$leftFields++;
+				}
+			}
+			if($leftFields > $maxLeftFields) {
+				$maxLeftFields = $leftFields;
+			}
+			if($rightFields > $maxRightFields) {
+				$maxRightFields = $rightFields;
+			}
+		}
+	}
+	if($leftMergeUsed) {
+		$maxLeftFields += 1;
+	}
+	
+	$content = "";
+	if($maxLeftFields == 1) {
+		$content .= "<col />";
+	} else if($maxLeftFields > 0) {
+		$content .= "<col span=\"$maxLeftFields\" />";
+	}
+	$content .= "<col style=\"width: 100%;\" />";
+	if($maxRightFields == 1) {
+		$content .= "<col />";
+	} else if($maxRightFields > 0) {
+		$content .= "<col span=\"$maxRightFields\" />";
+	}
+	
+	foreach($rowspans as $rowspan) {
+		$hasTitle = (isset($rowspan["title"]) && $rowspan["title"] !== null);
+		$first = true;
+		
+		foreach($rowspan["rows"] as $row) {
+			$content .= "<tr";
+			if(isset($row["rowclass"]) && $row["rowclass"] !== null) {
+				$content .= " class=\"{$row["rowclass"]}\"";
+			}
+			$content .= ">";
+			
+			if($first) {
+				if($hasTitle) {
+					$content .= "<th";
+					if(count($rowspan["rows"]) != 1) {
+						$rows = count($rowspan["rows"]);
+						$content .= " rowspan=\"$rows\"";
+					}
+					if(isset($rowspan["titleclass"]) && $rowspan["titleclass"] !== null) {
+						$content .= " class=\"{$rowspan["titleclass"]}\"";
+					}
+					$content .= ">";
+					if($rowspan["title"] != "") {
+						$content .= $rowspan["title"] . ":";
+					}
+					$content .= "</th>";
+				}
+				$first = false;
+			}
+			$content .= "\n";
+			
+			$stretchWidth = $maxLeftFields + $maxRightFields + 1;
+			if($hasTitle) {
+				$stretchWidth -= 1;
+			}
+			if($leftMergeUsed && !(isset($row["cells"][0]["width"]) && $row["cells"][0]["width"] == "left-merge")) {
+				$stretchWidth -= 1;
+			}
+			$stretchWidth -= count($row["cells"]);
+			$stretchWidth += 1;
+			
+			$firstCell = true;
+			foreach($row["cells"] as $cell) {
+				$content .= "<td";
+				if(isset($cell["width"]) && $cell["width"] == "left-merge") {
+					$width = 1;
+				} else {
+					if(isset($cell["width"]) && $cell["width"] == "stretch") {
+						$width = $stretchWidth;
+						if(isset($cell["cellclass"]) && $cell["cellclass"] !== null) {
+							$cell["cellclass"] .= " stretch";
+						} else {
+							$cell["cellclass"] = "stretch";
+						}
+					} else {
+						$width = 1;
+					}
+					if($firstCell && $leftMergeUsed) {
+						$width++;
+					}
+				}
+				if($width != 1) {
+					$content .= " colspan=\"$width\"";
+				}
+				if(isset($cell["cellclass"]) && $cell["cellclass"] !== null) {
+					$content .= " class=\"{$cell["cellclass"]}\"";
+				}
+				$content .= ">";
+				$firstCell = false;
+				
+				$content .= $cell["content"];
+				
+				$content .= "</td>\n";
+			}
+			
+			$content .= "</tr>\n";
+		}
+	}
+	
+	$stretchWidth = $maxLeftFields + $maxRightFields + 1;
 	return <<<HTML
 <div class="operation">
 <h2>$title</h2>
 $messageHtml<form action="$postUrl" method="post">
 $confirmHtml<table>
-$content<tr class="submit"><td colspan="$columns"><input type="submit" value="$submitCaption" /></td></tr>
+$content<tr class="submit"><td colspan="$stretchWidth"><input type="submit" value="$submitCaption" /></td></tr>
 </table>
-</form>
+$hiddenFields</form>
 </div>
 
 HTML;
 }
+
+/*
+      return operationForm("addaccount.php", $error, "Add account", "Add", 
+        array( 
+            array("title"=>"Username", "type"=>"text", "name"=>"username"), 
+            array("title"=>"Password", "type"=>"password", "name"=>"password", "confirmtitle"=>"Confirm password"), 
+            array("title"=>"Rights", "type"=>"subformchooser", "name"=>"rights", "subforms"=>array( 
+                array("label"=>"Full access", "value"=>"full", "subform"=>array()), 
+                array("label"=>"Limited access", "value"=>"limited", "subform"=>$subform) 
+            )) 
+        ), $values); 
+*/
 
 ?>
