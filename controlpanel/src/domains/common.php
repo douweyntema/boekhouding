@@ -138,7 +138,7 @@ function domainDetail($domainID)
 	$output .= "<tr><th>Name:</th><td class=\"stretch\">{$domainNameHtml}</td></tr>";
 	if(!isSubDomain($domainID)) {
 		$status = domainsDomainStatusDescription($domainID);
-		$price = formatPrice(billingDomainPrice(customerID(), $tldID));
+		$price = formatPrice(billingDomainPrice($tldID));
 		$output .= "<tr><th>Status:</th><td class=\"stretch\">{$status}</td></tr>";
 		$output .= "<tr><th>Price per year:</th><td class=\"stretch\">{$price}</td></tr>";
 	}
@@ -176,7 +176,7 @@ function domainRemoval($domainID)
 function addDomainForm($error = "", $tldID = null, $name = null)
 {
 	if($error === null) {
-		$price = formatPrice(billingDomainPrice(customerID(), $tldID));
+		$price = formatPrice(billingDomainPrice($tldID));
 		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
 		$messageHtml .= "<p class=\"billing\">Registering this domain will cost $price per year</p>\n";
 		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
@@ -201,7 +201,7 @@ function addDomainForm($error = "", $tldID = null, $name = null)
 			} else {
 				$selected = "";
 			}
-			$tldHtml .= "<option value=\"{$tld["domainTldID"]}\" $selected>" . htmlentities($tld["name"]) . " (" . formatPrice(billingDomainPrice(customerID(), $tld["domainTldID"])) . " / year)</option>\n";
+			$tldHtml .= "<option value=\"{$tld["domainTldID"]}\" $selected>" . htmlentities($tld["name"]) . " (" . formatPrice(billingDomainPrice($tld["domainTldID"])) . " / year)</option>\n";
 		}
 		$tldHtml .= "</select>";
 	} else {
@@ -989,7 +989,7 @@ function validDomainPart($name)
 	if(strlen($name) < 1 || strlen($name) > 255) {
 		return false;
 	}
-	if(preg_match('/^[-a-zA-Z0-9]*$/', $name) != 1) {
+	if(preg_match('/^[_-a-zA-Z0-9]*$/', $name) != 1) {
 		return false;
 	}
 	return true;
@@ -1000,7 +1000,7 @@ function validDomain($name)
 	if(strlen($name) < 1 || strlen($name) > 255) {
 		return false;
 	}
-	if(preg_match('/^[-a-zA-Z0-9]+(\\.[-a-zA-Z0-9]+)*$/', $name) != 1) {
+	if(preg_match('/^[_-a-zA-Z0-9]+(\\.[_-a-zA-Z0-9]+)*$/', $name) != 1) {
 		return false;
 	}
 	return true;

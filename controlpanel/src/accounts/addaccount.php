@@ -78,6 +78,8 @@ function main()
 	}
 	$GLOBALS["database"]->commitTransaction();
 	
+	mysqlCreateUser($username, $password, ($rights === true || (isset($rights["mysql"]) && $rights["mysql"])));
+	
 	// Distribute the accounts database
 	updateAccounts(customerID());
 	

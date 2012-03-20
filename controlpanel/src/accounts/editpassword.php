@@ -25,6 +25,10 @@ function main()
 	
 	$GLOBALS["database"]->stdSet("adminUser", array("userID"=>$userID, "customerID"=>customerID()), array("password"=>hashPassword($password)));
 	
+	$mysqlRightID = $GLOBALS["database"]->stdGetTry("adminCustomerRight", array("customerID"=>customerID(), "right"=>"mysql"), "customerRightID", false);
+	
+	mysqlSetPassword($username, $password);
+	
 	// Distribute the accounts database
 	updateAccounts(customerID());
 	

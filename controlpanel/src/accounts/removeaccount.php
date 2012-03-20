@@ -26,6 +26,8 @@ function main()
 		die(page($content));
 	}
 	
+	mysqlRemoveAccount($username);
+	
 	$GLOBALS["database"]->startTransaction();
 	$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID));
 	$GLOBALS["database"]->stdDel("adminUser", array("userID"=>$userID, "customerID"=>customerID()));

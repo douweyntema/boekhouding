@@ -44,17 +44,21 @@ function main()
 		die(page($content));
 	}
 	
+	if($rights === true || (isset($rights["mysql"]) && $rights["mysql"])) {
+		mysqlEnableAccount($username);
+	} else {
+		mysqlDisableAccount($username);
+	}
+	
 	$GLOBALS["database"]->startTransaction();
 	if($rights === true) {
 		$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID));
 		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "customerRightID"=>null));
 	} else {
-		foreach(rights() as $right) {
-			$customerRightID = $GLOBALS["database"]->stdGet("adminCustomerRight", array("customerID"=>customerID(), "right"=>$right["name"]), "customerRightID");
-			if($rights[$right["name"]] && !$GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>$customerRightID))) {
-				$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "customerRightID"=>$customerRightID));
-			} else if(!$rights[$right["name"]] && $GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>$customerRightID))) {
-				$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID, "customerRightID"=>$customerRightID));
+		$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID));
+		foreach($GLOBALS["database"]->stdList("adminCustomerRight", array("customerID"=>customerID()), array("customerRightID", "right")) as $right) {
+			if($rights[$right["right"]]) { // right...
+				$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "customerRightID"=>$right["customerRightID"]));
 			}
 		}
 	}
