@@ -12,7 +12,7 @@ function main()
 	
 	$content .= subscriptionDetail($subscriptionID);
 	$content .= editSubscriptionForm($subscriptionID);
-	$content .= deleteSubscriptionForm($subscriptionID);
+	$content .= removeSubscriptionForm($subscriptionID);
 	
 	echo page($content);
 }

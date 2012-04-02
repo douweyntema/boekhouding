@@ -310,16 +310,132 @@ HTML;
 	return $output;
 }
 
-function addPaymentForm($customerID, $error = "", $values = null) {}
+function addPaymentForm($customerID, $error = "", $values = null)
+{
+	if($values === null) {
+		$values = array("date"=>date("d-m-Y"));
+	}
+	return operationForm("addpayment.php?id=$customerID", $error, "Add payment", "Save",
+		array(
+			array("title"=>"Amount", "type"=>"text", "name"=>"amount"),
+			array("title"=>"Description", "type"=>"text", "name"=>"description"),
+			array("title"=>"Date", "type"=>"text", "name"=>"date")
+		),
+		$values);
+}
 
-function addSubscriptionForm($customerID, $error = "", $values = null) {}
-function editSubscriptionForm($subscriptionID, $error = "", $values = null) {}
-function deleteSubscriptionForm($subscriptionID, $error = "", $values = null) {}
+function addSubscriptionForm($customerID, $error = "", $values = null)
+{
+	return operationForm("addsubscription.php?id=$customerID", $error, "Add subscription", "Save",
+		array(
+			array("title"=>"Description", "type"=>"text", "name"=>"description"),
+			array("title"=>"Price", "type"=>"text", "name"=>"price"),
+			array("title"=>"Discount percentage", "type"=>"text", "name"=>"discountPercentage"),
+			array("title"=>"Discount amount", "type"=>"text", "name"=>"discountAmount"),
+			array("title"=>"Frequency", "type"=>"colspan", "columns"=>array(
+				array("type"=>"html", "html"=>"per"),
+				array("type"=>"text", "name"=>"frequencyMultiplier", "fill"=>true),
+				array("type"=>"text", "name"=>"frequencyBase") // TODO: dropdown maken
+			)),
+			array("title"=>"Start date", "type"=>"text", "name"=>"nextPeriodStart"),
+			array("title"=>"Invoice delay", "type"=>"colspan", "columns"=>array(
+				array("type"=>"text", "name"=>"invoiceDelay", "fill"=>true),
+				array("type"=>"html", "html"=>"days")
+			))
+		),
+		$values);
+}
 
-function addInvoiceLineForm($customerID, $error = "", $values = null) {}
-function editInvoiceLineForm($invoiceID, $error = "", $values = null) {}
-function removeInvoiceLineForm($invoiceID, $error = "", $values = null) {}
+function editSubscriptionForm($subscriptionID, $error = "", $values = null)
+{
+	if($values === null) {
+		$values = $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
+		$values["price"] = floor($values["price"] / 100) . "," . str_pad($values["price"] % 100, 2, "0");
+		$values["discountAmount"] = floor($values["discountAmount"] / 100) . "," . str_pad($values["discountAmount"] % 100, 2, "0");
+	}
+	return operationForm("editsubscription.php?id=$subscriptionID", $error, "Edit subscription", "Save",
+		array(
+			array("title"=>"Description", "type"=>"text", "name"=>"description"),
+			array("title"=>"Price", "type"=>"text", "name"=>"price"),
+			array("title"=>"Discount percentage", "type"=>"text", "name"=>"discountPercentage"),
+			array("title"=>"Discount amount", "type"=>"text", "name"=>"discountAmount"),
+			array("title"=>"Frequency", "type"=>"colspan", "columns"=>array(
+				array("type"=>"html", "html"=>"per"),
+				array("type"=>"text", "name"=>"frequencyMultiplier", "fill"=>true),
+				array("type"=>"text", "name"=>"frequencyBase") // TODO: dropdown maken
+			)),
+			array("title"=>"Invoice delay", "type"=>"colspan", "columns"=>array(
+				array("type"=>"text", "name"=>"invoiceDelay", "fill"=>true),
+				array("type"=>"html", "html"=>"days")
+			))
+		),
+		$values);
+}
 
-function sendInvoiceForm($customerID, $error = "", $values = null) {}
+function removeSubscriptionForm($subscriptionID, $error = "", $values = null)
+{
+	return operationForm("removesubscription.php?id=$subscriptionID", $error, "Remove subscription", "Remove", array(), $values);
+}
+
+function addInvoiceLineForm($customerID, $error = "", $values = null)
+{
+	return operationForm("addinvoiceline.php?id=$customerID", $error, "Add invoice line", "Save", 
+		array(
+			array("title"=>"Description", "type"=>"text", "name"=>"description"),
+			array("title"=>"Price", "type"=>"text", "name"=>"price"),
+			array("title"=>"Discount", "type"=>"text", "name"=>"discount")
+		),
+		$values);
+}
+
+function editInvoiceLineForm($invoiceLineID, $error = "", $values = null)
+{
+	if($values === null) {
+		$values = $GLOBALS["database"]->stdGet("billingInvoiceLine", array("invoiceLineID"=>$invoiceLineID), array("description", "price", "discount", "periodStart", "periodEnd"));
+		$values["price"] = floor($values["price"] / 100) . "," . str_pad($values["price"] % 100, 2, "0");
+		$values["discount"] = floor($values["discount"] / 100) . "," . str_pad($values["discount"] % 100, 2, "0");
+		$values["periodStart"] = date("d-m-Y", $values["periodStart"]);
+		$values["periodEnd"] = date("d-m-Y", $values["periodEnd"]);
+	}
+	return operationForm("editinvoiceline.php?id=$invoiceLineID", $error, "Edit invoice line", "Save", 
+		array(
+			array("title"=>"Description", "type"=>"text", "name"=>"description"),
+			array("title"=>"Price", "type"=>"text", "name"=>"price"),
+			array("title"=>"Discount", "type"=>"text", "name"=>"discount"),
+			array("title"=>"Period start", "type"=>"text", "name"=>"periodStart"),
+			array("title"=>"Period end", "type"=>"text", "name"=>"periodEnd")
+		),
+		$values);
+}
+
+function removeInvoiceLineForm($invoiceLineID, $error = "", $values = null)
+{
+	return operationForm("removeinvoiceline.php?id=$invoiceLineID", $error, "Remove invoice", "Remove", array(), $values);
+}
+
+function sendInvoiceForm($customerID, $error = "", $values = null)
+{
+	$lines = array();
+	$lines[] = array("type"=>"colspan", "columns"=>array(
+		array("type"=>"html", "html"=>""),
+		array("type"=>"html", "html"=>"Description", "fill"=>true),
+		array("type"=>"html", "html"=>"Price"),
+		array("type"=>"html", "html"=>"Discount"),
+		array("type"=>"html", "html"=>"Start date"),
+		array("type"=>"html", "html"=>"End date")
+	));
+	foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), array("invoiceLineID", "description", "price", "discount", "periodStart", "periodEnd")) as $invoiceLine) {
+		$lines[] = array("type"=>"colspan", "columns"=>array(
+			array(/* "type"=>"checkbox"  TODO */ "type"=>"html", "html"=>"<input type=\"checkbox\">"),
+			array("type"=>"html", "fill"=>true, "html"=>$invoiceLine["description"]),
+			array("type"=>"html", "cellclass"=>"nowrap", "html"=>formatPrice($invoiceLine["price"])),
+			array("type"=>"html", "cellclass"=>"nowrap", "html"=>formatPrice($invoiceLine["discount"])),
+			array("type"=>"html", "cellclass"=>"nowrap", "html"=>date("d-m-Y", $invoiceLine["periodStart"])),
+			array("type"=>"html", "cellclass"=>"nowrap", "html"=>date("d-m-Y", $invoiceLine["periodEnd"]))
+		));
+	}
+	// TODO: add fields to chose from
+	return operationForm("sendInvoice.php?id=$customerID", $error, "Send invoice", "Send", $lines, $values);
+}
 
 ?>
