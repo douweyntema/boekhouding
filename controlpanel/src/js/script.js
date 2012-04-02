@@ -3,6 +3,7 @@ $(document).ready(function() {
 	$(".sortable table").tablesorter({widgets: ['zebra']});
 	$(".tree table").treeTable({zebra: true, initialState: "expanded"});
 	$(".list:not(.tree, .sortable) table").each(zebra);
+	setupAutoCollapse();
 });
 
 function zebra()
@@ -16,4 +17,14 @@ function zebra()
 		}
 		counter++;
 	});
+}
+
+function setupAutoCollapse()
+{
+	$("input[type=radio][id]").change(function() {
+		$("input[type=radio][name=" + $(this).attr("name") + "]").each(function() {
+			checked = $(this).attr("checked") != undefined;
+			$(".if-selected-" + $(this).attr("id")).toggle(checked);
+		});
+	}).change();
 }

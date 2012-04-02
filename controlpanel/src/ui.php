@@ -29,9 +29,10 @@ function renderCell($cell, $values, $readOnly)
 	if(isset($cell["name"])) {
 		$oldName = isset($cell["confirm"]) ? "{$cell["name"]}-{$cell["confirm"]}" : $cell["name"];
 		$value = isset($values[$oldName]) ? $values[$oldName] : null;
+		$valueHtml = $value === null ? null : htmlentities($value);
 		$name = $readOnly ? $cell["name"] : $oldName;
-		$fieldClass = isset($cell["fieldClass"]) ? $cell["fieldClass"] : null;
 	}
+	$fieldClass = isset($cell["fieldClass"]) ? $cell["fieldClass"] : null;
 	
 	if($cell["type"] == "html") {
 		$output["content"] = $cell["html"];
@@ -46,7 +47,6 @@ function renderCell($cell, $values, $readOnly)
 			$output["content"] .= " readonly=\"readonly\"";
 		}
 		if($value !== null) {
-			$valueHtml = htmlentities($value);
 			$output["content"] .= " value=\"$valueHtml\"";
 		}
 		$output["content"] .= " />";
@@ -60,7 +60,7 @@ function renderCell($cell, $values, $readOnly)
 		}
 		$output["content"] .= ">";
 		if($value !== null) {
-			$output["content"] .= htmlentities($value);
+			$output["content"] .= $valueHtml;
 		}
 		$output["content"] .= "</textarea>";
 	} else if($cell["type"] == "password") {
@@ -100,7 +100,7 @@ function renderCell($cell, $values, $readOnly)
 		}
 		$output["content"] .= " /> {$cell["label"]}</label>";
 		if($readOnly && ($value == $cell["value"])) {
-			$output["content"] .= "<input type=\"hidden\" name=\"$name\" value=\"$value\" />";
+			$output["content"] .= "<input type=\"hidden\" name=\"$name\" value=\"$valueHtml\" />";
 		}
 	} else if($cell["type"] == "bareradioentry") {
 		$output["content"] = "<input type=\"radio\" value=\"{$cell["value"]}\" id=\"{$cell["id"]}\"";
@@ -117,12 +117,54 @@ function renderCell($cell, $values, $readOnly)
 		}
 		$output["content"] .= " />";
 		if($readOnly && ($value == $cell["value"])) {
-			$output["content"] .= "<input type=\"hidden\" name=\"$name\" value=\"$value\" />";
+			$output["content"] .= "<input type=\"hidden\" name=\"$name\" value=\"$valueHtml\" />";
 		}
 	} else if($cell["type"] == "checkbox") {
-		die("Not implemented");
+		$output["content"] = "<label><input type=\"checkbox\"";
+		if(!isset($cell["value"]) || $cell["value"] === null) {
+			$valueHtml = "1";
+			$checked = ($value !== null);
+		} else {
+			$valueHtml = htmlentities($cell["value"]);
+			$checked = ($value == $cell["value"]);
+		}
+		$output["content"] .= " value=\"$valueHtml\"";
+		if($checked) {
+			$output["content"] .= " checked=\"checked\"";
+		}
+		if($fieldClass !== null) {
+			$output["content"] .= " class=\"$fieldClass\"";
+		}
+		if($readOnly) {
+			$output["content"] .= " disabled=\"disabled\"";
+		} else {
+			$output["content"] .= " name=\"$name\"";
+		}
+		$output["content"] .= " /> {$cell["label"]}</label>";
+		if($readOnly && $checked) {
+			$output["content"] .= "<input type=\"hidden\" name=\"$name\" value=\"$valueHtml\" />";
+		}
 	} else if($cell["type"] == "dropdown") {
-		die("Not implemented");
+		$output["content"] = "<select name=\"$name\"";
+		if($fieldClass !== null) {
+			$output["content"] .= " class=\"$fieldClass\"";
+		}
+		if($readOnly) {
+			$output["content"] .= " readonly=\"readonly\"";
+		}
+		$output["content"] .= ">\n";
+		foreach($cell["options"] as $option) {
+			if($readOnly && $option["value"] != $value) {
+				continue;
+			}
+			$valueHtml = htmlentities($option["value"]);
+			$output["content"] .= "<option value=\"$valueHtml\"";
+			if($option["value"] == $value) {
+				$output["content"] .= " selected=\"selected\"";
+			}
+			$output["content"] .= ">{$option["label"]}</option>\n";
+		}
+		$output["content"] .= "</select>";
 	} else {
 		die("Invalid field type {$cell["type"]}");
 	}
@@ -182,19 +224,25 @@ function renderRowspan($rowspan, $values, $readOnly)
 	if($rowspan["type"] == "rowspan") {
 		$rows = array();
 		foreach($rowspan["rows"] as $row) {
+			$row["rowclass"] = getField("rowclass", $row, $rowspan);
 			$rows[] = renderRow($row, $values, $readOnly);
 		}
 		return $rows;
 	} else if($rowspan["type"] == "subformchooser") {
 		$rows = array();
 		foreach($rowspan["subforms"] as $subform) {
-			$rows[] = renderRow(array("type"=>"splitradioentry", "name"=>$rowspan["name"], "value"=>$subform["value"], "label"=>$subform["label"], "id"=>getHtmlID()), $values, $readOnly);
+			$rows[] = renderRow(array("type"=>"splitradioentry", "name"=>$rowspan["name"], "value"=>$subform["value"], "label"=>$subform["label"], "id"=>$subform["id"]), $values, $readOnly);
 			foreach($subform["subform"] as $subfield) {
 				if(!isset($subfield["title"])) {
 					$f = $subfield;
 					$f["fieldclass"] = getField("fieldclass", $subfield, $subform, $rowspan);
 					$f["cellclass"] = getField("cellclass", $subfield, $subform, $rowspan);
 					$f["rowclass"] = getField("rowclass", $subfield, $subform, $rowspan);
+					if($f["rowclass"] === null) {
+						$f["rowclass"] = "if-selected-{$subform["id"]}";
+					} else {
+						$f["rowclass"] .= " if-selected-{$subform["id"]}";
+					}
 					
 					$row = renderRow($f, $values, $readOnly);
 					$row["cells"] = array_merge(array("width"=>"left-merge"), $row["cells"]);
@@ -251,6 +299,16 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 		}
 	}
 	
+	foreach($fields as $key=>$value) {
+		if($value["type"] == "subformchooser") {
+			foreach($value["subforms"] as $i=>$subform) {
+				if(!isset($subform["id"])) {
+					$fields[$key]["subforms"][$i]	["id"] = getHtmlID();
+				}
+			}
+		}
+	}
+	
 	$hiddenFields = "";
 	$rowspans = array();
 	foreach($fields as $field) {
@@ -259,7 +317,6 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 			$hiddenFields .= "<input type=\"hidden\" name=\"{$field["name"]}\" value=\"$valueHtml\" />";
 			continue;
 		}
-		
 		
 		$f = $field;
 		$rowspan = array();
@@ -298,6 +355,12 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 						if(isset($field["titleclass"])) {
 							$rowspan["titleclass"] = $field["titleclass"];
 						}
+						if(isset($subfield["rowclass"]) && $subfield["rowclass"] !== null) {
+							$subfield["rowclass"] .= " if-selected-{$subform["id"]}";
+						} else {
+							$subfield["rowclass"] = "if-selected-{$subform["id"]}";
+						}
+						
 						$rowspan["rows"] = renderRowspan($subfield, $values, $readOnly);
 						$rowspans[] = $rowspan;
 					}
