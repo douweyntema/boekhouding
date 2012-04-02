@@ -430,7 +430,34 @@ function checkTrivialAction($content, $postUrl, $title, $warning = null, $extraI
 
 function formatPrice($cents)
 {
-	return "&euro; " . floor($cents / 100) . "," . str_pad($cents % 100, 2, "0");
+	return "&euro; " . formatPriceRaw($cents);
+}
+
+function formatPriceRaw($cents)
+{
+	return floor($cents / 100) . "," . str_pad($cents % 100, 2, "0", STR_PAD_LEFT);
+}
+
+function parsePrice($string)
+{
+	$count = preg_match("/^(?<euro>[0-9]*)([,\\.](?<cent>[0-9]{2}))?$/", $string, $matches);
+	if($count !== 1) {
+		return null;
+	}
+	if(isset($matches["cent"])) {
+		return $matches["euro"] * 100 + $matches["cent"];
+	} else {
+		return $matches["euro"] * 100;
+	}
+}
+
+function parseDate($string)
+{
+	$date = strtotime($string);
+	if($date === false) {
+		return null;
+	}
+	return $date;
 }
 
 function updateHosts($hosts, $command)

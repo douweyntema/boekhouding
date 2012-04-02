@@ -8,22 +8,16 @@ function doBilling()
 	$GLOBALS["menuComponent"] = "billing";
 }
 
-function doCustomer($customerID)
+function doBillingAdmin()
 {
 	doBilling();
-	useCustomer($customerID);
-}
-
-function doSubscription($subscriptionID)
-{
-	doBilling();
-	doCustomer($GLOBALS["database"]->stdGetTry("billingSubscription", array("subscriptionID"=>$subscriptionID), "customerID", false));
+	useCustomer(0);
 }
 
 function doInvoice($invoiceID)
 {
 	doBilling();
-	doCustomer($GLOBALS["database"]->stdGetTry("billingInvoice", array("invoiceID"=>$invoiceID), "customerID", false));
+	useCustomer($GLOBALS["database"]->stdGetTry("billingInvoice", array("invoiceID"=>$invoiceID), "customerID", false));
 }
 
 function billingBreadcrumbs($postfix = array())
@@ -41,6 +35,15 @@ function billingAdminCustomerBreadcrumbs($customerID, $postfix = array())
 		), $postfix));
 }
 
+function addHeader($customerID, $title, $filename)
+{
+	$header = "<h1>$title</h1>\n";
+	
+	$breadcrumbs = billingAdminCustomerBreadcrumbs($customerID, array(array("name"=>$title, "url"=>"{$GLOBALS["root"]}billing/$filename")));
+	
+	return $header . $breadcrumbs;
+}
+
 function subscriptionList($customerID)
 {
 	$output = "";
@@ -48,6 +51,7 @@ function subscriptionList($customerID)
 	$output .= <<<HTML
 <div class="sortable list">
 <table>
+<caption>Subscriptions</caption>
 <thead>
 <tr><th>Description</th><th>Price</th><th>Discounts</th><th>Renew date</th><th>End date</th></tr>
 </thead>
@@ -112,8 +116,9 @@ function customerSubscriptionList()
 	$output .= <<<HTML
 <div class="sortable list">
 <table>
+<caption>Subscriptions</caption>
 <thead>
-<tr><th>Description</th><th>Price</th><th>Discount</th></tr>
+<tr><th>Description</th><th>Price</th></tr>
 </thead>
 <tbody>
 HTML;
@@ -129,18 +134,6 @@ HTML;
 		
 		$priceHtml = formatPrice($baseprice - $discount);
 		
-		if($subscription["discountPercentage"] === null && $subscription["discountAmount"] === null) {
-			$priceDetail = "None";
-		} else {
-			$priceDetail = formatPrice($baseprice);
-			if($subscription["discountPercentage"] !== null) {
-				$priceDetail .= " - " . $subscription["discountPercentage"] . "%";
-			}
-			if($subscription["discountAmount"] !== null) {
-				$priceDetail .= " - " . formatPrice($subscription["discountAmount"]);
-			}
-		}
-		
 		if($subscription["frequencyBase"] == "DAY") {
 			$frequency = "per " . ($subscription["frequencyMultiplier"] == 1 ? "day" : $subscription["frequencyMultiplier"] . " days");
 		} else if($subscription["frequencyBase"] == "MONTH") {
@@ -149,7 +142,15 @@ HTML;
 			$frequency = "per " . ($subscription["frequencyMultiplier"] == 1 ? " year" : $subscription["frequencyMultiplier"] . " years");
 		}
 		
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}billing/subscription.php?id={$subscription["subscriptionID"]}\">$description</a></td><td>$priceHtml $frequency</td><td>$priceDetail</td></tr>\n";
+		$output .= "<tr><td>";
+		if($subscription["domainTldID"] !== null) {
+			$output .= "<a href=\"{$GLOBALS["rootHtml"]}domains/domain.php?id={$subscription["domainTldID"]}\">";
+		}
+		$output .= $description;
+		if($subscription["domainTldID"] !== null) {
+			$output .= "</a>";
+		}
+		$output .= "</td><td>$priceHtml $frequency</td></tr>\n";
 	}
 	$output .= <<<HTML
 </tbody>
@@ -250,6 +251,7 @@ function invoiceList($customerID)
 	$output .= <<<HTML
 <div class="sortable list">
 <table>
+<caption>Invoices</caption>
 <thead>
 <tr><th>Invoice number</th><th>Date</th><th>Amount</th><th>Remaining amount</th></tr>
 </thead>
@@ -290,12 +292,13 @@ function paymentList($customerID)
 	$output .= <<<HTML
 <div class="sortable list">
 <table>
+<caption>Payments</caption>
 <thead>
 <tr><th>Date</th><th>Amount</th><th>Description</th></tr>
 </thead>
 <tbody>
 HTML;
-	foreach($GLOBALS["database"]->stdList("billingPayment", array("customerID"=>$customerID), array("amount", "date", "description"), array("date"=>"DESC")) as $payment) {
+	foreach($GLOBALS["database"]->stdList("billingPayment", array("customerID"=>$customerID), array("amount", "date", "description"), array("date"=>"DESC", "paymentID"=>"DESC")) as $payment) {
 		$date = date("d-m-Y", $payment["date"]);
 		$amount = formatPrice($payment["amount"]);
 		$description = htmlentities($payment["description"]);
@@ -314,6 +317,12 @@ function addPaymentForm($customerID, $error = "", $values = null)
 {
 	if($values === null) {
 		$values = array("date"=>date("d-m-Y"));
+	}
+	if(isset($values["date"])) {
+		$values["date"] = date("d-m-Y", parseDate($values["date"]));
+	}
+	if(isset($values["amount"])) {
+		$values["amount"] = formatPriceRaw(parsePrice($values["amount"]));
 	}
 	return operationForm("addpayment.php?id=$customerID", $error, "Add payment", "Save",
 		array(
@@ -437,5 +446,6 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 	// TODO: add fields to chose from
 	return operationForm("sendInvoice.php?id=$customerID", $error, "Send invoice", "Send", $lines, $values);
 }
+
 
 ?>

@@ -92,4 +92,27 @@ function billingCustomerBalance($customerID)
 	return $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
 }
 
+function billingAddPayment($customerID, $amount, $date, $desciption)
+{
+	$GLOBALS["database"]->startTransaction();
+	$GLOBALS["database"]->stdLock("adminCustomer", array("customerID"=>$customerID));
+	$GLOBALS["database"]->stdLock("billingInvoice", array("customerID"=>$customerID));
+	
+	$GLOBALS["database"]->stdNew("billingPayment", array("customerID"=>$customerID, "amount"=>$amount, "date"=>$date, "description"=>$desciption));
+	
+	$balance = $amount + $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
+	
+	foreach($GLOBALS["database"]->query("SELECT invoiceID, remainingAmount FROM billingInvoice WHERE customerID='" . $GLOBALS["database"]->addSlashes($customerID) . "' AND remainingAmount > 0 ORDER BY date")->fetchMap("invoiceID", "remainingAmount") as $invoiceID=>$remainingAmount) {
+		$change = min($balance, $remainingAmount);
+		if($change > 0) {
+			$remainingAmount -= $change;
+			$balance -= $change;
+			$GLOBALS["database"]->stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("remainingAmount"=>$remainingAmount));
+		}
+	}
+	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("balance"=>$balance));
+	
+	$GLOBALS["database"]->commitTransaction();
+}
+
 ?>

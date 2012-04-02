@@ -5,7 +5,7 @@ require_once("common.php");
 function main()
 {
 	$customerID = get("id");
-	doCustomer($customerID);
+	doBillingAdmin();
 	
 	$content = "<h1>Billing</h1>\n";
 	$content .= billingAdminCustomerBreadcrumbs($customerID);
