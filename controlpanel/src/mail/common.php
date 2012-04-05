@@ -422,49 +422,6 @@ function removeMailListMemberForm($listID, $error = "", $values = null)
 	return operationForm("removemember.php?id=$listID", $error, "Remove mailinglist members", "Remove Members", $fields, $values, $messages);
 }
 
-function spamVirusJavascript()
-{
-	return <<<HTML
-<script type="text/javascript">
-$(document).ready(function(){
-	$(".field-spambox input").change(updateSpambox);
-	$(".field-virusbox input").change(updateVirusbox);
-	updateSpambox();
-	updateVirusbox();
-});
-
-function updateSpambox()
-{
-	if($(".field-spambox input:checked").val() == "none") {
-		$(".spambox-folder").hide();
-		$(".spambox-quota").hide();
-	} else if($(".field-spambox input:checked").val() == "inbox") {
-		$(".spambox-folder").hide();
-		$(".spambox-quota").hide();
-	} else {
-		$(".spambox-folder").show();
-		$(".spambox-quota").show();
-	}
-}
-function updateVirusbox()
-{
-	if($(".field-virusbox input:checked").val() == "none") {
-		$(".virusbox-folder").hide();
-		$(".virusbox-quota").hide();
-	} else if($(".field-virusbox input:checked").val() == "inbox") {
-		$(".virusbox-folder").hide();
-		$(".virusbox-quota").hide();
-	} else {
-		$(".virusbox-folder").show();
-		$(".virusbox-quota").show();
-	}
-}
-
-</script>
-
-HTML;
-}
-
 function addMailboxForm($domainID, $error = "", $values = null)
 {
 	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
@@ -496,7 +453,7 @@ function addMailboxForm($domainID, $error = "", $values = null)
 				array("value"=>"inbox", "label"=>"Spam in inbox", "subform"=>array()),
 				array("value"=>"folder", "label"=>"Place spam in the specified folder", "subform"=>array(
 					array("title"=>"Spam folder", "type"=>"text", "name"=>"spambox-folder"),
-					array("title"=>"Spambox quota", "type"=>"colspan", "rowclass"=>"spambox-quota", "columns"=>array(
+					array("title"=>"Spambox quota", "type"=>"colspan", "columns"=>array(
 						array("type"=>"text", "name"=>"spamquota", "fill"=>true),
 						array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
 					)),
@@ -507,47 +464,14 @@ function addMailboxForm($domainID, $error = "", $values = null)
 				array("value"=>"inbox", "label"=>"Virus in inbox", "subform"=>array()),
 				array("value"=>"folder", "label"=>"Place virus mails in the specified folder", "subform"=>array(
 					array("title"=>"Virus folder", "type"=>"text", "name"=>"virusbox-folder"),
-					array("title"=>"Virusbox quota", "type"=>"colspan", "rowclass"=>"virusbox-quota", "columns"=>array(
+					array("title"=>"Virusbox quota", "type"=>"colspan", "columns"=>array(
 						array("type"=>"text", "name"=>"virusquota", "fill"=>true),
 						array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
 					)),
 				))
 			))
 		),
-		$values);// . spamVirusJavascript();
-	return operationForm("addmailbox.php?id=$domainID", $error, "Add mailbox", "Create mailbox",
-		array(
-			array("title"=>"Mailbox", "type"=>"colspan", "columns"=>array(
-				array("type"=>"text", "name"=>"localpart", "fill"=>true),
-				array("type"=>"html", "cellclass"=>"nowrap", "html"=>"@$domainName")
-			)),
-			array("title"=>"Password", "type"=>"password", "name"=>"password", "confirmtitle"=>"Confirm password"),
-			array("title"=>"Quota", "type"=>"colspan", "columns"=>array(
-				array("type"=>"text", "name"=>"quota", "fill"=>true),
-				array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
-			)),
-			array("title"=>"Spambox", "type"=>"radio", "name"=>"spambox", "fieldclass"=>"field-spambox", "options"=>array(
-				array("value"=>"none", "label"=>"No spambox"),
-				array("value"=>"inbox", "label"=>"Spam in inbox"),
-				array("value"=>"folder", "label"=>"Place spam in the specified folder")
-			)),
-			array("title"=>"Spam folder", "type"=>"text", "name"=>"spambox-folder", "rowclass"=>"spambox-folder"),
-			array("title"=>"Spambox quota", "type"=>"colspan", "rowclass"=>"spambox-quota", "columns"=>array(
-				array("type"=>"text", "name"=>"spamquota", "fill"=>true),
-				array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
-			)),
-			array("title"=>"Virusbox", "type"=>"radio", "name"=>"virusbox", "class"=>"field-virusbox", "options"=>array(
-				array("value"=>"none", "label"=>"No virusbox"),
-				array("value"=>"inbox", "label"=>"Virus in inbox"),
-				array("value"=>"folder", "label"=>"Place virus mails in the specified folder")
-			)),
-			array("title"=>"Virus folder", "type"=>"text", "name"=>"virusbox-folder", "rowclass"=>"virusbox-folder"),
-			array("title"=>"Virusbox quota", "type"=>"colspan", "rowclass"=>"virusbox-quota", "columns"=>array(
-				array("type"=>"text", "name"=>"virusquota", "fill"=>true),
-				array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
-			))
-		),
-		$values) . spamVirusJavascript();
+		$values);
 }
 
 function editMailboxForm($addressID, $error = "", $values = null)
@@ -595,7 +519,7 @@ function editMailboxForm($addressID, $error = "", $values = null)
 				array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
 			))
 		),
-		$values) . spamVirusJavascript();
+		$values);
 }
 
 function editMailboxPasswordForm($addressID, $error = "", $values = null)
