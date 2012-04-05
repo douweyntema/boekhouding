@@ -5,7 +5,7 @@ require_once("common.php");
 function main()
 {
 	$customerID = get("id");
-	doBillingAdmin();
+	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($customerID) {
 		if(!$condition) die(page(addHeader($customerID, "Add payment", "addpayment.php?id=" . $customerID) . addPaymentForm($customerID, $error, $_POST)));

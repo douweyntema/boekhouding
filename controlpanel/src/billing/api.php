@@ -17,9 +17,22 @@ function billingNewSubscription($customerID, $description, $price, $discountPerc
 	return $GLOBALS["database"]->stdNew("billingSubscription", array("customerID"=>$customerID, "domainTldID"=>$domainTldID, "description"=>$description, "price"=>$price, "discountPercentage"=>$discountPercentage, "discountAmount"=>$discountAmount, "frequencyBase"=>$frequencyBase, "frequencyMultiplier"=>$frequencyMultiplier, "invoiceDelay"=>$invoiceDelay, "nextPeriodStart"=>$startDate));
 }
 
+function billingEditSubscription($subscriptionID, $description, $price, $discountPercentage, $discountAmount, $frequencyBase, $frequencyMultiplier, $invoiceDelay)
+{
+	if($startDate == null) {
+		$startDate = time();
+	}
+	return $GLOBALS["database"]->stdSet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("description"=>$description, "price"=>$price, "discountPercentage"=>$discountPercentage, "discountAmount"=>$discountAmount, "frequencyBase"=>$frequencyBase, "frequencyMultiplier"=>$frequencyMultiplier, "invoiceDelay"=>$invoiceDelay));
+}
+
 function billingEndSubscription($subscriptionID, $endDate)
 {
 	$GLOBALS["database"]->stdSet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("endDate"=>$endDate));
+}
+
+function billingAddInvoiceLine($customerID, $description, $price, $discount)
+{
+	return $GLOBALS["database"]->stdNew("billingInvoiceLine", array("customerID"=>$customerID, "description"=>$description, "price"=>$price, "discount"=>$discount, "domain"=>0));
 }
 
 function billingUpdateInvoiceLines($customerID)
@@ -28,19 +41,24 @@ function billingUpdateInvoiceLines($customerID)
 	$GLOBALS["database"]->startTransaction();
 	foreach($GLOBALS["database"]->stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
 		while($subscription["nextPeriodStart"] < $now + $subscription["invoiceDelay"]) {
-			$nextPeriodStart = new DateTime("@" . $subscription["nextPeriodStart"]);
+			$day = date("j", $subscription["nextPeriodStart"]);
+			$month = date("n", $subscription["nextPeriodStart"]);
+			$year = date("Y", $subscription["nextPeriodStart"]);
 			if($subscription["frequencyBase"] == "DAY") {
-				$intervalKey = "D";
+				$day += $subscription["frequencyMultiplier"];
 			} else if($subscription["frequencyBase"] == "MONTH") {
-				$intervalKey = "M";
+				$month += $subscription["frequencyMultiplier"];
 			} else if($subscription["frequencyBase"] == "YEAR") {
-				$intervalKey = "Y";
+				$year += $subscription["frequencyMultiplier"];
 			} else {
 				mailAdmin("Controlpanel database broken!", "Unknown frequencyBase for subscription " . $subscription["subscriptionID"]);
 				continue 2;
 			}
-			$interval = new DateInterval("P" . $subscription["frequencyMultiplier"] . $intervalKey);
-			$periodEnd = $nextPeriodStart->add($interval)->getTimestamp();
+			$periodEnd = mktime(
+				date("H", $subscription["nextPeriodStart"]),
+				date("i", $subscription["nextPeriodStart"]),
+				date("s", $subscription["nextPeriodStart"]),
+				$month, $day, $year);
 			
 			if($subscription["price"] === null) {
 				if($subscription["domainTldID"] === null) {
