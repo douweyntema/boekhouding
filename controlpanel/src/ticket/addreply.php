@@ -7,42 +7,24 @@ function main()
 	$threadID = get("id");
 	doTicketThread($threadID);
 	
-	$content  = "<h1>Support - Ticket #$threadID</h1>\n";
-	$content .= breadcrumbs(array(
-		array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Support"),
-		array("url"=>"{$GLOBALS["root"]}ticket/thread.php?id=$threadID", "name"=>"Ticket #$threadID"),
-		array("url"=>"{$GLOBALS["root"]}ticket/addreply.php?id=$threadID", "name"=>"New reply")
-	));
+	$check = function($condition, $error) use($threadID) {
+		if(!$condition) die(page(threadHeader($threadID) . newReplyForm($threadID, $error, $_POST)));
+	};
 	
-	$userID = userID();
 	$text = post("text");
-	$status = post("status");
-	if($status === null) {
-		$status = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "status");
-	}
+	$closed = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "status") == "CLOSED";
+	$doReopen = post("reopen") !== null;
+	$doClose = post("close") !== null;
 	
-	if($text == null) {
+	if($text === null || $text == "") {
 		header("HTTP/1.1 303 See Other");
 		header("Location: {$GLOBALS["root"]}ticket/thread.php?id=$threadID");
 		die();
 	}
-	if($text == "") {
-		$content .= newReplyForm($threadID, "Please provide a description.", $text, $status);
-		echo page($content);
-		die();
-	}
-	if(!($status == "OPEN" || $status == "CLOSED")) {
-		$content .= newReplyForm($threadID, "Status can only be open or closed.", $text, $status);
-		echo page($content);
-		die();
-	}
-	if(post("confirm") === null) {
-		$content .= newReplyForm($threadID, null, $text, $status);
-		echo page($content);
-		die();
-	}
 	
-	ticketNewReply($threadID, $userID, $text, $status);
+	$check(post("confirm") !== null, null);
+	
+	ticketNewReply($threadID, userID(), $text, ($closed ? $doReopen : !$doClose) ? "OPEN" : "CLOSED");
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}ticket/thread.php?id=$threadID");

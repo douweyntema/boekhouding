@@ -6,39 +6,19 @@ function main()
 {
 	doTicket();
 	
-	$content  = "<h1>Support</h1>\n";
-	$content .= breadcrumbs(array(
-		array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Support"),
-		array("url"=>"{$GLOBALS["root"]}ticket/addthread.php", "name"=>"New ticket")
-	));
+	$check = function($condition, $error) {
+		if(!$condition) die(page(addHeader("Support", "addthread.php") . newThreadForm($error, $_POST)));
+	};
 	
-	$customerID = customerID();
-	$userID = userID();
 	$title = post("title");
 	$text = post("text");
 	
-	if($title == null && $text == null) {
-		$content .= newThreadForm();
-		echo page($content);
-		die();
-	}
-	if(isRoot()) {
-		$content .= newThreadForm("A root user cannot create tickets.", $title, $text);
-		echo page($content);
-		die();
-	}
-	if($title == "" || $text == "") {
-		$content .= newThreadForm("Please provide a title and a description.", $title, $text);
-		echo page($content);
-		die();
-	}
-	if(post("confirm") === null) {
-		$content .= newThreadForm(null, $title, $text);
-		echo page($content);
-		die();
-	}
+	$check(!isRoot(), "A root user cannot create tickets");
+	$check($title !== null || $text !== null, "");
+	$check($title != "" && $text != "", "Please provide a title and a description.");
+	$check(post("confirm") !== null, null);
 
-	$newThreadID = ticketNewThread($customerID, $userID, $title, $text);
+	$newThreadID = ticketNewThread(customerID(), userID(), $title, $text);
 	
 	header("HTTP/1.1 303 See Other");
 	header("Location: {$GLOBALS["root"]}ticket/thread.php?id=$newThreadID");
