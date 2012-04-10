@@ -115,7 +115,7 @@ foreach($database->query("SELECT mailDomain.name AS domain, localpart, spambox, 
 file_put_contents("$databaseDirectory/local_mailboxes-$time", $localMailboxes);
 
 $localAliases = "";
-foreach($database->query("SELECT mailDomain.name AS domain, localpart, GROUP_CONCAT(targetAddress SEPARATOR ', ') AS aliases FROM infrastructureMailServer INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN mailAlias USING(domainID) WHERE infrastructureMailServer.hostID='$hostIDSql' AND infrastructureMailServer.`primary` = 1 GROUP BY domain, localpart")->fetchList() as $aliases) {
+foreach($database->query("SELECT mailDomain.name AS domain, localpart, GROUP_CONCAT(targetAddress SEPARATOR ', ') AS aliases FROM infrastructureMailServer INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN ((SELECT domainID, localpart, targetAddress FROM mailAlias) UNION (SELECT domainID, localpart, targetAddress FROM mailList INNER JOIN mailListMember USING(listID))) AS aliases USING(domainID) WHERE infrastructureMailServer.hostID='$hostIDSql' AND infrastructureMailServer.`primary` = 1 GROUP BY domain, localpart")->fetchList() as $aliases) {
 	$localAliases .= "{$aliases["localpart"]}@{$aliases["domain"]}:{$aliases["aliases"]}\n";
 }
 file_put_contents("$databaseDirectory/local_aliases-$time", $localAliases);
