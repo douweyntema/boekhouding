@@ -1,3 +1,9 @@
+treva-exim (0.2) squeeze; urgency=medium
+
+  * Fixed an authentication bug
+
+ -- Ruud Koolen <r.koolen@treva.nl>  Tue, 10 Apr 2012 15:59:42 +0200
+
 treva-exim (0.1.1) squeeze; urgency=medium
 
   * Fixed the cron file
