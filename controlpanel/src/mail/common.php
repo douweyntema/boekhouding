@@ -476,10 +476,8 @@ function addMailboxForm($domainID, $error = "", $values = null)
 
 function editMailboxForm($addressID, $error = "", $values = null)
 {
-	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart", "quota", "spambox", "spamQuota", "virusbox", "virusQuota"));
-	$domainName = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$mailbox["domainID"]), "name");
-	
 	if($values === null) {
+		$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart", "quota", "spambox", "spamQuota", "virusbox", "virusQuota"));
 		$values = array(
 			"quota"=>($mailbox["quota"] === null ? "" : $mailbox["quota"]),
 			"spambox"=>($mailbox["spambox"] === null ? "none" : ($mailbox["spambox"] === "" ? "inbox" : "folder")),
@@ -492,7 +490,7 @@ function editMailboxForm($addressID, $error = "", $values = null)
 	}
 	
 	
-	return operationForm("editmailbox.php?id={$mailbox["domainID"]}", $error, "Edit mailbox", "Save",
+	return operationForm("editmailbox.php?id=$addressID", $error, "Edit mailbox", "Save",
 		array(
 			array("title"=>"Quota", "type"=>"colspan", "columns"=>array(
 				array("type"=>"text", "name"=>"quota", "fill"=>true),

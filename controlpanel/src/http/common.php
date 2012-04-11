@@ -19,58 +19,25 @@ function doHttpPath($pathID)
 	doHttpDomain($GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$pathID), "domainID", null));
 }
 
-function validSubdomain($name)
+function crumb($name, $filename)
 {
-	if(strlen($name) < 1 || strlen($name) > 255) {
-		return false;
-	}
-	if(preg_match('/^[-a-zA-Z0-9_]*$/', $name) != 1) {
-		return false;
-	}
-	return true;
+	return array("name"=>$name, "url"=>"{$GLOBALS["root"]}http/$filename");
 }
 
-function validDirectory($name)
+function crumbs($name, $filename)
 {
-	if(strlen($name) < 1 || strlen($name) > 255) {
-		return false;
-	}
-	if(preg_match('/^[-a-zA-Z0-9_.]*$/', $name) != 1) {
-		return false;
-	}
-	return true;
+	return array(crumb($name, $filename));
 }
 
-function validDocumentRoot($root)
+function httpBreadcrumbs()
 {
-	if(strlen($root) > 255) {
-		return false;
-	}
-	if(substr($root, 0, 1) == '/') {
-		$root = substr($root, 1);
-	}
-	if(substr($root, -1) == '/') {
-		$root = substr($root, 0, -1);
-	}
-	$parts = explode("/", $root);
-	foreach($parts as $part) {
-		if(preg_match('/^[a-zA-Z0-9_\-.]+$/', $part) != 1) {
-			return false;
-		}
-		if($part == "." || $part == "..") {
-			return false;
-		}
-	}
-	return true;
+	return crumbs("Web hosting", "");
 }
 
-function domainBreadcrumbs($domainID, $postfix = array())
+function domainBreadcrumbs($domainID)
 {
-	return breadcrumbs(array_merge(domainBreadcrumbsList($domainID), $postfix));
-}
-
-function domainBreadcrumbsList($domainID)
-{
+	$crumbs = httpBreadcrumbs();
+	
 	$parts = array();
 	$nextDomainID = $domainID;
 	while(true) {
@@ -86,24 +53,21 @@ function domainBreadcrumbsList($domainID)
 			$nextDomainID = $domain["parentDomainID"];
 		}
 	}
-	
 	$parts = array_reverse($parts);
-	$crumbs = array();
-	$crumbs[] = array("name"=>"Web hosting", "url"=>"{$GLOBALS["root"]}http/");
+	
 	$postfix = "";
 	while(count($parts) > 0) {
 		$part = array_shift($parts);
-		if(count($parts) == 0) {
-			$crumbs[] = array("name"=>$part["name"] . $postfix, "url"=>"{$GLOBALS["root"]}http/domain.php?id={$part["id"]}");
-		} else if($GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$part["id"], "parentPathID"=>null), "pathID") !== null) {
-			$crumbs[] = array("name"=>$part["name"] . $postfix, "url"=>"{$GLOBALS["root"]}http/domain.php?id={$part["id"]}");
+		if(count($parts) == 0 || $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$part["id"], "parentPathID"=>null), "pathID") !== null) {
+			$crumbs[] = crumb("{$part["name"]}$postfix", "domain.php?id={$part["id"]}");
 		}
 		$postfix = "." . $part["name"] . $postfix;
 	}
+	
 	return $crumbs;
 }
 
-function pathBreadcrumbs($pathID, $postfix = array())
+function pathBreadcrumbs($pathID)
 {
 	$parts = array();
 	$nextPathID = $pathID;
@@ -118,18 +82,32 @@ function pathBreadcrumbs($pathID, $postfix = array())
 			$nextPathID = $path["parentPathID"];
 		}
 	}
-	
 	$parts = array_reverse($parts);
-	$crumbs = domainBreadcrumbsList($domainID);
+	$crumbs = domainBreadcrumbs($domainID);
+	
 	while(count($parts) > 0) {
 		$part = array_shift($parts);
 		if(!$part["used"] && count($parts) > 0) {
 			$parts[0]["name"] = $part["name"] . "/" . $parts[0]["name"];
 		} else {
-			$crumbs[] = array("name"=>$part["name"], "url"=>"{$GLOBALS["root"]}http/path.php?id={$part["id"]}");
+			$crumbs[] = crumb($part["name"], "path.php?id={$part["id"]}");
 		}
 	}
-	return breadcrumbs(array_merge($crumbs, $postfix));
+	
+	return $crumbs;
+}
+
+function addHeader($title, $filename, $domainID = null)
+{
+	$header = "<h1>$title</h1>\n";
+	
+	if($domainID === null) {
+		$breadcrumbs = httpBreadcrumbs(array(array("name"=>$title, "url"=>"{$GLOBALS["root"]}http/$filename")));
+	} else {
+		$breadcrumbs = domainBreadcrumbs($domainID, array(array("name"=>$title, "url"=>"{$GLOBALS["root"]}http/$filename?id=$domainID")));
+	}
+	
+	return $header . $breadcrumbs;
 }
 
 function domainsList()
@@ -232,7 +210,8 @@ function pathSummary($pathID)
 function singlePathSummary($pathID)
 {
 	$addressTree = pathTree($pathID);
-// 	$addressList = flattenPathTree($addressTree);
+	// TODO
+	$addressList = flattenPathTree($addressTree);
 	
 	$output  = "<div class=\"list tree\">\n";
 	$output .= "<table>\n";
@@ -256,536 +235,193 @@ function singlePathSummary($pathID)
 	return $output;
 }
 
-
-function pathFunctionSubformHosted($confirm, $selected, $hostedUserID, $hostedPath)
+function pathFunctionForm($pathID)
 {
-	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
-	
-	$usersHtml = "<input type=\"hidden\" name=\"documentOwner\" value=\"\">";
-	$usersHtml = "<select name=\"documentOwner\" $readonlyHtml>";
-	$usersHtmlDisabled = "";
+	$users = array();
 	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username")) as $user) {
-		$usernameHtml = htmlentities($user["username"]);
-		$selectedHtml = ($hostedUserID == $user["userID"]) ? "selected=\"selected\"" : "";
-		$usersHtml .= "<option value=\"{$user["userID"]}\" $selectedHtml>$usernameHtml</option>";
-		if($hostedUserID == $user["userID"]) {
-			$size = strlen($usernameHtml);
-			$usersHtmlDisabled = "<input type=\"hidden\" name=\"documentOwner\" value=\"{$user["userID"]}\">\n<input type=\"text\" name=\"documentOwnerText\" value=\"$usernameHtml\" readonly=\"readonly\" style=\"width: {$size}em\">";
-		}
+		$users[] = array("value"=>$user["userID"], "label"=>$user["username"]);
 	}
-	$usersHtml .= "</select>";
-	if($confirm) {
-		$usersHtml = $usersHtmlDisabled;
-	}
-	$documentRootValueHtml = ($hostedPath !== null) ? "value=\"" . htmlentities($hostedPath) . "\"" : "";
-	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
-	$currentlySelectedClass = $selected ? "selected" : "";
 	
-	$output = "";
-	$output .= <<<HTML
-<div class="operation $currentlySelectedClass">
-<h3>$currentlySelectedHtml Hosted site</h3>
-<table>
-<tr><th>Document root:</th><td>/home/</td><td>$usersHtml</td><td>/www/</td><td class="stretch"><input type="text" name="documentRoot" $documentRootValueHtml $readonlyHtml /></td><td>/</td></tr>
-<tr class="submit"><td colspan="6"><input type="submit" name="type" value="Use Hosted Site" /></td></tr>
-</table>
-</div>
-
-HTML;
-	return $output;
-}
-
-function pathFunctionSubformRedirect($confirm, $selected, $redirectTarget)
-{
-	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
-	$redirectTargetValueHtml = $selected ? "value=\"" . htmlentities($redirectTarget) . "\"" : "value=\"http://\"";
-	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
-	$currentlySelectedClass = $selected ? "selected" : "";
-	
-	return <<<HTML
-<div class="operation $currentlySelectedClass">
-<h3>$currentlySelectedHtml Redirect</h3>
-A redirect to an external site.
-<table>
-<tr><th>Redirect target:</th><td><input type="text" name="redirectTarget" $redirectTargetValueHtml $readonlyHtml /></td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use Redirect" /></td></tr>
-</table>
-</div>
-
-HTML;
-}
-
-function pathFunctionSubformMirror($confirm, $selected, $pathID, $mirrorTargetPathID)
-{
-	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
 	$paths = array();
 	foreach($GLOBALS["database"]->query("SELECT pathID FROM httpPath INNER JOIN httpDomain ON httpPath.domainID = httpDomain.domainID WHERE httpDomain.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' AND httpPath.type != 'MIRROR'" . ($pathID === null ? "" : " AND httpPath.pathID <> '" . $GLOBALS["database"]->addSlashes($pathID) . "'"))->fetchList() as $path) {
-		$paths[$path["pathID"]] = pathName($path["pathID"]);
+		$paths[] = array("value"=>$path["pathID"], "label"=>pathName($path["pathID"]));
 	}
 	asort($paths);
-	if(!$confirm) {
-		$pathsHtml = "<select name=\"mirrorTarget\" $readonlyHtml >";
-		foreach($paths as $id=>$address) {
-			$addressHtml = htmlentities($address);
-			$selectedHtml = ($mirrorTargetPathID == $id) ? "selected=\"selected\"" : "";
-			$pathsHtml .= "<option value=\"$id\" $selectedHtml>$addressHtml</option>";
-		}
-		$pathsHtml .= "</select>";
-	} else {
-		$addressHtml = "";
-		foreach($paths as $id=>$address) {
-			if($mirrorTargetPathID == $id) {
-				$addressHtml = htmlentities($address);
-			}
-		}
-		$pathsHtml = "<input type=\"hidden\" name=\"mirrorTarget\" value=\"$mirrorTargetPathID\">";
-		$pathsHtml .= "<input type=\"text\" name=\"mirrorTargetText\" value=\"$addressHtml\" readonly=\"readonly\">";
-	}
-	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
-	$currentlySelectedClass = $selected ? "selected" : "";
-	return <<<HTML
-<div class="operation $currentlySelectedClass">
-<h3>$currentlySelectedHtml Alias</h3>
-An alternative address to reach one of your existing sites.
-<table>
-<tr><th>Aliased website:</th><td>$pathsHtml</td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use Alias" /></td></tr>
-</table>
-</div>
-
-HTML;
+	
+	return array("type"=>"typechooser", "options"=>array(
+		array("title"=>"Hosted site", "submitcaption"=>"Use Hosted Site", "name"=>"hosted", "subform"=>array(
+			array("title"=>"Document root", "type"=>"colspan", "columns"=>array(
+				array("type"=>"html", "html"=>"/home/"),
+				array("type"=>"dropdown", "name"=>"documentOwner", "options"=>$users),
+				array("type"=>"html", "html"=>"/www/"),
+				array("type"=>"text", "name"=>"documentRoot", "fill"=>true),
+				array("type"=>"html", "html"=>"/")
+			))
+		)),
+		array("title"=>"Redirect", "submitcaption"=>"Use Redirect", "name"=>"redirect", "summary"=>"A redirect to an external site.", "subform"=>array(
+			array("title"=>"Redirect target", "type"=>"text", "name"=>"redirectTarget")
+		)),
+		array("title"=>"Alias", "submitcaption"=>"Use Alias", "name"=>"mirror", "summary"=>"An alternative address to reach one of your existing sites.", "subform"=>array(
+			array("title"=>"Aliased website", "type"=>"dropdown", "name"=>"mirrorTarget", "options"=>$paths)
+		))
+	));
 }
 
-function pathFunctionSubform($confirm = false, $type = null, $pathID = null, $hostedUserID = null, $hostedPath = null, $redirectTarget = null, $mirrorTargetPathID = null)
+function addDomainForm($error = "", $values = null)
 {
-	$output = "";
-	
-	$hostedHtml = pathFunctionSubformHosted($confirm, $type == "HOSTED", $hostedUserID, $hostedPath);
-	if($type == "HOSTED") {
-		$output = $hostedHtml . "\n" . $output;
-	} else if(!$confirm) {
-		$output .= "\n" . $hostedHtml;
+	$domains = array();
+	foreach($GLOBALS["database"]->stdList("httpDomain", array("customerID"=>null), array("domainID", "name")) as $domain) {
+		$domains[] = array("value"=>$domain["domainID"], "label"=>$domain["name"]);
 	}
 	
-	$redirectHtml = pathFunctionSubformRedirect($confirm, $type == "REDIRECT", $redirectTarget);
-	if($type == "REDIRECT") {
-		$output = $redirectHtml . "\n" . $output;
-	} else if(!$confirm) {
-		$output .= "\n" . $redirectHtml;
+	if($values === null) {
+		$values = array();
+	}
+	if(!isset($values["documentOwner"])) {
+		$values["documentOwner"] = userID();
 	}
 	
-	$mirrorHtml = pathFunctionSubformMirror($confirm, $type == "MIRROR", $pathID, $mirrorTargetPathID);
-	if($type == "MIRROR") {
-		$output = $mirrorHtml . "\n" . $output;
-	} else if(!$confirm) {
-		$output .= "\n" . $mirrorHtml;
-	}
-	
-	return $output;
+	return operationForm("adddomain.php", $error, "Add domain", "Add",
+		array(
+			array("title"=>"Domain name", "type"=>"colspan", "columns"=>array(
+				array("type"=>"text", "name"=>"name", "fill"=>true),
+				array("type"=>"dropdown", "name"=>"rootDomainID", "options"=>$domains)
+			)),
+			pathFunctionForm(null)
+		),
+		$values);
 }
 
-function typeFromTitle($title)
+function addSubdomainForm($domainID, $error = "", $values = null)
 {
-	if($title == "Use Hosted Site") {
-		return "HOSTED";
-	} else if($title == "Use Redirect") {
-		return "REDIRECT";
-	} else if($title == "Use Alias") {
-		return "MIRROR";
-	} else {
-		return null;
+	if($values === null) {
+		$values = array();
 	}
+	if(!isset($values["documentOwner"])) {
+		$values["documentOwner"] = userID();
+	}
+	
+	return operationForm("addsubdomain.php?id=$domainID", $error, "Add subdomain", "Add",
+		array(
+			array("title"=>"Subdomain name", "type"=>"colspan", "columns"=>array(
+				array("type"=>"text", "name"=>"name", "fill"=>true),
+				array("type"=>"html", "html"=>("." . domainName($domainID)))
+			)),
+			pathFunctionForm(null)
+		),
+		$values);
 }
 
-function addDomainForm($error = "", $rootDomainID = null, $name = null, $type = null, $hostedUserID = null, $hostedPath = null, $redirectTarget = null, $mirrorTargetPathID = null)
+function addPathForm($pathID, $error = "", $values = null)
 {
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-		$stub = false;
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	} else if($error == "STUB") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = true;
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
+	if($values === null) {
+		$values = array();
+	}
+	if(!isset($values["documentOwner"])) {
+		$values["documentOwner"] = userID();
 	}
 	
-	if($stub) {
-		$operationsHtml = "";
-		$submitHTML = "<tr class=\"submit\"><td colspan=\"3\"><input type=\"submit\" value=\"Add\"></td></tr>";
-	} else {
-		$operationsHtml = pathFunctionSubform($readonly != "", $type, null, $hostedUserID, $hostedPath, $redirectTarget, $mirrorTargetPathID);
-		$submitHTML = "";
-	}
+	return operationForm("addpath.php?id=$pathID", $error, "Add subdirectory", "Add",
+		array(
+			array("title"=>"Directory name", "type"=>"colspan", "columns"=>array(
+				array("type"=>"html", "html"=>(pathName($pathID) . "/")),
+				array("type"=>"text", "name"=>"name", "fill"=>true)
+			)),
+			pathFunctionForm(null)
+		),
+		$values);
+}
+
+function editPathForm($pathID, $error = "", $values = null)
+{
+	$pathNameHtml = htmlentities(pathName($pathID));
+	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("type", "hostedUserID", "hostedPath", "redirectTarget", "mirrorTargetPathID"));
 	
-	$parentDomainIDs = "";
-	$rootDomains = $GLOBALS["database"]->stdList("httpDomain", array("customerID"=>null), array("domainID", "name"));
-	foreach($rootDomains as $domain) {
-		if($rootDomainID == $domain["domainID"]) {
-			$selected = "selected=\"selected\"";
+	if($error == "STUB") {
+		if($path["type"] == "HOSTED") {
+			$function = "Hosted site";
+			$dataTitle = "Document root";
+			$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$path["hostedUserID"]), "username");
+			$dataContent = htmlentities("/home/$username/www/{$path["hostedPath"]}/");
+		} else if($path["type"] == "REDIRECT") {
+			$function = "Redirect";
+			$dataTitle = "Target";
+			$urlHtml = htmlentities($path["redirectTarget"]);
+			$dataContent = "<a href=\"$urlHtml\">$urlHtml</a>";
+		} else if($path["type"] == "MIRROR") {
+			$function = "Alias";
+			$dataTitle = "Target";
+			$urlHtml = htmlentities("http://" . pathName($path["mirrorTargetPathID"]) . "/");
+			$dataContent = "<a href=\"$urlHtml\">$urlHtml</a>";
 		} else {
-			$selected = "";
+			$function = "Unknown";
+			$dataTitle = "Details";
+			$dataContent = functionDescription($pathID);
 		}
-		$parentDomainIDs .= "<option value=\"{$domain["domainID"]}\" $selected>" . htmlentities($domain["name"]) . "</option>\n";
+		$urlHtml = htmlentities("http://" . pathName($pathID) . "/");
+		return operationForm("editpath.php?id=$pathID", $error, "Site function", "Edit", array(
+			array("title"=>"Function", "type"=>"html", "html"=>$function),
+			array("title"=>"Url", "type"=>"html", "html"=>"<a href=\"$urlHtml\">$urlHtml</a>"),
+			array("title"=>$dataTitle, "type"=>"html", "html"=>$dataContent)
+		),
+		array());
 	}
 	
-	$nameValue = inputValue($name);
-	return <<<HTML
-<div class="operation">
-<h2>Add domain</h2>
-$messageHtml
-<form action="adddomain.php" method="post">
-$confirmHtml
-<table>
-<tr><th>Domain name:</th><td class="stretch"><input type="text" name="name" $nameValue /></td><td style="white-space: nowrap;">.<select name="rootDomainID">$parentDomainIDs</select></td></tr>
-$submitHTML
-</table>
-
-$operationsHtml
-
-</form>
-</div>
-
-HTML;
-}
-
-function addSubdomainForm($domainID, $error = "", $name = null, $type = null, $hostedUserID = null, $hostedPath = null, $redirectTarget = null, $mirrorTargetPathID = null)
-{
-	$parentName = domainName($domainID);
-	$parentNameHtml = htmlentities($parentName);
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-		$stub = false;
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	} else if($error == "STUB") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = true;
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	}
-	
-	if($stub) {
-		$operationsHtml = "";
-		$submitHTML = "<tr class=\"submit\"><td colspan=\"3\"><input type=\"submit\" value=\"Add\"></td></tr>";
-	} else {
-		$operationsHtml = pathFunctionSubform($readonly != "", $type, null, $hostedUserID, $hostedPath, $redirectTarget, $mirrorTargetPathID);
-		$submitHTML = "";
-	}
-	
-	$nameValue = inputValue($name);
-	return <<<HTML
-<div class="operation">
-<h2>Add subdomain</h2>
-$messageHtml
-<form action="addsubdomain.php?id=$domainID" method="post">
-$confirmHtml
-<table>
-<tr><th>Subdomain name:</th><td class="stretch"><input type="text" name="name" $nameValue /></td><td>.$parentNameHtml</td></tr>
-$submitHTML
-</table>
-
-$operationsHtml
-
-</form>
-</div>
-
-HTML;
-}
-
-function addPathForm($pathID, $error = "", $name = null, $type = null, $hostedUserID = null, $hostedPath = null, $redirectTarget = null, $mirrorTargetPathID = null)
-{
-	$parentName = pathName($pathID);
-	$parentNameHtml = htmlentities($parentName);
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-		$stub = false;
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	} else if($error == "STUB") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = true;
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	}
-	
-	if($stub) {
-		$operationsHtml = "";
-		$submitHTML = "<tr class=\"submit\"><td colspan=\"3\"><input type=\"submit\" value=\"Add\"></td></tr>";
-	} else {
-		$operationsHtml = pathFunctionSubform($readonly != "", $type, null, $hostedUserID, $hostedPath, $redirectTarget, $mirrorTargetPathID);
-		$submitHTML = "";
-	}
-	
-	$nameValue = inputValue($name);
-	return <<<HTML
-<div class="operation">
-<h2>Add subdirectory</h2>
-$messageHtml
-<form action="addpath.php?id=$pathID" method="post">
-$confirmHtml
-<table>
-<tr><th>Directory name:</th><td>$parentNameHtml/</td><td class="stretch"><input type="text" name="name" $nameValue /></td></tr>
-$submitHTML
-</table>
-
-$operationsHtml
-
-</form>
-</div>
-
-HTML;
-}
-
-function editPathForm($domainID, $pathID = null, $error = "", $type = null, $hostedUserID = null, $hostedPath = null, $redirectTarget = null, $mirrorTargetPathID = null)
-{
-	if($pathID === null) {
-		$pathID = $GLOBALS["database"]->stdGet("httpPath", array("parentPathID"=>null, "domainID"=>$domainID), "pathID");
-	}
-	$pathName = pathName($pathID);
-	$pathNameHtml = htmlentities($pathName);
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-		$stub = false;
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	} else if($error == "STUB") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = true;
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	}
-	if($type == null) {
-		$info = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("type", "hostedUserID", "hostedPath", "redirectTarget", "mirrorTargetPathID"));
-		$type = $info["type"];
-		$hostedUserID = $info["hostedUserID"];
-		$hostedPath = $info["hostedPath"];
-		$redirectTarget = $info["redirectTarget"];
-		$mirrorTargetPathID = $info["mirrorTargetPathID"];
-	}
-	
-	if($stub) {
-		$url = "http://" . $pathNameHtml . "/";
-		if($type == "HOSTED") {
-			$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$hostedUserID), "username");
-			$documentrootHtml = htmlentities("/home/$username/www/$hostedPath/");
-			return <<<HTML
-<div class="operation">
-<h2>Site function</h2>
-<form action="editpath.php?id=$pathID" method="post">
-<table>
-<tr><th>Function:</th><td class="stretch">Hosted site</td></tr>
-<tr><th>Url:</th><td class="stretch"><a href="$url">$url</a></td></tr>
-<tr><th>Document root:</th><td>$documentrootHtml</td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-		} else if($type == "REDIRECT") {
-			$targetHtml = htmlentities($redirectTarget);
-			return <<<HTML
-<div class="operation">
-<h2>Site function</h2>
-<form action="editpath.php?id=$pathID" method="post">
-<table>
-<tr><th>Function:</th><td class="stretch">Redirect</td></tr>
-<tr><th>Url:</th><td class="stretch"><a href="$url">$url</a></td></tr>
-<tr><th>Target:</th><td><a href="$targetHtml">$targetHtml</a></td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-		} else if($type == "MIRROR") {
-			$targetHtml = htmlentities("http://" . pathName($mirrorTargetPathID) . "/");
-			return <<<HTML
-<div class="operation">
-<h2>Site function</h2>
-<form action="editpath.php?id=$pathID" method="post">
-<table>
-<tr><th>Function:</th><td class="stretch">Alias</td></tr>
-<tr><th>Url:</th><td class="stretch"><a href="$url">$url</a></td></tr>
-<tr><th>Target:</th><td><a href="$targetHtml">$targetHtml</a></td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
+	if($values === null || (!isset($values["hosted"]) && !isset($values["redirect"]) && !isset($values["mirror"]))) {
+		if($path["type"] == "HOSTED") {
+			$values = array("hosted"=>"1", "documentOwner"=>$path["hostedUserID"], "documentRoot"=>$path["hostedPath"]);
+		} else if($path["type"] == "REDIRECT") {
+			$values = array("redirect"=>"1", "redirectTarget"=>$path["redirectTarget"]);
+		} else if($path["type"] == "MIRROR") {
+			$values = array("mirror"=>"1", "mirrorTarget"=>$path["mirrorTargetPathID"]);
 		}
-		$operationsHtml = "";
-	} else {
-		$operationsHtml = pathFunctionSubform($readonly != "", $type, $pathID, $hostedUserID, $hostedPath, $redirectTarget, $mirrorTargetPathID);
 	}
 	
-	return <<<HTML
-<div class="operation">
-<h2>Edit site $pathNameHtml</h2>
-$messageHtml
-<form action="editpath.php?id=$pathID" method="post">
-$confirmHtml
-
-$operationsHtml
-
-</form>
-</div>
-
-HTML;
+	return operationForm("editpath.php?id=$pathID", $error, "Edit site $pathNameHtml", "Edit",
+		array(
+			pathFunctionForm($pathID)
+		),
+		$values);
 }
 
-function removeDomainForm($domainID, $error = "", $keepSubs = false)
+function removeDomainForm($domainID, $error = "", $values = null)
 {
+	$messages = array();
+	$messages["confirmdelete"] = "The following sites will be removed:";
 	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$messageHtml .= "<p class=\"confirmdelete\">The following sites will be removed:</p>";
-		if($keepSubs) {
-			$messageHtml .= pathSummary(domainPath($domainID));
+		if(isset($values["keepsubs"]) || isRootDomain($domainID)) {
+			$messages["custom"] = pathSummary(domainPath($domainID));
 		} else {
-			$messageHtml .= domainSummary($domainID);
+			$messages["custom"] = domainSummary($domainID);
 		}
-		$confirmHtml  = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$keepSubsValue = $keepSubs ? "keep" : "remove";
-		$confirmHtml .= "<input type=\"hidden\" name=\"keepsubs\" value=\"$keepSubsValue\" />\n";
-		$keepSubsHtml = "";
-		$submitText = "Remove domain";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		if(isRootDomain($domainID)) {
-			$keepSubsHtml = "";
-		} else {
-			$keepSubsHtml = "<tr><td><label><input type=\"checkbox\" name=\"keepsubs\" value=\"keep\"/> Keep subdomains</label></td></tr>";
-		}
-		$submitText = "Remove domain";
-	} else {
-		$messageHtml = "<div class=\"error\">" . $error . "</div>\n";
-		$confirmHtml = "";
-		if(isRootDomain($domainID)) {
-			$keepSubsHtml = "";
-		} else {
-			$keepSubsChecked = $keepSubs ? "checked=\"checked\"" : "";
-			$keepSubsHtml = "<tr><td><label><input type=\"checkbox\" name=\"keepsubs\" value=\"keep\" $keepSubsChecked /> Keep subdomains</label></td></tr>";
-		}
-		$submitText = "Retry";
 	}
 	
-	if($keepSubs) {
-		$keepSubsChecked = "checked=\"checked\"";
+	if(isRootDomain($domainID)) {
+		return operationForm("removedomain.php?id=$domainID", $error, "Remove site", "Remove Site", array(), $values, $messages);
 	} else {
-		$keepSubsChecked = "";
+		return operationForm("removedomain.php?id=$domainID", $error, "Remove site", "Remove Site", array(
+			array("type"=>"checkbox", "name"=>"keepsubs", "label"=>"Keep subdomains")
+			),
+			$values, $messages);
 	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Remove domain</h2>
-$messageHtml
-<form action="removedomain.php?id=$domainID" method="post">
-$confirmHtml
-<table>
-$keepSubsHtml
-<tr class="submit"><td><input type="submit" value="$submitText" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
 }
 
-function removePathForm($pathID, $error = "", $keepSubs = false)
+function removePathForm($pathID, $error = "", $values = null)
 {
+	$messages = array();
+	$messages["confirmdelete"] = "The following sites will be removed:";
 	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$messageHtml .= "<p class=\"confirmdelete\">The following sites will be removed:</p>";
-		if($keepSubs) {
-			$messageHtml .= pathSummary($pathID, false);
+		if(isset($values["keepsubs"])) {
+			$messages["custom"] = singlePathSummary($pathID);
 		} else {
-			$messageHtml .= pathSummary($pathID);
+			$messages["custom"] = pathSummary($pathID);
 		}
-		$confirmHtml  = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$keepSubsValue = $keepSubs ? "keep" : "remove";
-		$confirmHtml .= "<input type=\"hidden\" name=\"keepsubs\" value=\"$keepSubsValue\" />\n";
-		$keepSubsHtml = "";
-		$submitText = "Remove site";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$keepSubsHtml = "<tr><td><label><input type=\"checkbox\" name=\"keepsubs\" value=\"keep\"/> Keep subpaths</label></td></tr>";
-		$submitText = "Remove site";
-	} else {
-		$messageHtml = "<div class=\"error\">" . $error . "</div>\n";
-		$confirmHtml = "";
-		$keepSubsChecked = $keepSubs ? "checked=\"checked\"" : "";
-		$keepSubsHtml = "<tr><td><label><input type=\"checkbox\" name=\"keepsubs\" value=\"keep\" $keepSubsChecked /> Keep subpaths</label></td></tr>";
-		$submitText = "Retry";
 	}
 	
-	if($keepSubs) {
-		$keepSubsChecked = "checked=\"checked\"";
-	} else {
-		$keepSubsChecked = "";
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Remove site</h2>
-$messageHtml
-<form action="removepath.php?id=$pathID" method="post">
-$confirmHtml
-<table>
-$keepSubsHtml
-<tr class="submit"><td><input type="submit" value="$submitText" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
+	return operationForm("removepath.php?id=$pathID", $error, "Remove site", "Remove Site", array(
+		array("type"=>"checkbox", "name"=>"keepsubs", "label"=>"Keep subdomains")
+		),
+		$values, $messages);
 }
 
 function removeDomain($domainID, $keepsubs)
@@ -894,6 +530,52 @@ function toBeRemovedPathsPath($pathID, $recursive)
 	return $list;
 }
 
+
+
+function validSubdomain($name)
+{
+	if(strlen($name) < 1 || strlen($name) > 255) {
+		return false;
+	}
+	if(preg_match('/^[-a-zA-Z0-9_]*$/', $name) != 1) {
+		return false;
+	}
+	return true;
+}
+
+function validDirectory($name)
+{
+	if(strlen($name) < 1 || strlen($name) > 255) {
+		return false;
+	}
+	if(preg_match('/^[-a-zA-Z0-9_.]*$/', $name) != 1) {
+		return false;
+	}
+	return true;
+}
+
+function validDocumentRoot($root)
+{
+	if(strlen($root) > 255) {
+		return false;
+	}
+	if(substr($root, 0, 1) == '/') {
+		$root = substr($root, 1);
+	}
+	if(substr($root, -1) == '/') {
+		$root = substr($root, 0, -1);
+	}
+	$parts = explode("/", $root);
+	foreach($parts as $part) {
+		if(preg_match('/^[a-zA-Z0-9_\-.]+$/', $part) != 1) {
+			return false;
+		}
+		if($part == "." || $part == "..") {
+			return false;
+		}
+	}
+	return true;
+}
 
 function isRootDomain($domainID)
 {

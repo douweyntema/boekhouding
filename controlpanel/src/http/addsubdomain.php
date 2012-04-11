@@ -6,126 +6,49 @@ function main()
 {
 	$domainID = get("id");
 	doHttpDomain($domainID);
-	$domainName = domainName($domainID);
 	
-	$content  = "<h1>Web hosting - " . htmlentities($domainName) . "</h1>\n";
-	$content .= domainBreadcrumbs($domainID, array(array("name"=>"Add subdomain", "url"=>"{$GLOBALS["root"]}http/addsubdomain.php?id=$domainID")));
+	$check = function($condition, $error) use($domainID) {
+		if(!$condition) die(page(makeHeader("Add subdomain", domainBreadcrumbs($domainID), crumbs("Add subdomain", "addsubdomain.php?id=$domainID")) . addSubdomainForm($domainID, $error, $_POST)));
+	};
 	
-	$subdomainName = post("name");
+	$check(($name = post("name")) !== null, "");
+	$check(validSubdomain($name), "Invalid domain name.");
+	$check(!$GLOBALS["database"]->stdExists("httpDomain", array("parentDomainID"=>$domainID, "name"=>$name)), "A domain with the given name already exists.");
 	
-	$type = typeFromTitle(post("type"));
-	$hostedUserID = null;
-	$hostedDocumentRoot = null;
-	$redirectTarget = null;
-	$mirrorTarget = null;
-	if($type == "HOSTED") {
-		$hostedUserID = post("documentOwner");
-		$hostedDocumentRoot = post("documentRoot");
-	} else if($type == "REDIRECT") {
-		$redirectTarget = post("redirectTarget");
-	} else if($type == "MIRROR") {
+	if(post("documentRoot") == null) {
+		$_POST["documentRoot"] = $name . "." . domainName($domainID);
+	}
+	
+	$check(($type = searchKey($_POST, "hosted", "redirect", "mirror")) !== null, "");
+	
+	if($type == "hosted") {
+		$userID = post("documentOwner");
+		$directory = trim(post("documentRoot"), "/");
+		
+		$check($GLOBALS["database"]->stdExists("adminUser", array("userID"=>$userID, "customerID"=>customerID())), "");
+		$check(validDocumentRoot($directory), "Invalid document root");
+		
+		$function = array("type"=>"HOSTED", "hostedUserID"=>$userID, "hostedPath"=>$directory);
+	} else if($type == "redirect") {
+		$function = array("type"=>"REDIRECT", "redirectTarget"=>post("redirectTarget"));
+	} else if($type == "mirror") {
 		$mirrorTarget = post("mirrorTarget");
-	}
-	
-	if($subdomainName == "" || $subdomainName === null) {
-		$content .= addSubdomainForm($domainID, "", $subdomainName);
-		die(page($content));
-	}
-	
-	$subdomainParts = explode(".", $subdomainName);
-	$valid = count($subdomainParts) > 0;
-	foreach($subdomainParts as $part) {
-		if(!validSubdomain($part)) {
-			$valid = false;
-		}
-	}
-	if(!$valid) {
-		$content .= addSubdomainForm($domainID, "Invalid domain name.", $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-		die(page($content));
-	}
-	
-	if($type === null) {
-		$content .= addSubdomainForm($domainID, "", $subdomainName, null, null, "$subdomainName.$domainName");
-		die(page($content));
-	}
-	
-	$parentDomainID = $domainID;
-	$remainingDomainParts = array_reverse($subdomainParts);
-	while(count($remainingDomainParts) > 0) {
-		$part = $remainingDomainParts[0];
-		$domain = $GLOBALS["database"]->stdGetTry("httpDomain", array("parentDomainID"=>$parentDomainID, "name"=>$part), "domainID");
-		if($domain === null) {
-			break;
-		} else {
-			$parentDomainID = $domain;
-			array_shift($remainingDomainParts);
-		}
-	}
-	if(count($remainingDomainParts) == 0 && !isStubDomain($parentDomainID)) {
-		$content .= addSubdomainForm($domainID, "A domain with the given name already exists.", $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-		die(page($content));
-	}
-	
-	if($type == "HOSTED") {
-		if(!$GLOBALS["database"]->stdExists("adminUser", array("userID"=>$hostedUserID, "customerID"=>customerID()))) {
-			$content .= addSubdomainForm($domainID, "", $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-			die(page($content));
-		}
 		
-		if(!validDocumentRoot($hostedDocumentRoot)) {
-			$content .= addSubdomainForm($domainID, "Invalid document root", $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-			die(page($content));
-		}
+		$check(($path = $GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$mirrorTarget), array("domainID", "type"))) !== null, "");
+		$check($path["type"] != "MIRROR", "");
+		$check($GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$path["domainID"]), "customerID") == customerID(), "");
 		
-		if(post("confirm") === null) {
-			$content .= addSubdomainForm($domainID, null, $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-			die(page($content));
-		}
-		
-		$docroot = trim($hostedDocumentRoot, "/");
-		
-		$GLOBALS["database"]->startTransaction();
-		foreach($remainingDomainParts as $part) {
-			$parentDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "parentDomainID"=>$parentDomainID, "name"=>$part));
-		}
-		$newDomainID = $parentDomainID;
-		$GLOBALS["database"]->stdNew("httpPath", array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null, "type"=>"HOSTED", "hostedUserID"=>$hostedUserID, "hostedPath"=>$docroot));
-		$GLOBALS["database"]->commitTransaction();
-	} else if($type == "REDIRECT") {
-		if(post("confirm") === null) {
-			$content .= addSubdomainForm($domainID, null, $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-			die(page($content));
-		}
-		
-		$GLOBALS["database"]->startTransaction();
-		foreach($remainingDomainParts as $part) {
-			$parentDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "parentDomainID"=>$parentDomainID, "name"=>$part));
-		}
-		$newDomainID = $parentDomainID;
-		$GLOBALS["database"]->stdNew("httpPath", array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null, "type"=>"REDIRECT", "redirectTarget"=>$redirectTarget));
-		$GLOBALS["database"]->commitTransaction();
-	} else if($type == "MIRROR") {
-		$path = $GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$mirrorTarget), array("domainID", "type"));
-		if($path === null || $path["type"] == "MIRROR" || $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$path["domainID"]), "customerID") != customerID()) {
-			$content .= addSubdomainForm($domainID, "", $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-			die(page($content));
-		}
-		
-		if(post("confirm") === null) {
-			$content .= addSubdomainForm($domainID, null, $subdomainName, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-			die(page($content));
-		}
-		
-		$GLOBALS["database"]->startTransaction();
-		foreach($remainingDomainParts as $part) {
-			$parentDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "parentDomainID"=>$parentDomainID, "name"=>$part));
-		}
-		$newDomainID = $parentDomainID;
-		$GLOBALS["database"]->stdNew("httpPath", array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null, "type"=>"MIRROR", "mirrorTargetPathID"=>$mirrorTarget));
-		$GLOBALS["database"]->commitTransaction();
+		$function = array("type"=>"MIRROR", "mirrorTargetPathID"=>$mirrorTarget);
 	} else {
 		die("Internal error");
 	}
+	
+	$check(post("confirm") !== null, null);
+	
+	$GLOBALS["database"]->startTransaction();
+	$newDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "parentDomainID"=>$domainID, "name"=>$name));
+	$GLOBALS["database"]->stdNew("httpPath", array_merge(array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null), $function));
+	$GLOBALS["database"]->commitTransaction();
 	
 	updateHttp(customerID());
 	

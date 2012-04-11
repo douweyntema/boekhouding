@@ -6,25 +6,18 @@ function main()
 {
 	$domainID = get("id");
 	doHttpDomain($domainID);
+	$pathID = domainPath($domainID);
 	
 	if(isStubDomain($domainID)) {
 		error404();
 	}
 	
-	$content = "<h1>Web hosting - " . domainName($domainID) . "</h1>\n";
-	
-	$content .= domainBreadcrumbs($domainID);
-	
+	$content = makeHeader("Web hosting - " . domainName($domainID), domainBreadcrumbs($domainID));
 	$content .= domainSummary($domainID);
-	
-	$content .= editPathForm($domainID, null, "STUB");
-	
+	$content .= editPathForm($pathID, "STUB");
 	$content .= addSubdomainForm($domainID, "STUB");
-	
-	$content .= addPathForm(domainPath($domainID), "STUB");
-	
+	$content .= addPathForm($pathID, "STUB");
 	$content .= removeDomainForm($domainID);
-	
 	echo page($content);
 }
 

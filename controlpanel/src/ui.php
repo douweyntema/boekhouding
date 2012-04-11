@@ -267,57 +267,20 @@ function renderRowspan($rowspan, $values, $readOnly)
 	}
 }
 
-function operationForm($postUrl, $error, $title, $submitCaption, $fields, $values, $messages = null)
+function renderTable($fields, $values, $readOnly, $submitCaption = null, $submitName = null)
 {
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readOnly = true;
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readOnly = false;
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readOnly = false;
-	}
-	
-	if($values === null) {
-		$values = array();
-	}
-	
-	if($messages !== null) {
-		if(isset($messages["confirmdelete"]) && $error === null) {
-			$messageHtml .= "<p class=\"confirmdelete\">" . $messages["confirmdelete"] . "</p>\n";
-		}
-		if(isset($messages["confirmbilling"]) && $error === null) {
-			$messageHtml .= "<p class=\"confirmbilling\">" . $messages["confirmbilling"] . "</p>\n";
-		}
-		if(isset($messages["custom"])) {
-			$messageHtml .= $messages["custom"];
-		}
-	}
-	
 	foreach($fields as $key=>$value) {
 		if($value["type"] == "subformchooser") {
 			foreach($value["subforms"] as $i=>$subform) {
 				if(!isset($subform["id"])) {
-					$fields[$key]["subforms"][$i]	["id"] = getHtmlID();
+					$fields[$key]["subforms"][$i]["id"] = getHtmlID();
 				}
 			}
 		}
 	}
 	
-	$hiddenFields = "";
 	$rowspans = array();
 	foreach($fields as $field) {
-		if($field["type"] == "hidden") {
-			$valueHtml = htmlentities($values[$field["name"]]);
-			$hiddenFields .= "<input type=\"hidden\" name=\"{$field["name"]}\" value=\"$valueHtml\" />";
-			continue;
-		}
-		
 		$f = $field;
 		$rowspan = array();
 		if(!isset($field["title"]) || $field["title"] === null) {
@@ -404,17 +367,17 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 		$maxLeftFields += 1;
 	}
 	
-	$content = "";
+	$output = "<table>\n";
 	if($maxLeftFields == 1) {
-		$content .= "<col />";
+		$output .= "<col />";
 	} else if($maxLeftFields > 0) {
-		$content .= "<col span=\"$maxLeftFields\" />";
+		$output .= "<col span=\"$maxLeftFields\" />";
 	}
-	$content .= "<col style=\"width: 100%;\" />";
+	$output .= "<col style=\"width: 100%;\" />";
 	if($maxRightFields == 1) {
-		$content .= "<col />";
+		$output .= "<col />";
 	} else if($maxRightFields > 0) {
-		$content .= "<col span=\"$maxRightFields\" />";
+		$output .= "<col span=\"$maxRightFields\" />";
 	}
 	
 	foreach($rowspans as $rowspan) {
@@ -422,31 +385,31 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 		$first = true;
 		
 		foreach($rowspan["rows"] as $row) {
-			$content .= "<tr";
+			$output .= "<tr";
 			if(isset($row["rowclass"]) && $row["rowclass"] !== null) {
-				$content .= " class=\"{$row["rowclass"]}\"";
+				$output .= " class=\"{$row["rowclass"]}\"";
 			}
-			$content .= ">";
+			$output .= ">";
 			
 			if($first) {
 				if($hasTitle) {
-					$content .= "<th";
+					$output .= "<th";
 					if(count($rowspan["rows"]) != 1) {
 						$rows = count($rowspan["rows"]);
-						$content .= " rowspan=\"$rows\"";
+						$output .= " rowspan=\"$rows\"";
 					}
 					if(isset($rowspan["titleclass"]) && $rowspan["titleclass"] !== null) {
-						$content .= " class=\"{$rowspan["titleclass"]}\"";
+						$output .= " class=\"{$rowspan["titleclass"]}\"";
 					}
-					$content .= ">";
+					$output .= ">";
 					if($rowspan["title"] != "") {
-						$content .= $rowspan["title"] . ":";
+						$output .= $rowspan["title"] . ":";
 					}
-					$content .= "</th>";
+					$output .= "</th>";
 				}
 				$first = false;
 			}
-			$content .= "\n";
+			$output .= "\n";
 			
 			$stretchWidth = $maxLeftFields + $maxRightFields + 1;
 			if($hasTitle) {
@@ -460,7 +423,7 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 			
 			$firstCell = true;
 			foreach($row["cells"] as $cell) {
-				$content .= "<td";
+				$output .= "<td";
 				if(isset($cell["width"]) && $cell["width"] == "left-merge") {
 					$width = 1;
 				} else {
@@ -479,47 +442,139 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 					}
 				}
 				if($width != 1) {
-					$content .= " colspan=\"$width\"";
+					$output .= " colspan=\"$width\"";
 				}
 				if(isset($cell["cellclass"]) && $cell["cellclass"] !== null) {
-					$content .= " class=\"{$cell["cellclass"]}\"";
+					$output .= " class=\"{$cell["cellclass"]}\"";
 				}
-				$content .= ">";
+				$output .= ">";
 				$firstCell = false;
 				
-				$content .= $cell["content"];
+				$output .= $cell["content"];
 				
-				$content .= "</td>\n";
+				$output .= "</td>\n";
 			}
 			
-			$content .= "</tr>\n";
+			$output .= "</tr>\n";
 		}
 	}
 	
-	$stretchWidth = $maxLeftFields + $maxRightFields + 1;
-	return <<<HTML
-<div class="operation">
-<h2>$title</h2>
-$messageHtml<form action="$postUrl" method="post">
-$confirmHtml<table>
-$content<tr class="submit"><td colspan="$stretchWidth"><input type="submit" value="$submitCaption" /></td></tr>
-</table>
-$hiddenFields</form>
-</div>
-
-HTML;
+	if($submitCaption !== null) {
+		$stretchWidth = $maxLeftFields + $maxRightFields + 1;
+		$nameHtml = ($submitName === null ? "" : "name=\"$submitName\" ");
+		$output .= "<tr class=\"submit\"><td colspan=\"$stretchWidth\"><input type=\"submit\" value=\"$submitCaption\" $nameHtml/></td></tr>\n";
+	}
+	
+	$output .= "</table>\n";
+	
+	return $output;
 }
 
-/*
-      return operationForm("addaccount.php", $error, "Add account", "Add", 
-        array( 
-            array("title"=>"Username", "type"=>"text", "name"=>"username"), 
-            array("title"=>"Password", "type"=>"password", "name"=>"password", "confirmtitle"=>"Confirm password"), 
-            array("title"=>"Rights", "type"=>"subformchooser", "name"=>"rights", "subforms"=>array( 
-                array("label"=>"Full access", "value"=>"full", "subform"=>array()), 
-                array("label"=>"Limited access", "value"=>"limited", "subform"=>$subform) 
-            )) 
-        ), $values); 
-*/
+function operationForm($postUrl, $error, $title, $submitCaption, $fields, $values, $messages = null)
+{
+	if($values === null) {
+		$values = array();
+	}
+	
+	if($messages === null) {
+		$messages = array();
+	}
+	
+	$readOnly = ($error === null);
+	$stub = ($error == "STUB");
+	
+	$mainTable = array();
+	$extraTables = null;
+	$hiddenFields = ($error === null ? "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n" : "");
+	foreach($fields as $value) {
+		if($stub) {
+			if(isset($value["nostub"]) && $value["nostub"] !== null) {
+				if($value["nostub"]) {
+					continue;
+				}
+			} else if($value["type"] == "typechooser") {
+				continue;
+			}
+		}
+		
+		if($value["type"] == "hidden") {
+			$valueHtml = htmlentities($values[$value["name"]]);
+			$hiddenFields .= "<input type=\"hidden\" name=\"{$value["name"]}\" value=\"$valueHtml\" />\n";
+			continue;
+		} else if($value["type"] == "typechooser") {
+			$extraTables = $value["options"];
+		} else {
+			$mainTable[] = $value;
+		}
+	}
+	
+	if($extraTables !== null) {
+		$selectedTable = null;
+		foreach($extraTables as $table) {
+			if(isset($values[$table["name"]])) {
+				$selectedTable = $table["name"];
+				break;
+			}
+		}
+	}
+	
+	$output = "<div class=\"operation\">\n";
+	$output .= "<h2>$title</h2>\n";
+	
+	if($error === null) {
+		$output .= "<p class=\"confirm\">Confirm your input</p>\n";
+		if(isset($messages["confirmdelete"])) {
+			$output .= "<p class=\"confirmdelete\">{$messages["confirmdelete"]}</p>\n";
+		}
+		if(isset($messages["confirmbilling"])) {
+			$output .= "<p class=\"confirmbilling\">{$messages["confirmbilling"]}</p>\n";
+		}
+	} else if($error != "" && $error != "STUB") {
+		$output .= "<p class=\"error\">" . $error . "</p>\n";
+	}
+	if(isset($messages["custom"])) {
+		$output .= $messages["custom"];
+	}
+	
+	$output .= "<form action=\"$postUrl\" method=\"post\">\n";
+	$output .= $hiddenFields;
+	
+	$output .= renderTable($mainTable, $values, $readOnly, $extraTables === null ? $submitCaption : null);
+	
+	if($extraTables !== null) {
+		foreach($extraTables as $table) {
+			if($table["name"] !== $selectedTable) {
+				continue;
+			}
+			
+			$output .= "<div class=\"operation selected\">\n";
+			$output .= "<h3>Currently selected: {$table["title"]}</h3>\n";
+			if(isset($table["summary"]) && $table["summary"] !== null) {
+				$output .= "<p>{$table["summary"]}</p>\n";
+			}
+			$output .= renderTable($table["subform"], $values, $readOnly, $table["submitcaption"], $table["name"]);
+			$output .= "</div>\n";
+		}
+		
+		foreach($extraTables as $table) {
+			if($table["name"] === $selectedTable || $readOnly) {
+				continue;
+			}
+			
+			$output .= "<div class=\"operation\">\n";
+			$output .= "<h3>{$table["title"]}</h3>\n";
+			if(isset($table["summary"]) && $table["summary"] !== null) {
+				$output .= "<p>{$table["summary"]}</p>\n";
+			}
+			$output .= renderTable($table["subform"], $values, $readOnly, $table["submitcaption"], $table["name"]);
+			$output .= "</div>\n";
+		}
+	}
+	
+	$output .= "</form>\n";
+	$output .= "</div>\n";
+	
+	return $output;
+}
 
 ?>
