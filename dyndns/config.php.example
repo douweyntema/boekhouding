@@ -1,0 +1,12 @@
+<?php
+
+$adminMail = "treva@treva.nl";
+
+$database_hostname = "localhost";
+$database_username = "";
+$database_password = "";
+$database_name = "treva-panel";
+
+$ssh_private_key_file = "~/.ssh/id_rsa";
+
+?>
