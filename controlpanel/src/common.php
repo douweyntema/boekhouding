@@ -550,6 +550,75 @@ function mailAdmin($subject, $body)
 	$mail->send();
 }
 
+function pdfLatex($tex)
+{
+	$dir = tempnam("/tmp", "controlpanel-");
+	unlink($dir);
+	mkdir($dir);
+	chdir($dir);
+	
+	$h = fopen($dir . "/file.tex", "w");
+	fwrite($h, $tex);
+	fclose($h);
+	
+	$md5 = "";
+	do {
+		`pdflatex $dir/file.tex`;
+		$oldmd5 = $md5;
+		$md5 = `md5sum $dir/file.pdf`;
+	} while($md5 == $oldmd5);
+	
+	$pdf = file_get_contents($dir . "/file.pdf");
+	`rm -r $dir`;
+	return $pdf;
+}
+
+function texdate($date)
+{
+	$maanden = array("",
+		"januari",
+		"februari",
+		"maart",
+		"april",
+		"mei",
+		"juni",
+		"juli",
+		"augustus",
+		"september",
+		"oktober",
+		"november",
+		"december");
+	$day = date("j", $date);
+	$month = date("n", $date);
+	$year = date("Y", $date);
+	return $day . " " . $maanden[$month] . " " . $year;
+}
+
+define("COUNTRYCODES_FILE", dirname(__FILE__) . "/../countrycodes");
+
+function countryCodes()
+{
+	$countryCodes = array();
+	foreach(explode("\n", file_get_contents(COUNTRYCODES_FILE)) as $line) {
+		$parts = explode(" ", $line);
+		$code = $parts[0];
+		$name = implode(" ", array_shift($parts));
+		$countryCodes[$code] = $name; 
+	}
+	return $countryCodes;
+}
+
+function countryName($code)
+{
+	$code = strtoupper($code);
+	$country = countryCodes();
+	if(isset($country[$code])) {
+		return $country[$code];
+	} else {
+		return $code;
+	}
+}
+
 function error404()
 {
 	header("HTTP/1.1 404 Not Found");

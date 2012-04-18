@@ -7,9 +7,9 @@ function main()
 	doBilling();
 	
 	$content = "<h1>Billing</h1>\n";
-	$content .= billingBreadcrumbs();
+	$content .= billingCustomerBreadcrumbs();
 	$content .= customerSubscriptionList();
-	$content .= invoiceList(3);
+	$content .= invoiceList(customerID());
 	
 	echo page($content);
 }

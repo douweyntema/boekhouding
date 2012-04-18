@@ -21,7 +21,7 @@ function doInvoice($invoiceID)
 	useCustomer($GLOBALS["database"]->stdGetTry("billingInvoice", array("invoiceID"=>$invoiceID), "customerID", false));
 }
 
-function billingBreadcrumbs($postfix = array())
+function billingCustomerBreadcrumbs($postfix = array())
 {
 	return breadcrumbs(array_merge(array(array("name"=>"Billing", "url"=>"{$GLOBALS["root"]}billing/")), $postfix));
 }

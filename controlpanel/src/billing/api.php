@@ -98,6 +98,117 @@ function billingUpdateInvoiceLines($customerID)
 	$GLOBALS["database"]->commitTransaction();
 }
 
+function billingCreateInvoice($customerID, $invoiceLines)
+{
+	$now = time();
+	$factuurnrDatum = date("Ymd", $now);
+	
+	$GLOBALS["database"]->startTransaction();
+	// TODO: atomair in de insert doen of locken
+	$factuurnrCount = $GLOBALS["database"]->query("SELECT invoiceID FROM billingInvoice WHERE invoiceNumber LIKE '" . $GLOBALS["database"]->addSlashes($factuurnrDatum) . "-%'")->numRows();
+	$factuurnr = $factuurnrDatum . "-" . ($factuurnrCount + 1);
+	
+	$amount = 0;
+	foreach($invoiceLines as $lineID) {
+		$line = $GLOBALS["database"]->stdGet("billingInvoiceLine", array("invoiceLineID"=>$lineID), array("customerID", "invoiceID", "price", "discount"));
+		if($line["customerID"] != $customerID) {
+			$GLOBALS["database"]->rollbackTransaction();
+			throw new BillingInvoiceException();
+		}
+		if($line["invoiceID"] !== null) {
+			$GLOBALS["database"]->rollbackTransaction();
+			throw new BillingInvoiceException();
+		}
+		$amount += $line["price"];
+		$amount -= $line["discount"];
+	}
+	
+	$invoiceID = $GLOBALS["database"]->stdNew("billingInvoice", array("customerID"=>$customerID, "date"=>$now, "remainingAmount"=>$amount, "invoiceNumber"=>$factuurnr));
+	
+	// TODO: $amount overal bij op en af trekken
+	
+	foreach($invoiceLines as $lineID) {
+		$GLOBALS["database"]->stdSet("billingInvoiceLine", array("invoiceLineID"=>$lineID), array("invoiceID"=>$invoiceID));
+	}
+	$GLOBALS["database"]->commitTransaction();
+	
+	billingCreateInvoiceTex($invoiceID);
+}
+
+function billingCreateInvoiceTex($invoiceID)
+{
+	$invoice = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "date", "invoiceNumber"));
+	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode"));
+	
+	$texdatum = date("d/m/Y", $invoice["date"]);
+	$invoiceNumber = $invoice["invoiceNumber"];
+	$to = "";
+	if($customer["companyName"] !== null && $customer["companyName"] !== "") {
+		$to .= $customer["companyName"] . "\\\\";
+		$to .= "t.n.v ";
+	}
+	$to .= $customer["initials"] . " " . $customer["lastName"] . "\\\\";
+	$to .= $customer["address"] . "\\\\";
+	$to .= $customer["postalCode"] . "~~" . $customer["city"];
+	if($customer["countryCode"] != "NL") {
+		$to .= "\\\\" . countryName($customer["countryCode"]);
+	}
+	$username = $customer["name"];
+	
+	$posts = "";
+	$discounts = "";
+	
+	foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("invoiceID"=>$invoiceID), array("description", "periodStart", "periodEnd", "price", "discount")) as $line) {
+		if($line["periodStart"] != null && $line["periodEnd"] != null) {
+			$startdate = texdate($line["periodStart"]);
+			$enddate = texdate($line["periodEnd"]);
+		} else {
+			$startdate = "";
+			$enddate = "";
+		}
+		$price = formatPriceRaw($line["price"] / 1.19);
+		$posts .= "\\post{{$line["description"]}}{{$startdate}}{{$enddate}}{{$price}}\n";
+		
+		if($line["discount"] != 0) {
+			$discountDescription = "Korting " . strtolower(substr($line["description"], 0, 1)) . substr($line["description"], 1);
+			$discountamount = formatPriceRaw($line["discount"] / 1.19);
+			$discounts .= "\\korting{{$discountDescription}}{{$discountamount}}\n";
+		}
+	}
+	// TODO: BTW uitrekenen en aan de tex toevoegen
+	$tex = <<<TEX
+\documentclass{trevabrief}
+\usepackage{treva-factuur}
+\setDatum[{$texdatum}]
+
+\begin{document}
+
+\begin{factuurbrief}{{$to}}{{$invoiceNumber}}
+\gebruikersnaam{{$username}}
+
+\begin{factuur}
+{$posts}{$discounts}
+\end{factuur}
+
+\end{factuurbrief}
+
+\end{document}
+
+TEX;
+	$GLOBALS["database"]->stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("tex"=>$tex));
+	
+	billingCreateInvoicePdf($invoiceID);
+}
+
+function billingCreateInvoicePdf($invoiceID)
+{
+	$tex = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), "tex");
+	$pdf = pdfLatex($tex);
+	$GLOBALS["database"]->stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("pdf"=>$pdf));
+}
+
+billingCreateInvoiceTex(2);
+
 function billingUpdateAllInvoiceLines()
 {
 	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), "customerID") as $customerID) {
@@ -131,6 +242,10 @@ function billingAddPayment($customerID, $amount, $date, $desciption)
 	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("balance"=>$balance));
 	
 	$GLOBALS["database"]->commitTransaction();
+}
+
+class BillingInvoiceException extends Exception
+{
 }
 
 ?>

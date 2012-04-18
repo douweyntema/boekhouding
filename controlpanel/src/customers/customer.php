@@ -30,6 +30,8 @@ function main()
 
 HTML;
 	
+	$content .= customerBalance($customerID);
+	
 	$content .= editCustomerForm($customerID, "", $customer["initials"], $customer["lastName"], $customer["companyName"], $customer["address"], $customer["postalCode"], $customer["city"], $customer["countryCode"], $customer["email"], $customer["phoneNumber"], $customer["diskQuota"], $customer["mailQuota"]);
 	$content .= editCustomerRightsForm($customerID);
 	

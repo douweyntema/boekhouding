@@ -9,7 +9,7 @@ function main()
 	doBillingAdmin($customerID);
 	
 	$content = "<h1>Subscription</h1>\n";
-	$content .= billingBreadcrumbs(array(array("name"=>"Subscription", "url"=>"{$GLOBALS["root"]}billing/subscription.php?id=$subscriptionID")));
+	$content .= billingAdminCustomerBreadcrumbs($customerID, array(array("name"=>"Subscription", "url"=>"{$GLOBALS["root"]}billing/subscription.php?id=$subscriptionID")));
 	
 	$content .= subscriptionDetail($subscriptionID);
 	$content .= editSubscriptionForm($subscriptionID);
