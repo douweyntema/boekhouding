@@ -8,71 +8,38 @@ function main()
 	doHttpPath($pathID);
 	$domainID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "domainID");
 	
-	$content = "<h1>Web hosting - " . domainName($domainID) . "</h1>\n";
+	$check = function($condition, $error) use($domainID, $pathID) {
+		if(!$condition) die(page(makeHeader("Web hosting - " . domainName($domainID), pathBreadcrumbs($pathID), crumbs("Edit site", "editpath.php?id=$pathID")) . editPathForm($pathID, $error, $_POST)));
+	};
 	
-	$content .= pathBreadcrumbs($pathID, array(array("name"=>"Edit site", "url"=>"{$GLOBALS["root"]}http/editpath.php?id=$pathID")));
+	$check(($type = searchKey($_POST, "hosted", "redirect", "mirror")) !== null, "");
 	
-	$type = typeFromTitle(isset($_POST["type"]) ? $_POST["type"] : null);
-	$hostedUserID = null;
-	$hostedDocumentRoot = null;
-	$redirectTarget = null;
-	$mirrorTarget = null;
-	if($type == "HOSTED") {
-		$hostedUserID = $_POST["documentOwner"];
-		$hostedDocumentRoot = $_POST["documentRoot"];
-	} else if($type == "REDIRECT") {
-		$redirectTarget = $_POST["redirectTarget"];
-	} else if($type == "MIRROR") {
-		$mirrorTarget = $_POST["mirrorTarget"];
-	}
+	if($type == "hosted") {
+		$userID = post("documentOwner");
+		$directory = trim(post("documentRoot"), "/");
+		
+		$check($GLOBALS["database"]->stdExists("adminUser", array("userID"=>$userID, "customerID"=>customerID())), "");
+		$check(validDocumentRoot($directory), "Invalid document root");
+		
+		$function = array("type"=>"HOSTED", "hostedUserID"=>$userID, "hostedPath"=>$directory);
+	} else if($type == "redirect") {
+		$function = array("type"=>"REDIRECT", "redirectTarget"=>post("redirectTarget"));
+	} else if($type == "mirror") {
+		$mirrorTarget = post("mirrorTarget");
 	
-	if($type === null) {
-		$content .= editPathForm($domainID, $pathID, "");
-		die(page($content));
-	}
-	
-	if($type == "HOSTED") {
-		if(!$GLOBALS["database"]->stdExists("adminUser", array("userID"=>$hostedUserID, "customerID"=>customerID()))) {
-			$content .= editPathForm($domainID, $pathID, "", $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-			die(page($content));
-		}
+		$check((int)$mirrorTarget != (int)$pathID, "");
+		$check(($path = $GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$mirrorTarget), array("domainID", "type"))) !== null, "");
+		$check($path["type"] != "MIRROR", "");
+		$check($GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$path["domainID"]), "customerID") == customerID(), "");
 		
-		if(!validDocumentRoot($hostedDocumentRoot)) {
-			$content .= editPathForm($domainID, $pathID, "Invalid document root", $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-			die(page($content));
-		}
-		
-		if(post("confirm") === null) {
-			$content .= editPathForm($domainID, $pathID, null, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-			die(page($content));
-		}
-		
-		$docroot = trim($hostedDocumentRoot, "/");
-		
-		$GLOBALS["database"]->stdSet("httpPath", array("pathID"=>$pathID), array("type"=>"HOSTED", "hostedUserID"=>$hostedUserID, "hostedPath"=>$docroot, "redirectTarget"=>null, "mirrorTargetPathID"=>null));
-	} else if($type == "REDIRECT") {
-		if(post("confirm") === null) {
-			$content .= editPathForm($domainID, $pathID, null, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-			die(page($content));
-		}
-		
-		$GLOBALS["database"]->stdSet("httpPath", array("pathID"=>$pathID), array("type"=>"REDIRECT", "redirectTarget"=>$redirectTarget, "hostedUserID"=>null, "hostedPath"=>null, "mirrorTargetPathID"=>null));
-	} else if($type == "MIRROR") {
-		$path = $GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$mirrorTarget), array("domainID", "type"));
-		if($path === null || $path["type"] == "MIRROR" || $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$path["domainID"]), "customerID") != customerID()) {
-			$content .= editPathForm($domainID, $pathID, "", $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-			die(page($content));
-		}
-		
-		if(post("confirm") === null) {
-			$content .= editPathForm($domainID, $pathID, null, $type, $hostedUserID, $hostedDocumentRoot, $redirectTarget, $mirrorTarget);
-			die(page($content));
-		}
-		
-		$GLOBALS["database"]->stdSet("httpPath", array("pathID"=>$pathID), array("type"=>"MIRROR", "mirrorTargetPathID"=>$mirrorTarget, "hostedUserID"=>null, "hostedPath"=>null, "redirectTarget"=>null));
+		$function = array("type"=>"MIRROR", "mirrorTargetPathID"=>$mirrorTarget);
 	} else {
 		die("Internal error");
 	}
+	
+	$check(post("confirm") !== null, null);
+	
+	$GLOBALS["database"]->stdSet("httpPath", array("pathID"=>$pathID), array_merge(array("hostedUserID"=>null, "hostedPath"=>null, "redirectTarget"=>null, "mirrorTargetPathID"=>null), $function));
 	
 	updateHttp(customerID());
 	

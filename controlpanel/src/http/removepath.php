@@ -7,14 +7,13 @@ function main()
 	$pathID = get("id");
 	doHttpPath($pathID);
 	
-	$content = "<h1>Web hosting - " . pathName($pathID) . "</h1>\n";
+	$check = function($condition, $error) use($pathID) {
+		if(!$condition) die(page(makeHeader("Web hosting - " . pathName($pathID), pathBreadcrumbs($pathID), crumbs("Remove site", "removepath.php?id=$pathID")) . removePathForm($pathID, $error, $_POST)));
+	};
 	
-	$content .= pathBreadcrumbs($pathID, array(array("url"=>"{$GLOBALS["root"]}http/removepath.php?id=$pathID", "name"=>"Remove site")));
+	$keepsubs = post("keepsubs") !== null;
 	
-	$keepsubs = post("keepsubs") == "keep";
-	
-	$aliases = aliassesPointToPath($pathID, !$keepsubs);
-	$aliases = array_unique($aliases);
+	$aliases = array_unique(aliassesPointToPath($pathID, !$keepsubs));
 	if(count($aliases) > 0) {
 		$error = "The requested site(s) cannot be removed because of the following aliases:";
 		$error .= "<ul>";
@@ -25,15 +24,11 @@ function main()
 			$error .= "<li><a href=\"{$GLOBALS["root"]}http/path.php?id=$alias\">$name</a>: alias for <a href=\"{$GLOBALS["root"]}http/path.php?id=$target\">$targetName</a></li>";
 		}
 		$error .= "</ul>";
-		$error .= "<p>Please remove there aliases and press <em>Retry</em>.</p>";
-		$content .= removePathForm($pathID, $error, $keepsubs);
-		die(page($content));
+		$error .= "<p>Please remove there aliases and retry.</p>";
+		$check(false, $error);
 	}
 	
-	if(post("confirm") === null) {
-		$content .= removePathForm($pathID, null, $keepsubs);
-		die(page($content));
-	}
+	$check(post("confirm") !== null, null);
 	
 	$parentPathID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "parentPathID");
 	$domainID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "domainID");

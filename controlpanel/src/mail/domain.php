@@ -15,7 +15,6 @@ function main()
 	$content .= addMailAliasForm($domainID);
 	$content .= addMailListForm($domainID);
 	$content .= removeMailDomainForm($domainID);
-
 	echo page($content);
 }
 

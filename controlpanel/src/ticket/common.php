@@ -17,6 +17,26 @@ function doTicketThread($threadID)
 	}
 }
 
+function addHeader($title, $filename)
+{
+	$header = "<h1>$title</h1>\n";
+	$breadcrumbs = breadcrumbs(array(
+		array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Support"),
+		array("url"=>"{$GLOBALS["root"]}ticket/$filename", "name"=>$title)
+	));
+	return $header . $breadcrumbs;
+}
+
+function threadHeader($threadID)
+{
+	$header = "<h1>Support - Ticket #$threadID</h1>\n";
+	$breadcrumbs = breadcrumbs(array(
+		array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Support"),
+		array("url"=>"{$GLOBALS["root"]}ticket/thread.php?id=$threadID", "name"=>"Ticket #$threadID")
+	));
+	return $header . $breadcrumbs;
+}
+
 function threadList($status = "OPEN")
 {
 	$output = "";
@@ -56,7 +76,7 @@ HTML;
 		$date = date("d-m-Y H:i", $thread["date"]);
 		$threadID = htmlentities($thread["threadID"]);
 		
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}ticket/thread.php?id={$threadID}\">#$threadID</a></td>$customerHtml<td>$userName</td><td><a href=\"{$GLOBALS["rootHtml"]}ticket/thread.php?id={$threadID}\">$title</a></td><td>$date</td></tr>";
+		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}ticket/thread.php?id={$threadID}\">#$threadID</a></td>$customerHtml<td>$userName</td><td><a href=\"{$GLOBALS["rootHtml"]}ticket/thread.php?id={$threadID}\">$title</a></td><td>$date</td></tr>\n";
 	}
 	$output .= <<<HTML
 </tbody>
@@ -121,101 +141,28 @@ HTML;
 	return $output;
 }
 
-function newReplyForm($threadID, $error = "", $text = null, $status = null)
+function newThreadForm($error = "", $values = null)
 {
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-		$disabled = "disabled=\"disabled\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$disabled = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-		$disabled = "";
-	}
-	
-	$oldstatus = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "status");
-	if($status === null) {
-		$status = $oldstatus;
-	}
-	
-	$statusChangeText = ($oldstatus == "OPEN") ? "Close ticket" : "Reopen ticket";
-	$statusChangeValue = ($oldstatus == "OPEN") ? "CLOSED" : "OPEN";
-	
-	if($status != $oldstatus) {
-		$statusChecked = "checked=\"checked\"";
-	} else {
-		$statusChecked = "";
-	}
-	
-	$statusName = "status";
-	$hiddenStatusField = "";
-	if($disabled != "" && $statusChecked != "") {
-		$hiddenStatusField = "<input type=\"hidden\" name=\"status\" value=\"$statusChangeValue\" />";
-		$statusName = "status-checkbox";
-	}
-	
-	$textHtml = ($text === null) ? "" : htmlentities($text);
-	
-	$output = <<<HTML
-<div class="operation">
-<h2>New reply</h2>
-$messageHtml
-<form action="addreply.php?id={$threadID}" method="post">
-$confirmHtml
-$hiddenStatusField
-<table>
-<tr><td><textarea name="text" $readonly>$textHtml</textarea></td></tr>
-<tr><td><label><input type="checkbox" name="$statusName" value="$statusChangeValue" $statusChecked $disabled> $statusChangeText</label></td></tr>
-<tr class="submit"><td><input type="submit" name="submit" value="Reply" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-	return $output;
+	return operationForm("addthread.php", $error, "New ticket", "Create ticket",
+		array(
+			array("title"=>"Title", "type"=>"text", "name"=>"title"),
+			array("title"=>null, "type"=>"textarea", "name"=>"text")
+		),
+		$values);
 }
 
-function newThreadForm($error = "", $title = null, $text = null)
+function newReplyForm($threadID, $error = "", $values = null)
 {
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	$titleHtml = inputvalue($title);
-	$textHtml = ($text === null) ? "" : htmlentities($text);
-	
-	$output = <<<HTML
-<div class="operation">
-<h2>New ticket</h2>
-$messageHtml
-<form action="addthread.php" method="post">
-$confirmHtml
-<table>
-<tr><th>Title:</th><td class="stretch"><input type="text" name="title" $titleHtml $readonly></td></tr>
-<tr><td colspan="2"><textarea name="text" $readonly>$textHtml</textarea></td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="submit" value="Create ticket" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-	return $output;
+	$closed = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "status") == "CLOSED";
+	return operationForm("addreply.php?id=$threadID", $error, "New reply", "Reply",
+		array(
+			array("title"=>null, "type"=>"textarea", "name"=>"text"),
+			$closed ?
+				array("title"=>null, "type"=>"checkbox", "name"=>"reopen", "label"=>"Reopen ticket")
+			:
+				array("title"=>null, "type"=>"checkbox", "name"=>"close", "label"=>"Close ticket")
+		),
+		$values);
 }
 
 ?>

@@ -11,14 +11,13 @@ function main()
 		error404();
 	}
 	
-	$content = "<h1>Web hosting - " . domainName($domainID) . "</h1>\n";
+	$check = function($condition, $error) use($domainID) {
+		if(!$condition) die(page(makeHeader("Web hosting - " . domainName($domainID), domainBreadcrumbs($domainID), crumbs("Remove domain", "removedomain.php?id=$domainID")) . removeDomainForm($domainID, $error, $_POST)));
+	};
 	
-	$content .= domainBreadcrumbs($domainID, array(array("url"=>"{$GLOBALS["root"]}http/removedomain.php?id=$domainID", "name"=>"Remove domain")));
+	$keepsubs = post("keepsubs") !== null;
 	
-	$keepsubs = post("keepsubs") == "keep";
-	
-	$aliases = aliassesPointToDomain($domainID, !$keepsubs);
-	$aliases = array_unique($aliases);
+	$aliases = array_unique(aliassesPointToDomain($domainID, !$keepsubs));
 	if(count($aliases) > 0) {
 		$error = "The requested site(s) cannot be removed because of the following aliases:";
 		$error .= "<ul>";
@@ -29,15 +28,11 @@ function main()
 			$error .= "<li><a href=\"{$GLOBALS["root"]}http/path.php?id=$alias\">$name</a>: alias for <a href=\"{$GLOBALS["root"]}http/path.php?id=$target\">$targetName</a></li>";
 		}
 		$error .= "</ul>";
-		$error .= "<p>Please remove there aliases and press <em>Retry</em>.</p>";
-		$content .= removeDomainForm($domainID, $error, $keepsubs);
-		die(page($content));
+		$error .= "<p>Please remove there aliases and retry.</p>";
+		$check(false, $error);
 	}
 	
-	if(post("confirm") === null) {
-		$content .= removeDomainForm($domainID, null, $keepsubs);
-		die(page($content));
-	}
+	$check(post("confirm") !== null, null);
 	
 	$parentDomainID = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID");
 	$isRootDomain = isRootDomain($domainID);

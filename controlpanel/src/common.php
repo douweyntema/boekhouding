@@ -53,6 +53,18 @@ function post($id)
 	return isset($_POST[$id]) ? $_POST[$id] : null;
 }
 
+function searchKey($array /*, $keys */)
+{
+	$keys = func_get_args();
+	array_shift($keys);
+	foreach($keys as $key) {
+		if(isset($array[$key])) {
+			return $key;
+		}
+	}
+	return null;
+}
+
 function relativeRoot()
 {
 	$directories = substr_count(realpath($_SERVER["SCRIPT_FILENAME"]), "/") - substr_count(realpath(__FILE__), "/");
@@ -500,8 +512,7 @@ function updateHttp($customerID)
 
 function breadcrumbs($breadcrumbs)
 {
-	$output = "";
-	$output .= "\n<div class=\"breadcrumbs\">\n";
+	$output = "<div class=\"breadcrumbs\">\n";
 	$separator = "         ";
 	foreach($breadcrumbs as $breadcrumb) {
 		$urlHtml = htmlentities($breadcrumb["url"]);
@@ -509,8 +520,19 @@ function breadcrumbs($breadcrumbs)
 		$output .= $separator . "<a href=\"$urlHtml\">$nameHtml</a>\n";
 		$separator = "&gt;&gt; ";
 	}
-	$output .= "</div>\n\n";
+	$output .= "</div>\n";
 	return $output;
+}
+
+function makeHeader($title/*, $breadcrumbs*/)
+{
+	$breadcrumbsList = func_get_args();
+	array_shift($breadcrumbsList);
+	$breadcrumbs = array();
+	foreach($breadcrumbsList as $crumbs) {
+		$breadcrumbs = array_merge($breadcrumbs, $crumbs);
+	}
+	return "<h1>$title</h1>\n" . breadcrumbs($breadcrumbs);
 }
 
 function mailCustomer($customerID, $subject, $body, $bccAdmin = false)
