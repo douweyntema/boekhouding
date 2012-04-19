@@ -603,7 +603,7 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 					$f = postfixFieldNames($field["field"], "-$index");
 					if($i < $usedFields) {
 						$class = "";
-					} else if($i == $usedFields) {
+					} else if($i == $usedFields + $emptyFields - 1) {
 						$id = getHtmlID();
 						$f["rowid"] = $id;
 						$class = "repeatFieldMaster repeatFieldChild-$id";
