@@ -6,6 +6,7 @@ function main()
 {
 	$customerID = get("id");
 	doBillingAdmin($customerID);
+	billingUpdateInvoiceLines($customerID);
 	
 	$content = "<h1>Billing</h1>\n";
 	$content .= billingAdminCustomerBreadcrumbs($customerID);

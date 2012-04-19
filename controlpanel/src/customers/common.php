@@ -24,13 +24,13 @@ function customerList()
 	$output .= "<tr><th>Nickname</th><th>Name</th><th>Email</th><th>Filesystem</th><th>Mailsystem</th><th>Balance</th></tr>\n";
 	$output .= "</thead>\n";
 	$output .= "<tbody>\n";
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), array("customerID", "fileSystemID", "mailSystemID", "name", "initials", "lastName", "email", "balance"), array("name"=>"ASC")) as $customer) {
+	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), array("customerID", "fileSystemID", "mailSystemID", "name", "initials", "lastName", "email"), array("name"=>"ASC")) as $customer) {
 		$nicknameHtml = htmlentities($customer["name"]);
 		$nameHtml = htmlentities($customer["initials"] . " " . $customer["lastName"]);
 		$emailHtml = htmlentities($customer["email"]);
 		$fileSystemNameHtml = htmlentities($GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), "name"));
 		$mailSystemNameHtml = htmlentities($GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), "name"));
-		$balanceHtml = formatPrice($customer["balance"]);
+		$balanceHtml = formatPrice(billingBalance($customer["customerID"]));
 		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a><a href=\"{$GLOBALS["rootHtml"]}index.php?customerID={$customer["customerID"]}\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}img/external.png\" alt=\"Impersonate\" /></a></td><td>$nameHtml</td><td><a href=\"mailto:{$customer["email"]}\">$emailHtml</a></td><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$customer["fileSystemID"]}\">$fileSystemNameHtml</a></td><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/mailsystem.php?id={$customer["mailSystemID"]}\">$mailSystemNameHtml</a></td><td><a href=\"{$GLOBALS["rootHtml"]}billing/customer.php?id={$customer["customerID"]}\">$balanceHtml</a></tr>\n";
 	}
 	$output .= "</tbody>\n";
@@ -41,7 +41,7 @@ function customerList()
 
 function customerBalance($customerID)
 {
-	$balance = formatPrice($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "balance"));
+	$balance = formatPrice(billingBalance($customerID));
 	return <<<HTML
 <div class="operation">
 <h2>Balance</h2>
@@ -55,6 +55,7 @@ HTML;
 
 function addCustomerForm($error = "", $nickname = "", $initials = "", $lastName = "", $companyName = "", $address = "", $postalCode = "", $city = "", $countryCode = "nl", $email = "", $phoneNumber = "", $group = "", $diskQuota = "", $mailQuota = "", $fileSystemID = "", $mailSystemID = "", $nameSystemID = "")
 {
+	// TODO: billing interval
 	$nicknameValue = inputValue($nickname);
 	$initialsValue = inputValue($initials);
 	$lastNameValue = inputValue($lastName);
@@ -205,6 +206,7 @@ HTML;
 
 function editCustomerForm($customerID, $error, $initials, $lastName, $companyName, $address, $postalCode, $city, $countryCode, $email, $phoneNumber, $diskQuota, $mailQuota)
 {
+	// TODO: billing interval
 	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "groupname", "fileSystemID", "mailSystemID", "nameSystemID"), false);
 	
 	$nicknameHtml = htmlentities($customer["name"]);

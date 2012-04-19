@@ -1,5 +1,7 @@
 <?php
 
+define("COUNTRYCODES_FILE", dirname(__FILE__) . "/../countrycodes");
+
 require_once(dirname(__FILE__) . "/config.php");
 require_once("/usr/lib/phpdatabase/database.php");
 require_once("/usr/lib/phpmail/mimemail.php");
@@ -620,8 +622,6 @@ function texdate($date)
 	$year = date("Y", $date);
 	return $day . " " . $maanden[$month] . " " . $year;
 }
-
-define("COUNTRYCODES_FILE", dirname(__FILE__) . "/../countrycodes");
 
 function countryCodes()
 {

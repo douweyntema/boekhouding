@@ -19,9 +19,6 @@ function billingNewSubscription($customerID, $description, $price, $discountPerc
 
 function billingEditSubscription($subscriptionID, $description, $price, $discountPercentage, $discountAmount, $frequencyBase, $frequencyMultiplier, $invoiceDelay)
 {
-	if($startDate == null) {
-		$startDate = time();
-	}
 	return $GLOBALS["database"]->stdSet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("description"=>$description, "price"=>$price, "discountPercentage"=>$discountPercentage, "discountAmount"=>$discountAmount, "frequencyBase"=>$frequencyBase, "frequencyMultiplier"=>$frequencyMultiplier, "invoiceDelay"=>$invoiceDelay));
 }
 
@@ -41,24 +38,7 @@ function billingUpdateInvoiceLines($customerID)
 	$GLOBALS["database"]->startTransaction();
 	foreach($GLOBALS["database"]->stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
 		while($subscription["nextPeriodStart"] < $now + $subscription["invoiceDelay"]) {
-			$day = date("j", $subscription["nextPeriodStart"]);
-			$month = date("n", $subscription["nextPeriodStart"]);
-			$year = date("Y", $subscription["nextPeriodStart"]);
-			if($subscription["frequencyBase"] == "DAY") {
-				$day += $subscription["frequencyMultiplier"];
-			} else if($subscription["frequencyBase"] == "MONTH") {
-				$month += $subscription["frequencyMultiplier"];
-			} else if($subscription["frequencyBase"] == "YEAR") {
-				$year += $subscription["frequencyMultiplier"];
-			} else {
-				mailAdmin("Controlpanel database broken!", "Unknown frequencyBase for subscription " . $subscription["subscriptionID"]);
-				continue 2;
-			}
-			$periodEnd = mktime(
-				date("H", $subscription["nextPeriodStart"]),
-				date("i", $subscription["nextPeriodStart"]),
-				date("s", $subscription["nextPeriodStart"]),
-				$month, $day, $year);
+			$periodEnd = billingCalculateNextDate($subscription["nextPeriodStart"], $subscription["frequencyBase"], $subscription["frequencyMultiplier"]);
 			
 			if($subscription["price"] === null) {
 				if($subscription["domainTldID"] === null) {
@@ -96,6 +76,43 @@ function billingUpdateInvoiceLines($customerID)
 		}
 	}
 	$GLOBALS["database"]->commitTransaction();
+}
+
+function billingUpdateAllInvoiceLines()
+{
+	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), "customerID") as $customerID) {
+		billingUpdateInvoiceLines($customerID);
+	}
+}
+
+function billingCreateInvoiceBatch($customerID)
+{
+	billingUpdateInvoiceLines($customerID);
+	$now = time();
+	$invoiceTime = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("invoiceFrequencyBase", "invoiceFrequencyMultiplier", "nextInvoiceDate"));
+	
+	if($invoiceTime["nextInvoiceDate"] > $now) {
+		return;
+	}
+	$nextInvoiceTime = $invoiceTime["nextInvoiceDate"];
+	while($nextInvoiceTime < $now) {
+		$nextInvoiceTime = billingCalculateNextDate($nextInvoiceTime, $invoiceTime["invoiceFrequencyBase"], $invoiceTime["invoiceFrequencyMultiplier"]);
+	}
+	
+	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("nextInvoiceDate"=>$nextInvoiceTime));
+	
+	$invoiceLines = $GLOBALS["database"]->stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), "invoiceLineID");
+	if(count($invoiceLines) == 0) {
+		return;
+	}
+	billingCreateInvoice($customerID, $invoiceLines);
+}
+
+function billingCreateAllInvoices()
+{
+	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), "customerID") as $customerID) {
+		billingCreateInvoiceBatch($customerID);
+	}
 }
 
 function billingCreateInvoice($customerID, $invoiceLines)
@@ -212,13 +229,47 @@ function billingCreateInvoicePdf($invoiceID)
 	$tex = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), "tex");
 	$pdf = pdfLatex($tex);
 	$GLOBALS["database"]->stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("pdf"=>$pdf));
+	billingCreateInvoiceEmail($invoiceID);
 }
 
-function billingUpdateAllInvoiceLines()
+function billingCreateInvoiceEmail($invoiceID)
 {
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), "customerID") as $customerID) {
-		billingUpdateInvoiceLines($customerID);
+	$invoice = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "remainingAmount", "invoiceNumber", "pdf"));
+	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("name", "companyName", "initials", "lastName", "email"));
+	
+	if($invoice["remainingAmount"] > 0) {
+		$bedrag = formatPriceRaw($invoice["remainingAmount"]);
+		$betalen = "Wij verzoeken u dit bedrag ($bedrag) binnen 30 dagen over te maken op rekeningnummer 3962370 t.n.v. Treva Technologies, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}) en uw accountnaam ({$customer["name"]}).";
+	} else {
+		$betalen = "Deze factuur is reeds verrekend met eerdere betalingen.";
 	}
+	
+	$mail = new mimemail();
+	if($customer["companyName"] == null || $customer["companyName"] == "") {
+		$mail->addReceiver($customer["email"], $customer["initials"] . " " . $customer["lastName"]);
+	} else {
+		$mail->addReceiver($customer["email"], $customer["companyName"]);
+	}
+	$mail->setSender("treva@treva.nl", "Treva Technologies");
+	$mail->addBcc("klantfacturen@treva.nl");
+	$mail->setSubject("Factuur {$invoice["invoiceNumber"]}");
+	$mail->addAttachment("factuur-{$invoice["invoiceNumber"]}.pdf", $invoice["pdf"], "application/pdf");
+	
+	$mail->setTextMessage(<<<TEXT
+Geachte {$customer["initials"]} {$customer["lastName"]},
+
+In de bijlage van dit e-mail bericht vindt u de factuur met factuurnummer {$invoice["invoiceNumber"]} voor de afgenomen diensten/producten.
+
+{$betalen}
+
+Met vriendelijke groet,
+
+Treva Technologies
+
+TEXT
+);
+	
+	$mail->send();
 }
 
 function billingCustomerBalance($customerID)
@@ -259,8 +310,41 @@ function billingDistributeFunds($customerID)
 	$GLOBALS["database"]->commitTransaction();
 }
 
-class BillingInvoiceException extends Exception
+function billingBalance($customerID)
 {
+	billingDistributeFunds($customerID);
+	$balance = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
+	if($balance > 0) {
+		return $balance;
+	}
+	$result = $GLOBALS["database"]->query("SELECT SUM(remainingAmount) AS sum FROM billingInvoice WHERE customerID='" . $GLOBALS["database"]->addSlashes($customerID) . "'")->fetchArray();
+	return -$result["sum"];
 }
+
+function billingCalculateNextDate($oldDate, $frequencyBase, $frequencyMultiplier)
+{
+	$day = date("j", $oldDate);
+	$month = date("n", $oldDate);
+	$year = date("Y", $oldDate);
+	if($frequencyBase == "DAY") {
+		$day += $frequencyMultiplier;
+	} else if($frequencyBase == "MONTH") {
+		$month += $frequencyMultiplier;
+	} else if($frequencyBase == "YEAR") {
+		$year += $frequencyMultiplier;
+	} else {
+		throw new BillingCalculateNextDateException();
+		return;
+	}
+	$nextInvoiceTime = mktime(
+		date("H", $oldDate),
+		date("i", $oldDate),
+		date("s", $oldDate),
+		$month, $day, $year);
+	return $nextInvoiceTime;
+}
+
+class BillingInvoiceException extends Exception {}
+class BillingCalculateNextDateException extends Exception {}
 
 ?>

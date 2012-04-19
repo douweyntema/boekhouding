@@ -354,7 +354,7 @@ function addSubscriptionForm($customerID, $error = "", $values = null)
 				array("type"=>"dropdown", "name"=>"frequencyBase", "options"=>array(
 					array("label"=>"year", "value"=>"YEAR"),
 					array("label"=>"month", "value"=>"MONTH"),
-					array("label"=>"day", "value"=>"YEAR")
+					array("label"=>"day", "value"=>"DAY")
 				))
 			)),
 			array("title"=>"Start date", "type"=>"text", "name"=>"nextPeriodStart"),
@@ -386,7 +386,7 @@ function editSubscriptionForm($subscriptionID, $error = "", $values = null)
 				array("type"=>"dropdown", "name"=>"frequencyBase", "options"=>array(
 					array("label"=>"year", "value"=>"YEAR"),
 					array("label"=>"month", "value"=>"MONTH"),
-					array("label"=>"day", "value"=>"YEAR")
+					array("label"=>"day", "value"=>"DAY")
 				))
 			)),
 			array("title"=>"Invoice delay", "type"=>"colspan", "columns"=>array(
@@ -445,16 +445,19 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 {
 	$lines = array();
 	$lines[] = array("type"=>"colspan", "columns"=>array(
-		array("type"=>"html", "html"=>""),
-		array("type"=>"html", "html"=>"Description", "fill"=>true),
-		array("type"=>"html", "html"=>"Price"),
-		array("type"=>"html", "html"=>"Discount"),
-		array("type"=>"html", "html"=>"Start date"),
-		array("type"=>"html", "html"=>"End date")
+		array("type"=>"html", "html"=>"", "celltype"=>"th"),
+		array("type"=>"html", "html"=>"Description", "celltype"=>"th", "fill"=>true),
+		array("type"=>"html", "html"=>"Price", "celltype"=>"th"),
+		array("type"=>"html", "html"=>"Discount", "celltype"=>"th"),
+		array("type"=>"html", "html"=>"Start date", "celltype"=>"th"),
+		array("type"=>"html", "html"=>"End date", "celltype"=>"th")
 	));
 	foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), array("invoiceLineID", "description", "price", "discount", "periodStart", "periodEnd")) as $invoiceLine) {
+		if($error === null && !isset($values["invoiceline-{$invoiceLine["invoiceLineID"]}"])) {
+			continue;
+		}
 		$lines[] = array("type"=>"colspan", "columns"=>array(
-			array(/* "type"=>"checkbox"  TODO */ "type"=>"html", "html"=>"<input type=\"checkbox\">"),
+			array("type"=>"checkbox", "name"=>"invoiceline-{$invoiceLine["invoiceLineID"]}", "label"=>""),
 			array("type"=>"html", "fill"=>true, "html"=>$invoiceLine["description"]),
 			array("type"=>"html", "cellclass"=>"nowrap", "html"=>formatPrice($invoiceLine["price"])),
 			array("type"=>"html", "cellclass"=>"nowrap", "html"=>formatPrice($invoiceLine["discount"])),
@@ -462,8 +465,7 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 			array("type"=>"html", "cellclass"=>"nowrap", "html"=>$invoiceLine["periodEnd"] == null ? "-" : date("d-m-Y", $invoiceLine["periodEnd"]))
 		));
 	}
-	// TODO: add fields to chose from
-	return operationForm("sendInvoice.php?id=$customerID", $error, "Send invoice", "Send", $lines, $values);
+	return operationForm("sendinvoice.php?id=$customerID", $error, "Send invoice", "Send", $lines, $values);
 }
 
 ?>
