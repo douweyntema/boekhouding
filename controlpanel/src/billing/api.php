@@ -107,7 +107,7 @@ function billingCreateInvoice($customerID, $invoiceLines)
 	$factuurnrDatum = date("Ymd", $now);
 	
 	$GLOBALS["database"]->startTransaction();
-	// TODO: atomair in de insert doen of locken
+	$GLOBALS["database"]->stdLock("billingInvoice", array());
 	$factuurnrCount = $GLOBALS["database"]->query("SELECT invoiceID FROM billingInvoice WHERE invoiceNumber LIKE '" . $GLOBALS["database"]->addSlashes($factuurnrDatum) . "-%'")->numRows();
 	$factuurnr = $factuurnrDatum . "-" . ($factuurnrCount + 1);
 	
@@ -128,12 +128,12 @@ function billingCreateInvoice($customerID, $invoiceLines)
 	
 	$invoiceID = $GLOBALS["database"]->stdNew("billingInvoice", array("customerID"=>$customerID, "date"=>$now, "remainingAmount"=>$amount, "invoiceNumber"=>$factuurnr));
 	
-	// TODO: $amount overal bij op en af trekken
-	
 	foreach($invoiceLines as $lineID) {
 		$GLOBALS["database"]->stdSet("billingInvoiceLine", array("invoiceLineID"=>$lineID), array("invoiceID"=>$invoiceID));
 	}
 	$GLOBALS["database"]->commitTransaction();
+	
+	billingDistributeFunds($customerID);
 	
 	billingCreateInvoiceTex($invoiceID);
 }
@@ -214,8 +214,6 @@ function billingCreateInvoicePdf($invoiceID)
 	$GLOBALS["database"]->stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("pdf"=>$pdf));
 }
 
-billingCreateInvoiceTex(2);
-
 function billingUpdateAllInvoiceLines()
 {
 	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), "customerID") as $customerID) {
@@ -232,11 +230,21 @@ function billingAddPayment($customerID, $amount, $date, $desciption)
 {
 	$GLOBALS["database"]->startTransaction();
 	$GLOBALS["database"]->stdLock("adminCustomer", array("customerID"=>$customerID));
+	$GLOBALS["database"]->stdNew("billingPayment", array("customerID"=>$customerID, "amount"=>$amount, "date"=>$date, "description"=>$desciption));
+	$balance = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
+	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("balance"=>$balance + $amount));
+	$GLOBALS["database"]->commitTransaction();
+	
+	billingDistributeFunds($customerID);
+}
+
+function billingDistributeFunds($customerID)
+{
+	$GLOBALS["database"]->startTransaction();
+	$GLOBALS["database"]->stdLock("adminCustomer", array("customerID"=>$customerID));
 	$GLOBALS["database"]->stdLock("billingInvoice", array("customerID"=>$customerID));
 	
-	$GLOBALS["database"]->stdNew("billingPayment", array("customerID"=>$customerID, "amount"=>$amount, "date"=>$date, "description"=>$desciption));
-	
-	$balance = $amount + $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
+	$balance = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
 	
 	foreach($GLOBALS["database"]->query("SELECT invoiceID, remainingAmount FROM billingInvoice WHERE customerID='" . $GLOBALS["database"]->addSlashes($customerID) . "' AND remainingAmount > 0 ORDER BY date")->fetchMap("invoiceID", "remainingAmount") as $invoiceID=>$remainingAmount) {
 		$change = min($balance, $remainingAmount);

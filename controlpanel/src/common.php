@@ -607,7 +607,8 @@ function countryCodes()
 	foreach(explode("\n", file_get_contents(COUNTRYCODES_FILE)) as $line) {
 		$parts = explode(" ", $line);
 		$code = $parts[0];
-		$name = implode(" ", array_shift($parts));
+		array_shift($parts);
+		$name = implode(" ", $parts);
 		$countryCodes[$code] = $name; 
 	}
 	return $countryCodes;
