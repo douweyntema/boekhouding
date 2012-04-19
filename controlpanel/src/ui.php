@@ -583,10 +583,11 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 			
 			if($field["type"] == "array") {
 				$names = fieldNames($field["field"]);
-				for($usedFields = 1; ; $usedFields++) {
+				for($usedFields = 0; ; $usedFields++) {
 					$found = false;
 					foreach($names as $name) {
-						if(isset($values["$name-$usedFields"])) {
+						$index = $usedFields + 1;
+						if(isset($values["$name-$index"])) {
 							$found = true;
 							break;
 						}
@@ -595,16 +596,18 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 						break;
 					}
 				}
-				if($usedFields < 2) {
-					$usedFields = 2;
-				}
-				for($i = 1; $i <= $usedFields + ($readOnly ? 0 : 10); $i++) {
-					$f = postfixFieldNames($field["field"], "-$i");
-					if($i == 1) {
+				$emptyFields = ($readOnly ? 0 : ($usedFields == 0 ? 2 : 1));
+				$deleteFields = ($readOnly ? 0 : 10);
+				for($i = 0; $i < $usedFields + $emptyFields + $deleteFields; $i++) {
+					$index = $i + 1;
+					$f = postfixFieldNames($field["field"], "-$index");
+					if($i < $usedFields) {
+						$class = "";
+					} else if($i == $usedFields) {
 						$id = getHtmlID();
 						$f["rowid"] = $id;
-						$class = "repeatFieldMaster";
-					} else if($i <= $usedFields) {
+						$class = "repeatFieldMaster repeatFieldChild-$id";
+					} else if($i < $usedFields + $emptyFields) {
 						$class = "repeatFieldChild-$id";
 					} else {
 						$class = "repeatFieldRemove";
