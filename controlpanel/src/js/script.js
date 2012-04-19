@@ -12,6 +12,7 @@ $(document).ready(function() {
 	$(".tree table").treeTable({zebra: true, initialState: "expanded"});
 	$(".list:not(.tree, .sortable) table").each(zebra);
 	setupAutoCollapse();
+	setupRepeatField();
 });
 
 function zebra()
@@ -35,4 +36,42 @@ function setupAutoCollapse()
 			$(".if-selected-" + $(this).attr("id")).toggle(checked);
 		});
 	}).change();
+}
+
+function setupRepeatField()
+{
+	$(".repeatFieldMaster").each(function() {
+		id = this.id;
+		emptyLine = "<tr";
+		for(var key in this.attributes) {
+			if(!isNaN(key) && (this.attributes[key].name != "id")) {
+				emptyLine += " " + this.attributes[key].name + "=\"" + this.attributes[key].value + "\"";
+			}
+		}
+		emptyLine += ">";
+		emptyLine += $(this).html();
+		emptyLine += "</tr>";
+		extraRowID = 1;
+		addnewline = function() {
+			$(".repeatFieldChild-" + id).last().addClass("CURRENTLASTLINE");
+			$(".repeatFieldChild-" + id).last().after(emptyLine);
+			$(".repeatFieldChild-" + id).last().addClass("NEWLINE");
+			$(".NEWLINE [name]").each(function() {
+				name = $(this).attr("name")
+				pos = name.lastIndexOf("-");
+				number = name.substr(pos + 1) * 1;
+				newname = name.substr(0, pos) + "-" + (number + extraRowID);
+				extraRowID++;
+				$(this).attr("name", newname);
+			});
+			$(".repeatFieldChild-" + id).last().change(addnewline);
+			
+			$(".CURRENTLASTLINE").removeClass("CURRENTLASTLINE");
+			$(".NEWLINE").removeClass("NEWLINE");
+			
+			$(this).unbind("change");
+		};
+		$(".repeatFieldChild-" + id).change(addnewline);
+	});
+	$(".repeatFieldRemove").remove();
 }
