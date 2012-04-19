@@ -18,6 +18,20 @@ function getField($key/*, sources...*/)
 	return null;
 }
 
+function forwardFields($target /*, sources... */)
+{
+	$sources = func_get_args(); // $target is included
+	foreach(array("fieldclass", "cellclass", "celltype", "rowclass", "rowid") as $field) {
+		foreach($sources as $source) {
+			if(isset($source[$field])) {
+				$target[$field] = $source[$field];
+				break;
+			}
+		}
+	}
+	return $target;
+}
+
 function renderCell($cell, $values, $readOnly)
 {
 	$output = array();
@@ -32,7 +46,7 @@ function renderCell($cell, $values, $readOnly)
 		$valueHtml = $value === null ? null : htmlentities($value);
 		$name = $readOnly ? $cell["name"] : $oldName;
 	}
-	$fieldClass = isset($cell["fieldClass"]) ? $cell["fieldClass"] : null;
+	$fieldclass = isset($cell["fieldclass"]) ? $cell["fieldclass"] : null;
 	
 	if($cell["type"] == "html") {
 		$output["content"] = $cell["html"];
@@ -40,8 +54,8 @@ function renderCell($cell, $values, $readOnly)
 		$output["content"] .= "<label for=\"{$cell["id"]}\">{$cell["label"]}</label>";
 	} else if($cell["type"] == "text") {
 		$output["content"] = "<input type=\"text\" name=\"$name\"";
-		if($fieldClass !== null) {
-			$output["content"] .= " class=\"$fieldClass\"";
+		if($fieldclass !== null) {
+			$output["content"] .= " class=\"$fieldclass\"";
 		}
 		if($readOnly) {
 			$output["content"] .= " readonly=\"readonly\"";
@@ -52,8 +66,8 @@ function renderCell($cell, $values, $readOnly)
 		$output["content"] .= " />";
 	} else if($cell["type"] == "textarea") {
 		$output["content"] = "<textarea name=\"$name\"";
-		if($fieldClass !== null) {
-			$output["content"] .= " class=\"$fieldClass\"";
+		if($fieldclass !== null) {
+			$output["content"] .= " class=\"$fieldclass\"";
 		}
 		if($readOnly) {
 			$output["content"] .= " readonly=\"readonly\"";
@@ -66,8 +80,8 @@ function renderCell($cell, $values, $readOnly)
 	} else if($cell["type"] == "password") {
 		if($readOnly) {
 			$output["content"] = "<input type=\"password\" readonly=\"readonly\"";
-			if($fieldClass !== null) {
-				$output["content"] .= " class=\"$fieldClass\"";
+			if($fieldclass !== null) {
+				$output["content"] .= " class=\"$fieldclass\"";
 			}
 			if($value !== null) {
 				$masked = str_repeat("*", strlen($value));
@@ -80,8 +94,8 @@ function renderCell($cell, $values, $readOnly)
 			}
 		} else {
 			$output["content"] = "<input type=\"password\" name=\"$name\"";
-			if($fieldClass !== null) {
-				$output["content"] .= " class=\"$fieldClass\"";
+			if($fieldclass !== null) {
+				$output["content"] .= " class=\"$fieldclass\"";
 			}
 			$output["content"] .= " />";
 		}
@@ -95,8 +109,8 @@ function renderCell($cell, $values, $readOnly)
 		} else {
 			$output["content"] .= " name=\"$name\"";
 		}
-		if($fieldClass !== null) {
-			$output["content"] .= " class=\"$fieldClass\"";
+		if($fieldclass !== null) {
+			$output["content"] .= " class=\"$fieldclass\"";
 		}
 		$output["content"] .= " /> {$cell["label"]}</label>";
 		if($readOnly && ($value == $cell["value"])) {
@@ -112,8 +126,8 @@ function renderCell($cell, $values, $readOnly)
 		} else {
 			$output["content"] .= " name=\"$name\"";
 		}
-		if($fieldClass !== null) {
-			$output["content"] .= " class=\"$fieldClass\"";
+		if($fieldclass !== null) {
+			$output["content"] .= " class=\"$fieldclass\"";
 		}
 		$output["content"] .= " />";
 		if($readOnly && ($value == $cell["value"])) {
@@ -132,8 +146,8 @@ function renderCell($cell, $values, $readOnly)
 		if($checked) {
 			$output["content"] .= " checked=\"checked\"";
 		}
-		if($fieldClass !== null) {
-			$output["content"] .= " class=\"$fieldClass\"";
+		if($fieldclass !== null) {
+			$output["content"] .= " class=\"$fieldclass\"";
 		}
 		if($readOnly) {
 			$output["content"] .= " disabled=\"disabled\"";
@@ -146,8 +160,8 @@ function renderCell($cell, $values, $readOnly)
 		}
 	} else if($cell["type"] == "dropdown") {
 		$output["content"] = "<select name=\"$name\"";
-		if($fieldClass !== null) {
-			$output["content"] .= " class=\"$fieldClass\"";
+		if($fieldclass !== null) {
+			$output["content"] .= " class=\"$fieldclass\"";
 		}
 		if($readOnly) {
 			$output["content"] .= " readonly=\"readonly\"";
@@ -176,7 +190,7 @@ function renderCell($cell, $values, $readOnly)
 		$output["content"] .= $cell["footer"];
 	}
 	
-	return $output;
+	return forwardFields($output, $cell);
 }
 
 function renderRow($row, $values, $readOnly)
@@ -185,11 +199,7 @@ function renderRow($row, $values, $readOnly)
 	$output["cells"] = array();
 	if($row["type"] == "colspan") {
 		foreach($row["columns"] as $column) {
-			$c = $column;
-			$c["fieldclass"] = getField("fieldclass", $column, $row);
-			$c["cellclass"] = getField("cellclass", $column, $row);
-			
-			$cell = renderCell($c, $values, $readOnly);
+			$cell = renderCell(forwardFields($column, $row), $values, $readOnly);
 			if(isset($column["fill"]) && $column["fill"]) {
 				$cell["width"] = "stretch";
 			} else {
@@ -213,10 +223,7 @@ function renderRow($row, $values, $readOnly)
 		$cell["width"] = "stretch";
 		$output["cells"] = array($cell);
 	}
-	if(isset($row["rowclass"])) {
-		$output["rowclass"] = $row["rowclass"];
-	}
-	return $output;
+	return forwardFields($output, $row);
 }
 
 function renderRowspan($rowspan, $values, $readOnly)
@@ -224,8 +231,7 @@ function renderRowspan($rowspan, $values, $readOnly)
 	if($rowspan["type"] == "rowspan") {
 		$rows = array();
 		foreach($rowspan["rows"] as $row) {
-			$row["rowclass"] = getField("rowclass", $row, $rowspan);
-			$rows[] = renderRow($row, $values, $readOnly);
+			$rows[] = renderRow(forwardFields($row, $rowspan), $values, $readOnly);
 		}
 		return $rows;
 	} else if($rowspan["type"] == "subformchooser") {
@@ -234,10 +240,7 @@ function renderRowspan($rowspan, $values, $readOnly)
 			$rows[] = renderRow(array("type"=>"splitradioentry", "name"=>$rowspan["name"], "value"=>$subform["value"], "label"=>$subform["label"], "id"=>$subform["id"]), $values, $readOnly);
 			foreach($subform["subform"] as $subfield) {
 				if(!isset($subfield["title"])) {
-					$f = $subfield;
-					$f["fieldclass"] = getField("fieldclass", $subfield, $subform, $rowspan);
-					$f["cellclass"] = getField("cellclass", $subfield, $subform, $rowspan);
-					$f["rowclass"] = getField("rowclass", $subfield, $subform, $rowspan);
+					$f = forwardFields($subfield, $subform, $rowspan);
 					if($f["rowclass"] === null) {
 						$f["rowclass"] = "if-selected-{$subform["id"]}";
 					} else {
@@ -255,11 +258,7 @@ function renderRowspan($rowspan, $values, $readOnly)
 		$rows = array();
 		foreach($rowspan["options"] as $option) {
 			$row = array("type"=>"radioentry", "name"=>$rowspan["name"], "value"=>$option["value"], "label"=>$option["label"]);
-			$row["fieldclass"] = getField("fieldclass", $option, $rowspan);
-			$row["cellclass"] = getField("cellclass", $option, $rowspan);
-			$row["rowclass"] = getField("rowclass", $option, $rowspan);
-			
-			$rows[] = renderRow($row, $values, $readOnly);
+			$rows[] = renderRow(forwardFields($row, $option, $rowspan), $values, $readOnly);
 		}
 		return $rows;
 	} else {
@@ -389,6 +388,9 @@ function renderTable($fields, $values, $readOnly, $submitCaption = null, $submit
 			if(isset($row["rowclass"]) && $row["rowclass"] !== null) {
 				$output .= " class=\"{$row["rowclass"]}\"";
 			}
+			if(isset($row["rowid"]) && $row["rowid"] !== null) {
+				$output .= " id=\"{$row["rowid"]}\"";
+			}
 			$output .= ">";
 			
 			if($first) {
@@ -423,7 +425,13 @@ function renderTable($fields, $values, $readOnly, $submitCaption = null, $submit
 			
 			$firstCell = true;
 			foreach($row["cells"] as $cell) {
-				$output .= "<td";
+				if(isset($cell["celltype"]) && $cell["celltype"] == "th") {
+					$celltype = "th";
+				} else {
+					$celltype = "td";
+				}
+				
+				$output .= "<$celltype";
 				if(isset($cell["width"]) && $cell["width"] == "left-merge") {
 					$width = 1;
 				} else {
@@ -452,7 +460,7 @@ function renderTable($fields, $values, $readOnly, $submitCaption = null, $submit
 				
 				$output .= $cell["content"];
 				
-				$output .= "</td>\n";
+				$output .= "</$celltype>\n";
 			}
 			
 			$output .= "</tr>\n";
@@ -470,6 +478,43 @@ function renderTable($fields, $values, $readOnly, $submitCaption = null, $submit
 	return $output;
 }
 
+function postfixFieldNames($field, $postfix)
+{
+	if($field["type"] == "rowspan") {
+		$rows = array();
+		foreach($field["rows"] as $row) {
+			$rows[] = postfixFieldNames($row, $postfix);
+		}
+		$field["rows"] = $rows;
+	} else if($field["type"] == "colspan") {
+		$columns = array();
+		foreach($field["columns"] as $column) {
+			$columns[] = postfixFieldNames($column, $postfix);
+		}
+		$field["columns"] = $columns;
+	} else if(isset($field["name"]) && $field["name"] !== null) {
+		$field["name"] .= $postfix;
+	}
+	return $field;
+}
+
+function fieldNames($field)
+{
+	$names = array();
+	if($field["type"] == "rowspan") {
+		foreach($field["rows"] as $row) {
+			$names = array_merge($names, fieldNames($row));
+		}
+	} else if($field["type"] == "colspan") {
+		foreach($field["columns"] as $column) {
+			$names = array_merge($names, fieldNames($column));
+		}
+	} else if(isset($field["name"]) && $field["name"] !== null) {
+		$names[] = $field["name"];
+	}
+	return $names;
+}
+
 function operationForm($postUrl, $error, $title, $submitCaption, $fields, $values, $messages = null)
 {
 	if($values === null) {
@@ -484,39 +529,106 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	$stub = ($error == "STUB");
 	
 	$mainTable = array();
-	$extraTables = null;
+	$extraTables = array();
 	$hiddenFields = ($error === null ? "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n" : "");
 	foreach($fields as $value) {
-		if($stub) {
-			if(isset($value["nostub"]) && $value["nostub"] !== null) {
-				if($value["nostub"]) {
-					continue;
-				}
-			} else if($value["type"] == "typechooser") {
+		if($value["type"] == "typechooser") {
+			if($stub && (!isset($value["nostub"]) || $value["nostub"] === null || $value["nostub"])) {
 				continue;
 			}
-		}
-		
-		if($value["type"] == "hidden") {
-			$valueHtml = htmlentities($values[$value["name"]]);
-			$hiddenFields .= "<input type=\"hidden\" name=\"{$value["name"]}\" value=\"$valueHtml\" />\n";
-			continue;
-		} else if($value["type"] == "typechooser") {
 			$extraTables = $value["options"];
 		} else {
 			$mainTable[] = $value;
 		}
 	}
 	
-	if($extraTables !== null) {
-		$selectedTable = null;
-		foreach($extraTables as $table) {
-			if(isset($values[$table["name"]])) {
-				$selectedTable = $table["name"];
-				break;
-			}
+	$selectedTable = null;
+	foreach($extraTables as $table) {
+		if(isset($values[$table["name"]])) {
+			$selectedTable = $table["name"];
+			break;
 		}
 	}
+	
+	$tables = array();
+	$tables[] = array("subform"=>$mainTable);
+	foreach($extraTables as $table) {
+		if($table["name"] !== $selectedTable) {
+			continue;
+		}
+		$tables[] = $table;
+	}
+	foreach($extraTables as $table) {
+		if($table["name"] === $selectedTable || $readOnly) {
+			continue;
+		}
+		$tables[] = $table;
+	}
+	
+	$filteredTables = array();
+	foreach($tables as $table) {
+		$fields = array();
+		foreach($table["subform"] as $field) {
+			if($stub) {
+				if(isset($value["nostub"]) && $value["nostub"]) {
+					continue;
+				}
+			}
+			
+			if($field["type"] == "hidden") {
+				$valueHtml = htmlentities($field["value"]);
+				$hiddenFields .= "<input type=\"hidden\" name=\"{$field["name"]}\" value=\"$valueHtml\" />\n";
+				continue;
+			}
+			
+			if($field["type"] == "array") {
+				$names = fieldNames($field["field"]);
+				for($usedFields = 1; ; $usedFields++) {
+					$found = false;
+					foreach($names as $name) {
+						if(isset($values["$name-$usedFields"])) {
+							$found = true;
+							break;
+						}
+					}
+					if(!$found) {
+						break;
+					}
+				}
+				if($usedFields < 2) {
+					$usedFields = 2;
+				}
+				for($i = 1; $i <= $usedFields + ($readOnly ? 0 : 10); $i++) {
+					$f = postfixFieldNames($field["field"], "-$i");
+					if($i == 1) {
+						$id = getHtmlID();
+						$f["rowid"] = $id;
+						$class = "repeatFieldMaster";
+					} else if($i <= $usedFields) {
+						$class = "repeatFieldChild-$id";
+					} else {
+						$class = "repeatFieldRemove";
+					}
+					if(isset($f["rowclass"]) && $f["rowclass"] !== null) {
+						$f["rowclass"] .= " $class";
+					} else {
+						$f["rowclass"] = $class;
+					}
+					$fields[] = $f;
+				}
+				
+				break;
+			}
+			
+			$fields[] = $field;
+		}
+		$filteredTable = $table;
+		$filteredTable["subform"] = $fields;
+		$filteredTables[] = $filteredTable;
+	}
+	$mainTable_ = array_shift($filteredTables);
+	$mainTable = $mainTable_["subform"];
+	$extraTables = $filteredTables;
 	
 	$output = "<div class=\"operation\">\n";
 	$output .= "<h2>$title</h2>\n";
@@ -536,42 +648,34 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 		$output .= $messages["custom"];
 	}
 	
-	$output .= "<form action=\"$postUrl\" method=\"post\">\n";
+	if($postUrl !== null) {
+		$output .= "<form action=\"$postUrl\" method=\"post\">\n";
+	}
 	$output .= $hiddenFields;
 	
-	$output .= renderTable($mainTable, $values, $readOnly, $extraTables === null ? $submitCaption : null);
+	$output .= renderTable($mainTable, $values, $readOnly, count($extraTables) == 0 ? $submitCaption : null);
 	
-	if($extraTables !== null) {
-		foreach($extraTables as $table) {
-			if($table["name"] !== $selectedTable) {
-				continue;
-			}
-			
-			$output .= "<div class=\"operation selected\">\n";
-			$output .= "<h3>Currently selected: {$table["title"]}</h3>\n";
-			if(isset($table["summary"]) && $table["summary"] !== null) {
-				$output .= "<p>{$table["summary"]}</p>\n";
-			}
-			$output .= renderTable($table["subform"], $values, $readOnly, $table["submitcaption"], $table["name"]);
-			$output .= "</div>\n";
+	foreach($extraTables as $table) {
+		if($table["name"] === $selectedTable) {
+			$selectedClass = " selected";
+			$selectedTitle = "Currently selected: ";
+		} else {
+			$selectedClass = "";
+			$selectedTitle = "";
 		}
 		
-		foreach($extraTables as $table) {
-			if($table["name"] === $selectedTable || $readOnly) {
-				continue;
-			}
-			
-			$output .= "<div class=\"operation\">\n";
-			$output .= "<h3>{$table["title"]}</h3>\n";
-			if(isset($table["summary"]) && $table["summary"] !== null) {
-				$output .= "<p>{$table["summary"]}</p>\n";
-			}
-			$output .= renderTable($table["subform"], $values, $readOnly, $table["submitcaption"], $table["name"]);
-			$output .= "</div>\n";
+		$output .= "<div class=\"operation$selectedClass\">\n";
+		$output .= "<h3>{$selectedTitle}{$table["title"]}</h3>\n";
+		if(isset($table["summary"]) && $table["summary"] !== null) {
+			$output .= "<p>{$table["summary"]}</p>\n";
 		}
+		$output .= renderTable($table["subform"], $values, $readOnly, $table["submitcaption"], $table["name"]);
+		$output .= "</div>\n";
 	}
 	
-	$output .= "</form>\n";
+	if($postUrl !== null) {
+		$output .= "</form>\n";
+	}
 	$output .= "</div>\n";
 	
 	return $output;
