@@ -598,13 +598,13 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 				}
 				$emptyFields = ($readOnly ? 0 : ($usedFields == 0 ? 2 : 1));
 				$deleteFields = ($readOnly ? 0 : 10);
+				$id = getHtmlID();
 				for($i = 0; $i < $usedFields + $emptyFields + $deleteFields; $i++) {
 					$index = $i + 1;
 					$f = postfixFieldNames($field["field"], "-$index");
 					if($i < $usedFields) {
 						$class = "";
 					} else if($i == $usedFields + $emptyFields - 1) {
-						$id = getHtmlID();
 						$f["rowid"] = $id;
 						$class = "repeatFieldMaster repeatFieldChild-$id";
 					} else if($i < $usedFields + $emptyFields) {
