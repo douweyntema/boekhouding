@@ -100,6 +100,9 @@ function billingUpdateInvoiceLines($customerID)
 
 function billingCreateInvoice($customerID, $invoiceLines)
 {
+	if(count($invoiceLines) == 0) {
+		throw new BillingInvoiceException();
+	}
 	$now = time();
 	$factuurnrDatum = date("Ymd", $now);
 	
@@ -157,25 +160,29 @@ function billingCreateInvoiceTex($invoiceID)
 	
 	$posts = "";
 	$discounts = "";
-	
+	$btw = 0;
 	foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("invoiceID"=>$invoiceID), array("description", "periodStart", "periodEnd", "price", "discount")) as $line) {
 		if($line["periodStart"] != null && $line["periodEnd"] != null) {
 			$startdate = texdate($line["periodStart"]);
-			$enddate = texdate($line["periodEnd"]);
+			$enddate = texdate($line["periodEnd"] - 86400);
 		} else {
 			$startdate = "";
 			$enddate = "";
 		}
-		$price = formatPriceRaw($line["price"] / 1.19);
-		$posts .= "\\post{{$line["description"]}}{{$startdate}}{{$enddate}}{{$price}}\n";
+		$price = (int)($line["price"] / 1.19);
+		$btw += $line["price"] - $price;
+		$priceFormat = formatPriceRaw($price);
+		$posts .= "\\post{{$line["description"]}}{{$startdate}}{{$enddate}}{{$priceFormat}}\n";
 		
 		if($line["discount"] != 0) {
 			$discountDescription = "Korting " . strtolower(substr($line["description"], 0, 1)) . substr($line["description"], 1);
-			$discountamount = formatPriceRaw($line["discount"] / 1.19);
-			$discounts .= "\\korting{{$discountDescription}}{{$discountamount}}\n";
+			$discountAmount = (int)($line["discount"] / 1.19);
+			$btw -= $line["discount"] - $discountAmount;
+			$discountamountFormat = formatPriceRaw($discountAmount);
+			$discounts .= "\\korting{{$discountDescription}}{{$discountamountFormat}}\n";
 		}
 	}
-	// TODO: BTW uitrekenen en aan de tex toevoegen
+	$btw = formatPriceRaw($btw);
 	$tex = <<<TEX
 \documentclass{trevabrief}
 \usepackage{treva-factuur}
@@ -187,7 +194,7 @@ function billingCreateInvoiceTex($invoiceID)
 \gebruikersnaam{{$username}}
 
 \begin{factuur}
-{$posts}{$discounts}
+{$posts}{$discounts}\btw{{$btw}}
 \end{factuur}
 
 \end{factuurbrief}

@@ -562,11 +562,16 @@ function pdfLatex($tex)
 	fclose($h);
 	
 	$md5 = "";
+	$count = 10;
 	do {
 		`pdflatex $dir/file.tex`;
+		if(!file_exists("$dir/file.pdf")) {
+			return null;
+		}
 		$oldmd5 = $md5;
-		$md5 = `md5sum $dir/file.pdf`;
-	} while($md5 == $oldmd5);
+		$md5 = md5(file_get_contents("$dir/file.pdf"));
+		$count--;
+	} while($md5 != $oldmd5 && $count > 0);
 	
 	$pdf = file_get_contents($dir . "/file.pdf");
 	`rm -r $dir`;
