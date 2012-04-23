@@ -165,9 +165,13 @@ function billingCreateInvoiceTex($invoiceID)
 	$to = "";
 	if($customer["companyName"] !== null && $customer["companyName"] !== "") {
 		$to .= $customer["companyName"] . "\\\\";
-		$to .= "t.n.v ";
+		if($customer["initials"] . $customer["lastName"] !== "") {
+			$to .= "t.n.v ";
+			$to .= $customer["initials"] . " " . $customer["lastName"] . "\\\\";
+		}
+	} else {
+		$to .= $customer["initials"] . " " . $customer["lastName"] . "\\\\";
 	}
-	$to .= $customer["initials"] . " " . $customer["lastName"] . "\\\\";
 	$to .= $customer["address"] . "\\\\";
 	$to .= $customer["postalCode"] . "~~" . $customer["city"];
 	if($customer["countryCode"] != "NL") {
@@ -186,11 +190,12 @@ function billingCreateInvoiceTex($invoiceID)
 			$startdate = "";
 			$enddate = "";
 		}
-		$price = (int)($line["price"] / 1.19);
-		$btw += $line["price"] - $price;
-		$priceFormat = formatPriceRaw($price);
-		$posts .= "\\post{{$line["description"]}}{{$startdate}}{{$enddate}}{{$priceFormat}}\n";
-		
+		if($line["price"] != 0) {
+			$price = (int)($line["price"] / 1.19);
+			$btw += $line["price"] - $price;
+			$priceFormat = formatPriceRaw($price);
+			$posts .= "\\post{{$line["description"]}}{{$startdate}}{{$enddate}}{{$priceFormat}}\n";
+		}
 		if($line["discount"] != 0) {
 			$discountDescription = "Korting " . strtolower(substr($line["description"], 0, 1)) . substr($line["description"], 1);
 			$discountAmount = (int)($line["discount"] / 1.19);
