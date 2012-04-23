@@ -97,19 +97,6 @@ function pathBreadcrumbs($pathID)
 	return $crumbs;
 }
 
-function addHeader($title, $filename, $domainID = null)
-{
-	$header = "<h1>$title</h1>\n";
-	
-	if($domainID === null) {
-		$breadcrumbs = httpBreadcrumbs(array(array("name"=>$title, "url"=>"{$GLOBALS["root"]}http/$filename")));
-	} else {
-		$breadcrumbs = domainBreadcrumbs($domainID, array(array("name"=>$title, "url"=>"{$GLOBALS["root"]}http/$filename?id=$domainID")));
-	}
-	
-	return $header . $breadcrumbs;
-}
-
 function domainsList()
 {
 	$output = "";

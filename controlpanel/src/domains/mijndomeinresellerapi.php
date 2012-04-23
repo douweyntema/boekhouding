@@ -47,17 +47,17 @@ class mijndomeinresellerapi
 	
 	public function disableAutoRenew($domainID)
 	{
-		return $this->domain_set_autorenew($this->domainName($domainID), $this->domainTld($domainID), true, true);
+		return $this->domain_set_autorenew($this->domainsFormatDomainName($domainID), $this->domainTld($domainID), true, true);
 	}
 	
 	public function enableAutoRenew($domainID)
 	{
-		return $this->domain_set_autorenew($this->domainName($domainID), $this->domainTld($domainID), false, true);
+		return $this->domain_set_autorenew($this->domainsFormatDomainName($domainID), $this->domainTld($domainID), false, true);
 	}
 	
 	private function doDomainDetails($domainID)
 	{
-		return $this->domain_get_details($this->domainName($domainID), $this->domainTld($domainID));
+		return $this->domain_get_details($this->domainsFormatDomainName($domainID), $this->domainTld($domainID));
 	}
 	
 	private function domainDetails($domainID)
@@ -179,7 +179,7 @@ class mijndomeinresellerapi
 		return $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "name");
 	}
 	
-	private function domainName($domainID)
+	private function domainsFormatDomainName($domainID)
 	{
 		return $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "name");
 	}

@@ -7,79 +7,50 @@ function main()
 	$domainID = get("id");
 	doDomain($domainID);
 	
-	$content = "<h1>Domain " . domainsFormatDomainName($domainID) . "</h1>\n";
+	$check = function($condition, $error) use($domainID) {
+		if(!$condition) die(page(makeHeader("Domain " . domainsFormatDomainName($domainID), domainBreadcrumbs($domainID), crumbs("Edit email", "editmail.php?id=$domainID")) . editMailForm($domainID, $error, $_POST)));
+	};
 	
-	$content .= domainBreadcrumbs($domainID, array(array("name"=>"Edit email", "url"=>"{$GLOBALS["root"]}domains/editpath.php?id=$domainID")));
+	$check(($type = searchKey($_POST, "none", "treva", "custom")) !== null, "");
 	
-	$type = mailTypeFromTitle(post("type"));
-	
-	if($type == "CUSTOM") {
-		$mailservers = array();
-		foreach($_POST as $key=>$value) {
-			if(strlen(trim($value)) == 0) {
-				continue;
-			}
-			if(substr($key, 0, strlen("mailserver-")) == "mailserver-") {
-				$number = substr($key, strlen("mailserver-"));
-				$mailservers[$number] = $value;
-			}
-		}
-		ksort($mailservers);
-	} else {
-		$mailservers = null;
-	}
-	
-	if($type === null) {
-		$content .= editMailTypeForm($domainID, "");
-		die(page($content));
-	}
-	
-	if($type == "NONE") {
-		if(post("confirm") === null) {
-			$content .= editMailTypeForm($domainID, null, $type, $mailservers);
-			die(page($content));
-		}
-		
-		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("mailType"=>"NONE"));
-		$GLOBALS["database"]->stdDel("dnsMailServer", array("domainID"=>$domainID));
-	} else if($type == "TREVA") {
-		if(post("confirm") === null) {
-			$content .= editMailTypeForm($domainID, null, $type, $mailservers);
-			die(page($content));
-		}
-		
-		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("mailType"=>"TREVA"));
-		$GLOBALS["database"]->stdDel("dnsMailServer", array("domainID"=>$domainID));
-	} else if($type == "CUSTOM") {
-		$error = "";
-		foreach($mailservers as $priority=>$name) {
-			if(!validDomain($name)) {
-				$error .= "Invalid mailserver: $name\n";
-			}
-			if(!is_int($priority)) {
-				$error .= "Internal error!\n";
-			}
-		}
-		if($error != "") {
-			$content .= editMailTypeForm($domainID, $error, $type, $mailservers);
-			die(page($content));
-		}
-		
-		if(post("confirm") === null) {
-			$content .= editMailTypeForm($domainID, null, $type, $mailservers);
-			die(page($content));
-		}
+	$remove = function() use($domainID, $check) {
+		$check(post("confirm") !== null, null);
 		
 		$GLOBALS["database"]->startTransaction();
-		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("mailType"=>"CUSTOM"));
 		$GLOBALS["database"]->stdDel("dnsMailServer", array("domainID"=>$domainID));
-		foreach($mailservers as $priority=>$name) {
-			$GLOBALS["database"]->stdNew("dnsMailServer", array("domainID"=>$domainID, "name"=>$name, "priority"=>($priority + 1) * 10));
+	};
+	
+	if($type == "none") {
+		$remove();
+		$function = array("mailType"=>"NONE");
+	} else if($type == "treva") {
+		$remove();
+		$function = array("mailType"=>"TREVA");
+	} else if($type == "custom") {
+		$servers = parseArrayField($_POST, array("server"));
+		
+		$error = array();
+		foreach($servers as $server) {
+			if(!validDomain($server["server"])) {
+				$error[] = "Invalid mailserver: " . htmlentities($server["server"]);
+			}
 		}
-		$GLOBALS["database"]->commitTransaction();
+		if(count($error) > 0) {
+			$check(false, implode("<br />", $error));
+		}
+		
+		$remove();
+		$index = 0;
+		foreach($servers as $server) {
+			$GLOBALS["database"]->stdNew("dnsMailServer", array("domainID"=>$domainID, "name"=>$server["server"], "priority"=>(10 * ++$index)));
+		}
+		$function = array("mailType"=>"CUSTOM");
 	} else {
 		die("Internal error");
 	}
+	
+	$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), $function);
+	$GLOBALS["database"]->commitTransaction();
 	
 	updateDomains(customerID());
 	
