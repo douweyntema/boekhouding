@@ -6,6 +6,35 @@ function getHtmlID()
 	return "l" . ($id++);
 }
 
+function parseArrayField($values, $keys)
+{
+	$output = array();
+	for($index = 0; ; $index++) {
+		$found = false;
+		$nonEmpty = false;
+		$row = array();
+		foreach($keys as $key) {
+			$cellKey = "$key-$index";
+			if(isset($values[$cellKey]) && $values[$cellKey] !== null) {
+				$row[$key] = $values[$cellKey];
+				if($row[$key] != "") {
+					$nonEmpty = true;
+				}
+				$found = true;
+			} else {
+				$row[$key] = null;
+			}
+		}
+		if(!$found) {
+			return $output;
+		}
+		if($nonEmpty) {
+			$row[""] = $index;
+			$output[] = $row;
+		}
+	}
+}
+
 function getField($key/*, sources...*/)
 {
 	$sources = func_get_args();
@@ -21,7 +50,7 @@ function getField($key/*, sources...*/)
 function forwardFields($target /*, sources... */)
 {
 	$sources = func_get_args(); // $target is included
-	foreach(array("fieldclass", "cellclass", "celltype", "rowclass", "rowid") as $field) {
+	foreach(array("fieldclass", "arrayfields", "cellclass", "celltype", "rowclass", "rowid") as $field) {
 		foreach($sources as $source) {
 			if(isset($source[$field])) {
 				$target[$field] = $source[$field];
@@ -41,10 +70,22 @@ function renderCell($cell, $values, $readOnly)
 	$output["content"] = "";
 	
 	if(isset($cell["name"])) {
-		$oldName = isset($cell["confirm"]) ? "{$cell["name"]}-{$cell["confirm"]}" : $cell["name"];
+		if(isset($cell["arrayfields"]) && $cell["arrayfields"] !== null) {
+			$baseName = substr($cell["name"], 0, strrpos($cell["name"], "-"));
+			$index = substr($cell["name"], strrpos($cell["name"], "-") + 1);
+			$arrayData = parseArrayField($values, $cell["arrayfields"]);
+			if($index < count($arrayData)) {
+				$oldName = "$baseName-{$arrayData[$index][""]}";
+			} else {
+				$oldName = null;
+			}
+			$name = $cell["name"];
+		} else {
+			$oldName = isset($cell["confirm"]) ? "{$cell["name"]}-{$cell["confirm"]}" : $cell["name"];
+			$name = $readOnly ? $cell["name"] : $oldName;
+		}
 		$value = isset($values[$oldName]) ? $values[$oldName] : null;
 		$valueHtml = $value === null ? null : htmlentities($value);
-		$name = $readOnly ? $cell["name"] : $oldName;
 	}
 	$fieldclass = isset($cell["fieldclass"]) ? $cell["fieldclass"] : null;
 	
@@ -583,25 +624,13 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 			
 			if($field["type"] == "array") {
 				$names = fieldNames($field["field"]);
-				for($usedFields = 0; ; $usedFields++) {
-					$found = false;
-					foreach($names as $name) {
-						$index = $usedFields + 1;
-						if(isset($values["$name-$index"])) {
-							$found = true;
-							break;
-						}
-					}
-					if(!$found) {
-						break;
-					}
-				}
+				$content = parseArrayField($values, $names);
+				$usedFields = count($content);
 				$emptyFields = ($readOnly ? 0 : ($usedFields == 0 ? 2 : 1));
 				$deleteFields = ($readOnly ? 0 : 10);
 				$id = getHtmlID();
 				for($i = 0; $i < $usedFields + $emptyFields + $deleteFields; $i++) {
-					$index = $i + 1;
-					$f = postfixFieldNames($field["field"], "-$index");
+					$f = postfixFieldNames($field["field"], "-$i");
 					if($i < $usedFields) {
 						$class = "";
 					} else if($i == $usedFields + $emptyFields - 1) {
@@ -617,6 +646,7 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 					} else {
 						$f["rowclass"] = $class;
 					}
+					$f["arrayfields"] = $names;
 					$fields[] = $f;
 				}
 				

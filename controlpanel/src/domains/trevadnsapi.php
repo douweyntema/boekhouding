@@ -26,7 +26,7 @@ class trevadnsapi
 	{
 		$tldID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID");
 		$tldParentDomainID = $this->tldParentDomainID($tldID);
-		$GLOBALS["database"]->stdDel("dnsDomain", array("parentDomainID"=>$tldParentDomainID, "name"=>$this->domainName($domainID)));
+		$GLOBALS["database"]->stdDel("dnsDomain", array("parentDomainID"=>$tldParentDomainID, "name"=>$this->domainsFormatDomainName($domainID)));
 	}
 	
 	public function enableAutoRenew($domainID)
@@ -37,7 +37,7 @@ class trevadnsapi
 	public function domainStatus($domainID)
 	{
 		$tldID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID");
-		if($this->domainAvailable($this->domainName($domainID), $tldID)) {
+		if($this->domainAvailable($this->domainsFormatDomainName($domainID), $tldID)) {
 			return "expired";
 		} else {
 			return "activeforever";
@@ -93,7 +93,7 @@ class trevadnsapi
 		return $parentDomainID;
 	}
 	
-	private function domainName($domainID)
+	private function domainsFormatDomainName($domainID)
 	{
 		return $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "name");
 	}

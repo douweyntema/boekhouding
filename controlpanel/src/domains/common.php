@@ -20,7 +20,22 @@ function doDomain($domainID)
 	}
 }
 
-function domainBreadcrumbs($domainID, $postfix = array())
+function crumb($name, $filename)
+{
+	return array("name"=>$name, "url"=>"{$GLOBALS["root"]}domains/$filename");
+}
+
+function crumbs($name, $filename)
+{
+	return array(crumb($name, $filename));
+}
+
+function domainsBreadcrumbs()
+{
+	return crumbs("Domains", "");
+}
+
+function domainBreadcrumbs($domainID)
 {
 	$parts = array();
 	$nextDomainID = $domainID;
@@ -41,18 +56,17 @@ function domainBreadcrumbs($domainID, $postfix = array())
 	}
 	
 	$parts = array_reverse($parts);
-	$crumbs = array();
-	$crumbs[] = array("name"=>"Domains", "url"=>"{$GLOBALS["root"]}domains/");
+	$crumbs = domainsBreadcrumbs();
 	$domainPostfix = "";
-	while(count($parts) > 0) {
-		$part = array_shift($parts);
+	foreach($parts as $part) {
 		if($part["show"]) {
-			$crumbs[] = array("name"=>$part["name"] . $domainPostfix, "url"=>"{$GLOBALS["root"]}domains/domain.php?id={$part["id"]}");
+			$crumbs[] = crumb($part["name"] . $domainPostfix, "domain.php?id={$part["id"]}");
 		}
 		$domainPostfix = "." . $part["name"] . $domainPostfix;
 	}
-	return breadcrumbs(array_merge($crumbs, $postfix));
+	return $crumbs;
 }
+
 
 function domainsList()
 {
@@ -147,794 +161,255 @@ function domainDetail($domainID)
 	return $output;
 }
 
-function domainRemoval($domainID)
+function addDomainForm($error = "", $values = null)
 {
-	$content = "";
-	
-	if(isSubDomain($domainID)) {
-		$content .= trivialActionForm("{$GLOBALS["root"]}domains/removedomain.php?id=$domainID", "", "Remove subdomain", null, "<p>Remove this subdomain and all it's subdomains.</p>");
-	} else {
-		$status = domainsDomainStatus($domainID);
-		if($status == "active") {
-			$autorenew = domainsDomainAutorenew($domainID);
-			$expiredate = domainsDomainExpiredate($domainID);
-			if($autorenew === null) {
-				// nothing
-			} else if($autorenew) {
-				$content .= trivialActionForm("{$GLOBALS["root"]}domains/expiredomain.php?id=$domainID&action=disable", "", "Withdraw domain", null, "<p>This will cause the domain to expire on $expiredate.</p>");
-			} else {
-				$content .= trivialActionForm("{$GLOBALS["root"]}domains/expiredomain.php?id=$domainID&action=enable", "", "Restore domain", null, "<p>This will retain the domain indefinitely.</p><p>If the domain is not restored, it will expire on $expiredate.</p>");
-			}
-		} else if($status == "activeforever") {
-			$content .= trivialActionForm("{$GLOBALS["root"]}domains/expiredomain.php?id=$domainID&action=delete", "", "Delete domain", null, "<p>This will delete the domain immediately.</p>");
-		}
+	$tlds = array();
+	foreach($GLOBALS["database"]->stdList("infrastructureDomainTld", array("active"=>1), array("domainTldID", "name", "price"), array("order"=>"A")) as $tld) {
+		$tlds[] = array("value"=>$tld["domainTldID"], "label"=>$tld["name"] . " (" . formatPrice($tld["price"]) . " / year)");
 	}
 	
-	return $content;
+	return operationForm("adddomain.php", $error, "Register new domain", "Register domain",
+		array(
+			array("title"=>"Domain name", "type"=>"colspan", "columns"=>array(
+				array("type"=>"text", "name"=>"name", "fill"=>true),
+				array("type"=>"html", "html"=>"."),
+				array("type"=>"dropdown", "name"=>"tldID", "options"=>$tlds)
+			))
+		),
+		$values);
 }
 
-function addDomainForm($error = "", $tldID = null, $name = null)
-{
-	if($error === null) {
-		$price = formatPrice(billingDomainPrice($tldID));
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$messageHtml .= "<p class=\"billing\">Registering this domain will cost $price per year</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	$tldHtml = "";
-	if($readonly == "") {
-		$tldHtml .= "<select name=\"tldID\">";
-		$tlds = $GLOBALS["database"]->stdList("infrastructureDomainTld", array("active"=>1), array("domainTldID", "name"));
-		foreach($tlds as $tld) {
-			if($tldID == $tld["domainTldID"]) {
-				$selected = "selected=\"selected\"";
-			} else {
-				$selected = "";
-			}
-			$tldHtml .= "<option value=\"{$tld["domainTldID"]}\" $selected>" . htmlentities($tld["name"]) . " (" . formatPrice(billingDomainPrice($tld["domainTldID"])) . " / year)</option>\n";
-		}
-		$tldHtml .= "</select>";
-	} else {
-		$tldName = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "name");
-		$tldHtml .= "<input type=\"hidden\" name=\"tldID\" value=\"$tldID\" />{$tldName}";
-	}
-	
-	$nameValue = inputValue($name);
-	return <<<HTML
-<div class="operation">
-<h2>Register new domain</h2>
-$messageHtml
-<form action="adddomain.php" method="post">
-$confirmHtml
-<table>
-<tr><th>Domain name:</th><td class="stretch"><input type="text" name="name" $nameValue $readonly /></td><td style="white-space: nowrap;">.$tldHtml</td></tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Register domain"></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
-function addSubdomainForm($domainID, $error = "", $name = null)
+function addSubdomainForm($domainID, $error = "", $values = null)
 {
 	$addressType = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "addressType");
 	if($addressType == "DELEGATION" || $addressType == "TREVA-DELEGATION") {
-		return <<<HTML
-<div class="operation">
-<h2>Add subdomain</h2>
-<table>
-<tr><td>Adding subdomains is not available for this domain, because the domain address is configured as "Hosted externally".</td></tr>
-</table>
-</form>
-</div>
-
-HTML;
+		return operationForm(null, "", "Add subdomain", null, array(array("type"=>"html", "html"=>"Adding subdomains is not available for this domain, because the domain address is configured as \"Hosted externally\".")), null);
 	}
 	
 	$parentName = domainsFormatDomainName($domainID);
-	$parentNameHtml = htmlentities($parentName);
+	return operationForm("addsubdomain.php?id=$domainID", $error, "Add subdomain", "Add",
+		array(
+			array("title"=>"Subdomain name", "type"=>"colspan", "columns"=>array(
+				array("type"=>"text", "name"=>"name", "fill"=>true),
+				array("type"=>"html", "html"=>"." . htmlentities($parentName))
+			))
+		),
+		$values);
+}
+
+function editAddressForm($domainID, $error = "", $values = null)
+{
+	$domain = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), array("addressType", "cnameTarget"));
+	$ipv4 = $GLOBALS["database"]->stdList("dnsRecord", array("domainID"=>$domainID, "type"=>"A"), "value");
+	$ipv6 = $GLOBALS["database"]->stdList("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA"), "value");
+	$delegatedNameServers = $GLOBALS["database"]->stdList("dnsDelegatedNameServer", array("domainID"=>$domainID), array("hostname", "ipv4Address", "ipv6Address"));
 	
+	if($error == "STUB") {
+		$form = array();
+		if($domain["addressType"] == "NONE") {
+			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"No address settings");
+		} else if($domain["addressType"] == "INHERIT") {
+			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Inherit from parent");
+		} else if($domain["addressType"] == "TREVA-WEB") {
+			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Use our webservers");
+		} else if($domain["addressType"] == "IP") {
+			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Custom IPs");
+			$form[] = array("title"=>"IPv4 address", "type"=>"html", "html"=>count($ipv4) == 0 ? "None" : implode(" ", $ipv4));
+			$form[] = array("title"=>"IPv6 address", "type"=>"html", "html"=>count($ipv6) == 0 ? "None" : implode(" ", $ipv6));
+		} else if($domain["addressType"] == "CNAME") {
+			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"CNAME");
+			$form[] = array("title"=>"CNAME", "type"=>"html", "html"=>htmlentities($domain["cnameTarget"]));
+		} else if($domain["addressType"] == "DELEGATION") {
+			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Delegation");
+			$form[] = array("title"=>"Nameservers", "type"=>"colspan", "columns"=>array(
+				array("type"=>"html", "html"=>"Hostname", "celltype"=>"th", "fill"=>true),
+				array("type"=>"html", "html"=>"IPv4 Address", "celltype"=>"th"),
+				array("type"=>"html", "html"=>"IPv6 Address", "celltype"=>"th")
+			));
+			foreach($delegatedNameServers as $server) {
+				$form[] = array("title"=>"", "type"=>"colspan", "columns"=>array(
+					array("type"=>"html", "html"=>htmlentities($server["hostname"]), "fill"=>true),
+					array("type"=>"html", "html"=>$server["ipv4Address"] === null ? "None" : $server["ipv4Address"]),
+					array("type"=>"html", "html"=>$server["ipv6Address"] === null ? "None" : $server["ipv6Address"])
+				));
+			}
+		} else {
+			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Unknown");
+		}
+		
+		return operationForm("editaddress.php?id=$domainID", "STUB", "Edit address configuration for " . domainsFormatDomainName($domainID), "Edit", $form, null);
+	}
+	
+	if($values === null || (!isset($values["none"]) && !isset($values["inherit"]) && !isset($values["trevaweb"]) && !isset($values["ip"]) && !isset($values["cname"]) && !isset($values["delegation"])))
+	{
+		if($domain["addressType"] == "NONE") {
+			$values = array("none"=>"1");
+		} else if($domain["addressType"] == "INHERIT") {
+			$values = array("inherit"=>"1");
+		} else if($domain["addressType"] == "TREVA-WEB") {
+			$values = array("trevaweb"=>"1");
+		} else if($domain["addressType"] == "IP") {
+			$values = array("ip"=>"1", "ipv4"=>implode(" ", $ipv4), "ipv6"=>implode(" ", $ipv6));
+		} else if($domain["addressType"] == "CNAME") {
+			$values = array("cname"=>"1", "cnameTarget"=>$domain["cnameTarget"]);
+		} else if($domain["addressType"] == "DELEGATION") {
+			$values = array("delegation"=>"1");
+			$index = 0;
+			foreach($delegatedNameServers as $server) {
+				$values["hostname-$index"] = $server["hostname"];
+				$values["ipv4Address-$index"] = $server["ipv4Address"];
+				$values["ipv6Address-$index"] = $server["ipv6Address"];
+				$index++;
+			}
+		} else {
+			$values = array();
+		}
+	}
+	
+	$messages = array();
 	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-		$stub = false;
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	}
-	
-	$nameValue = inputValue($name);
-	return <<<HTML
-<div class="operation">
-<h2>Add subdomain</h2>
-$messageHtml
-<form action="addsubdomain.php?id=$domainID" method="post">
-$confirmHtml
-<table>
-<tr><th>Subdomain name:</th><td class="stretch"><input type="text" name="name" $nameValue $readonly /></td><td style="white-space: nowrap;">.$parentNameHtml</td></tr>
-<tr class="submit"><td colspan="3"><input type="submit" value="Add"></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
-function mailTypeSubformNone($confirm, $selected)
-{
-	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
-	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
-	$currentlySelectedClass = $selected ? "selected" : "";
-	
-	return <<<HTML
-<div class="operation $currentlySelectedClass">
-<h3>$currentlySelectedHtml Disable email</h3>
-Disable email for this domain.
-<table>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Disable email" /></td></tr>
-</table>
-</div>
-
-HTML;
-}
-
-function mailTypeSubformTreva($confirm, $selected)
-{
-	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
-	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
-	$currentlySelectedClass = $selected ? "selected" : "";
-	
-	return <<<HTML
-<div class="operation $currentlySelectedClass">
-<h3>$currentlySelectedHtml Our email servers</h3>
-Enable email for this domain, using our mailservers. If you are unsure and you want email, choose this option.
-<table>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use our email servers" /></td></tr>
-</table>
-</div>
-
-HTML;
-}
-
-function mailTypeSubformCustom($confirm, $selected, $mailservers)
-{
-	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
-	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
-	$currentlySelectedClass = $selected ? "selected" : "";
-	
-	$count = 0;
-	$mailserversHtml = "";
-	if($mailservers == null) {
-		$mailservers = array();
-	}
-	if($selected) {
-		foreach($mailservers as $mailserver) {
-			$value = inputValue($mailserver);
-			$mailserversHtml .= "<tr><th>Mail server:</th><td><input class=\"customMailServerField\" type=\"text\" name=\"mailserver-$count\" $value $readonlyHtml /></td></tr>";
-			$count++;
+		$warning = array();
+		if(isset($values["cname"]) || isset($values["delegation"])) {
+			$warning = array();
+			if($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "mailType") != "NONE") {
+				$warning[] = "This will disable email for this domain";
+			}
+			foreach($GLOBALS["database"]->stdList("dnsRecord", array("domainID"=>$domainID), array("type", "value")) as $record) {
+				if($record["type"] == "A" || $record["type"] == "AAAA") {
+					continue;
+				}
+				$typeHtml = htmlentities($record["type"]);
+				$valueHtml = htmlentities($record["value"]);
+				$warning[] = "This record will be deleted: $typeHtml: $valueHtml";
+			}
+		}
+		if(isset($values["delegation"])) {
+			foreach(subdomains($domainID) as $subDomainID) {
+				$warning[] = "This domain will be deleted: " . domainsFormatDomainName($subDomainID);
+			}
+		}
+		if(count($warning) > 0) {
+			$messages["confirmdelete"] = implode("<br />", $warning);
 		}
 	}
-	if($count == 0) {
-		$mailserversHtml .= "<tr><th>Mail server:</th><td><input class=\"customMailServerField\" type=\"text\" name=\"mailserver-$count\" $readonlyHtml /></td></tr>";
-		$count++;
-	}
-	if(!$confirm) {
-		$mailserversHtml .= "<tr><th>Mail server:</th><td><input class=\"customMailServerField\" type=\"text\" name=\"mailserver-$count\" /></td></tr>";
-		$count++;
-		while($count < 10) {
-			$mailserversHtml .= "<tr class=\"jsDelete\"><th>Mail server:</th><td><input class=\"customMailServerField\" type=\"text\" name=\"mailserver-$count\" /></td></tr>";
-			$count++;
-		}
-		$js = <<<JS
-<script type="text/javascript">
-$(document).ready(function() {
-	$(".jsDelete").remove();
-	$(".customMailServerField").change(addCustomMailServer);
-});
-
-function addCustomMailServer(event) {
-	$("#customMailServerList").append('<tr><th>Mail server:</th><td><input class="customMailServerField" type="text" name="mailserver-' + $(".customMailServerField").length + '" id="latestMailServerField" /></td></tr>');
-	$("#latestMailServerField").change(addCustomMailServer);
-	$("#latestMailServerField").removeAttr("id");
-	$(this).unbind(event);
-}
-</script>
-
-JS;
-	} else {
-		$js = "";
-	}
-	return <<<HTML
-$js
-<div class="operation $currentlySelectedClass">
-<h3>$currentlySelectedHtml Your email servers</h3>
-Enable email for this domain, using your own mailservers. You have to make sure that these are configured correctly to accept email for this domain.
-<table>
-<tbody id="customMailServerList">
-$mailserversHtml
-</tbody>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use your email servers" /></td></tr>
-</table>
-</div>
-
-HTML;
+	
+	return operationForm("editaddress.php?id=$domainID", $error, "Edit address configuration for " . domainsFormatDomainName($domainID), "Edit",
+		array(
+			array("type"=>"typechooser", "options"=>array(
+				isSubDomain($domainID)
+					? array("title"=>"Inherit", "submitcaption"=>"Inherit from parent", "name"=>"inherit", "summary"=>"Inherit from parent domain.", "subform"=>array())
+					: array("title"=>"None", "submitcaption"=>"No address settings", "name"=>"none", "summary"=>"Do not configure any address for this domain.", "subform"=>array()),
+				array("title"=>"Our web servers", "submitcaption"=>"Use our webservers", "name"=>"trevaweb", "summary"=>"Use our web servers.", "subform"=>array()),
+				array("title"=>"Custom IPs", "submitcaption"=>"Use these IPs", "name"=>"ip", "summary"=>"Use these custom IPs.", "subform"=>array(
+					array("title"=>"IPv4 address", "type"=>"text", "name"=>"ipv4"),
+					array("title"=>"IPv6 address", "type"=>"text", "name"=>"ipv6")
+				)),
+				array("title"=>"CNAME", "submitcaption"=>"Use cname", "name"=>"cname", "summary"=>"Use this cname", "subform"=>array(
+					array("title"=>"CNAME", "type"=>"text", "name"=>"cnameTarget")
+				)),
+				array("title"=>"Delegation", "submitcaption"=>"Use delegation", "name"=>"delegation", "summary"=>"Delegate to these servers.", "subform"=>array(
+					array("title"=>"", "type"=>"colspan", "columns"=>array(
+						array("type"=>"html", "html"=>"Hostname", "celltype"=>"th", "fill"=>true),
+						array("type"=>"html", "html"=>"IPv4 Address", "celltype"=>"th"),
+						array("type"=>"html", "html"=>"IPv6 Address", "celltype"=>"th")
+					)),
+					array("type"=>"array", "field"=>array("title"=>"Delegation server", "type"=>"colspan", "columns"=>array(
+						array("type"=>"text", "name"=>"hostname", "fill"=>true),
+						array("type"=>"text", "name"=>"ipv4Address"),
+						array("type"=>"text", "name"=>"ipv6Address")
+					)))
+				))
+			))
+		),
+		$values, $messages);
 }
 
-function mailTypeSubform($confirm = false, $type = null, $mailservers = null)
-{
-	$output = "";
-	
-	$noneHtml = mailTypeSubformNone($confirm, $type == "NONE");
-	if($type == "NONE") {
-		$output = $noneHtml . "\n" . $output;
-	} else if(!$confirm) {
-		$output .= "\n" . $noneHtml;
-	}
-	
-	$trevaHtml = mailTypeSubformTreva($confirm, $type == "TREVA");
-	if($type == "TREVA") {
-		$output = $trevaHtml . "\n" . $output;
-	} else if(!$confirm) {
-		$output .= "\n" . $trevaHtml;
-	}
-	
-	$customHtml = mailTypeSubformCustom($confirm, $type == "CUSTOM", $mailservers);
-	if($type == "CUSTOM") {
-		$output = $customHtml . "\n" . $output;
-	} else if(!$confirm) {
-		$output .= "\n" . $customHtml;
-	}
-	
-	return $output;
-}
-
-function editMailTypeForm($domainID, $error = "", $type = null, $mailservers = null)
+function editMailForm($domainID, $error = "", $values = null)
 {
 	$addressType = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "addressType");
 	if($addressType == "CNAME" || $addressType == "DELEGATION" || $addressType == "TREVA-DELEGATION") {
 		$type = $addressType == "CNAME" ? "\"CNAME to another site\"" : "\"Hosted externally\"";
-		return <<<HTML
-<div class="operation">
-<h2>Email configuration</h2>
-<table>
-<tr><td>Email is not available for this domain, because the domain address is configured as $type.</td></tr>
-</table>
-</form>
-</div>
-
-HTML;
+		return operationForm(null, "", "Email configuration", null, array(
+			array("type"=>"html", "html"=>"Email is not available for this domain, because the domain address is configured as $type.")
+		), null);
 	}
 	
-	$domainName = domainsFormatDomainName($domainID);
-	$domainNameHtml = htmlentities($domainName);
+	$mailType = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "mailType");
+	$mailServers = $GLOBALS["database"]->stdList("dnsMailServer", array("domainID"=>$domainID), "name", array("priority"=>"ASC"));
 	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-		$stub = false;
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	} else if($error == "STUB") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = true;
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	}
-	if($type == null) {
-		$type = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "mailType");
-		if($type == "CUSTOM") {
-			$mailservers = $GLOBALS["database"]->stdList("dnsMailServer", array("domainID"=>$domainID), "name", array("priority"=>"ASC"));
-		}
-	}
-	
-	if($stub) {
-		if($type == "NONE") {
-			return <<<HTML
-<div class="operation">
-<h2>Email configuration</h2>
-<form action="editmail.php?id=$domainID" method="post">
-<table>
-<tr><th>Status:</th><td class="stretch">No email is configured for this domain.</td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-		} else if($type == "TREVA") {
-			return <<<HTML
-<div class="operation">
-<h2>Email configuration</h2>
-<form action="editmail.php?id=$domainID" method="post">
-<table>
-<tr><th>Status:</th><td class="stretch">Hosted by Treva</td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-		} else if($type == "CUSTOM") {
-			$mailserversHtml = "";
-			foreach($mailservers as $mailserver) {
-				$mailserverHtml = htmlentities($mailserver);
-				if($mailserversHtml != "") {
-					$mailserversHtml .= "<tr>";
+	if($error == "STUB") {
+		$form = array();
+		if($mailType == "NONE") {
+			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"No email is configured for this domain.");
+		} else if($mailType == "TREVA") {
+			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Hosted by Treva");
+		} else if($mailType == "CUSTOM") {
+			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Hosted externally");
+			if(count($mailServers) == 0) {
+				$form[] = array("title"=>"Mailservers", "type"=>"html", "html"=>"None configured");
+			} else {
+				$form[] = array("title"=>"Mailservers", "type"=>"html", "html"=>htmlentities(array_shift($mailServers)));
+				foreach($mailServers as $server) {
+					$form[] = array("title"=>"", "type"=>"html", "html"=>htmlentities($server));
 				}
-				$mailserversHtml .= "<td class=\"stretch\">$mailserverHtml</td></tr>";
 			}
-			if($mailserversHtml == "") {
-				$mailserversHtml = "<td>No servers configured.</td></tr>";
+		} else {
+			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Unknown");
+		}
+		
+		return operationForm("editmail.php?id=$domainID", "STUB", "Edit email configuration for " . domainsFormatDomainName($domainID), "Edit", $form, null);
+	}
+	
+	if($values === null || (!isset($values["none"]) && !isset($values["treva"]) && !isset($values["custom"]))) {
+		if($mailType == "NONE") {
+			$values = array("none"=>"1");
+		} else if($mailType == "TREVA") {
+			$values = array("treva"=>"1");
+		} else if($mailType == "CUSTOM") {
+			$values = array("custom"=>"1");
+			$index = 0;
+			foreach($mailServers as $server) {
+				$values["server-$index"] = $server;
+				$index++;
 			}
-			$rowspan = max(count($mailservers), 1);
-			return <<<HTML
-<div class="operation">
-<h2>Email configuration</h2>
-<form action="editmail.php?id=$domainID" method="post">
-<table>
-<tr><th>Status:</th><td class="stretch">Hosted externally</td></tr>
-<tr><th rowspan="$rowspan">Mailservers:</th>$mailserversHtml
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-		}
-		$operationsHtml = "";
-	} else {
-		$operationsHtml = mailTypeSubform($readonly != "", $type, $mailservers);
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Edit email configuration for $domainNameHtml</h2>
-$messageHtml
-<form action="editmail.php?id=$domainID" method="post">
-$confirmHtml
-
-$operationsHtml
-
-</form>
-</div>
-
-HTML;
-}
-
-function mailTypeFromTitle($title)
-{
-	if($title == "Disable email") {
-		return "NONE";
-	} else if($title == "Use our email servers") {
-		return "TREVA";
-	} else if($title == "Use your email servers") {
-		return "CUSTOM";
-	} else {
-		return null;
-	}
-}
-
-function addressTypeSubformInherit($confirm, $selected)
-{
-	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
-	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
-	$currentlySelectedClass = $selected ? "selected" : "";
-	
-	return <<<HTML
-<div class="operation $currentlySelectedClass">
-<h3>$currentlySelectedHtml Inherit</h3>
-Inherit from parent domain.
-<table>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Inherit from parent" /></td></tr>
-</table>
-</div>
-
-HTML;
-}
-
-function addressTypeSubformTrevaWeb($confirm, $selected)
-{
-	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
-	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
-	$currentlySelectedClass = $selected ? "selected" : "";
-	
-	return <<<HTML
-<div class="operation $currentlySelectedClass">
-<h3>$currentlySelectedHtml Our web servers</h3>
-Use our web servers.
-<table>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use our web servers" /></td></tr>
-</table>
-</div>
-
-HTML;
-}
-
-function addressTypeSubformIP($confirm, $selected, $ipv4, $ipv6)
-{
-	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
-	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
-	$currentlySelectedClass = $selected ? "selected" : "";
-	
-	$ipv4Value = inputValue($ipv4);
-	$ipv6Value = inputValue($ipv6);
-	
-	return <<<HTML
-<div class="operation $currentlySelectedClass">
-<h3>$currentlySelectedHtml Custom IPs</h3>
-Use these custom IPs.
-<table>
-<tr><th>ipv4-address:</th><td><input type="text" name="ipv4" $ipv4Value $readonlyHtml /></td></tr>
-<tr><th>ipv6-address:</th><td><input type="text" name="ipv6" $ipv6Value $readonlyHtml /></td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use these IPs" /></td></tr>
-</table>
-</div>
-
-HTML;
-}
-
-function addressTypeSubformCname($confirm, $selected, $cname)
-{
-	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
-	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
-	$currentlySelectedClass = $selected ? "selected" : "";
-	
-	$cnameValue = inputValue($cname);
-	
-	return <<<HTML
-<div class="operation $currentlySelectedClass">
-<h3>$currentlySelectedHtml CNAME</h3>
-Use this cname.
-<table>
-<tr><th>CNAME:</th><td><input type="text" name="cname" $cnameValue $readonlyHtml /></td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Use cname" /></td></tr>
-</table>
-</div>
-
-HTML;
-}
-
-
-function addressTypeSubformDelegation($confirm, $selected, $delecationServers)
-{
-	$readonlyHtml = ($confirm ? "readonly=\"readonly\"" : "");
-	$currentlySelectedHtml = $selected ? "Currently selected:" : "";
-	$currentlySelectedClass = $selected ? "selected" : "";
-	
-	$count = 0;
-	$delecationServersHtml = "";
-	if($delecationServers == null) {
-		$delecationServers = array();
-	}
-	if($selected) {
-		foreach($delecationServers as $delegationServer) {
-			$hostnameValue = inputValue($delegationServer["hostname"]);
-			$ipv4Value = inputValue($delegationServer["ipv4Address"]);
-			$ipv6Value = inputValue($delegationServer["ipv6Address"]);
-			$delecationServersHtml .= "<tr><th>Delegation server:</th><td><input class=\"delegationServerField\" type=\"text\" name=\"delegationHostname-$count\" $hostnameValue $readonlyHtml /></td><td><input type=\"text\" name=\"delegationIpv4-$count\" $ipv4Value $readonlyHtml /></td><td><input type=\"text\" name=\"delegationIpv6-$count\" $ipv6Value $readonlyHtml /></td></tr>";
-			$count++;
-		}
-	}
-	if($count == 0) {
-		$delecationServersHtml .= "<tr><th>Delegation server:</th><td><input class=\"delegationServerField\" type=\"text\" name=\"delegationHostname-$count\" $readonlyHtml /></td><td><input type=\"text\" name=\"delegationIpv4-$count\" $readonlyHtml /></td><td><input type=\"text\" name=\"delegationIpv6-$count\" $readonlyHtml /></td></tr>";
-		$count++;
-	}
-	if(!$confirm) {
-		$delecationServersHtml .= "<tr><th>Delegation server:</th><td><input class=\"delegationServerField\" type=\"text\" name=\"delegationHostname-$count\" /></td><td><input type=\"text\" name=\"delegationIpv4-$count\" /></td><td><input type=\"text\" name=\"delegationIpv6-$count\" /></td></tr>";
-		$count++;
-		while($count < 10) {
-			$delecationServersHtml .= "<tr class=\"jsDelete\"><th>Delegation server:</th><td><input class=\"delegationServerField\" type=\"text\" name=\"delegationHostname-$count\" /></td><td><input type=\"text\" name=\"delegationIpv4-$count\" /></td><td><input type=\"text\" name=\"delegationIpv6-$count\" /></td></tr>";
-			$count++;
-		}
-		$js = <<<JS
-<script type="text/javascript">
-$(document).ready(function() {
-	$(".jsDelete").remove();
-	$(".delegationServerField").change(addDelegationServer);
-});
-
-function addDelegationServer(event) {
-	$("#DelegationServerList").append('<tr><th>Delegation server:</th><td><input id="latestDelegationServerField" class="delegationServerField" type="text" name="delegationHostname-' + $(".delegationServerField").length + '" /></td><td><input type="text" name="delegationIpv4-' + $(".delegationServerField").length + '" /></td><td><input type="text" name="delegationIpv6-' + $(".delegationServerField").length + '" /></td></tr>');
-	$("#latestDelegationServerField").change(addDelegationServer);
-	$("#latestDelegationServerField").removeAttr("id");
-	$(this).unbind(event);
-}
-</script>
-
-JS;
-	} else {
-		$js = "";
-	}
-	return <<<HTML
-$js
-<div class="operation $currentlySelectedClass">
-<h3>$currentlySelectedHtml Delegation</h3>
-Delegate to these servers.
-<table>
-<tr><td>&nbsp;</td><th>Hostname</th><th>IPv4 address</th><th>IPv6 address</th></tr>
-<tbody id="DelegationServerList">
-$delecationServersHtml
-</tbody>
-<tr class="submit"><td colspan="4"><input type="submit" name="type" value="Use delegation" /></td></tr>
-</table>
-</div>
-
-HTML;
-}
-
-function addressTypeSubform($confirm = false, $type = null, $ipv4 = null, $ipv6 = null, $cname = null, $delecationServers = null)
-{
-	$output = "";
-	
-	$noneHtml = addressTypeSubformInherit($confirm, $type == "INHERIT");
-	if($type == "INHERIT") {
-		$output = $noneHtml . "\n" . $output;
-	} else if(!$confirm) {
-		$output .= "\n" . $noneHtml;
-	}
-	
-	$trevaHtml = addressTypeSubformTrevaWeb($confirm, $type == "TREVA-WEB");
-	if($type == "TREVA-WEB") {
-		$output = $trevaHtml . "\n" . $output;
-	} else if(!$confirm) {
-		$output .= "\n" . $trevaHtml;
-	}
-	
-	$customHtml = addressTypeSubformIP($confirm, $type == "IP", $ipv4, $ipv6);
-	if($type == "IP") {
-		$output = $customHtml . "\n" . $output;
-	} else if(!$confirm) {
-		$output .= "\n" . $customHtml;
-	}
-	
-	$customHtml = addressTypeSubformCname($confirm, $type == "CNAME", $cname);
-	if($type == "CNAME") {
-		$output = $customHtml . "\n" . $output;
-	} else if(!$confirm) {
-		$output .= "\n" . $customHtml;
-	}
-	
-	$customHtml = addressTypeSubformDelegation($confirm, $type == "DELEGATION", $delecationServers);
-	if($type == "DELEGATION") {
-		$output = $customHtml . "\n" . $output;
-	} else if(!$confirm) {
-		$output .= "\n" . $customHtml;
-	}
-	return $output;
-}
-
-function editAddressTypeForm($domainID, $error = "", $type = null, $ipv4 = null, $ipv6 = null, $cname = null, $delegationServers = null, $warning = null) // TODO: $warning na error zetten ofzo
-{
-	$domainName = domainsFormatDomainName($domainID);
-	$domainNameHtml = htmlentities($domainName);
-	
-	if($warning === null) {
-		$warningHtml = "";
-	} else {
-		$warningHtml = $warning;
-	}
-	
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-		$stub = false;
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	} else if($error == "STUB") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = true;
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-		$stub = false;
-	}
-	if($type == null) {
-		$type = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "addressType");
-		if($type == "IP") {
-			$ipv4 = implode(" ", $GLOBALS["database"]->stdList("dnsRecord", array("domainID"=>$domainID, "type"=>"A"), "value", array("recordID"=>"ASC")));
-			$ipv6 = implode(" ", $GLOBALS["database"]->stdList("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA"), "value", array("recordID"=>"ASC")));
-		} else if($type == "CNAME") {
-			$cname = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "cnameTarget");
-		} else if($type == "DELEGATION") {
-			$delegationServers = $GLOBALS["database"]->stdList("dnsDelegatedNameServer", array("domainID"=>$domainID), array("hostname", "ipv4Address", "ipv6Address"), array("nameServerID"=>"ASC"));
+		} else {
+			$values = array();
 		}
 	}
 	
-	if($stub) {
-		if($type == "NONE") {
-			return <<<HTML
-<div class="operation">
-<h2>Address configuration</h2>
-<form action="editaddress.php?id=$domainID" method="post">
-<table>
-<tr><th>Status:</th><td class="stretch">No address settings.</td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-		} else if($type == "INHERIT") {
-			return <<<HTML
-<div class="operation">
-<h2>Address configuration</h2>
-<form action="editaddress.php?id=$domainID" method="post">
-<table>
-<tr><th>Status:</th><td class="stretch">Address settings are inherrited from the parent domain.</td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-		} else if($type == "TREVA-WEB") {
-			return <<<HTML
-<div class="operation">
-<h2>Address configuration</h2>
-<form action="editaddress.php?id=$domainID" method="post">
-<table>
-<tr><th>Status:</th><td class="stretch">Hosted by the Treva webservers</td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-		} else if($type == "IP") {
-			if($ipv4 == "") {
-				$ipv4 = "None configured";
-			}
-			if($ipv6 == "") {
-				$ipv6 = "None configured";
-			}
-			return <<<HTML
-<div class="operation">
-<h2>Address configuration</h2>
-<form action="editaddress.php?id=$domainID" method="post">
-<table>
-<tr><th>Status:</th><td class="stretch">Hosted on external IP addresses</td></tr>
-<tr><th>IPv4</th><td class="stretch">$ipv4</td></tr>
-<tr><th>IPv6</th><td class="stretch">$ipv6</td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-		} else if($type == "CNAME") {
-			return <<<HTML
-<div class="operation">
-<h2>Address configuration</h2>
-<form action="editaddress.php?id=$domainID" method="post">
-<table>
-<tr><th>Status:</th><td class="stretch">CNAME to another site</td></tr>
-<tr><th>CNAME:</th><td class="stretch">$cname</td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-		} else if($type == "DELEGATION") {
-			$delegationServersHtml = "";
-			foreach($delegationServers as $delegationServer) {
-				$hostnameHtml = htmlentities($delegationServer["hostname"]);
-				$ipv4Html = htmlentities($delegationServer["ipv4Address"]);
-				$ipv6Html = htmlentities($delegationServer["ipv6Address"]);
-				$delegationServersHtml .= "<tr><td>&nbsp;</td><td class=\"stretch\">$hostnameHtml</td><td>$ipv4Html</td><td>$ipv6Html</td></tr>";
-			}
-			if($delegationServersHtml == "") {
-				$delegationServersHtml = "<td colspan=\"4\">No servers configured.</td></tr>";
-			}
-			
-			return <<<HTML
-<div class="operation">
-<h2>Address configuration</h2>
-<form action="editaddress.php?id=$domainID" method="post">
-<table>
-<tr><th>Status:</th><td class="stretch" colspan="3">Hosted externally</td></tr>
-<tr><th>Delegation servers:</th><th>Hostname</th><th>IPv4</th><th>IPv6</th></tr>
-$delegationServersHtml
-<tr class="submit"><td colspan="4"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-		} else if($type == "TREVA-DELEGATION") {
-			return <<<HTML
-<div class="operation">
-<h2>Address configuration</h2>
-<form action="editaddress.php?id=$domainID" method="post">
-<table>
-<tr><th>Status:</th><td class="stretch">Internal delegation</td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" name="type" value="Edit" /></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
-		}
-		$operationsHtml = "";
-	} else {
-		$operationsHtml = addressTypeSubform($readonly != "", $type, $ipv4, $ipv6, $cname, $delegationServers);
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Edit address configuration for $domainNameHtml</h2>
-$messageHtml
-$warningHtml
-<form action="editaddress.php?id=$domainID" method="post">
-$confirmHtml
-
-$operationsHtml
-
-</form>
-</div>
-
-HTML;
+	return operationForm("editmail.php?id=$domainID", $error, "Edit email configuration for " . domainsFormatDomainName($domainID), "Edit",
+		array(
+			array("type"=>"typechooser", "options"=>array(
+				array("title"=>"Disable email", "submitcaption"=>"Disable email", "name"=>"none", "summary"=>"Disable email for this domain.", "subform"=>array()),
+				array("title"=>"Our email servers", "submitcaption"=>"Use our email servers", "name"=>"treva", "summary"=>"Enable email for this domain, using our mailservers. If you are unsure and you want email, choose this option.", "subform"=>array()),
+				array("title"=>"Your email servers", "submitcaption"=>"Use these email servers", "name"=>"custom", "summary"=>"Enable email for this domain, using your own mailservers. You have to make sure that these are configured correctly to accept email for this domain.", "subform"=>array(
+					array("type"=>"array", "field"=>array("title"=>"Mail server", "type"=>"text", "name"=>"server"))
+				))
+			))
+		),
+		$values);
 }
 
-function subdomains($domainID) {
-	$subDomains = $GLOBALS["database"]->stdList("dnsDomain", array("parentDomainID"=>$domainID), "domainID");
-	$subSubDomains = array();
-	foreach($subDomains as $subDomainID) {
-		$subSubDomains = array_merge($subSubDomains, subdomains($subDomainID));
-	}
-	return array_merge($subDomains, $subSubDomains);
-}
-
-function addressTypeFromTitle($title)
+function withdrawDomainForm($domainID, $error = "", $values = null)
 {
-	if($title == "Inherit from parent") {
-		return "INHERIT";
-	} else if($title == "Use our web servers") {
-		return "TREVA-WEB";
-	} else if($title == "Use these IPs") {
-		return "IP";
-	} else if($title == "Use cname") {
-		return "CNAME";
-	} else if($title == "Use delegation") {
-		return "DELEGATION";
-	} else {
-		return null;
-	}
+	$expiredate = domainsDomainExpiredate($domainID);
+	return operationForm("withdrawdomain.php?id=$domainID", $error, "Withdraw domain", "Withdraw domain", array(), $values, array("custom"=>"<p>This will cause the domain to expire on $expiredate.</p>"));
+}
+
+function restoreDomainForm($domainID, $error = "", $values = null)
+{
+	$expiredate = domainsDomainExpiredate($domainID);
+	return operationForm("restoredomain.php?id=$domainID", $error, "Restore domain", "Restore domain", array(), $values, array("custom"=>"<p>This will retain the domain indefinitely. If the domain is not restored, it will expire on $expiredate.</p>"));
+}
+
+function unregisterDomainForm($domainID, $error = "", $values = null)
+{
+	return operationForm("unregisterdomain.php?id=$domainID", $error, "Unregister domain", "Unregister domain", array(), $values, array("custom"=>"<p>This will delete the domain immediately.</p>"));
+}
+
+function deleteDomainForm($domainID, $error = "", $values = null)
+{
+	return operationForm("deletedomain.php?id=$domainID", $error, "Delete subdomain", "Delete subdomain", array(), $values, array("custom"=>"<p>Are you sure you want to remove this subdomain, and all it's subdomains?</p>"));
 }
 
 function removeDomain($domainID)
@@ -946,6 +421,15 @@ function removeDomain($domainID)
 	$GLOBALS["database"]->stdDel("dnsMailServer", array("domainID"=>$domainID));
 	$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID));
 	$GLOBALS["database"]->stdDel("dnsDomain", array("domainID"=>$domainID));
+}
+
+function subdomains($domainID) {
+	$subDomains = $GLOBALS["database"]->stdList("dnsDomain", array("parentDomainID"=>$domainID), "domainID");
+	$subSubDomains = array();
+	foreach($subDomains as $subDomainID) {
+		$subSubDomains = array_merge($subSubDomains, subdomains($subDomainID));
+	}
+	return array_merge($subDomains, $subSubDomains);
 }
 
 function rootDomainID($domainID)
@@ -968,7 +452,7 @@ function validDomainPart($name)
 	if(strlen($name) < 1 || strlen($name) > 255) {
 		return false;
 	}
-	if(preg_match('/^[_-a-zA-Z0-9]*$/', $name) != 1) {
+	if(preg_match('/^[-_a-zA-Z0-9]*$/', $name) != 1) {
 		return false;
 	}
 	return true;
@@ -979,9 +463,18 @@ function validDomain($name)
 	if(strlen($name) < 1 || strlen($name) > 255) {
 		return false;
 	}
-	if(preg_match('/^[_-a-zA-Z0-9]+(\\.[_-a-zA-Z0-9]+)*$/', $name) != 1) {
+	
+	$parts = explode(".", $name);
+	if(count($parts) == 0) {
 		return false;
 	}
+	
+	foreach($parts as $part) {
+		if(!validDomainPart($part)) {
+			return false;
+		}
+	}
+	
 	return true;
 }
 

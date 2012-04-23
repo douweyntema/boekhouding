@@ -1,16 +1,14 @@
 <?php
 
-require_once(dirname(__FILE__) . "/common.php");
+require_once("common.php");
 
 function main()
 {
 	doDomains();
 	
-	$content = "<h1>Domains</h1>\n";
-	
+	$content = makeHeader("Domains", domainsBreadcrumbs());
 	$content .= domainsList();
 	$content .= addDomainForm();
-	
 	echo page($content);
 }
 

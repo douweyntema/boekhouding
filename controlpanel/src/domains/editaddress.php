@@ -7,204 +7,99 @@ function main()
 	$domainID = get("id");
 	doDomain($domainID);
 	
-	$content = "<h1>Domain " . domainsFormatDomainName($domainID) . "</h1>\n";
+	$check = function($condition, $error) use($domainID) {
+		if(!$condition) die(page(makeHeader("Domain " . domainsFormatDomainName($domainID), domainBreadcrumbs($domainID), crumbs("Edit address", "editaddress.php?id=$domainID")) . editAddressForm($domainID, $error, $_POST)));
+	};
 	
-	$content .= domainBreadcrumbs($domainID, array(array("name"=>"Edit address", "url"=>"{$GLOBALS["root"]}domains/editaddress.php?id=$domainID")));
+	$check(($type = searchKey($_POST, "none", "inherit", "trevaweb", "ip", "cname", "delegation")) !== null, "");
 	
-	$type = addressTypeFromTitle(post("type"));
-	
-	$ipv4 = post("ipv4");
-	$ipv6 = post("ipv6");
-	$cname = post("cname");
-	
-	if($type == "DELEGATION") {
-		$delegationServers = array();
-		foreach($_POST as $key=>$value) {
-			if(strlen(trim($value)) == 0) {
-				continue;
-			}
-			if(substr($key, 0, strlen("delegationHostname-")) == "delegationHostname-") {
-				$number = substr($key, strlen("delegationHostname-"));
-				if(!isset($delegationServers[$number])) {
-					$delegationServers[$number] = array("hostname"=>null, "ipv4Address"=>null, "ipv6Address"=>null);
-				}
-				$delegationServers[$number]["hostname"] = $value;
-			}
-			if(substr($key, 0, strlen("delegationIpv4-")) == "delegationIpv4-") {
-				$number = substr($key, strlen("delegationIpv4-"));
-				if(!isset($delegationServers[$number])) {
-					$delegationServers[$number] = array("hostname"=>null, "ipv4Address"=>null, "ipv6Address"=>null);
-				}
-				$delegationServers[$number]["ipv4Address"] = $value;
-			}
-			if(substr($key, 0, strlen("delegationIpv6-")) == "delegationIpv6-") {
-				$number = substr($key, strlen("delegationIpv6-"));
-				if(!isset($delegationServers[$number])) {
-					$delegationServers[$number] = array("hostname"=>null, "ipv4Address"=>null, "ipv6Address"=>null);
-				}
-				$delegationServers[$number]["ipv6Address"] = $value;
-			}
-		}
-		ksort($delegationServers);
-	} else {
-		$delegationServers = null;
-	}
-	
-	if($type === null) {
-		$content .= editAddressTypeForm($domainID, "");
-		die(page($content));
-	}
-	
-	if($type == "INHERIT") {
-		if(post("confirm") === null) {
-			$content .= editAddressTypeForm($domainID, null, $type, $ipv4, $ipv6, $cname, $delegationServers);
-			die(page($content));
-		}
+	$remove = function() use($domainID, $check) {
+		$check(post("confirm") !== null, null);
 		
 		$GLOBALS["database"]->startTransaction();
-		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("addressType"=>"INHERIT", "cnameTarget"=>null));
 		$GLOBALS["database"]->stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
 		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"A"));
 		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA"));
-		$GLOBALS["database"]->commitTransaction();
-	} else if($type == "TREVA-WEB") {
-		if(post("confirm") === null) {
-			$content .= editAddressTypeForm($domainID, null, $type, $ipv4, $ipv6, $cname, $delegationServers);
-			die(page($content));
-		}
+	};
+	
+	if($type == "none") {
+		$check(!isSubDomain($domainID), "");
 		
-		$GLOBALS["database"]->startTransaction();
-		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("addressType"=>"TREVA-WEB", "cnameTarget"=>null));
-		$GLOBALS["database"]->stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
-		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"A"));
-		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA"));
-		$GLOBALS["database"]->commitTransaction();
-	} else if($type == "IP") {
-		if($ipv4 == "" && $ipv6 == "") {
-			$content .= editAddressTypeForm($domainID, "Enter at least an IPv4 or IPv6 address", $type, $ipv4, $ipv6, $cname, $delegationServers);
-			die(page($content));
-		}
-		if($ipv4 != "" && !validIPv4($ipv4)) {
-			$content .= editAddressTypeForm($domainID, "Invalid IPv4 address", $type, $ipv4, $ipv6, $cname, $delegationServers);
-			die(page($content));
-		}
+		$remove();
+		$function = array("addressType"=>"NONE");
+	} else if($type == "inherit") {
+		$check(isSubDomain($domainID), "");
 		
-		if($ipv6 != "" && !validIPv6($ipv6)) {
-			$content .= editAddressTypeForm($domainID, "Invalid IPv6 address", $type, $ipv4, $ipv6, $cname, $delegationServers);
-			die(page($content));
-		}
+		$remove();
+		$function = array("addressType"=>"INHERIT");
+	} else if($type == "trevaweb") {
+		$remove();
+		$function = array("addressType"=>"TREVA-WEB");
+	} else if($type == "ip") {
+		$ipv4 = post("ipv4");
+		$ipv6 = post("ipv6");
 		
-		if(post("confirm") === null) {
-			$content .= editAddressTypeForm($domainID, null, $type, $ipv4, $ipv6, $cname, $delegationServers);
-			die(page($content));
-		}
+		$check($ipv4 != "" || $ipv6 != "", "Enter at least an IPv4 or IPv6 address");
+		$check($ipv4 == "" || validIpv4($ipv4), "Invalid IPv4 address");
+		$check($ipv6 == "" || validIpv6($ipv6), "Invalid IPv6 address");
 		
-		$GLOBALS["database"]->startTransaction();
-		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("addressType"=>"IP", "cnameTarget"=>null));
-		$GLOBALS["database"]->stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
-		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"A"));
-		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA"));
-		foreach(explode(" ", $ipv4) as $ip) {
-			if(trim($ip) == "") {
-				continue;
-			}
-			$GLOBALS["database"]->stdNew("dnsRecord", array("domainID"=>$domainID, "type"=>"A", "value"=>trim($ip)));
+		$remove();
+		if($ipv4 != "") {
+			$GLOBALS["database"]->stdNew("dnsRecord", array("domainID"=>$domainID, "type"=>"A", "value"=>$ipv4));
 		}
-		foreach(explode(" ", $ipv6) as $ip) {
-			if(trim($ip) == "") {
-				continue;
-			}
-			$GLOBALS["database"]->stdNew("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA", "value"=>trim($ip)));
+		if($ipv6 != "") {
+			$GLOBALS["database"]->stdNew("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA", "value"=>$ipv6));
 		}
-		$GLOBALS["database"]->commitTransaction();
-	} else if($type == "CNAME") {
-		if(substr($cname, -1) == ".") {
-			$cname = substr($cname, 0, -1);
-		} else if(strpos($cname, ".") === false) {
+		$function = array("addressType"=>"IP");
+	} else if($type == "cname") {
+		$check(($target = post("cnameTarget")) !== null, "");
+		
+		if(substr($target, -1) == ".") {
+			$_POST["cnameTarget"] = substr($target, 0, -1);
+			$target = post("cnameTarget");
+		} else if(strpos($target, ".") === false) {
 			if(isSubDomain($domainID)) {
-				$cname .= "." . domainsFormatDomainName($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID"));
+				$_POST["cnameTarget"] .= "." . domainsFormatDomainName($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID"));
 			} else {
-				$cname .= "." . domainsFormatDomainName($domainID);
+				$_POST["cnameTarget"] .= "." . domainsFormatDomainName($domainID);
 			}
+			$target = post("cnameTarget");
 		}
 		
-		if(!validDomain($cname)) {
-			$content .= editAddressTypeForm($domainID, "Invalid cname target", $type, $ipv4, $ipv6, $cname, $delegationServers);
-			die(page($content));
-		}
+		$check(validDomain($target), "Invalid cname target");
 		
-		$warning = "";
-		if($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "mailType") != "NONE") {
-			$warning .= "<p class=\"confirmdelete\">This will disable email for this domain</p>";
-		}
-		foreach($GLOBALS["database"]->stdList("dnsRecord", array("domainID"=>$domainID), array("type", "value")) as $record) {
-			if($record["type"] == "A" || $record["type"] == "AAAA") {
-				continue;
-			}
-			$warning .= "<p class=\"confirmdelete\">This record will be deleted: {$record["type"]}: {$record["value"]}</p>";
-		}
+		$remove();
+		$function = array("addressType"=>"CNAME", "cnameTarget"=>$target);
+	} else if($type == "delegation") {
+		$delegations = parseArrayField($_POST, array("hostname", "ipv4Address", "ipv6Address"));
 		
-		if(post("confirm") === null) {
-			$content .= editAddressTypeForm($domainID, null, $type, $ipv4, $ipv6, $cname, $delegationServers, $warning);
-			die(page($content));
-		}
-		
-		$GLOBALS["database"]->startTransaction();
-		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("addressType"=>"CNAME", "cnameTarget"=>$cname, "mailType"=>"NONE"));
-		$GLOBALS["database"]->stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
-		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID));
-		$GLOBALS["database"]->commitTransaction();
-	} else if($type == "DELEGATION") {
-		$error = "";
-		foreach($delegationServers as $server) {
+		$error = array();
+		foreach($delegations as $server) {
 			if(!validDomain($server["hostname"])) {
-				$error .= "Invalid hostname: {$server["hostname"]}\n";
+				$error[] = "Invalid hostname: " . htmlentities($server["hostname"]);
 			}
 			if(!validIPv4($server["ipv4Address"])) {
-				$error .= "Invalid ipv4 address: {$server["ipv4Address"]}\n";
+				$error[] = "Invalid ipv4 address: " . htmlentities($server["ipv4Address"]);
 			}
-			if($server["ipv6Address"] != "" && !validIPv6($server["ipv6Address"])) {
-				$error .= "Invalid ipv6 address: {$server["ipv6Address"]}\n";
+			if(trim($server["ipv6Address"]) != "" && !validIPv6($server["ipv6Address"])) {
+				$error[] = "Invalid ipv6 address: " . htmlentities($server["ipv6Address"]);
 			}
 		}
-		if($error != "") {
-			$content .= editAddressTypeForm($domainID, $error, $type, $ipv4, $ipv6, $cname, $delegationServers);
-			die(page($content));
+		if(count($error) > 0) {
+			$check(false, implode("<br />", $error));
 		}
 		
-		$warning = "";
-		if($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "mailType") != "NONE") {
-			$warning .= "<p class=\"confirmdelete\">This will disable email for this domain</p>";
+		$remove();
+		foreach($delegations as $server) {
+			$GLOBALS["database"]->stdNew("dnsDelegatedNameServer", array("domainID"=>$domainID, "hostname"=>trim($server["hostname"]), "ipv4Address"=>trim($server["ipv4Address"]), "ipv6Address"=>trim($server["ipv6Address"]) == "" ? null : trim($server["ipv6Address"])));
 		}
-		foreach($GLOBALS["database"]->stdList("dnsRecord", array("domainID"=>$domainID), array("type", "value")) as $record) {
-			if($record["type"] == "A" || $record["type"] == "AAAA") {
-				continue;
-			}
-			$warning .= "<p class=\"confirmdelete\">This record will be deleted: {$record["type"]}: {$record["value"]}</p>";
-		}
-		foreach(subdomains($domainID) as $subDomainID) {
-			$warning .= "<p class=\"confirmdelete\">This domain will be deleted: " . domainsFormatDomainName($subDomainID) . "</p>";
-		}
-		
-		if(post("confirm") === null) {
-			$content .= editAddressTypeForm($domainID, null, $type, $ipv4, $ipv6, $cname, $delegationServers, $warning);
-			die(page($content));
-		}
-		
-		$GLOBALS["database"]->startTransaction();
-		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("addressType"=>"DELEGATION", "cnameTarget"=>null, "mailType"=>"NONE"));
-		$GLOBALS["database"]->stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
-		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID));
-		foreach($GLOBALS["database"]->stdList("dnsDomain", array("parentDomainID"=>$domainID), "domainID") as $subDomainID) {
-			removeDomain($subDomainID);
-		}
-		foreach($delegationServers as $server) {
-			$GLOBALS["database"]->stdNew("dnsDelegatedNameServer", array_merge(array("domainID"=>$domainID), $server));
-		}
-		$GLOBALS["database"]->commitTransaction();
+		$function = array("addressType"=>"DELEGATION");
 	} else {
 		die("Internal error");
 	}
+	
+	$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array_merge(array("cnameTarget"=>null), $function));
+	$GLOBALS["database"]->commitTransaction();
 	
 	updateDomains(customerID());
 	
