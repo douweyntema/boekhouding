@@ -34,7 +34,7 @@ function validAccountName($username)
 	if(strlen($username) < 3 || strlen($username) > 30) {
 		return false;
 	}
-	if(preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $username) != 1) {
+	if(preg_match('/^[a-zA-Z_][-a-zA-Z0-9_]*$/', $username) != 1) {
 		return false;
 	}
 	return true;
