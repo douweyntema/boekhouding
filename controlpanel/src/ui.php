@@ -282,14 +282,14 @@ function renderRowspan($rowspan, $values, $readOnly)
 			foreach($subform["subform"] as $subfield) {
 				if(!isset($subfield["title"])) {
 					$f = forwardFields($subfield, $subform, $rowspan);
-					if($f["rowclass"] === null) {
+					if(!isset($f["rowclass"]) || $f["rowclass"] === null) {
 						$f["rowclass"] = "if-selected-{$subform["id"]}";
 					} else {
 						$f["rowclass"] .= " if-selected-{$subform["id"]}";
 					}
 					
 					$row = renderRow($f, $values, $readOnly);
-					$row["cells"] = array_merge(array("width"=>"left-merge"), $row["cells"]);
+					$row["cells"] = array_merge(array(array("width"=>"left-merge", "content"=>"")), $row["cells"]);
 					$rows[] = $row;
 				}
 			}

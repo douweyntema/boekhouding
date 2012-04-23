@@ -496,25 +496,27 @@ function editMailboxForm($addressID, $error = "", $values = null)
 				array("type"=>"text", "name"=>"quota", "fill"=>true),
 				array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
 			)),
-			array("title"=>"Spambox", "type"=>"radio", "name"=>"spambox", "class"=>"field-spambox", "options"=>array(
-				array("value"=>"none", "label"=>"No spambox"),
-				array("value"=>"inbox", "label"=>"Spam in inbox"),
-				array("value"=>"folder", "label"=>"Place spam in the specified folder")
+			array("title"=>"Spambox", "type"=>"subformchooser", "name"=>"spambox", "subforms"=>array(
+				array("value"=>"none", "label"=>"No spambox", "subform"=>array()),
+				array("value"=>"inbox", "label"=>"Spam in inbox", "subform"=>array()),
+				array("value"=>"folder", "label"=>"Place spam in the specified folder", "subform"=>array(
+					array("title"=>"Spam folder", "type"=>"text", "name"=>"spambox-folder"),
+					array("title"=>"Spambox quota", "type"=>"colspan", "columns"=>array(
+						array("type"=>"text", "name"=>"spamquota", "fill"=>true),
+						array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
+					)),
+				))
 			)),
-			array("title"=>"Spam folder", "type"=>"text", "name"=>"spambox-folder", "rowclass"=>"spambox-folder"),
-			array("title"=>"Spambox quota", "type"=>"colspan", "rowclass"=>"spambox-quota", "columns"=>array(
-				array("type"=>"text", "name"=>"spamquota", "fill"=>true),
-				array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
-			)),
-			array("title"=>"Virusbox", "type"=>"radio", "name"=>"virusbox", "class"=>"field-virusbox", "options"=>array(
-				array("value"=>"none", "label"=>"No virusbox"),
-				array("value"=>"inbox", "label"=>"Virus in inbox"),
-				array("value"=>"folder", "label"=>"Place virus mails in the specified folder")
-			)),
-			array("title"=>"Virus folder", "type"=>"text", "name"=>"virusbox-folder", "rowclass"=>"virusbox-folder"),
-			array("title"=>"Virusbox quota", "type"=>"colspan", "rowclass"=>"virusbox-quota", "columns"=>array(
-				array("type"=>"text", "name"=>"virusquota", "fill"=>true),
-				array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
+			array("title"=>"Virusbox", "type"=>"subformchooser", "name"=>"virusbox", "subforms"=>array(
+				array("value"=>"none", "label"=>"No virusbox", "subform"=>array()),
+				array("value"=>"inbox", "label"=>"Virus in inbox", "subform"=>array()),
+				array("value"=>"folder", "label"=>"Place virus mails in the specified folder", "subform"=>array(
+					array("title"=>"Virus folder", "type"=>"text", "name"=>"virusbox-folder"),
+					array("title"=>"Virusbox quota", "type"=>"colspan", "columns"=>array(
+						array("type"=>"text", "name"=>"virusquota", "fill"=>true),
+						array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
+					)),
+				))
 			))
 		),
 		$values);
