@@ -37,26 +37,6 @@ function ticketBreadcrumbs($threadID)
 	return array_merge(ticketsBreadcrumbs(), crumbs("Ticket #$threadID", "thread.php?id=$threadID"));
 }
 
-function addHeader($title, $filename)
-{
-	$header = "<h1>$title</h1>\n";
-	$breadcrumbs = breadcrumbs(array(
-		array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Support"),
-		array("url"=>"{$GLOBALS["root"]}ticket/$filename", "name"=>$title)
-	));
-	return $header . $breadcrumbs;
-}
-
-function threadHeader($threadID)
-{
-	$header = "<h1>Support - Ticket #$threadID</h1>\n";
-	$breadcrumbs = breadcrumbs(array(
-		array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Support"),
-		array("url"=>"{$GLOBALS["root"]}ticket/thread.php?id=$threadID", "name"=>"Ticket #$threadID")
-	));
-	return $header . $breadcrumbs;
-}
-
 function threadList($status = "OPEN")
 {
 	$output = "";
