@@ -5,32 +5,20 @@ require_once("common.php");
 function main()
 {
 	if(isRoot()) {
-		doAccountsAdmin(null);
+		doAccountsAdmin();
 		
-		$content = "<h1>Admin Accounts</h1>\n";
-		
-		$content .= breadcrumbs(array(
-			array("name"=>"Admin Accounts", "url"=>"{$GLOBALS["root"]}accounts/")
-			));
-		
+		$content = makeHeader("Admin Accounts", accountsBreadcrumbs());
 		$content .= adminAccountList();
-		
 		$content .= addAdminAccountForm();
+		echo page($content);
 	} else {
-		doAccounts(null);
+		doAccounts();
 		
-		$content = "<h1>Accounts</h1>\n";
-		
-		$content .= breadcrumbs(array(
-			array("name"=>"Accounts", "url"=>"{$GLOBALS["root"]}accounts/")
-			));
-		
+		$content = makeHeader("Accounts", accountsBreadcrumbs());
 		$content .= accountList();
-		
 		$content .= addAccountForm();
+		echo page($content);
 	}
-	
-	echo page($content);
 }
 
 main();

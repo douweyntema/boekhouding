@@ -5,30 +5,17 @@ require_once("common.php");
 function main()
 {
 	$userID = get("id");
-	doAccountsUser($userID);
-	$username = $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID, "customerID"=>customerID()), "username", false);
+	doAccount($userID);
 	
-	if($username === false) {
-		accountNotFound($userID);
-	}
+	$username = htmlentities($GLOBALS["database"]->stdGet("adminUser", array("userID"=>$userID), "username"));
 	
-	$usernameHtml = htmlentities($username);
-	
-	$content = "<h1>Accounts - $usernameHtml</h1>\n";
-	$content .= breadcrumbs(array(
-		array("name"=>"Accounts", "url"=>"{$GLOBALS["root"]}accounts/"),
-		array("name"=>$username, "url"=>"{$GLOBALS["root"]}accounts/account.php?id=" . $userID),
-		array("name"=>"Edit rights", "url"=>"{$GLOBALS["root"]}accounts/editrights.php?id=" . $userID)
-		));
-	
-	if(post("rights") === null) {
-		$content .= changeAccountRightsForm($userID);
-		die(page($content));
-	}
+	$check = function($condition, $error) use($userID, $username) {
+		if(!$condition) die(page(makeHeader("Accounts - $username", accountBreadcrumbs($userID), crumbs("Edit rights", "editrights.php?id=$userID")) . changeAccountRightsForm($userID, $error, $_POST)));
+	};
 	
 	if(post("rights") == "full") {
 		$rights = true;
-	} else {
+	} else if(post("rights") == "limited") {
 		$rights = array();
 		foreach(rights() as $right) {
 			if(post("right-" . $right["name"]) !== null) {
@@ -37,12 +24,11 @@ function main()
 				$rights[$right["name"]] = false;
 			}
 		}
+	} else {
+		$check(false, "");
 	}
 	
-	if(post("confirm") === null) {
-		$content .= changeAccountRightsForm($userID, null, $rights);
-		die(page($content));
-	}
+	$check(post("confirm") !== null, null);
 	
 	if($rights === true || (isset($rights["mysql"]) && $rights["mysql"])) {
 		mysqlEnableAccount($username);
@@ -64,7 +50,6 @@ function main()
 	}
 	$GLOBALS["database"]->commitTransaction();
 	
-	// Distribute the accounts database
 	updateAccounts(customerID());
 	
 	header("HTTP/1.1 303 See Other");

@@ -5,26 +5,14 @@ require_once("common.php");
 function main()
 {
 	$userID = get("id");
-	doAccountsUser($userID);
-	$username = $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID, "customerID"=>customerID()), "username", false);
+	doAccount($userID);
+	$username = htmlentities($GLOBALS["database"]->stdGet("adminUser", array("userID"=>$userID), "username"));
 	
-	if($username === false) {
-		accountNotFound($userID);
-	}
+	$check = function($condition, $error) use($userID, $username) {
+		if(!$condition) die(page(makeHeader("Accounts - $username", accountBreadcrumbs($userID), crumbs("Remove account", "removeaccount.php?id=$userID")) . removeAccountForm($userID, $error, $_POST)));
+	};
 	
-	$usernameHtml = htmlentities($username);
-	
-	$content = "<h1>Accounts - $usernameHtml</h1>\n";
-	$content .= breadcrumbs(array(
-		array("name"=>"Accounts", "url"=>"{$GLOBALS["root"]}accounts/"),
-		array("name"=>$username, "url"=>"{$GLOBALS["root"]}accounts/account.php?id=" . $userID),
-		array("name"=>"Remove account", "url"=>"{$GLOBALS["root"]}accounts/removeaccount.php?id=" . $userID)
-		));
-	
-	if(post("confirm") === null) {
-		$content .= removeAccountForm($userID, null);
-		die(page($content));
-	}
+	$check(post("confirm") !== null, null);
 	
 	mysqlRemoveAccount($username);
 	
@@ -33,7 +21,6 @@ function main()
 	$GLOBALS["database"]->stdDel("adminUser", array("userID"=>$userID, "customerID"=>customerID()));
 	$GLOBALS["database"]->commitTransaction();
 	
-	// Distribute the accounts database
 	updateAccounts(customerID());
 	
 	header("HTTP/1.1 303 See Other");

@@ -6,22 +6,17 @@ function main()
 {
 	doAccounts();
 	
-	$content = "<h1>Accounts</h1>\n";
-	$content .= breadcrumbs(array(
-		array("name"=>"Accounts", "url"=>"{$GLOBALS["root"]}accounts/"),
-		array("name"=>"Add account", "url"=>"{$GLOBALS["root"]}accounts/addaccount.php")
-		));
+	$check = function($condition, $error) {
+		if(!$condition) die(page(makeHeader("Add account", accountsBreadcrumbs(), crumbs("Add account", "addaccount.php")) . addAccountForm($error, $_POST)));
+	};
 	
-	$username = post("accountUsername");
+	$username = post("username");
 	
-	if($username === null) {
-		$content .= addAccountForm();
-		die(page($content));
-	}
+	$check($username !== null, "");
 	
 	if(post("rights") == "full") {
 		$rights = true;
-	} else {
+	} else if(post("rights") == "limited") {
 		$rights = array();
 		foreach(rights() as $right) {
 			if(post("right-" . $right["name"]) !== null) {
@@ -30,39 +25,16 @@ function main()
 				$rights[$right["name"]] = false;
 			}
 		}
+	} else {
+		$check(false, "");
 	}
 	
-	if(!validAccountName($username)) {
-		$content .= addAccountForm("Invalid account name.", $username, $rights, null);
-		die(page($content));
-	}
+	$check(validAccountName($username), "Invalid account name.");
+	$check(!reservedAccountName($username), "An account with the chosen name already exists.");
+	$check($GLOBALS["database"]->stdGetTry("adminUser", array("username"=>$username), "customerID", false) === false, "An account with the chosen name already exists.");
 	
-	$exists = $GLOBALS["database"]->stdGetTry("adminUser", array("username"=>$username), "customerID", false) !== false;
-	if($exists || reservedAccountName($username)) {
-		$content .= addAccountForm("An account with the chosen name already exists.", $username, $rights, null);
-		die(page($content));
-	}
-	
-	if(post("confirm") === null) {
-		if(post("accountPassword1") != post("accountPassword2")) {
-			$content .= addAccountForm("The entered passwords do not match.", $username, $rights, null);
-			die(page($content));
-		}
-		
-		if(post("accountPassword1") == "") {
-			$content .= addAccountForm("Passwords must be at least one character long.", $username, $rights, null);
-			die(page($content));
-		}
-		
-		$content .= addAccountForm(null, $username, $rights, post("accountPassword1"));
-		die(page($content));
-	}
-	
-	$password = decryptPassword(post("accountEncryptedPassword"));
-	if($password === null) {
-		$content .= addAccountForm("Internal error: invalid encrypted password. Please enter password again.", $username, $rights, null);
-		die(page($content));
-	}
+	$password = checkPassword($check, "password");
+	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->startTransaction();
 	$accountID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>customerID(), "username"=>$username, "password"=>hashPassword($password)));
@@ -80,7 +52,6 @@ function main()
 	
 	mysqlCreateUser($username, $password, ($rights === true || (isset($rights["mysql"]) && $rights["mysql"])));
 	
-	// Distribute the accounts database
 	updateAccounts(customerID());
 	
 	header("HTTP/1.1 303 See Other");

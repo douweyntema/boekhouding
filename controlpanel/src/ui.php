@@ -35,6 +35,18 @@ function parseArrayField($values, $keys)
 	}
 }
 
+function checkPassword($check, $field) {
+	if(post("confirm") === null) {
+		$check(post("$field-1") == post("$field-2"), "The entered passwords do not match.");
+		$check(post("$field-1") != "", "Please enter a password.");
+		return null;
+	} else {
+		$password = decryptPassword(post("encrypted-$field"));
+		$check($password !== null, "Internal error: invalid encrypted password. Please enter password again.");
+		return $password;
+	}
+}
+
 function getField($key/*, sources...*/)
 {
 	$sources = func_get_args();

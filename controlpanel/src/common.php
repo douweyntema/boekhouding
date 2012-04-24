@@ -247,7 +247,7 @@ function page($content)
 	echo htmlHeader(welcomeHeader() . "<div class=\"menu\">\n" . menu() . "</div>\n<div class=\"main\">\n" . $content . "</div>");
 }
 
-function inputValue($value)
+function inputValue($value) // TODO: remove
 {
 	if($value === null || $value === "") {
 		return "";
@@ -291,95 +291,6 @@ function decryptPassword($cipher)
 	if(md5($password) != $checksum) {
 		return null;
 	}
-	return $password;
-}
-
-function changePasswordForm($postUrl, $error = "", $password = null)
-{
-	if($error === null) {
-		$messageHtml = "<p class=\"confirm\">Confirm your input</p>\n";
-		$confirmHtml = "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n";
-		$readonly = "readonly=\"readonly\"";
-	} else if($error == "") {
-		$messageHtml = "";
-		$confirmHtml = "";
-		$readonly = "";
-	} else {
-		$messageHtml = "<p class=\"error\">" . htmlentities($error) . "</p>\n";
-		$confirmHtml = "";
-		$readonly = "";
-	}
-	
-	if($readonly == "") {
-		$passwordHtml = <<<HTML
-<tr>
-<th>Password:</th>
-<td class="stretch"><input type="password" name="password1" /></td>
-</tr>
-<tr>
-<th>Confirm password:</th>
-<td class="stretch"><input type="password" name="password2" /></td>
-</tr>
-
-HTML;
-	} else {
-		$encryptedPassword = encryptPassword($password);
-		$masked = str_repeat("*", strlen($password));
-		$passwordHtml = <<<HTML
-<tr>
-<th>Password:</th>
-<td><input type="password" value="$masked" readonly="readonly" /><input type="hidden" name="encryptedPassword" value="$encryptedPassword" /></td>
-</tr>
-
-HTML;
-	}
-	
-	return <<<HTML
-<div class="operation">
-<h2>Change password</h2>
-$messageHtml
-<form action="$postUrl" method="post">
-$confirmHtml
-<table>
-$passwordHtml
-<tr class="submit">
-<td colspan="2"><input type="submit" value="Change Password" /></td>
-</tr>
-</table>
-</form>
-</div>
-
-HTML;
-}
-
-function checkPassword($content, $postUrl)
-{
-	if(post("confirm") === null) {
-		if(post("password1") === null || post("password2") === null) {
-			$content .= changePasswordForm($postUrl);
-			die(page($content));
-		}
-		
-		if(post("password1") != post("password2")) {
-			$content .= changePasswordForm($postUrl, "The entered passwords do not match.", null);
-			die(page($content));
-		}
-		
-		if(post("password1") == "") {
-			$content .= changePasswordForm($postUrl, "Passwords must be at least one character long.", null);
-			die(page($content));
-		}
-		
-		$content .= changePasswordForm($postUrl, null, post("password1"));
-		die(page($content));
-	}
-	
-	$password = decryptPassword(post("encryptedPassword"));
-	if($password === null) {
-		$content .= changePasswordForm($postUrl, "Internal error: invalid encrypted password. Please enter password again.", null);
-		die(page($content));
-	}
-	
 	return $password;
 }
 
@@ -482,6 +393,7 @@ function updateHosts($hosts, $command)
 	}
 }
 
+// TODO: move update* functies naar de respectivelijke api
 function updateAccounts($customerID)
 {
 	// Update the fileSystem version

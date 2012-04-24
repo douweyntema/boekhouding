@@ -4,25 +4,17 @@ require_once("common.php");
 
 function main()
 {
+	$userID = get("id");
 	doAccountsAdmin();
 	
-	$userID = get("id");
-	$username = $GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID, "customerID"=>null), "username", false);
+	$username = htmlentities($GLOBALS["database"]->stdGet("adminUser", array("userID"=>$userID), "username"));
 	
-	if($username === false) {
-		accountNotFound($userID);
-	}
+	$check = function($condition, $error) use($userID, $username) {
+		if(!$condition) die(page(makeHeader("Accounts - $username", accountBreadcrumbs($userID), crumbs("Edit password", "editadminpassword.php?id=$userID")) . changeAdminAccountPasswordForm($userID, $error, $_POST)));
+	};
 	
-	$usernameHtml = htmlentities($username);
-	
-	$content = "<h1>Admin Accounts - $usernameHtml</h1>\n";
-	$content .= breadcrumbs(array(
-		array("name"=>"Admin Accounts", "url"=>"{$GLOBALS["root"]}accounts/"),
-		array("name"=>$username, "url"=>"{$GLOBALS["root"]}accounts/adminaccount.php?id=" . $userID),
-		array("name"=>"Change password", "url"=>"{$GLOBALS["root"]}accounts/editadminpassword.php?id=" . $userID)
-		));
-	
-	$password = checkPassword($content, "{$GLOBALS["root"]}accounts/editadminpassword.php?id=" . $userID);
+	$password = checkPassword($check, "password");
+	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->stdSet("adminUser", array("userID"=>$userID), array("password"=>hashPassword($password)));
 	
