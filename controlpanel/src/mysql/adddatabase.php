@@ -7,9 +7,7 @@ function main()
 	doMysql();
 	
 	$check = function($condition, $error) {
-		$title = "<h1>Add database</h1>\n";
-		$breadcrumbs = mysqlBreadcrumbs(array(array("name"=>"Add database", "url"=>"{$GLOBALS["root"]}mysql/adddatabase.php")));
-		if(!$condition) die(page($title . $breadcrumbs . addDatabaseForm($error, $_POST)));
+		if(!$condition) die(page(makeHeader("Add database", mysqlBreadcrumbs(), crumbs("Add database", "adddatabase.php")) . addDatabaseForm($error, $_POST)));
 	};
 	
 	$name = post("databaseName");

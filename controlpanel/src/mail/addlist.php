@@ -8,7 +8,7 @@ function main()
 	doMailDomain($domainID);
 	
 	$check = function($condition, $error) use($domainID) {
-		if(!$condition) die(page(addHeader("Add list", "addlist.php", $domainID) . addMailListForm($domainID, $error, $_POST)));
+		if(!$condition) die(page(domainHeader($domainID, "Add list", "addlist.php?id=$domainID") . addMailListForm($domainID, $error, $_POST)));
 	};
 	
 	$localpart = post("localpart");

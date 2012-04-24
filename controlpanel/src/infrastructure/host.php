@@ -8,14 +8,6 @@ function main()
 	
 	$hostID = get("id");
 	$hostname = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), "hostname");
-	$hostnameHtml = htmlentities($hostname);
-	
-	$content = "<h1>Infrastructure - host $hostnameHtml</h1>\n";
-	
-	$content .= breadcrumbs(array(
-		array("name"=>"Infrastructure", "url"=>"{$GLOBALS["root"]}infrastructure/"),
-		array("name"=>"$hostname", "url"=>"{$GLOBALS["root"]}infrastructure/host.php?id=$hostID")
-		));
 	
 	if(post("refresh") == "all") {
 		refreshHostMount($hostID);
@@ -35,12 +27,12 @@ function main()
 		refreshHostBind($hostID);
 	}
 	
+	$content = makeHeader("Infrastructure - host " . htmlentities($hostname), infrastructureBreadcrumbs(), crumbs($hostname, "host.php?id=$hostID"));
 	$content .= hostDetail($hostID);
 	$content .= hostFileSystemList($hostID);
 	$content .= hostMailSystemList($hostID);
 	$content .= hostNameSystemList($hostID);
 	$content .= hostRefresh($hostID);
-	
 	echo page($content);
 }
 

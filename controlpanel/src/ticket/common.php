@@ -5,7 +5,7 @@ require_once("api.php");
 
 function doTicket()
 {
-// 	useComponent("ticket");
+	useComponent("ticket");
 	$GLOBALS["menuComponent"] = "ticket";
 }
 
@@ -15,6 +15,26 @@ function doTicketThread($threadID)
 	if(!isRoot()) {
 		useCustomer($GLOBALS["database"]->stdGetTry("ticketThread", array("threadID"=>$threadID), "customerID", false));
 	}
+}
+
+function crumb($name, $filename)
+{
+	return array("name"=>$name, "url"=>"{$GLOBALS["root"]}ticket/$filename");
+}
+
+function crumbs($name, $filename)
+{
+	return array(crumb($name, $filename));
+}
+
+function ticketsBreadcrumbs()
+{
+	return crumbs("Support", "");
+}
+
+function ticketBreadcrumbs($threadID)
+{
+	return array_merge(ticketsBreadcrumbs(), crumbs("Ticket #$threadID", "thread.php?id=$threadID"));
 }
 
 function addHeader($title, $filename)

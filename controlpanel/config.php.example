@@ -13,6 +13,9 @@ $database_username = "";
 $database_password = "";
 $database_name = "treva-panel";
 
+$mysql_management_username = "";
+$mysql_management_password = "";
+
 $crypto_key = "aiulfdsfhkasdfouglasdfasjd,fgksdfj";
 
 $ssh_private_key_file = "~/.ssh/id_rsa";
@@ -23,8 +26,9 @@ $componentsEnabled[] = "customers";
 $componentsEnabled[] = "accounts";
 $componentsEnabled[] = "billing";
 $componentsEnabled[] = "ticket";
-$componentsEnabled[] = "domains";
 $componentsEnabled[] = "http";
 $componentsEnabled[] = "mail";
+$componentsEnabled[] = "domains";
+$componentsEnabled[] = "mysql";
 
 ?>

@@ -11,9 +11,7 @@ function main()
 		if(!$condition) die(page(listHeader($listID) . editMailListMemberForm($listID, $error, $_POST)));
 	};
 	
-	if(post("members") === null) {
-		$check(false, "");
-	}
+	$check(post("members") !== null, "");
 	
 	$members = explode("\n", post("members"));
 	$realMembers = array();
@@ -42,7 +40,7 @@ function main()
 	updateMail(customerID());
 	
 	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}mail/list.php?id={$listID}");
+	header("Location: {$GLOBALS["root"]}mail/list.php?id=$listID");
 }
 
 main();

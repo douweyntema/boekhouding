@@ -8,11 +8,19 @@ function doMysql()
 	$GLOBALS["menuComponent"] = "mysql";
 }
 
-function mysqlBreadcrumbs($postfix = array())
+function crumb($name, $filename)
 {
-	$crumbs = array();
-	$crumbs[] = array("name"=>"MySQL", "url"=>"{$GLOBALS["root"]}mysql/");
-	return breadcrumbs(array_merge($crumbs, $postfix));
+	return array("name"=>$name, "url"=>"{$GLOBALS["root"]}mysql/$filename");
+}
+
+function crumbs($name, $filename)
+{
+	return array(crumb($name, $filename));
+}
+
+function mysqlBreadcrumbs()
+{
+	return crumbs("MySQL", "");
 }
 
 function databaseList()

@@ -7,12 +7,11 @@ function main()
 	$listID = get("id");
 	doMailList($listID);
 	
-	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
-	
 	$check = function($condition, $error) use($listID) {
 		if(!$condition) die(page(listHeader($listID) . editMailListForm($listID, $error, $_POST)));
 	};
 	
+	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
 	$localpart = post("localpart");
 	
 	$check(validLocalPart($localpart), "Invalid mailinglist address");
@@ -26,7 +25,7 @@ function main()
 	updateMail(customerID());
 	
 	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}mail/domain.php?id={$domainID}");
+	header("Location: {$GLOBALS["root"]}mail/domain.php?id=$domainID");
 }
 
 main();

@@ -12,8 +12,7 @@ function main()
 	$content .= addMailListMemberForm($listID);
 	$content .= editMailListForm($listID);
 	$content .= editMailListMemberForm($listID, "STUB");
-	$content .= trivialActionForm("{$GLOBALS["root"]}mail/removelist.php?id=$listID", "", "Remove mailinglist");
-	
+	$content .= removeMailListForm($listID);
 	echo page($content);
 }
 
