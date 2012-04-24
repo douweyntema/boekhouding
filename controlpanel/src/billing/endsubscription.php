@@ -9,7 +9,7 @@ function main()
 	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($customerID, $subscriptionID) {
-		if(!$condition) die(page(addHeader($customerID, "End subscription", "endsubscription.php?id=" . $subscriptionID) . endSubscriptionForm($subscriptionID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("End subscription", adminSubscriptionBreadcrumbs($subscriptionID), crumbs("End subscription", "endsubscription.php?id=" . $subscriptionID)) . endSubscriptionForm($subscriptionID, $error, $_POST)));
 	};
 	
 	$check(($endDate = parseDate(post("endDate"))) !== null, "Invalid end date");

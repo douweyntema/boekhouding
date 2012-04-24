@@ -8,7 +8,7 @@ function main()
 	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($customerID) {
-		if(!$condition) die(page(addHeader($customerID, "Add subscription", "addsubscription.php?id=" . $customerID) . addSubscriptionForm($customerID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("Add subscription", adminCustomerBreadcrumbs($customerID), crumbs("Add subscription", "addsubscription.php?id=" . $customerID)) . addSubscriptionForm($customerID, $error, $_POST)));
 	};
 	
 	$invoiceDelay = post("invoiceDelay") * 3600 * 24;
