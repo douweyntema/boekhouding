@@ -6,13 +6,9 @@ function main()
 {
 	doMysql();
 	
-	$content = "<h1>MySQL</h1>\n";
-	
-	$content .= mysqlBreadcrumbs();
-	
+	$content = makeHeader("MySQL", mysqlBreadcrumbs());
 	$content .= databaseList();
 	$content .= addDatabaseForm();
-	
 	echo page($content);
 }
 
