@@ -9,6 +9,21 @@ function doInfrastructure()
 	useCustomer(0);
 }
 
+function crumb($name, $filename)
+{
+	return array("name"=>$name, "url"=>"{$GLOBALS["root"]}infrastructure/$filename");
+}
+
+function crumbs($name, $filename)
+{
+	return array(crumb($name, $filename));
+}
+
+function infrastructureBreadcrumbs()
+{
+	return crumbs("Infrastructure", "");
+}
+
 function fileSystemList()
 {
 	$output  = "<div class=\"sortable list\">\n";
