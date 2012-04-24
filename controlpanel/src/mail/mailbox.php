@@ -12,7 +12,6 @@ function main()
 	$content .= editMailboxPasswordForm($addressID);
 	$content .= editMailboxForm($addressID);
 	$content .= removeMailboxForm($addressID);
-	
 	echo page($content);
 }
 

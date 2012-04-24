@@ -8,7 +8,7 @@ function main()
 	doMailDomain($domainID);
 	
 	$check = function($condition, $error) use($domainID) {
-		if(!$condition) die(page(addHeader("Add alias", "addalias.php", $domainID) . addMailAliasForm($domainID, $error, $_POST)));
+		if(!$condition) die(page(domainHeader($domainID, "Add alias", "addalias.php?id=$domainID") . addMailAliasForm($domainID, $error, $_POST)));
 	};
 	
 	$localpart = post("localpart");

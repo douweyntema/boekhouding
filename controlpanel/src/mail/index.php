@@ -6,11 +6,9 @@ function main()
 {
 	doMail();
 	
-	$content = "<h1>Email</h1>\n";
-	$content .= mailBreadcrumbs();
+	$content = makeHeader("Email", mailBreadcrumbs());
 	$content .= mailDomainsList();
 	$content .= addMailDomainForm();
-	
 	echo page($content);
 }
 

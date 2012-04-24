@@ -7,7 +7,7 @@ function main()
 	doMail();
 	
 	$check = function($condition, $error) {
-		if(!$condition) die(page(addHeader("Add domain", "adddomain.php") . addMailDomainForm($error, $_POST)));
+		if(!$condition) die(page(makeHeader("Add domain", mailBreadcrumbs(), crumbs("Add domain", "adddomain.php")) . addMailDomainForm($error, $_POST)));
 	};
 	
 	$domainName = post("domainName");

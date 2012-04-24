@@ -10,7 +10,6 @@ function main()
 	$content = aliasHeader($aliasID);
 	$content .= editMailAliasForm($aliasID);
 	$content .= removeMailAliasForm($aliasID);
-	
 	echo page($content);
 }
 

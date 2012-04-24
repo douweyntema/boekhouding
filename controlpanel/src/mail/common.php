@@ -32,66 +32,57 @@ function doMailAddress($addressID)
 	doMailDomain($domainID);
 }
 
-function mailBreadcrumbs($postfix = array())
+function crumb($name, $filename)
 {
-	return breadcrumbs(array_merge(array(array("name"=>"Email", "url"=>"{$GLOBALS["root"]}mail/")), $postfix));
+	return array("name"=>$name, "url"=>"{$GLOBALS["root"]}mail/$filename");
 }
 
-function domainBreadcrumbs($domainID, $postfix = array())
+function crumbs($name, $filename)
 {
-	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	return mailBreadcrumbs(array_merge(array(array("name"=>$domain, "url"=>"{$GLOBALS["root"]}mail/domain.php?id=$domainID")), $postfix));
+	return array(crumb($name, $filename));
 }
 
-function addHeader($title, $filename, $domainID = null)
+function mailBreadcrumbs()
 {
-	$header = "<h1>$title</h1>\n";
-	
-	if($domainID === null) {
-		$breadcrumbs = mailBreadcrumbs(array(array("name"=>$title, "url"=>"{$GLOBALS["root"]}mail/$filename")));
+	return crumbs("Email", "");
+}
+
+function domainBreadcrumbs($domainID)
+{
+	return array_merge(mailBreadcrumbs(), crumbs("Domain " . $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name"), "domain.php?id=$domainID"));
+}
+
+function domainHeader($domainID, $title = null, $url = null)
+{
+	if($title === null) {
+		return makeHeader("Domain " . $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name"), domainBreadcrumbs($domainID));
 	} else {
-		$breadcrumbs = domainBreadcrumbs($domainID, array(array("name"=>$title, "url"=>"{$GLOBALS["root"]}mail/$filename?id=$domainID")));
+		return makeHeader($title, domainBreadcrumbs($domainID), crumbs($title, $url));
 	}
-	
-	return $header . $breadcrumbs;
-}
-
-function domainHeader($domainID)
-{
-	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	$header = "<h1>Domain $domain</h1>\n";
-	$breadcrumbs = domainBreadcrumbs($domainID);
-	return $header . $breadcrumbs;
 }
 
 function aliasHeader($aliasID)
 {
 	$alias = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), array("domainID", "localpart"));
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$alias["domainID"]), "name");
-	$addressHtml = htmlentities($alias["localpart"] . "@" . $domain);
-	$header = "<h1>Alias $addressHtml</h1>\n";
-	$breadcrumbs = domainBreadcrumbs($alias["domainID"], array(array("name"=>"Alias {$alias["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/alias.php?id=$aliasID")));
-	return $header . $breadcrumbs;
+	$address = $alias["localpart"] . "@" . $domain;
+	return makeHeader("Alias $address", domainBreadcrumbs($alias["domainID"]), crumbs("Alias $address", "alias.php?id=$aliasID"));
 }
 
 function listHeader($listID)
 {
 	$list = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), array("domainID", "localpart"));
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$list["domainID"]), "name");
-	$addressHtml = htmlentities($list["localpart"] . "@" . $domain);
-	$header = "<h1>Alias $addressHtml</h1>\n";
-	$breadcrumbs = domainBreadcrumbs($list["domainID"], array(array("name"=>"Mailinglist {$list["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/list.php?id=$listID")));
-	return $header . $breadcrumbs;
+	$address = $list["localpart"] . "@" . $domain;
+	return makeHeader("Mailinglist $address", domainBreadcrumbs($list["domainID"]), crumbs("Mailinglist $address", "list.php?id=$listID"));
 }
 
 function mailboxHeader($addressID)
 {
 	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart"));
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$mailbox["domainID"]), "name");
-	$addressHtml = htmlentities($mailbox["localpart"] . "@" . $domain);
-	$header = "<h1>Mailbox $addressHtml</h1>\n";
-	$breadcrumbs = domainBreadcrumbs($mailbox["domainID"], array(array("name"=>"Mailbox {$mailbox["localpart"]}@{$domain}", "url"=>"{$GLOBALS["root"]}mail/mailbox.php?id=$addressID")));
-	return $header . $breadcrumbs;
+	$address = $mailbox["localpart"] . "@" . $domain;
+	return makeHeader("Mailbox $address", domainBreadcrumbs($mailbox["domainID"]), crumbs("Mailbox $address", "mailbox.php?id=$addressID"));
 }
 
 function mailDomainsList()
