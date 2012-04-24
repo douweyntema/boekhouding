@@ -8,7 +8,7 @@ function main()
 	doTicketThread($threadID);
 	
 	$check = function($condition, $error) use($threadID) {
-		if(!$condition) die(page(threadHeader($threadID) . newReplyForm($threadID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("Support - Ticket #$threadID", ticketBreadcrumbs($threadID)) . newReplyForm($threadID, $error, $_POST)));
 	};
 	
 	$text = post("text");

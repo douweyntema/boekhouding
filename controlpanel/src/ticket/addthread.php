@@ -7,7 +7,7 @@ function main()
 	doTicket();
 	
 	$check = function($condition, $error) {
-		if(!$condition) die(page(addHeader("Support", "addthread.php") . newThreadForm($error, $_POST)));
+		if(!$condition) die(page(makeHeader("Support", ticketsBreadcrumbs(), crumbs("New ticket", "addthread.php")) . newThreadForm($error, $_POST)));
 	};
 	
 	$title = post("title");

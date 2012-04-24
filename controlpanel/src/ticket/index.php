@@ -6,9 +6,7 @@ function main()
 {
 	doTicket();
 	
-	$content = "<h1>Support</h1>\n";
-	
-	$content .= breadcrumbs(array(array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Support")));
+	$content = makeHeader("Support", ticketsBreadcrumbs());
 	
 	if(isset($_GET["status"])) {
 		$status = $_GET["status"];

@@ -5,7 +5,7 @@ require_once("api.php");
 
 function doTicket()
 {
-// 	useComponent("ticket");
+	useComponent("ticket");
 	$GLOBALS["menuComponent"] = "ticket";
 }
 
@@ -17,24 +17,24 @@ function doTicketThread($threadID)
 	}
 }
 
-function addHeader($title, $filename)
+function crumb($name, $filename)
 {
-	$header = "<h1>$title</h1>\n";
-	$breadcrumbs = breadcrumbs(array(
-		array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Support"),
-		array("url"=>"{$GLOBALS["root"]}ticket/$filename", "name"=>$title)
-	));
-	return $header . $breadcrumbs;
+	return array("name"=>$name, "url"=>"{$GLOBALS["root"]}ticket/$filename");
 }
 
-function threadHeader($threadID)
+function crumbs($name, $filename)
 {
-	$header = "<h1>Support - Ticket #$threadID</h1>\n";
-	$breadcrumbs = breadcrumbs(array(
-		array("url"=>"{$GLOBALS["root"]}ticket/", "name"=>"Support"),
-		array("url"=>"{$GLOBALS["root"]}ticket/thread.php?id=$threadID", "name"=>"Ticket #$threadID")
-	));
-	return $header . $breadcrumbs;
+	return array(crumb($name, $filename));
+}
+
+function ticketsBreadcrumbs()
+{
+	return crumbs("Support", "");
+}
+
+function ticketBreadcrumbs($threadID)
+{
+	return array_merge(ticketsBreadcrumbs(), crumbs("Ticket #$threadID", "thread.php?id=$threadID"));
 }
 
 function threadList($status = "OPEN")
