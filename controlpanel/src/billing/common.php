@@ -21,28 +21,35 @@ function doInvoice($invoiceID)
 	useCustomer($GLOBALS["database"]->stdGetTry("billingInvoice", array("invoiceID"=>$invoiceID), "customerID", false));
 }
 
-function billingCustomerBreadcrumbs($postfix = array())
+function crumb($name, $filename)
 {
-	return breadcrumbs(array_merge(array(array("name"=>"Billing", "url"=>"{$GLOBALS["root"]}billing/")), $postfix));
+	return array("name"=>$name, "url"=>"{$GLOBALS["root"]}billing/$filename");
 }
 
-function billingAdminCustomerBreadcrumbs($customerID, $postfix = array())
+function crumbs($name, $filename)
+{
+	return array(crumb($name, $filename));
+}
+
+function customersBillingBreadcrumbs()
+{
+	return crumbs("Billing", "");
+}
+
+function adminCustomerBreadcrumbs($customerID)
 {
 	$name = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "name");
-	return breadcrumbs(array_merge(array(
-		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/"), 
+	return array(
+		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/"),
 		array("name"=>$name, "url"=>"{$GLOBALS["root"]}customers/customer.php?id=$customerID"),
-		array("name"=>"Billing", "url"=>"{$GLOBALS["root"]}billing/customer.php?id=$customerID"), 
-		), $postfix));
+		crumb("Billing", "customer.php?id=$customerID")
+	);
 }
 
-function addHeader($customerID, $title, $filename)
+function adminSubscriptionBreadcrumbs($subscriptionID)
 {
-	$header = "<h1>$title</h1>\n";
-	
-	$breadcrumbs = billingAdminCustomerBreadcrumbs($customerID, array(array("name"=>$title, "url"=>"{$GLOBALS["root"]}billing/$filename")));
-	
-	return $header . $breadcrumbs;
+	$subscription = $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("customerID", "description"));
+	return array_merge(adminCustomerBreadcrumbs($subscription["customerID"]), crumbs($subscription["description"], "subscription.php?id=$subscriptionID"));
 }
 
 function subscriptionList($customerID)

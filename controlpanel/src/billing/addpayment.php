@@ -8,9 +8,10 @@ function main()
 	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($customerID) {
-		if(!$condition) die(page(addHeader($customerID, "Add payment", "addpayment.php?id=" . $customerID) . addPaymentForm($customerID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("Add payment", adminCustomerBreadcrumbs($customerID), crumbs("Add payment", "addpayment.php?id=" . $customerID)) . addPaymentForm($customerID, $error, $_POST)));
 	};
 	
+	$check(post("amount") !== null, "");
 	$check(($amount = parsePrice(post("amount"))) !== null, "Invalid amount");
 	$check($amount != 0, "Amount is zero");
 	$check(($date = parseDate(post("date"))) !== null, "Invalid date");

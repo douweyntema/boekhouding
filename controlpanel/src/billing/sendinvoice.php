@@ -8,7 +8,7 @@ function main()
 	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($customerID) {
-		if(!$condition) die(page(addHeader($customerID, "Send invoice", "sendinvoice.php?id=" . $customerID) . sendInvoiceForm($customerID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("Send invoice", adminCustomerBreadcrumbs($customerID), crumbs("Send invoice", "sendinvoice.php?id=" . $customerID)) . sendInvoiceForm($customerID, $error, $_POST)));
 	};
 	
 	$invoiceLines = array();

@@ -11,13 +11,8 @@ function main()
 		if(!$condition) die(page(mailboxHeader($addressID) . editMailboxPasswordForm($addressID, $error, $_POST)));
 	};
 	
-	if(post("confirm") === null) {
-		$check(post("password-1") == post("password-2"), "The entered passwords do not match");
-		$check(post("password-1") != "", "Passwords must be at least one character long");
-		$check(false, null);
-	}
-	$password = decryptPassword(post("encrypted-password"));
-	$check($password !== null, "Internal error: invalid encrypted password. Please enter password again.");
+	$password = checkPassword($check, "password");
+	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->stdSet("mailAddress", array("addressID"=>$addressID), array("password"=>base64_encode($password)));
 	
