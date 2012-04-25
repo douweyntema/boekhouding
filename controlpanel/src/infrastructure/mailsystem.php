@@ -9,12 +9,10 @@ function main()
 	$mailSystemID = get("id");
 	$mailSystemName = $GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID), "name");
 	
-	if(post("refresh") == "all") {
+	if(post("refreshall") !== null || post("refreshdovecot") !== null) {
 		refreshMailSystemDovecot($mailSystemID);
-		refreshMailSystemExim($mailSystemID);
-	} else if(post("refresh") == "dovecot") {
-		refreshMailSystemDovecot($mailSystemID);
-	} else if(post("refresh") == "exim") {
+	}
+	if(post("refreshall") !== null || post("refreshexim") !== null) {
 		refreshMailSystemExim($mailSystemID);
 	}
 	
@@ -22,7 +20,7 @@ function main()
 	$content .= mailSystemDetail($mailSystemID);
 	$content .= mailSystemHostList($mailSystemID);
 	$content .= mailSystemCustomersList($mailSystemID);
-	$content .= mailSystemRefresh($mailSystemID);
+	$content .= mailSystemRefreshForm($mailSystemID);
 	echo page($content);
 }
 

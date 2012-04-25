@@ -9,21 +9,19 @@ function main()
 	$hostID = get("id");
 	$hostname = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), "hostname");
 	
-	if(post("refresh") == "all") {
+	if(post("refreshall") !== null || post("refreshmount") !== null) {
 		refreshHostMount($hostID);
+	}
+	if(post("refreshall") !== null || post("refreshwebserver") !== null) {
 		refreshHostWebServer($hostID);
+	}
+	if(post("refreshall") !== null || post("refreshdovecot") !== null) {
 		refreshHostDovecot($hostID);
+	}
+	if(post("refreshall") !== null || post("refreshexim") !== null) {
 		refreshHostExim($hostID);
-		refreshHostBind($hostID);
-	} else if(post("refresh") == "fileSystem") {
-		refreshHostMount($hostID);
-	} else if(post("refresh") == "webserver") {
-		refreshHostWebServer($hostID);
-	} else if(post("refresh") == "dovecot") {
-		refreshHostDovecot($hostID);
-	} else if(post("refresh") == "exim") {
-		refreshHostExim($hostID);
-	} else if(post("refresh") == "bind") {
+	}
+	if(post("refreshall") !== null || post("refreshbind") !== null) {
 		refreshHostBind($hostID);
 	}
 	
@@ -32,7 +30,7 @@ function main()
 	$content .= hostFileSystemList($hostID);
 	$content .= hostMailSystemList($hostID);
 	$content .= hostNameSystemList($hostID);
-	$content .= hostRefresh($hostID);
+	$content .= hostRefreshForm($hostID);
 	echo page($content);
 }
 

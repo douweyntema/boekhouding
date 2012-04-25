@@ -69,43 +69,25 @@ function reservedAccountName($username)
 
 function accountList()
 {
-	$output  = "<div class=\"list sortable\">\n";
-	$output .= "<table>\n";
-	$output .= "<thead>\n";
-	$output .= "<tr><th>Account name</th><th>Type</th></tr>\n";
-	$output .= "</thead>\n";
-	$output .= "<tbody>\n";
+	$rows = array();
 	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username"), array("username"=>"ASC")) as $account) {
-		if($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$account["userID"], "customerRightID"=>null))) {
-			$type = "Full access";
-		} else {
-			$type = "Limited rights";
-		}
-		$usernameHtml = htmlentities($account["username"]);
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}accounts/account.php?id={$account["userID"]}\">$usernameHtml</a></td><td>$type</td></tr>\n";
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["rootHtml"]}accounts/account.php?id={$account["userID"]}", "text"=>$account["username"]),
+			($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$account["userID"], "customerRightID"=>null))) ? "Full access" : "Limited rights"
+		);
 	}
-	$output .= "</tbody>\n";
-	$output .= "</table>\n";
-	$output .= "</div>\n";
-	return $output;
+	return listTable(array("Account name", "Type"), $rows, "list sortable");
 }
 
 function adminAccountList()
 {
-	$output  = "<div class=\"list sortable\">\n";
-	$output .= "<table>\n";
-	$output .= "<thead>\n";
-	$output .= "<tr><th>Account name</th></tr>\n";
-	$output .= "</thead>\n";
-	$output .= "<tbody>\n";
+	$rows = array();
 	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>null), array("userID", "username"), array("username"=>"ASC")) as $account) {
-		$usernameHtml = htmlentities($account["username"]);
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}accounts/adminaccount.php?id={$account["userID"]}\">$usernameHtml</a></td></tr>\n";
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["rootHtml"]}accounts/adminaccount.php?id={$account["userID"]}", "text"=>$account["username"])
+		);
 	}
-	$output .= "</tbody>\n";
-	$output .= "</table>\n";
-	$output .= "</div>\n";
-	return $output;
+	return listTable(array("Account name"), $rows, "list sortable");
 }
 
 function addAccountForm($error = "", $values = null)

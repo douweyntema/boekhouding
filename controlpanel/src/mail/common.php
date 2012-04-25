@@ -87,141 +87,72 @@ function mailboxHeader($addressID)
 
 function mailDomainsList()
 {
-	$output = "";
-	$output .= <<<HTML
-<div class="sortable list">
-<table>
-<thead>
-<tr><th>Domain</th><th># mailboxes</th><th># aliasses</th></tr>
-</thead>
-<tbody>
-HTML;
+	$rows = array();
 	foreach($GLOBALS["database"]->stdList("mailDomain", array("customerID"=>customerID()), array("domainID", "name"), array("name"=>"asc")) as $domain) {
-		$numMailboxes = count($GLOBALS["database"]->stdList("mailAddress", array("domainID"=>$domain["domainID"]), "addressID"));
-		$numAliasses = count($GLOBALS["database"]->stdList("mailAlias", array("domainID"=>$domain["domainID"]), "aliasID"));
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}mail/domain.php?id={$domain["domainID"]}\">{$domain["name"]}</a></td><td>$numMailboxes</td><td>$numAliasses</td></tr>\n";
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["rootHtml"]}mail/domain.php?id={$domain["domainID"]}", "text"=>$domain["name"]),
+			$GLOBALS["database"]->stdCount("mailAddress", array("domainID"=>$domain["domainID"])),
+			$GLOBALS["database"]->stdCount("mailAlias", array("domainID"=>$domain["domainID"]))
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array("Domain", "# mailboxes", "# aliasses"), $rows, "sortable list");
 }
 
 function mailboxList($domainID)
 {
-	$output = "";
-	
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	$output .= <<<HTML
-<div class="sortable list">
-<table>
-<thead>
-<tr><th width="60%">Mailbox</th><th>Quota</th></tr>
-</thead>
-<tbody>
-HTML;
+	$rows = array();
 	foreach($GLOBALS["database"]->stdList("mailAddress", array("domainID"=>$domainID), array("addressID", "localpart", "quota"), array("localpart"=>"asc")) as $mailbox) {
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}mail/mailbox.php?id={$mailbox["addressID"]}\">{$mailbox["localpart"]}@$domain</a></td><td>{$mailbox["quota"]} MiB</td></tr>\n";
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["rootHtml"]}mail/mailbox.php?id={$mailbox["addressID"]}", "text"=>"{$mailbox["localpart"]}@$domain"),
+			"{$mailbox["quota"]} MiB"
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array(array("text"=>"Mailbox", "class"=>"entityalign"), "Quota"), $rows, "sortable list");
 }
 
 function mailAliasList($domainID)
 {
-	$output = "";
-	
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	$output .= <<<HTML
-<div class="sortable list">
-<table>
-<thead>
-<tr><th width="60%">Alias</th><th>Forward to</th></tr>
-</thead>
-<tbody>
-HTML;
+	$rows = array();
 	foreach($GLOBALS["database"]->stdList("mailAlias", array("domainID"=>$domainID), array("aliasID", "localpart", "targetAddress"), array("localpart"=>"asc")) as $alias) {
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}mail/alias.php?id={$alias["aliasID"]}\">{$alias["localpart"]}@$domain</a></td><td>{$alias["targetAddress"]}</td></tr>\n";
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["rootHtml"]}mail/alias.php?id={$alias["aliasID"]}", "text"=>"{$alias["localpart"]}@$domain"),
+			"{$alias["targetAddress"]}"
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array(array("text"=>"Alias", "class"=>"entityalign"), "Forward to"), $rows, "sortable list");
 }
 
 function mailListList($domainID)
 {
-	$output = "";
-	
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	$output .= <<<HTML
-<div class="sortable list">
-<table>
-<thead>
-<tr><th width="60%">Mailinglist</th><th>Members</th></tr>
-</thead>
-<tbody>
-HTML;
+	$rows = array();
 	foreach($GLOBALS["database"]->stdList("mailList", array("domainID"=>$domainID), array("listID", "localpart"), array("localpart"=>"asc")) as $list) {
 		$count = $GLOBALS["database"]->stdCount("mailListMember", array("listID"=>$list["listID"]));
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}mail/list.php?id={$list["listID"]}\">{$list["localpart"]}@$domain</a></td><td>{$count} members</td></tr>\n";
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["rootHtml"]}mail/list.php?id={$list["listID"]}", "text"=>"{$list["localpart"]}@$domain"),
+			"$count members"
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array(array("text"=>"Mailinglist", "class"=>"entityalign"), "Members"), $rows, "sortable list");
 }
 
 function mailListMemberList($listID)
 {
-	$output = "";
-	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
-	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
-	
-	$output .= <<<HTML
-<div class="sortable list">
-<form action="removemember.php?id=$listID" method="post">
-<table>
-<thead>
-<tr><th>Member</th></tr>
-</thead>
-<tbody>
-HTML;
+	$id = getHtmlID();
+	$rows = array();
 	foreach($GLOBALS["database"]->stdList("mailListMember", array("listID"=>$listID), array("memberID", "targetAddress"), array("targetAddress"=>"asc")) as $member) {
-		$output .= "<tr><td><label>{$member["targetAddress"]} <input type=\"checkbox\" name=\"member-{$member["memberID"]}\" class=\"rightalign membercheckbox\" value=\"delete\"></label></td></tr>\n";
+		$targetHtml = htmlentities($member["targetAddress"]);
+		$rows[] = array(
+			array("html"=>"<label>$targetHtml <input type=\"checkbox\" name=\"member-{$member["memberID"]}\" class=\"rightalign selectall-$id\" value=\"1\"></label>")
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-<tfoot>
-<tr><td style="margin: 0px; padding: 0px;"><table class="inline" style="width: 100%"><tr><td style="width: 100%; text-align: center; margin: 10px -6px -6px -6px; padding: 10px 27px 6px 27px; background-color: #ffffff;"><input type="submit" value="Delete selected members" style="width: 100%" /></td><td style="white-space: nowrap; background-color: #ffffff; vertical-align: middle;"><a href="#" id="selectallmembers" class="rightalign" style="margin-right: 2px;" id="selectall">Select all</a></td></tr></table></td></tr>
-</tfoot>
-</table>
-</form>
-</div>
-<script type="text/javascript">
-$(document).ready(function() {
-	$("#selectallmembers").click(function() {
-		$(".membercheckbox").prop("checked", true);
-	});
-});
-</script>
-
-HTML;
-	return $output;
+	/// TODO: fixen
+	$footer = array(
+		array("html"=>"<table class=\"inline\" style=\"width: 100%\"><tr><td style=\"width: 100%; text-align: center; margin: 10px -6px -6px -6px; padding: 10px 27px 6px 27px; background-color: #ffffff;\"><input type=\"submit\" value=\"Delete selected members\" style=\"width: 100%\" /></td><td style=\"white-space: nowrap; background-color: #ffffff; vertical-align: middle;\"><a href=\"#\" class=\"rightalign selectall\" id=\"$id\" style=\"margin-right: 2px;\">Select all</a></td></tr></table>")
+	);
+	return listTable(array("Member"), $rows, array("divclass"=>"sortable list", "formtarget"=>"removemember.php?id=$listID", "footer"=>$footer, "footerclass"=>"selectallsubmit"));
 }
 
 function mailboxSummary($addressID)
@@ -253,21 +184,13 @@ function mailboxSummary($addressID)
 		}
 	}
 	
-	$smtp = $mailbox["canUseSmtp"] == 0 ? "Disabled" : "Enabled";
-	$imap = $mailbox["canUseImap"] == 0 ? "Disabled" : "Enabled";
-	
-	return <<<HTML
-<div class="operation">
-<h2>Mailbox {$mailbox["localpart"]}@$domain</h2>
-<table>
-<tr><th>Quota</th><td>{$mailbox["quota"]} MiB</td></tr>
-<tr><th>Spambox</th><td>$spambox</td></tr>
-<tr><th>Virusbox</th><td>$virusbox</td></tr>
-<tr><th>SMTP</th><td>$smtp</td></tr>
-<tr><th>IMAP</th><td>$imap</td></tr>
-</table>
-</div>
-HTML;
+	return summaryTable("Mailbox {$mailbox["localpart"]}@$domain", array(
+		"Quota"=>"{$mailbox["quota"]} MiB",
+		"Spambox"=>$spambox,
+		"Virusbox"=>$virusbox,
+		"SMTP"=>($mailbox["canUseSmtp"] == 0 ? "Disabled" : "Enabled"),
+		"IMAP"=>($mailbox["canUseImap"] == 0 ? "Disabled" : "Enabled")
+		));
 }
 
 function addMailDomainForm($error = "", $values = null)

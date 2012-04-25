@@ -9,7 +9,7 @@ function main()
 	$nameSystemID = get("id");
 	$nameSystemName = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "name");
 	
-	if(post("refresh") == "bind" || post("refresh") == "all") {
+	if(post("refreshall") !== null || post("refreshbind") !== null) {
 		refreshNameSystem($nameSystemID);
 	}
 	
@@ -17,7 +17,7 @@ function main()
 	$content .= nameSystemDetail($nameSystemID);
 	$content .= nameSystemHostList($nameSystemID);
 	$content .= nameSystemCustomersList($nameSystemID);
-	$content .= nameSystemRefresh($nameSystemID);
+	$content .= nameSystemRefreshForm($nameSystemID);
 	echo page($content);
 }
 

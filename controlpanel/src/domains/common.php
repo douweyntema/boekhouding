@@ -70,7 +70,6 @@ function domainBreadcrumbs($domainID)
 
 function domainsList()
 {
-	$output = "";
 	$domainIDs = $GLOBALS["database"]->stdList("dnsDomain", array("customerID"=>customerID(), "parentDomainID"=>null), "domainID");
 	
 	$domains = array();
@@ -85,30 +84,18 @@ function domainsList()
 	}
 	ksort($domains);
 	
-	$output .= <<<HTML
-<div class="sortable list">
-<table>
-<thead>
-<tr><th>Domain</th><th>Status</th></tr>
-</thead>
-<tbody>
-HTML;
+	$rows = array();
 	foreach($domains as $domain) {
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}domains/domain.php?id={$domain["domainID"]}\">{$domain["name"]}</a></td><td>{$domain["status"]}</td></tr>\n";
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["root"]}domains/domain.php?id={$domain["domainID"]}", "text"=>$domain["name"]),
+			$domain["status"]
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array("Domain", "Status"), $rows, "sortable list");
 }
 
 function subDomainsList($parentDomainID)
 {
-	$output = "";
-	
 	$domains = array();
 	foreach($GLOBALS["database"]->stdList("dnsDomain", array("customerID"=>customerID(), "parentDomainID"=>$parentDomainID), array("domainID", "parentDomainID", "name")) as $domain) {
 		$domainName = domainsFormatDomainName($domain["domainID"]);
@@ -116,49 +103,24 @@ function subDomainsList($parentDomainID)
 	}
 	ksort($domains);
 	
-	if(count($domains) == 0) {
-		return "";
-	}
-	
-	$output .= <<<HTML
-<div class="sortable list">
-<table>
-<thead>
-<tr><th>Subdomains</th></tr>
-</thead>
-<tbody>
-HTML;
+	$rows = array();
 	foreach($domains as $domain) {
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}domains/domain.php?id={$domain["domainID"]}\">{$domain["name"]}</a></td></tr>\n";
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["root"]}domains/domain.php?id={$domain["domainID"]}", "text"=>$domain["name"])
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array("Subdomains"), $rows, "sortable list");
 }
 
 function domainDetail($domainID)
 {
-	$tldID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID");
 	$domainName = domainsFormatDomainName($domainID);
-	$domainNameHtml = htmlentities($domainName);
-	
-	$output  = "<div class=\"operation\">\n";
-	$output .= "<h2>Domain $domainNameHtml</h2>";
-	$output .= "<table>";
-	$output .= "<tr><th>Name:</th><td class=\"stretch\">{$domainNameHtml}</td></tr>";
-	if(!isSubDomain($domainID)) {
-		$status = domainsDomainStatusDescription($domainID);
-		$price = formatPrice(billingDomainPrice($tldID));
-		$output .= "<tr><th>Status:</th><td class=\"stretch\">{$status}</td></tr>";
-		$output .= "<tr><th>Price per year:</th><td class=\"stretch\">{$price}</td></tr>";
-	}
-	$output .= "</table>";
-	$output .= "</div>";
-	return $output;
+	$tldID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID");
+	return summaryTable("Domain $domainName", array(
+		"Name"=>$domainName,
+		"Status"=>domainsDomainStatusDescription($domainID),
+		"Price per year"=>array("html"=>formatPrice(billingDomainPrice($tldID)))
+	));
 }
 
 function addDomainForm($error = "", $values = null)

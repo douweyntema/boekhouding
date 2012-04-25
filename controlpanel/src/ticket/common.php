@@ -37,54 +37,36 @@ function ticketBreadcrumbs($threadID)
 	return array_merge(ticketsBreadcrumbs(), crumbs("Ticket #$threadID", "thread.php?id=$threadID"));
 }
 
-function threadList($status = "OPEN")
+function adminThreadList($status)
 {
-	$output = "";
-	
-	if(isRoot()) {
-		$threads = $GLOBALS["database"]->stdList("ticketThread", array("status"=>$status), array("threadID", "customerID", "userID", "title", "date"));
-		$customerHeader = "<th>Customer</th>";
-	} else {
-		$threads = $GLOBALS["database"]->stdList("ticketThread", array("customerID"=>customerID(), "status"=>$status), array("threadID", "userID", "title", "date"));
-		$customerHeader = "";
+	$rows = array();
+	foreach($GLOBALS["database"]->stdList("ticketThread", array("status"=>$status), array("threadID", "customerID", "userID", "title", "date")) as $thread) {
+		$customerName = $thread["customerID"] === null ? "-" : $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$thread["customerID"]), "name");
+		$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$thread["userID"]), "username");
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["rootHtml"]}ticket/thread.php?id={$thread["threadID"]}", "text"=>"#{$thread["threadID"]}"),
+			$customerName,
+			$username,
+			array("url"=>"{$GLOBALS["rootHtml"]}ticket/thread.php?id={$thread["threadID"]}", "text"=>$thread["title"]),
+			date("d-m-Y H:i", $thread["date"])
+		);
 	}
-	if(count($threads) == 0) {
-		return "<h4>There are no " . strtolower($status) . " tickets.</h4>";
-	}
-	$statusHtml = "All " . strtolower($status) . " tickets:";
-	$output .= <<<HTML
-<h4>$statusHtml</h4>
-<div class="list sortable">
-<table>
-<thead>
-<tr><th>Ticket nr.</th>$customerHeader<th>User</th><th>Title</th><th>Date</th></tr>
-</thead>
-<tbody>
+	return listTable(array("Ticket nr.", "Customer", "User", "Title", "Date"), $rows, "sortable list");
+}
 
-HTML;
-	foreach($threads as $thread) {
-		$customerHtml = "";
-		if(isRoot()) {
-			if($thread["customerID"] === null) {
-				$customerHtml = "<td>-</td>";
-			} else {
-				$customerHtml = "<td>" . htmlentities($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$thread["customerID"]), "name")) . "</td>";
-			}
-		}
-		$userName = htmlentities($GLOBALS["database"]->stdGet("adminUser", array("userID"=>$thread["userID"]), "username"));
-		$title = htmlentities($thread["title"]);
-		$date = date("d-m-Y H:i", $thread["date"]);
-		$threadID = htmlentities($thread["threadID"]);
-		
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}ticket/thread.php?id={$threadID}\">#$threadID</a></td>$customerHtml<td>$userName</td><td><a href=\"{$GLOBALS["rootHtml"]}ticket/thread.php?id={$threadID}\">$title</a></td><td>$date</td></tr>\n";
+function threadList($status)
+{
+	$rows = array();
+	foreach($GLOBALS["database"]->stdList("ticketThread", array("customerID"=>customerID(), "status"=>$status), array("threadID", "userID", "title", "date")) as $thread) {
+		$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$thread["userID"]), "username");
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["rootHtml"]}ticket/thread.php?id={$thread["threadID"]}", "text"=>"#{$thread["threadID"]}"),
+			$username,
+			array("url"=>"{$GLOBALS["rootHtml"]}ticket/thread.php?id={$thread["threadID"]}", "text"=>$thread["title"]),
+			date("d-m-Y H:i", $thread["date"])
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array("Ticket nr.", "User", "Title", "Date"), $rows, "sortable list");
 }
 
 function showThread($threadID)

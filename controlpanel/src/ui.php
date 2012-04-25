@@ -232,6 +232,8 @@ function renderCell($cell, $values, $readOnly)
 			$output["content"] .= ">{$option["label"]}</option>\n";
 		}
 		$output["content"] .= "</select>";
+	} else if($cell["type"] == "submit") {
+		$output["content"] = "<input type=\"submit\" name=\"$name\" value=\"{$cell["label"]}\" />";
 	} else {
 		die("Invalid field type {$cell["type"]}");
 	}
@@ -724,6 +726,168 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	$output .= "</div>\n";
 	
 	return $output;
+}
+
+function listTableCell($cell, $type)
+{
+	if(!is_array($cell)) {
+		$cell = array("text"=>$cell);
+	}
+	
+	$output = "";
+	
+	if(isset($cell["celltype"]) && $cell["celltype"] !== null) {
+		$celltype = $cell["celltype"];
+	} else {
+		$celltype = $type;
+	}
+	
+	$output .= "<$celltype";
+	if(isset($cell["class"]) && $cell["class"] !== null) {
+		$output .= " class=\"{$cell["class"]}\"";
+	}
+	if(isset($cell["id"]) && $cell["id"] !== null) {
+		$output .= " ud=\"{$cell["id"]}\"";
+	}
+	$output .= ">";
+	
+	if(isset($cell["url"]) && $cell["url"] !== null) {
+		$urlHtml = htmlentities($cell["url"]);
+		$output .= "<a href=\"$urlHtml\">";
+	}
+	
+	if(isset($cell["html"]) && $cell["html"] !== null) {
+		$output .= $cell["html"];
+	} else if(isset($cell["text"]) && $cell["text"] !== null) {
+		$output .= htmlentities($cell["text"]);
+	}
+	
+	if(isset($cell["url"]) && $cell["url"] !== null) {
+		$output .= "</a>";
+	}
+	
+	$output .= "</$celltype>\n";
+	return $output;
+}
+
+function listTable($header, $rows, $properties = null, $caption = null)
+{
+	if($properties === null) {
+		$properties = array();
+	} else if(!is_array($properties)) {
+		$properties = array("divclass"=>$properties);
+	}
+	
+	$output = "";
+	$output .= "<div";
+	if(isset($properties["divclass"]) && $properties["divclass"] !== null) {
+		$output .= " class=\"{$properties["divclass"]}\"";
+	}
+	if(isset($properties["divid"]) && $properties["divid"] !== null) {
+		$output .= " id=\"{$properties["divid"]}\"";
+	}
+	$output .= ">\n";
+	if(isset($properties["formtarget"]) && $properties["formtarget"] !== null) {
+		$targetHtml = htmlentities($properties["formtarget"]);
+		$output .= "<form action=\"$targetHtml\" method=\"post\">\n";
+	}
+	$output .= "<table";
+	if(isset($properties["tableclass"]) && $properties["tableclass"] !== null) {
+		$output .= " class=\"{$properties["divclass"]}\"";
+	}
+	if(isset($properties["tableid"]) && $properties["tableid"] !== null) {
+		$output .= " id=\"{$properties["divid"]}\"";
+	}
+	$output .= ">\n";
+	
+	if($caption !== null) {
+		$output .= "<caption>$caption</caption>\n";
+	}
+	
+	$output .= "<thead>\n";
+	$output .= "<tr";
+	if(isset($properties["headerclass"]) && $properties["headerclass"] !== null) {
+		$output .= " class=\"{$properties["headerclass"]}\"";
+	}
+	if(isset($properties["headerid"]) && $properties["headerid"] !== null) {
+		$output .= " id=\"{$properties["headerid"]}\"";
+	}
+	$output .= ">\n";
+	foreach($header as $cell) {
+		$output .= listTableCell($cell, "th");
+	}
+	$output .= "</tr>\n";
+	$output .= "</thead>\n";
+	
+	$output .= "<tbody>\n";
+	foreach($rows as $row) {
+		if(!isset($row["cells"])) {
+			$row = array("cells"=>$row);
+		}
+		
+		$output .= "<tr";
+		if(isset($row["class"]) && $row["class"] !== null) {
+			$output .= " class=\"{$row["class"]}\"";
+		}
+		if(isset($row["id"]) && $row["id"] !== null) {
+			$output .= " id=\"{$row["id"]}\"";
+		}
+		$output .= ">\n";
+		
+		foreach($row["cells"] as $cell) {
+			$output .= listTableCell($cell, "td");
+		}
+		
+		$output .= "</tr>\n";
+	}
+	$output .= "</tbody>\n";
+	
+	if(isset($properties["footer"]) && $properties["footer"] !== null) {
+		$output .= "<tfoot>\n";
+		$output .= "<tr";
+		if(isset($properties["footerclass"]) && $properties["footerclass"] !== null) {
+			$output .= " class=\"{$properties["footerclass"]}\"";
+		}
+		if(isset($properties["footerid"]) && $properties["footerid"] !== null) {
+			$output .= " id=\"{$properties["footerid"]}\"";
+		}
+		$output .= ">\n";
+		foreach($properties["footer"] as $cell) {
+			$output .= listTableCell($cell, "td");
+		}
+		$output .= "</tr>\n";
+		$output .= "</foot>\n";
+	}
+	
+	$output .= "</table>\n";
+	if(isset($properties["formtarget"]) && $properties["formtarget"] !== null) {
+		$output .= "</form>\n";
+	}
+	$output .= "</div>\n";
+	return $output;
+}
+
+function summaryTable($title, $values)
+{
+	$fields = array();
+	foreach($values as $key=>$value) {
+		if(!is_array($value)) {
+			$value = array("text"=>$value);
+		}
+		if(isset($value["html"]) && $value["html"] !== null) {
+			$html = $value["html"];
+		} else if(isset($value["text"]) && $value["text"] !== null) {
+			$html = htmlentities($value["text"]);
+		} else {
+			$html = "";
+		}
+		if(isset($value["url"]) && $value["url"] !== null) {
+			$urlHtml = htmlentities($value["url"]);
+			$html = "<a href=\"$urlHtml\">$html</a>";
+		}
+		$fields[] = array("title"=>$key, "type"=>"html", "html"=>$html);
+	}
+	return operationForm(null, "", $title, null, $fields, null);
 }
 
 ?>
