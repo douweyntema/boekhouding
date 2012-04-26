@@ -13,6 +13,7 @@ function main()
 	
 	$check(($domainName = post("name")) !== null, "");
 	$check(($tldID = post("tldID")) !== null, "");
+	$check(domainsCustomerUnpaidDomainsPrice(customerID()) < domainsCustomerUnpaidDomainsLimit(customerID()), "Too many unpaid bills.");
 	$check(($tldName = $GLOBALS["database"]->stdGetTry("infrastructureDomainTld", array("domainTldID"=>$tldID), "name", null)) !== null, "");
 	$check(validDomainPart($domainName), "Invalid domain name.");
 	$check(!$GLOBALS["database"]->stdExists("dnsDomain", array("domainTldID"=>$tldID, "name"=>"domainName")), "The chosen domain name is already registered.");
