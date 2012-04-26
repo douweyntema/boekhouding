@@ -20,7 +20,7 @@ function main()
 	$notempty("address");
 	$notempty("postalCode");
 	$notempty("city");
-	$notempty("country");
+	$notempty("countryCode");
 	$notempty("email");
 	$notempty("groupname");
 	$notempty("invoiceFrequencyMultiplier");
@@ -54,7 +54,7 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	$customerID = $GLOBALS["database"]->stdNew("adminCustomer", array("name"=>post("name"), "initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("country"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "groupname"=>post("groupname"), "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "fileSystemID"=>post("fileSystemID"), "mailSystemID"=>post("mailSystemID"), "nameSystemID"=>post("nameSystemID")));
+	$customerID = $GLOBALS["database"]->stdNew("adminCustomer", array("name"=>post("name"), "initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("countryCode"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "groupname"=>post("groupname"), "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "fileSystemID"=>post("fileSystemID"), "mailSystemID"=>post("mailSystemID"), "nameSystemID"=>post("nameSystemID"), "invoiceFrequencyBase"=>post("invoiceFrequencyBase"), "invoiceFrequencyMultiplier"=>post("invoiceFrequencyMultiplier")));
 	
 	domainsUpdateContactInfo($customerID);
 	
