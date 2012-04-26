@@ -141,7 +141,8 @@ function addDomainForm($error = "", $values = null)
 				array("type"=>"text", "name"=>"name", "fill"=>true),
 				array("type"=>"html", "html"=>"."),
 				array("type"=>"dropdown", "name"=>"tldID", "options"=>$tlds)
-			))
+			)),
+			isImpersonating() ? array("label"=>"Database only", "type"=>"checkbox", "name"=>"databaseonly") : null
 		),
 		$values);
 }

@@ -587,7 +587,9 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	$extraTables = array();
 	$hiddenFields = ($error === null ? "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n" : "");
 	foreach($fields as $value) {
-		if($value["type"] == "typechooser") {
+		if(!is_array($value)) {
+			continue;
+		} else if($value["type"] == "typechooser") {
 			if($stub && (!isset($value["nostub"]) || $value["nostub"] === null || $value["nostub"])) {
 				continue;
 			}
@@ -624,8 +626,12 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	foreach($tables as $table) {
 		$fields = array();
 		foreach($table["subform"] as $field) {
+			if(!is_array($field)) {
+				continue;
+			}
+			
 			if($stub) {
-				if(isset($value["nostub"]) && $value["nostub"]) {
+				if(isset($field["nostub"]) && $field["nostub"]) {
 					continue;
 				}
 			}
