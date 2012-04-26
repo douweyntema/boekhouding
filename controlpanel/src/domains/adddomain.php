@@ -5,6 +5,7 @@ require_once("common.php");
 function main()
 {
 	doDomains();
+	doDomainsBilling();
 	
 	$check = function($condition, $error) {
 		if(!$condition) die(page(makeHeader("Register new domain", domainsBreadcrumbs(), crumbs("Register domain", "adddomain.php")) . addDomainForm($error, $_POST)));

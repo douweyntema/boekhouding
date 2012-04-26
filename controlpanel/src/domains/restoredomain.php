@@ -6,6 +6,7 @@ function main()
 {
 	$domainID = get("id");
 	doDomains($domainID);
+	doDomainsBilling();
 	
 	if(isSubDomain($domainID) || domainsDomainStatus($domainID) != "active") {
 		error404();

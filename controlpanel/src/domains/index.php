@@ -8,7 +8,9 @@ function main()
 	
 	$content = makeHeader("Domains", domainsBreadcrumbs());
 	$content .= domainsList();
-	$content .= addDomainForm();
+	if(canAccessComponent("billing")) {
+		$content .= addDomainForm();
+	}
 	echo page($content);
 }
 

@@ -9,6 +9,11 @@ function doDomains()
 	$GLOBALS["menuComponent"] = "domains";
 }
 
+function doDomainsBilling()
+{
+	useComponent("billing");
+}
+
 function doDomain($domainID)
 {
 	doDomains();
