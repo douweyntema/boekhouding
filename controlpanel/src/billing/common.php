@@ -54,33 +54,12 @@ function adminSubscriptionBreadcrumbs($subscriptionID)
 
 function subscriptionList($customerID)
 {
-	$output = "";
-	
-	$output .= <<<HTML
-<div class="sortable list">
-<table>
-<caption>Subscriptions</caption>
-<thead>
-<tr><th>Description</th><th>Price</th><th>Discounts</th><th>Renew date</th><th>End date</th></tr>
-</thead>
-<tbody>
-HTML;
+	$rows = array();
 	foreach($GLOBALS["database"]->stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
-		$description = htmlentities($subscription["description"]);
-		
-		if($subscription["price"] === null) {
-			$baseprice = billingDomainPrice($subscription["domainTldID"]);
-		} else {
-			$baseprice = $subscription["price"];
-		}
-		$discount = $baseprice * $subscription["discountPercentage"] / 100 + $subscription["discountAmount"];
-		
-		$priceHtml = formatPrice($baseprice - $discount);
-		
 		if($subscription["discountPercentage"] === null && $subscription["discountAmount"] === null) {
 			$priceDetail = "None";
 		} else {
-			$priceDetail = formatPrice($baseprice);
+			$priceDetail = formatPrice(basePrice($subscription));
 			if($subscription["discountPercentage"] !== null) {
 				$priceDetail .= " - " . $subscription["discountPercentage"] . "%";
 			}
@@ -88,15 +67,6 @@ HTML;
 				$priceDetail .= " - " . formatPrice($subscription["discountAmount"]);
 			}
 		}
-		
-		if($subscription["frequencyBase"] == "DAY") {
-			$frequency = "per " . ($subscription["frequencyMultiplier"] == 1 ? "day" : $subscription["frequencyMultiplier"] . " days");
-		} else if($subscription["frequencyBase"] == "MONTH") {
-			$frequency = "per " . ($subscription["frequencyMultiplier"] == 1 ? " month" : $subscription["frequencyMultiplier"] . " months");
-		} else if($subscription["frequencyBase"] == "YEAR") {
-			$frequency = "per " . ($subscription["frequencyMultiplier"] == 1 ? " year" : $subscription["frequencyMultiplier"] . " years");
-		}
-		
 		
 		$nextPeriod = date("d-m-Y", $subscription["nextPeriodStart"]);
 		
@@ -106,87 +76,35 @@ HTML;
 			$endDate = date("d-m-Y", $subscription["endDate"]);
 		}
 		
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}billing/subscription.php?id={$subscription["subscriptionID"]}\">$description</a></td><td>$priceHtml $frequency</td><td>$priceDetail</td><td>$nextPeriod</td><td>$endDate</td></tr>\n";
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["rootHtml"]}billing/subscription.php?id={$subscription["subscriptionID"]}", "text"=>$subscription["description"]),
+			array("html"=>formatSubscriptionPrice($subscription)),
+			array("html"=>$priceDetail),
+			$nextPeriod,
+			$endDate
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array("Description", "Price", "Discounts", "Renew date", "End date"), $rows, "sortable list", "Subscriptions");
 }
 
 function customerSubscriptionList()
 {
-	$output = "";
-	
-	$output .= <<<HTML
-<div class="sortable list">
-<table>
-<caption>Subscriptions</caption>
-<thead>
-<tr><th>Description</th><th>Price</th></tr>
-</thead>
-<tbody>
-HTML;
+	$rows = array();
 	foreach($GLOBALS["database"]->stdList("billingSubscription", array("customerID"=>customerID()), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
-		$description = htmlentities($subscription["description"]);
-		
-		if($subscription["price"] === null) {
-			$baseprice = billingDomainPrice($subscription["domainTldID"]);
-		} else {
-			$baseprice = $subscription["price"];
-		}
-		$discount = $baseprice * $subscription["discountPercentage"] / 100 + $subscription["discountAmount"];
-		
-		$priceHtml = formatPrice($baseprice - $discount);
-		
-		if($subscription["frequencyBase"] == "DAY") {
-			$frequency = "per " . ($subscription["frequencyMultiplier"] == 1 ? "day" : $subscription["frequencyMultiplier"] . " days");
-		} else if($subscription["frequencyBase"] == "MONTH") {
-			$frequency = "per " . ($subscription["frequencyMultiplier"] == 1 ? " month" : $subscription["frequencyMultiplier"] . " months");
-		} else if($subscription["frequencyBase"] == "YEAR") {
-			$frequency = "per " . ($subscription["frequencyMultiplier"] == 1 ? " year" : $subscription["frequencyMultiplier"] . " years");
-		}
-		
-		$output .= "<tr><td>";
-		if($subscription["domainTldID"] !== null) {
-			$output .= "<a href=\"{$GLOBALS["rootHtml"]}domains/domain.php?id={$subscription["domainTldID"]}\">";
-		}
-		$output .= $description;
-		if($subscription["domainTldID"] !== null) {
-			$output .= "</a>";
-		}
-		$output .= "</td><td>$priceHtml $frequency</td></tr>\n";
+		$rows[] = array(
+			array("url"=>($subscription["domainTldID"] === null ? null : "{$GLOBALS["rootHtml"]}domains/domain.php?id={$subscription["domainTldID"]}"), "text"=>$subscription["description"]),
+			array("html"=>formatSubscriptionPrice($subscription))
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array("Description", "Price"), $rows, "sortable list", "Subscriptions");
 }
 
 function subscriptionDetail($subscriptionID)
 {
 	$subscription = $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
 	
-	$description = htmlentities($subscription["description"]);
-		
-	if($subscription["price"] === null) {
-		$baseprice = billingDomainPrice($subscription["domainTldID"]);
-	} else {
-		$baseprice = $subscription["price"];
-	}
-	$discount = $baseprice * $subscription["discountPercentage"] / 100 + $subscription["discountAmount"];
-	
-	$basepriceHtml = formatPrice($baseprice);
-	$priceHtml = formatPrice($baseprice - $discount);
-	
 	if($subscription["discountPercentage"] !== null) {
-		$discountPercentage = $subscription["discountPercentage"] . "% (" . formatPrice($baseprice * $subscription["discountPercentage"] / 100) . ")";
+		$discountPercentage = $subscription["discountPercentage"] . "% (" . formatPrice(discountPercentage($subscription)) . ")";
 	} else {
 		$discountPercentage = "-";
 	}
@@ -197,28 +115,12 @@ function subscriptionDetail($subscriptionID)
 		$discountAmount = "-";
 	}
 	
-	if($subscription["frequencyBase"] == "DAY") {
-		$frequency = "per " . ($subscription["frequencyMultiplier"] == 1 ? "day" : $subscription["frequencyMultiplier"] . " days");
-	} else if($subscription["frequencyBase"] == "MONTH") {
-		$frequency = "per " . ($subscription["frequencyMultiplier"] == 1 ? " month" : $subscription["frequencyMultiplier"] . " months");
-	} else if($subscription["frequencyBase"] == "YEAR") {
-		$frequency = "per " . ($subscription["frequencyMultiplier"] == 1 ? " year" : $subscription["frequencyMultiplier"] . " years");
-	}
-	
 	if($subscription["invoiceDelay"] == 0) {
 		$delay = "None";
 	} else if($subscription["invoiceDelay"] > 0) {
 		$delay = ceil($subscription["invoiceDelay"] / 86400) . " days later";
 	} else {
 		$delay = ceil(-1 * $subscription["invoiceDelay"] / 86400) . " days in advance";
-	}
-	
-	$renewDate = date("d-m-Y", $subscription["nextPeriodStart"]);
-	
-	if($subscription["endDate"] === null) {
-		$endDate  = "-";
-	} else {
-		$endDate = date("d-m-Y", $subscription["endDate"]);
 	}
 	
 	if($subscription["domainTldID"] !== null) {
@@ -233,92 +135,51 @@ function subscriptionDetail($subscriptionID)
 		$domainName = "-";
 	}
 	
-	return <<<HTML
-<div class="operation">
-<h2>Subscription</h2>
-<table>
-<tr><th>Description</th><td>$description</td></tr>
-<tr><th>Price</th><td>$priceHtml</td></tr>
-<tr><th>Base price</th><td>$basepriceHtml</td></tr>
-<tr><th>Discount percentage</th><td>$discountPercentage</td></tr>
-<tr><th>Discount amount</th><td>$discountAmount</td></tr>
-<tr><th>Frequency</th><td>$frequency</td></tr>
-<tr><th>Invoice delay</th><td>$delay</td></tr>
-<tr><th>Renew date</th><td>$renewDate</td></tr>
-<tr><th>End date</th><td>$endDate</td></tr>
-<tr><th>Related domain</th><td>$domainName</td></tr>
-</table>
-</div>
-HTML;
+	return summaryTable("Subscription", array(
+		"Description"=>$subscription["description"],
+		"Price"=>array("html"=>formatSubscriptionPrice($subscription)),
+		"Base price"=>array("html"=>formatPrice(basePrice($subscription))),
+		"Discount percentage"=>array("html"=>$discountPercentage),
+		"Discount amoung"=>array("html"=>$discountAmount),
+		"Frequency"=>frequency($subscription),
+		"Invoice delay"=>$delay,
+		"Renew date"=>date("d-m-Y", $subscription["nextPeriodStart"]),
+		"End date"=>($subscription["endDate"] === null ? "-" : date("d-m-Y", $subscription["endDate"])),
+		"Related domain"=>$domainName
+	));
 }
 
 function invoiceList($customerID)
 {
-	$output = "";
-	
-	$output .= <<<HTML
-<div class="sortable list">
-<table>
-<caption>Invoices</caption>
-<thead>
-<tr><th>Invoice number</th><th>Date</th><th>Amount</th><th>Remaining amount</th></tr>
-</thead>
-<tbody>
-HTML;
+	$rows = array();
 	foreach($GLOBALS["database"]->stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "date", "remainingAmount", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
-		$invoiceNumber = htmlentities($invoice["invoiceNumber"]);
-		
-		$date = date("d-m-Y", $invoice["date"]);
-		
 		$amount = 0;
 		foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("invoiceID"=>$invoice["invoiceID"]), array("price", "discount")) as $line) {
 			$amount += $line["price"] - $line["discount"];
 		}
-		$amount = formatPrice($amount);
 		
-		if($invoice["remainingAmount"] == 0) {
-			$remainingAmount = "Paid";
-		} else {
-			$remainingAmount = formatPrice($invoice["remainingAmount"]);
-		}
 		
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}\">$invoiceNumber</a></td><td>$date</td><td>$amount</td><td>$remainingAmount</td></tr>";
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}", "text"=>$invoice["invoiceNumber"]),
+			date("d-m-Y", $invoice["date"]),
+			array("html"=>formatPrice($amount)),
+			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"])))
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount"), $rows, "sortable list", "Invoices");
 }
 
 function paymentList($customerID)
 {
-	$output = "";
-	
-	$output .= <<<HTML
-<div class="sortable list">
-<table>
-<caption>Payments</caption>
-<thead>
-<tr><th>Date</th><th>Amount</th><th>Description</th></tr>
-</thead>
-<tbody>
-HTML;
+	$rows = array();
 	foreach($GLOBALS["database"]->stdList("billingPayment", array("customerID"=>$customerID), array("amount", "date", "description"), array("date"=>"DESC", "paymentID"=>"DESC")) as $payment) {
-		$date = date("d-m-Y", $payment["date"]);
-		$amount = formatPrice($payment["amount"]);
-		$description = htmlentities($payment["description"]);
-		$output .= "<tr><td>$date</td><td>$amount</td><td>$description</td></tr>";
+		$rows[] = array(
+			date("d-m-Y", $payment["date"]),
+			array("html"=>formatPrice($payment["amount"])),
+			$payment["description"]
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array("Date", "Amount", "Description"), $rows, "sortable list", "Payments");
 }
 
 function addPaymentForm($customerID, $error = "", $values = null)
@@ -473,6 +334,39 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 		));
 	}
 	return operationForm("sendinvoice.php?id=$customerID", $error, "Send invoice", "Send", $lines, $values);
+}
+
+function basePrice($subscription)
+{
+	if($subscription["price"] === null) {
+		return $baseprice = billingDomainPrice($subscription["domainTldID"]);
+	} else {
+		return $baseprice = $subscription["price"];
+	}
+}
+
+function discountPercentage($subscription)
+{
+	return basePrice($subscription) * $subscription["discountPercentage"] / 100;
+}
+
+function frequency($subscription)
+{
+	if($subscription["frequencyBase"] == "DAY") {
+		return "per " . ($subscription["frequencyMultiplier"] == 1 ? "day" : $subscription["frequencyMultiplier"] . " days");
+	} else if($subscription["frequencyBase"] == "MONTH") {
+		return "per " . ($subscription["frequencyMultiplier"] == 1 ? "month" : $subscription["frequencyMultiplier"] . " months");
+	} else if($subscription["frequencyBase"] == "YEAR") {
+		return "per " . ($subscription["frequencyMultiplier"] == 1 ? "year" : $subscription["frequencyMultiplier"] . " years");
+	} else {
+		return "unknown";
+	}
+}
+
+function formatSubscriptionPrice($subscription)
+{
+	$price = (int)(basePrice($subscription) - discountPercentage($subscription) - $subscription["discountAmount"]);
+	return formatPrice($price) . " " . frequency($subscription);
 }
 
 ?>

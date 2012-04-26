@@ -25,31 +25,14 @@ function mysqlBreadcrumbs()
 
 function databaseList()
 {
-	$output = "";
-	
 	$fileSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>customerID()), "fileSystemID");
 	$phpMyAdmin = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "phpMyAdmin");
 	
-	$databases = mysqlListDatabases();
-	
-	$output .= <<<HTML
-<div class="sortable list">
-<table>
-<thead>
-<tr><th>Database name</th></tr>
-</thead>
-<tbody>
-HTML;
-	foreach($databases as $database) {
-		$output .= "<tr><td><a href=\"{$phpMyAdmin}{$database}\" target=\"_blank\">{$database}</a></td></tr>\n";
+	$rows = array();
+	foreach(mysqlListDatabases() as $database) {
+		$rows[] = array(array("url"=>"{$phpMyAdmin}{$database}", "text"=>$database));
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array("Database name"), $rows, "sortable list");
 }
 
 function addDatabaseForm($error = "", $values = null)

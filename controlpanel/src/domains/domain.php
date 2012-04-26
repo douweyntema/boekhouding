@@ -14,6 +14,8 @@ function main()
 	$content .= editMailForm($domainID, "STUB");
 	if(isSubDomain($domainID)) {
 		$content .= deleteDomainForm($domainID);
+	} else if(!canAccessComponent("billing")) {
+		// All further operations forbidden
 	} else if(($status = domainsDomainStatus($domainID)) == "activeforever") {
 		$content .= unregisterDomainForm($domainID);
 	} else if($status == "active" && ($autorenew = domainsDomainAutorenew($domainID)) === null) {

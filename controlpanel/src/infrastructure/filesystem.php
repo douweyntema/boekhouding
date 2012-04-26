@@ -9,12 +9,10 @@ function main()
 	$fileSystemID = get("id");
 	$fileSystemName = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "name");
 	
-	if(post("refresh") == "all") {
+	if(post("refreshall") !== null || post("refreshmount") !== null) {
 		refreshFileSystemMount($fileSystemID);
-		refreshFileSystemWebServer($fileSystemID);
-	} else if(post("refresh") == "fileSystem") {
-		refreshFileSystemMount($fileSystemID);
-	} else if(post("refresh") == "webserver") {
+	}
+	if(post("refreshall") !== null || post("refreshwebserver") !== null) {
 		refreshFileSystemWebServer($fileSystemID);
 	}
 	
@@ -22,7 +20,7 @@ function main()
 	$content .= fileSystemDetail($fileSystemID);
 	$content .= fileSystemHostList($fileSystemID);
 	$content .= fileSystemCustomersList($fileSystemID);
-	$content .= fileSystemRefresh($fileSystemID);
+	$content .= fileSystemRefreshForm($fileSystemID);
 	echo page($content);
 }
 

@@ -37,39 +37,30 @@ function customerBreadcrumbs($customerID)
 
 function customerList()
 {
-	$output  = "<div class=\"sortable list\">\n";
-	$output .= "<table>\n";
-	$output .= "<thead>\n";
-	$output .= "<tr><th>Nickname</th><th>Name</th><th>Email</th><th>Filesystem</th><th>Mailsystem</th><th>Balance</th></tr>\n";
-	$output .= "</thead>\n";
-	$output .= "<tbody>\n";
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), array("customerID", "fileSystemID", "mailSystemID", "name", "initials", "lastName", "email"), array("name"=>"ASC")) as $customer) {
+	$rows = array();
+	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), array("customerID", "fileSystemID", "mailSystemID", "nameSystemID", "name", "initials", "lastName", "email"), array("name"=>"ASC")) as $customer) {
 		$nicknameHtml = htmlentities($customer["name"]);
-		$nameHtml = htmlentities($customer["initials"] . " " . $customer["lastName"]);
-		$emailHtml = htmlentities($customer["email"]);
-		$fileSystemNameHtml = htmlentities($GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), "name"));
-		$mailSystemNameHtml = htmlentities($GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), "name"));
-		$balanceHtml = formatPrice(billingBalance($customer["customerID"]));
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a><a href=\"{$GLOBALS["rootHtml"]}index.php?customerID={$customer["customerID"]}\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}img/external.png\" alt=\"Impersonate\" /></a></td><td>$nameHtml</td><td><a href=\"mailto:{$customer["email"]}\">$emailHtml</a></td><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$customer["fileSystemID"]}\">$fileSystemNameHtml</a></td><td><a href=\"{$GLOBALS["rootHtml"]}infrastructure/mailsystem.php?id={$customer["mailSystemID"]}\">$mailSystemNameHtml</a></td><td><a href=\"{$GLOBALS["rootHtml"]}billing/customer.php?id={$customer["customerID"]}\">$balanceHtml</a></tr>\n";
+		$fileSystemName = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), "name");
+		$mailSystemName = $GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), "name");
+		$nameSystemName = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$customer["nameSystemID"]), "name");
+		$rows[] = array(
+			array("html"=>"<a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a><a href=\"{$GLOBALS["rootHtml"]}index.php?customerID={$customer["customerID"]}\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}img/external.png\" alt=\"Impersonate\" /></a>"),
+			$customer["initials"] . " " . $customer["lastName"],
+			array("url"=>"mailto:{$customer["email"]}", "text"=>$customer["email"]),
+			array("url"=>"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$customer["fileSystemID"]}", "text"=>$fileSystemName),
+			array("url"=>"{$GLOBALS["rootHtml"]}infrastructure/mailsystem.php?id={$customer["mailSystemID"]}", "text"=>$mailSystemName),
+			array("url"=>"{$GLOBALS["rootHtml"]}infrastructure/namesystem.php?id={$customer["nameSystemID"]}", "text"=>$nameSystemName),
+			array("url"=>"{$GLOBALS["rootHtml"]}billing/customer.php?id={$customer["customerID"]}", "html"=>formatPrice(billingBalance($customer["customerID"])))
+		);
 	}
-	$output .= "</tbody>\n";
-	$output .= "</table>\n";
-	$output .= "</div>\n";
-	return $output;
+	return listTable(array("Nickname", "Name", "Email", "Filesystem", "Mailsystem", "Namesystem", "Balance"), $rows, "sortable list");
 }
 
 function customerBalance($customerID)
 {
-	$balance = formatPrice(billingBalance($customerID));
-	return <<<HTML
-<div class="operation">
-<h2>Balance</h2>
-<table>
-<tr><th>Balance</th><td><a href="{$GLOBALS["rootHtml"]}billing/customer.php?id=$customerID">$balance</a></td></tr>
-</table>
-</div>
-
-HTML;
+	return summaryTable("Balance", array(
+		"Balance"=>array("url"=>"{$GLOBALS["rootHtml"]}billing/customer.php?id=$customerID", "html"=>formatPrice(billingBalance($customerID)))
+	));
 }
 
 function customerLogin($customerID)

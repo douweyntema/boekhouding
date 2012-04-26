@@ -13,6 +13,7 @@ $(document).ready(function() {
 	$(".list:not(.tree, .sortable) table").each(zebra);
 	setupAutoCollapse();
 	setupRepeatField();
+	setupSelectAll();
 });
 
 function zebra()
@@ -74,4 +75,11 @@ function setupRepeatField()
 		$(".repeatFieldChild-" + id).change(addnewline);
 	});
 	$(".repeatFieldRemove").remove();
+}
+
+function setupSelectAll()
+{
+	$(".selectall").click(function() {
+		$(".selectall-" + $(this).attr("id")).prop("checked", true);
+	});
 }

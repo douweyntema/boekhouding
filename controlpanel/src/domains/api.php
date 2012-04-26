@@ -6,7 +6,13 @@ $domainsTarget = "customer";
 
 function domainsRegisterDomain($customerID, $domainName, $tldID)
 {
-	return getApi($tldID)->registerDomain($customerID, $domainName, $tldID);
+	if(!getApi($tldID)->registerDomain($customerID, $domainName, $tldID)) {
+		return false;
+	}
+	if($GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), array("price")) > 0) {
+		billingNewSubscription($customerID, "Registratie domein $domainName", null, 0, 0, $tldID, "YEAR", 1, 0, null);
+	}
+	return true;
 }
 
 function domainsDisableAutoRenew($domainID)
@@ -153,6 +159,22 @@ function domainsFormatDomainName($domainID)
 
 class DomainsNoApiException extends Exception
 {
+}
+
+function domainsCustomerUnpaidDomainsLimit($customerID)
+{
+	billingUpdateInvoiceLines($customerID);
+	$date = time() - (86400 * 366);
+	$price = $GLOBALS["database"]->query("SELECT (sum(billingInvoiceLine.price) - sum(billingInvoiceLine.discount)) AS total FROM billingInvoiceLine INNER JOIN billingInvoice USING(invoiceID) WHERE billingInvoiceLine.domain = 1 AND billingInvoice.customerID = $customerID AND billingInvoice.remainingAmount = 0 AND billingInvoice.date > $date")->fetchArray();
+	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("unpaidDomainPriceBase", "unpaidDomainPriceHistoryPercentage"));
+	return (int)(($price["total"] === null ? 0 : $price["total"]) * $customer["unpaidDomainPriceHistoryPercentage"] / 100) + $customer["unpaidDomainPriceBase"];
+}
+
+function domainsCustomerUnpaidDomainsPrice($customerID)
+{
+	billingUpdateInvoiceLines($customerID);
+	$price = $GLOBALS["database"]->query("SELECT (sum(billingInvoiceLine.price) - sum(billingInvoiceLine.discount)) AS total FROM billingInvoiceLine LEFT JOIN billingInvoice USING(invoiceID) WHERE billingInvoiceLine.domain = 1 AND billingInvoiceLine.customerID = $customerID AND (billingInvoice.remainingAmount IS NULL OR billingInvoice.remainingAmount > 0)")->fetchArray();
+	return ($price["total"] === null ? 0 : $price["total"]);
 }
 
 ?>

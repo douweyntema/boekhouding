@@ -99,10 +99,8 @@ function pathBreadcrumbs($pathID)
 
 function domainsList()
 {
-	$output = "";
-	
-	$customerIDEscaped = $GLOBALS["database"]->addSlashes(customerID());
-	$ownDomains = $GLOBALS["database"]->query("SELECT domainID, parentDomainID, name FROM httpDomain AS child WHERE customerID='$customerIDEscaped' AND (parentDomainID IS NULL OR (SELECT customerID FROM httpDomain AS parent WHERE parent.domainID = child.parentDomainID) IS NULL OR customerID <> (SELECT customerID FROM httpDomain AS parent WHERE parent.domainID = child.parentDomainID))")->fetchList();
+	$customerID = customerID();
+	$ownDomains = $GLOBALS["database"]->query("SELECT domainID, parentDomainID, name FROM httpDomain AS child WHERE customerID='$customerID' AND (parentDomainID IS NULL OR (SELECT customerID FROM httpDomain AS parent WHERE parent.domainID = child.parentDomainID) IS NULL OR customerID <> (SELECT customerID FROM httpDomain AS parent WHERE parent.domainID = child.parentDomainID))")->fetchList();
 	
 	$domains = array();
 	foreach($ownDomains as $ownDomain) {
@@ -111,29 +109,13 @@ function domainsList()
 	}
 	ksort($domains);
 	
-	if(count($domains) == 0) {
-		return "";
-	}
-	$output .= <<<HTML
-<div class="list sortable">
-<table>
-<thead>
-<tr><th>Domain</th></tr>
-</thead>
-<tbody>
-
-HTML;
+	$rows = array();
 	foreach($domains as $domain) {
-		$domainNameHtml = htmlentities($domain["name"]);
-		$output .= "<tr><td><a href=\"{$GLOBALS["rootHtml"]}http/domain.php?id={$domain["domainID"]}\">$domainNameHtml</a></td></tr>\n";
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["root"]}http/domain.php?id={$domain["domainID"]}", "text"=>$domain["name"])
+		);
 	}
-	$output .= <<<HTML
-</tbody>
-</table>
-</div>
-
-HTML;
-	return $output;
+	return listTable(array("Domain"), $rows, "list sortable");
 }
 
 function domainSummary($domainID)
@@ -141,30 +123,14 @@ function domainSummary($domainID)
 	$addressTree = domainTree($domainID);
 	$addressList = flattenDomainTree($addressTree);
 	
-	$output  = "<div class=\"list tree\">\n";
-	$output .= "<table>\n";
-	$output .= "<thead>\n";
-	$output .= "<tr><th>Address</th><th>Function</th></tr>\n";
-	$output .= "</thead>\n";
-	$output .= "<tbody>\n";
+	$rows = array();
 	foreach($addressList as $address) {
-		$functionHtml = htmlentities(functionDescription($address));
-		$addressHtml = htmlentities($address["name"]);
-		$parentHtml = ($address["parentID"] === null ? "" : "class=\"child-of-{$address["parentID"]}\"");
-		if(isset($address["domainID"])) {
-			if(isset($address["customerID"])) {
-				$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td>$addressHtml</td><td>$functionHtml</td></tr>\n";
-			} else {
-				$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td><a href=\"domain.php?id={$address["domainID"]}\">$addressHtml</a></td><td>$functionHtml</td></tr>\n";
-			}
-		} else {
-			$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td><a href=\"path.php?id={$address["pathID"]}\">$addressHtml</a></td><td>$functionHtml</td></tr>\n";
-		}
+		$rows[] = array("id"=>$address["id"], "class"=>($address["parentID"] === null ? null : "child-of-{$address["parentID"]}"), "cells"=>array(
+			array("url"=>(isset($address["domainID"]) ? (isset($address["customerID"]) ? null : "domain.php?id={$address["domainID"]}") : ("path.php?id={$address["pathID"]}")), "text"=>$address["name"]),
+			functionDescription($address)
+		));
 	}
-	$output .= "</tbody>\n";
-	$output .= "</table>\n";
-	$output .= "</div>\n";
-	return $output;
+	return listTable(array("Address", "Function"), $rows, "list tree");
 }
 
 function pathSummary($pathID)
@@ -172,54 +138,25 @@ function pathSummary($pathID)
 	$addressTree = pathTree($pathID);
 	$addressList = flattenPathTree($addressTree);
 	
-	$output  = "<div class=\"list tree\">\n";
-	$output .= "<table>\n";
-	$output .= "<thead>\n";
-	$output .= "<tr><th>Address</th><th>Function</th></tr>\n";
-	$output .= "</thead>\n";
-	$output .= "<tbody>\n";
+	$rows = array();
 	foreach($addressList as $address) {
-		$functionHtml = htmlentities(functionDescription($address));
-		$addressHtml = htmlentities($address["name"]);
-		$parentHtml = ($address["parentID"] === null ? "" : "class=\"child-of-{$address["parentID"]}\"");
-		if(isset($address["domainID"])) {
-			$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td><a href=\"domain.php?id={$address["domainID"]}\">$addressHtml</a></td><td>$functionHtml</td></tr>\n";
-		} else {
-			$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td><a href=\"path.php?id={$address["pathID"]}\">$addressHtml</a></td><td>$functionHtml</td></tr>\n";
-		}
+		$rows[] = array("id"=>$address["id"], "class"=>($address["parentID"] === null ? null : "child-of-{$address["parentID"]}"), "cells"=>array(
+			array("url"=>(isset($address["domainID"]) ? "domain.php?id={$address["domainID"]}" : ("path.php?id={$address["pathID"]}")), "text"=>$address["name"]),
+			functionDescription($address)
+		));
 	}
-	$output .= "</tbody>\n";
-	$output .= "</table>\n";
-	$output .= "</div>\n";
-	return $output;
+	return listTable(array("Address", "Function"), $rows, "list tree");
 }
 
 function singlePathSummary($pathID)
 {
-	$addressTree = pathTree($pathID);
-	// TODO
-	$addressList = flattenPathTree($addressTree);
+	$address = pathTree($pathID);
 	
-	$output  = "<div class=\"list tree\">\n";
-	$output .= "<table>\n";
-	$output .= "<thead>\n";
-	$output .= "<tr><th>Address</th><th>Function</th></tr>\n";
-	$output .= "</thead>\n";
-	$output .= "<tbody>\n";
-	foreach($addressList as $address) {
-		$functionHtml = htmlentities(functionDescription($address));
-		$addressHtml = htmlentities($address["name"]);
-		$parentHtml = ($address["parentID"] === null ? "" : "class=\"child-of-{$address["parentID"]}\"");
-		if(isset($address["domainID"])) {
-			$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td><a href=\"domain.php?id={$address["domainID"]}\">$addressHtml</a></td><td>$functionHtml</td></tr>\n";
-		} else {
-			$output .= "<tr id=\"{$address["id"]}\" $parentHtml><td><a href=\"path.php?id={$address["pathID"]}\">$addressHtml</a></td><td>$functionHtml</td></tr>\n";
-		}
-	}
-	$output .= "</tbody>\n";
-	$output .= "</table>\n";
-	$output .= "</div>\n";
-	return $output;
+	$rows = array(array(
+		array("url"=>(isset($address["domainID"]) ? "domain.php?id={$address["domainID"]}" : ("path.php?id={$address["pathID"]}")), "text"=>$address["name"]),
+		functionDescription($address)
+	));
+	return listTable(array("Address", "Function"), $rows, "list tree");
 }
 
 function pathFunctionForm($pathID)
