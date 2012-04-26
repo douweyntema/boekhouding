@@ -4,14 +4,15 @@ require_once("common.php");
 
 function main()
 {
-	doCustomers();
-	
 	$customerID = get("id");
-	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "email"), false);
+	doCustomer($customerID);
 	
-	if($customer === false) {
-		customerNotFound($customerID);
-	}
+	$customerName = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "name");
+	$customerNameHtml = htmlentities($customerName);
+	
+	$check = function($condition, $error) use($customerID, $customerNameHtml) {
+		if(!$condition) die(page(makeHeader("Customers - $customerNameHtml", customerBreadcrumbs($customerID), crumbs("Edit customer rights", "editcustomerrights.php?id=$customerID")) . editCustomerRightsForm($customerID, $error, $_POST)));
+	};
 	
 	$rights = array();
 	foreach(rights() as $right) {
@@ -22,24 +23,8 @@ function main()
 		}
 	}
 	
-	$customerHtml = htmlentities($customer["name"]);
-	
-	$content = "<h1>Customers - $customerHtml</h1>\n";
-	$content .= breadcrumbs(array(
-		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/"),
-		array("name"=>$customer["name"], "url"=>"{$GLOBALS["root"]}customers/customer.php?id=" . $customerID),
-		array("name"=>"Edit customer rights", "url"=>"{$GLOBALS["root"]}customers/editcustomerrights.php?id=" . $customerID)
-		));
-	
-	if(post("posted") === null) {
-		$content .= editCustomerRightsForm($customerID);
-		die(page($content));
-	}
-	
-	if(post("confirm") === null) {
-		$content .= editCustomerRightsForm($customerID, null, $rights);
-		die(page($content));
-	}
+	$check(post("posted") !== null, "");
+	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->startTransaction();
 	foreach(rights() as $right) {
@@ -54,7 +39,7 @@ function main()
 			$GLOBALS["database"]->stdDel("adminUserRight", array("customerRightID"=>$customerRightID));
 			$GLOBALS["database"]->stdDel("adminCustomerRight", array("customerRightID"=>$customerRightID));
 		} else {
-			// No change, customer already has the right not
+			// No change, customer already doesn't have the right
 		}
 	}
 	$GLOBALS["database"]->commitTransaction();

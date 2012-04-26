@@ -480,6 +480,9 @@ function countryCodes()
 {
 	$countryCodes = array();
 	foreach(explode("\n", file_get_contents(COUNTRYCODES_FILE)) as $line) {
+		if($line == "") {
+			continue;
+		}
 		$parts = explode(" ", $line);
 		$code = $parts[0];
 		array_shift($parts);

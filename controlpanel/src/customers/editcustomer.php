@@ -4,36 +4,35 @@ require_once("common.php");
 
 function main()
 {
-	doCustomers();
-	
 	$customerID = get("id");
-	$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), array("name", "initials", "lastName", "companyName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber", "groupname", "diskQuota", "mailQuota"), false);
+	doCustomer($customerID);
 	
-	if($customer === false) {
-		customerNotFound($customerID);
-	}
+	$customerName = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "name");
+	$customerNameHtml = htmlentities($customerName);
 	
-	$customerHtml = htmlentities($customer["name"]);
+	$check = function($condition, $error) use($customerID, $customerNameHtml) {
+		if(!$condition) die(page(makeHeader("Customers - $customerNameHtml", customerBreadcrumbs($customerID), crumbs("Edit customer", "editcustomer.php?id=$customerID")) . editCustomerForm($customerID, $error, $_POST)));
+	};
+	$notempty = function($field) use($check) {
+		$check(trim(post($field)) != "", "Invalid $field");
+	};
 	
-	$content = "<h1>Customers - $customerHtml</h1>\n";
+	$notempty("initials");
+	$notempty("lastName");
+	$notempty("address");
+	$notempty("postalCode");
+	$notempty("city");
+	$notempty("countryCode");
+	$notempty("email");
+	$notempty("invoiceFrequencyMultiplier");
+	$notempty("invoiceFrequencyBase");
 	
-	$content .= breadcrumbs(array(
-		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/"),
-		array("name"=>$customer["name"], "url"=>"{$GLOBALS["root"]}customers/customer.php?id=" . $customerID),
-		array("name"=>"Edit customer", "url"=>"{$GLOBALS["root"]}customers/editcustomer.php?id=" . $customerID)
-		));
+	$check(ctype_digit(post("invoiceFrequencyMultiplier")), "Invalid invoiceFrequencyMultiplier");
+	$check(post("invoiceFrequencyBase") == "DAY" || post("invoiceFrequencyBase") == "MONTH" || post("invoiceFrequencyBase") == "YEAR", "Invalid invoiceFrequencyBase");
 	
-	$initials = post("customerInitials");
-	$lastName = post("customerLastName");
-	$companyName = post("customerCompanyName");
-	$address = post("customerAddress");
-	$postalCode = post("customerPostalCode");
-	$city = post("customerCity");
-	$countryCode = post("customerCountryCode");
-	$email = post("customerEmail");
-	$phoneNumber = post("customerPhoneNumber");
 	$diskQuota = post("diskQuota");
 	$mailQuota = post("mailQuota");
+	$companyName = post("companyName");
 	
 	if($diskQuota == "") {
 		$diskQuota = null;
@@ -41,23 +40,16 @@ function main()
 	if($mailQuota == "") {
 		$mailQuota = null;
 	}
-	
-	if($initials === null || $lastName === null || $email === null) {
-		$content .= editCustomerForm($customerID, "", $customer["initials"], $customer["lastName"], $customer["companyName"], $customer["address"], $customer["postalCode"], $customer["city"], $customer["countryCode"], $customer["email"], $customer["phoneNumber"], $customer["diskQuota"], $customer["mailQuota"]);
-		die(page($content));
+	if($companyName == "") {
+		$companyName = null;
 	}
 	
-	if(($diskQuota !== null && !ctype_digit($diskQuota)) || ($mailQuota !== null && !ctype_digit($mailQuota))) {
-		$content .= editCustomerForm($customerID, "Invalid quota", $initials, $lastName, $companyName, $address, $postalCode, $city, $countryCode, $email, $phoneNumber, $diskQuota, $mailQuota);
-		die(page($content));
-	}
+	$check($diskQuota === null || ctype_digit($diskQuota), "Invalid disk quota");
+	$check($mailQuota === null || ctype_digit($mailQuota), "Invalid mail quota");
 	
-	if(post("confirm") === null) {
-		$content .= editCustomerForm($customerID, null, $initials, $lastName, $companyName, $address, $postalCode, $city, $countryCode, $email, $phoneNumber, $diskQuota, $mailQuota);
-		die(page($content));
-	}
+	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("initials"=>$initials, "lastName"=>$lastName, "companyName"=>$companyName, "address"=>$address, "postalCode"=>$postalCode, "city"=>$city, "countryCode"=>$countryCode, "email"=>$email, "phoneNumber"=>$phoneNumber, "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "mijnDomeinResellerContactID"=>null));
+	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("countryCode"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "invoiceFrequencyBase"=>post("invoiceFrequencyBase"), "invoiceFrequencyMultiplier"=>post("invoiceFrequencyMultiplier"), "mijnDomeinResellerContactID"=>null));
 	
 	updateMail($customerID);
 	updateDomains($customerID);
