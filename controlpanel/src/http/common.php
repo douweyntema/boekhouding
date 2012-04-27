@@ -411,7 +411,7 @@ function unsetAliases($domainID, $recursive)
 	return $aliasesList;
 }
 
-function aliassesPointToDomain($domainID, $recursive)
+function aliasesPointToDomain($domainID, $recursive)
 {
 	$aliasesList = array();
 	$pathIDs = toBeRemovedPathsDomain($domainID, $recursive);
@@ -426,7 +426,7 @@ function aliassesPointToDomain($domainID, $recursive)
 	return $aliasesList;
 }
 
-function aliassesPointToPath($pathID, $recursive)
+function aliasesPointToPath($pathID, $recursive)
 {
 	$aliasesList = array();
 	$pathIDs = toBeRemovedPathsPath($pathID, $recursive);
