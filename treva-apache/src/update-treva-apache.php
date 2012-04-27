@@ -551,12 +551,10 @@ LOG;
 
 function domainName($domainID)
 {
-	$domain = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), array("parentDomainID", "name"));
-	if($domain === null) {
-		return null;
-	}
+	$domain = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), array("parentDomainID", "name", "domainTldID"));
 	if($domain["parentDomainID"] === null) {
-		return $domain["name"];
+		$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
+		return $domain["name"] . "." . $tld;
 	}
 	return $domain["name"] . "." . domainName($domain["parentDomainID"]);
 }

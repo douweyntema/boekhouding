@@ -1,3 +1,9 @@
+treva-dovecot (0.3) squeeze; urgency=medium
+
+  * Updated the script to use the new tld structure in the database.
+
+ -- Stef Louwers <s.louwers@treva.nl>  Sun, 27 Apr 2012 21:42:42 +0200
+
 treva-dovecot (0.2) squeeze; urgency=medium
 
   * Removing a mailbox now flushes the quota properly and kills any active sessions.
