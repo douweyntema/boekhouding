@@ -97,10 +97,7 @@ function addAccountForm($error = "", $values = null)
 		if(!$GLOBALS["database"]->stdExists("adminCustomerRight", array("customerID"=>customerID(), "right"=>$right["name"]))) {
 			continue;
 		}
-		$rights[] = array("type"=>"colspan", "columns"=>array(
-			array("type"=>"checkbox", "label"=>htmlentities($right["title"]), "name"=>"right-{$right["name"]}", "cellclass"=>"nowrap"),
-			array("type"=>"html", "html"=>htmlentities($right["description"]), "fill"=>true)
-		));
+		$rights[] = array("type"=>"checkbox", "label"=>htmlentities($right["description"]), "name"=>"right-{$right["name"]}");
 	}
 	return operationForm("addaccount.php", $error, "Add account", "Add",
 		array(
@@ -142,10 +139,7 @@ function changeAccountRightsForm($userID, $error = "", $values = null)
 		if(!$GLOBALS["database"]->stdExists("adminCustomerRight", array("customerID"=>customerID(), "right"=>$right["name"]))) {
 			continue;
 		}
-		$rights[] = array("type"=>"colspan", "columns"=>array(
-			array("type"=>"checkbox", "label"=>htmlentities($right["title"]), "name"=>"right-{$right["name"]}", "cellclass"=>"nowrap"),
-			array("type"=>"html", "html"=>htmlentities($right["description"]), "fill"=>true)
-		));
+		$rights[] = array("type"=>"checkbox", "label"=>htmlentities($right["description"]), "name"=>"right-{$right["name"]}");
 	}
 	return operationForm("editrights.php?id=$userID", $error, "Change account access rights", "Change",
 		array(
@@ -173,12 +167,12 @@ function changeAdminAccountPasswordForm($userID, $error = "", $values = null)
 
 function removeAccountForm($userID, $error = "", $values = null)
 {
-	return operationForm("removeaccount.php?id=$userID", $error, "Remove account", "Remove account", array(), $values, array("confirmdelete"=>"Are you sure you want to remove this account?"));
+	return operationForm("removeaccount.php?id=$userID", $error, "Remove account", "Remove Account", array(), $values, array("confirmdelete"=>"Are you sure you want to remove this account?"));
 }
 
 function removeAdminAccountForm($userID, $error, $values = null)
 {
-	return operationForm("removeadminaccount.php?id=$userID", $error, "Remove admin account", "Remove account", array(), $values, array("confirmdelete"=>"Are you sure you want to remove this admin account?"));
+	return operationForm("removeadminaccount.php?id=$userID", $error, "Remove admin account", "Remove Account", array(), $values, array("confirmdelete"=>"Are you sure you want to remove this admin account?"));
 }
 
 ?>

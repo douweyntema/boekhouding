@@ -37,7 +37,7 @@ function databaseList()
 
 function addDatabaseForm($error = "", $values = null)
 {
-	return operationForm("adddatabase.php", $error, "Add database", "Save",
+	return operationForm("adddatabase.php", $error, "Add database", "Add",
 		array(
 			array("title"=>"Database name", "type"=>"text", "name"=>"databaseName")
 		), $values);

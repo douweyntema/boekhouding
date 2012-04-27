@@ -125,7 +125,7 @@ HTML;
 
 function newThreadForm($error = "", $values = null)
 {
-	return operationForm("addthread.php", $error, "New ticket", "Create ticket",
+	return operationForm("addthread.php", $error, "New ticket", "Create Ticket",
 		array(
 			array("title"=>"Title", "type"=>"text", "name"=>"title"),
 			array("title"=>null, "type"=>"textarea", "name"=>"text")

@@ -1,7 +1,7 @@
 <?php
 
 $domainsTitle = "Domains";
-$domainsDescription = "Domains";
+$domainsDescription = "Domain registrations";
 $domainsTarget = "customer";
 
 function domainsRegisterDomain($customerID, $domainName, $tldID)

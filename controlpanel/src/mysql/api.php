@@ -1,7 +1,7 @@
 <?php
 
-$mysqlTitle = "MySQL";
-$mysqlDescription = "MySQL";
+$mysqlTitle = "Databases";
+$mysqlDescription = "Database access";
 $mysqlTarget = "customer";
 
 function mysqlDatabaseExists($database, $db = null)

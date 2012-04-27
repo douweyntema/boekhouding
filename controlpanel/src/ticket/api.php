@@ -1,7 +1,7 @@
 <?php
 
-$ticketTitle = "Tickets";
-$ticketDescription = "Tickets";
+$ticketTitle = "Support";
+$ticketDescription = "Support tickets";
 $ticketTarget = "both";
 
 function ticketNewThread($customerID, $userID, $title, $text)

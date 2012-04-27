@@ -1,7 +1,7 @@
 <?php
 
 $billingTitle = "Billing";
-$billingDescription = "Billing";
+$billingDescription = "Finances";
 $billingTarget = "customer";
 
 function billingDomainPrice($tldID)

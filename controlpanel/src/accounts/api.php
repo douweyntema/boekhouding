@@ -1,9 +1,9 @@
 <?php
 
 $accountsTitle = "Accounts";
-$accountsDescription = "Accounts";
+$accountsDescription = "Account management";
 $accountsTarget = "both";
 
-defineRight("accounts", "shell", "Shell access", "Shell access");
+defineRight("accounts", "shell", "Shell access", "FTP and shell access");
 
 ?>
