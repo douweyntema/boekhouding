@@ -72,7 +72,7 @@ function listHeader($listID)
 {
 	$list = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), array("domainID", "localpart"));
 	$address = $list["localpart"] . "@" . domainName($list["domainID"]);
-	return makeHeader("Mailinglist $address", domainBreadcrumbs($list["domainID"]), crumbs("Mailinglist $address", "list.php?id=$listID"));
+	return makeHeader("Mailing list $address", domainBreadcrumbs($list["domainID"]), crumbs("Mailinglist $address", "list.php?id=$listID"));
 }
 
 function mailboxHeader($addressID)
@@ -88,11 +88,10 @@ function mailDomainsList()
 	foreach($GLOBALS["database"]->stdList("mailDomain", array("customerID"=>customerID()), array("domainID", "name"), array("name"=>"asc")) as $domain) {
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}mail/domain.php?id={$domain["domainID"]}", "text"=>domainName($domain["domainID"])),
-			$GLOBALS["database"]->stdCount("mailAddress", array("domainID"=>$domain["domainID"])),
-			$GLOBALS["database"]->stdCount("mailAlias", array("domainID"=>$domain["domainID"]))
+			$GLOBALS["database"]->stdCount("mailAddress", array("domainID"=>$domain["domainID"]))
 		);
 	}
-	return listTable(array("Domain", "# mailboxes", "# aliasses"), $rows, "sortable list");
+	return listTable(array("Domain", "Number of mailboxes"), $rows, "sortable list");
 }
 
 function mailboxList($domainID)
@@ -105,7 +104,7 @@ function mailboxList($domainID)
 			"{$mailbox["quota"]} MiB"
 		);
 	}
-	return listTable(array(array("text"=>"Mailbox", "class"=>"entityalign"), "Quota"), $rows, "sortable list");
+	return listTable(array(array("text"=>"Mailbox", "class"=>"entityalign"), "Maximum size"), $rows, "sortable list");
 }
 
 function mailAliasList($domainID)
@@ -115,7 +114,7 @@ function mailAliasList($domainID)
 	foreach($GLOBALS["database"]->stdList("mailAlias", array("domainID"=>$domainID), array("aliasID", "localpart", "targetAddress"), array("localpart"=>"asc")) as $alias) {
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}mail/alias.php?id={$alias["aliasID"]}", "text"=>"{$alias["localpart"]}@$domain"),
-			"{$alias["targetAddress"]}"
+			array("text"=>"{$alias["targetAddress"]}", "class"=>"nowrap")
 		);
 	}
 	return listTable(array(array("text"=>"Alias", "class"=>"entityalign"), "Forward to"), $rows, "sortable list");
@@ -147,7 +146,7 @@ function mailListMemberList($listID)
 	}
 	/// TODO: fixen
 	$footer = array(
-		array("html"=>"<table class=\"inline\" style=\"width: 100%\"><tr><td style=\"width: 100%; text-align: center; margin: 10px -6px -6px -6px; padding: 10px 27px 6px 27px; background-color: #ffffff;\"><input type=\"submit\" value=\"Delete selected members\" style=\"width: 100%\" /></td><td style=\"white-space: nowrap; background-color: #ffffff; vertical-align: middle;\"><a href=\"#\" class=\"rightalign selectall\" id=\"$id\" style=\"margin-right: 2px;\">Select all</a></td></tr></table>")
+		array("html"=>"<table class=\"inline\" style=\"width: 100%\"><tr><td style=\"width: 100%; text-align: center; margin: 10px -6px -6px -6px; padding: 10px 27px 6px 27px; background-color: #ffffff;\"><input type=\"submit\" value=\"Remove Selected Members\" style=\"width: 100%\" /></td><td style=\"white-space: nowrap; background-color: #ffffff; vertical-align: middle;\"><a href=\"#\" class=\"rightalign selectall\" id=\"$id\" style=\"margin-right: 2px;\">Select all</a></td></tr></table>")
 	);
 	return listTable(array("Member"), $rows, array("divclass"=>"sortable list", "formtarget"=>"removemember.php?id=$listID", "footer"=>$footer, "footerclass"=>"selectallsubmit"));
 }
@@ -158,33 +157,33 @@ function mailboxSummary($addressID)
 	$domain = domainName($mailbox["domainID"]);
 	
 	if($mailbox["spambox"] === null) {
-		$spambox = "No spambox";
+		$spambox = "Delete immediately";
 	} else if($mailbox["spambox"] == "") {
-		$spambox = "inbox";
+		$spambox = "No spam filter";
 	} else {
 		if($mailbox["spamQuota"] === null) {
-			$spambox = $mailbox["spambox"] . " (no quota)";
+			$spambox = "Deliver in folder <em>{$mailbox["spambox"]}</em> (no size limit)";
 		} else {
-			$spambox = $mailbox["spambox"] . " (quota " . $mailbox["spamQuota"] . " MiB)";
+			$spambox = "Deliver in folder <em>{$mailbox["spambox"]}</em> (limited at {$mailbox["spamQuota"]} MiB)";
 		}
 	}
 	
 	if($mailbox["virusbox"] === null) {
-		$virusbox = "No virusbox";
+		$virusbox = "Delete immediately";
 	} else if($mailbox["virusbox"] == "") {
-		$virusbox = "inbox";
+		$virusbox = "No virusscanner";
 	} else {
 		if($mailbox["virusQuota"] === null) {
-			$virusbox = $mailbox["virusbox"] . " (no quota)";
+			$virusbox = "Deliver in folder <em>{$mailbox["virusbox"]}</em> (no size limit)";
 		} else {
-			$virusbox = $mailbox["virusbox"] . " (quota " . $mailbox["virusQuota"] . " MiB)";
+			$virusbox = "Deliver in folder <em>{$mailbox["virusbox"]}</em> (limited at {$mailbox["virusQuota"]} MiB)";
 		}
 	}
 	
 	return summaryTable("Mailbox {$mailbox["localpart"]}@$domain", array(
-		"Quota"=>"{$mailbox["quota"]} MiB",
-		"Spambox"=>$spambox,
-		"Virusbox"=>$virusbox,
+		"Maximum size"=>"{$mailbox["quota"]} MiB",
+		"Spam policy"=>array("html"=>$spambox),
+		"Malware policy"=>array("html"=>$virusbox),
 		"SMTP"=>($mailbox["canUseSmtp"] == 0 ? "Disabled" : "Enabled"),
 		"IMAP"=>($mailbox["canUseImap"] == 0 ? "Disabled" : "Enabled")
 		));
@@ -282,7 +281,7 @@ function editMailListForm($listID, $error = "", $values = null)
 
 function removeMailListForm($listID, $error = "", $values = null)
 {
-	return operationForm("removelist.php?id=$listID", $error, "Remove mailing list", "Remove Mailing List", array(), $values, array("confirmdelete"=>"Are you sure you want to remove this mailing list?"));
+	return operationForm("removelist.php?id=$listID", $error, "Delete mailing list", "Delete Mailing List", array(), $values, array("confirmdelete"=>"Are you sure you want to delete this mailing list?"));
 }
 
 function addMailListMemberForm($listID, $error = "", $values = null)
@@ -297,7 +296,7 @@ function addMailListMemberForm($listID, $error = "", $values = null)
 function editMailListMemberForm($listID, $error = "", $values = null)
 {
 	if($error == "STUB") {
-		return operationForm("editlistmember.php?id=$listID", "", "Edit members", "Edit members", array(), array());
+		return operationForm("editlistmember.php?id=$listID", "", "Edit members", "Edit Members", array(), array());
 	}
 	
 	if($values === null || !isset($values["members"])) {
@@ -338,43 +337,43 @@ function addMailboxForm($domainID, $error = "", $values = null)
 	
 	if($values === null) {
 		$values = array(
-			"spambox"=>"inbox",
+			"spambox"=>"folder",
 			"spamQuota"=>100,
 			"spambox-folder"=>"spam",
-			"virusbox"=>"inbox",
+			"virusbox"=>"none",
 			"virusQuota"=>100,
-			"virusbox-folder"=>"virus"
+			"virusbox-folder"=>"malware"
 		);
 	}
 	
 	return operationForm("addmailbox.php?id=$domainID", $error, "Add mailbox", "Create mailbox",
 		array(
-			array("title"=>"Mailbox", "type"=>"colspan", "columns"=>array(
+			array("title"=>"Address", "type"=>"colspan", "columns"=>array(
 				array("type"=>"text", "name"=>"localpart", "fill"=>true),
 				array("type"=>"html", "cellclass"=>"nowrap", "html"=>"@$domainName")
 			)),
 			array("title"=>"Password", "type"=>"password", "name"=>"password", "confirmtitle"=>"Confirm password"),
-			array("title"=>"Quota", "type"=>"colspan", "columns"=>array(
+			array("title"=>"Maximum size", "type"=>"colspan", "columns"=>array(
 				array("type"=>"text", "name"=>"quota", "fill"=>true),
 				array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
 			)),
-			array("title"=>"Spambox", "type"=>"subformchooser", "name"=>"spambox", "subforms"=>array(
-				array("value"=>"none", "label"=>"No spambox", "subform"=>array()),
-				array("value"=>"inbox", "label"=>"Spam in inbox", "subform"=>array()),
-				array("value"=>"folder", "label"=>"Place spam in the specified folder", "subform"=>array(
+			array("title"=>"Spam policy", "type"=>"subformchooser", "name"=>"spambox", "subforms"=>array(
+				array("value"=>"none", "label"=>"Delete spam immediately", "subform"=>array()),
+				array("value"=>"inbox", "label"=>"Do not use a spam filter (deliver spam in your inbox)", "subform"=>array()),
+				array("value"=>"folder", "label"=>"Deliver spam in its own folder", "subform"=>array(
 					array("title"=>"Spam folder", "type"=>"text", "name"=>"spambox-folder"),
-					array("title"=>"Spambox quota", "type"=>"colspan", "columns"=>array(
+					array("title"=>"Spam folder size", "type"=>"colspan", "columns"=>array(
 						array("type"=>"text", "name"=>"spamquota", "fill"=>true),
 						array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
 					)),
 				))
 			)),
-			array("title"=>"Virusbox", "type"=>"subformchooser", "name"=>"virusbox", "subforms"=>array(
-				array("value"=>"none", "label"=>"No virusbox", "subform"=>array()),
-				array("value"=>"inbox", "label"=>"Virus in inbox", "subform"=>array()),
-				array("value"=>"folder", "label"=>"Place virus mails in the specified folder", "subform"=>array(
-					array("title"=>"Virus folder", "type"=>"text", "name"=>"virusbox-folder"),
-					array("title"=>"Virusbox quota", "type"=>"colspan", "columns"=>array(
+			array("title"=>"Malware policy", "type"=>"subformchooser", "name"=>"virusbox", "subforms"=>array(
+				array("value"=>"none", "label"=>"Delete malware immediately", "subform"=>array()),
+				array("value"=>"inbox", "label"=>"Do not use a virusscanner (deliver malware in your inbox)", "subform"=>array()),
+				array("value"=>"folder", "label"=>"Deliver malware mails in its own folder", "subform"=>array(
+					array("title"=>"Malware folder", "type"=>"text", "name"=>"virusbox-folder"),
+					array("title"=>"Malware folder size", "type"=>"colspan", "columns"=>array(
 						array("type"=>"text", "name"=>"virusquota", "fill"=>true),
 						array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
 					)),
@@ -391,38 +390,37 @@ function editMailboxForm($addressID, $error = "", $values = null)
 		$values = array(
 			"quota"=>($mailbox["quota"] === null ? "" : $mailbox["quota"]),
 			"spambox"=>($mailbox["spambox"] === null ? "none" : ($mailbox["spambox"] === "" ? "inbox" : "folder")),
-			"spambox-folder"=>(($mailbox["spambox"] === null || $mailbox["spambox"] === "") ? "" : $mailbox["spambox"]),
+			"spambox-folder"=>(($mailbox["spambox"] === null) ? "spam" : $mailbox["spambox"]),
 			"spamquota"=>$mailbox["spamQuota"],
 			"virusbox"=>($mailbox["virusbox"] === null ? "none" : ($mailbox["virusbox"] === "" ? "inbox" : "folder")),
-			"virusbox-folder"=>(($mailbox["virusbox"] === null || $mailbox["virusbox"] === "") ? "" : $mailbox["virusbox"]),
+			"virusbox-folder"=>(($mailbox["virusbox"] === null) ? "malware" : $mailbox["virusbox"]),
 			"virusquota"=>$mailbox["virusQuota"]
 			);
 	}
 	
-	
 	return operationForm("editmailbox.php?id=$addressID", $error, "Edit mailbox", "Save",
 		array(
-			array("title"=>"Quota", "type"=>"colspan", "columns"=>array(
+			array("title"=>"Maximum size", "type"=>"colspan", "columns"=>array(
 				array("type"=>"text", "name"=>"quota", "fill"=>true),
 				array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
 			)),
-			array("title"=>"Spambox", "type"=>"subformchooser", "name"=>"spambox", "subforms"=>array(
-				array("value"=>"none", "label"=>"No spambox", "subform"=>array()),
-				array("value"=>"inbox", "label"=>"Spam in inbox", "subform"=>array()),
-				array("value"=>"folder", "label"=>"Place spam in the specified folder", "subform"=>array(
+			array("title"=>"Spam policy", "type"=>"subformchooser", "name"=>"spambox", "subforms"=>array(
+				array("value"=>"none", "label"=>"Delete spam immediately", "subform"=>array()),
+				array("value"=>"inbox", "label"=>"Do not use a spam filter (deliver spam in your inbox)", "subform"=>array()),
+				array("value"=>"folder", "label"=>"Deliver spam in its own folder", "subform"=>array(
 					array("title"=>"Spam folder", "type"=>"text", "name"=>"spambox-folder"),
-					array("title"=>"Spambox quota", "type"=>"colspan", "columns"=>array(
+					array("title"=>"Spam folder size", "type"=>"colspan", "columns"=>array(
 						array("type"=>"text", "name"=>"spamquota", "fill"=>true),
 						array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
 					)),
 				))
 			)),
-			array("title"=>"Virusbox", "type"=>"subformchooser", "name"=>"virusbox", "subforms"=>array(
-				array("value"=>"none", "label"=>"No virusbox", "subform"=>array()),
-				array("value"=>"inbox", "label"=>"Virus in inbox", "subform"=>array()),
-				array("value"=>"folder", "label"=>"Place virus mails in the specified folder", "subform"=>array(
-					array("title"=>"Virus folder", "type"=>"text", "name"=>"virusbox-folder"),
-					array("title"=>"Virusbox quota", "type"=>"colspan", "columns"=>array(
+			array("title"=>"Malware policy", "type"=>"subformchooser", "name"=>"virusbox", "subforms"=>array(
+				array("value"=>"none", "label"=>"Delete malware immediately", "subform"=>array()),
+				array("value"=>"inbox", "label"=>"Do not use a virusscanner (deliver malware in your inbox)", "subform"=>array()),
+				array("value"=>"folder", "label"=>"Deliver malware mails in its own folder", "subform"=>array(
+					array("title"=>"Malware folder", "type"=>"text", "name"=>"virusbox-folder"),
+					array("title"=>"Malware folder size", "type"=>"colspan", "columns"=>array(
 						array("type"=>"text", "name"=>"virusquota", "fill"=>true),
 						array("type"=>"html", "cellclass"=>"nowrap", "html"=>"MiB")
 					)),
@@ -443,7 +441,10 @@ function editMailboxPasswordForm($addressID, $error = "", $values = null)
 
 function removeMailboxForm($addressID, $error = "", $values = null)
 {
-	return operationForm("removemailbox.php?id=$addressID", $error, "Remove mailbox", "Yes, delete the mail", array(), $values, array("confirmdelete"=>"Are you sure you want to remove this mailbox? This will permanently delete all mail stored in it."));
+	if($error === "") {
+		return operationForm("removemailbox.php?id=$addressID", $error, "Delete mailbox", "Delete Mailbox", array(), $values);
+	}
+	return operationForm("removemailbox.php?id=$addressID", $error, "Delete mailbox", "Yes, delete the mail", array(), $values, array("confirmdelete"=>"Are you sure you want to remove this mailbox? This will permanently delete all mail stored in it."));
 }
 
 function validDomainPart($name)

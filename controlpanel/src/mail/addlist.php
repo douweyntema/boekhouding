@@ -21,13 +21,18 @@ function main()
 		}
 	}
 	
-	$check(validLocalPart($localpart), "Invalid mailinglist address");
-	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailbox with the same name already exists");
-	$check(!$GLOBALS["database"]->stdExists("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart)), "An alias with the same name already exists");
-	$check(!$GLOBALS["database"]->stdExists("mailList", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailinglist with the same name already exists");
+	$check(validLocalPart($localpart), "Invalid mailing list name.");
+	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailbox with the chosen name already exists.");
+	$check(!$GLOBALS["database"]->stdExists("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart)), "An alias with the chosen name already exists.");
+	$check(!$GLOBALS["database"]->stdExists("mailList", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailing list with the chosen name already exists.");
+	$messages = array();
 	foreach($realMembers as $member) {
-		$check(validEmail($member), "Invalid member address ($member)");
+		if(!validEmail($member)) {
+			$memberHtml = htmlentities($member);
+			$messages[] = "Invalid member address <em>$memberHtml</em>.";
+		}
 	}
+	$check(count($messages) == 0, implode("<br />", $messages));
 	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->startTransaction();

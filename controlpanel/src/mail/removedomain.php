@@ -11,9 +11,9 @@ function main()
 		if(!$condition) die(page(domainHeader($domainID) . removeMailDomainForm($domainID, $error, $_POST)));
 	};
 	
-	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID)), "Unable to remove this domain. There are still mailboxes connected to this domain. Remove them first if you want to remove this domain.");
-	$check(!$GLOBALS["database"]->stdExists("mailAlias", array("domainID"=>$domainID)), "Unable to remove this domain. There are still aliases connected to this domain. Remove them first if you want to remove this domain.");
-	$check(!$GLOBALS["database"]->stdExists("mailList", array("domainID"=>$domainID)), "Unable to remove this domain. There are still mailing lists connected to this domain. Remove them first if you want to remove this domain.");
+	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID)), "Unable to remove this domain; there are still mailboxes connected to it. Remove them first if you want to remove this domain.");
+	$check(!$GLOBALS["database"]->stdExists("mailAlias", array("domainID"=>$domainID)), "Unable to remove this domain; there are still aliases connected to it. Remove them first if you want to remove this domain.");
+	$check(!$GLOBALS["database"]->stdExists("mailList", array("domainID"=>$domainID)), "Unable to remove this domain; there are still mailing lists connected to it. Remove them first if you want to remove this domain.");
 	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->startTransaction();

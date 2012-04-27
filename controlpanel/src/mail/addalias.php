@@ -19,10 +19,10 @@ function main()
 		$_POST["targetAddress"] = $targetAddress;
 	}
 	
-	$check(validLocalPart($localpart), "Invalid alias");
-	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailbox with the same name already exists");
-	$check(!$GLOBALS["database"]->stdExists("mailList", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailing list with the same name already exists");
-	$check(validEmail($targetAddress), "Invalid target address");
+	$check(validLocalPart($localpart), "Invalid alias name.");
+	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailbox with the chosen name already exists.");
+	$check(!$GLOBALS["database"]->stdExists("mailList", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailing list with the chosen name already exists.");
+	$check(validEmail($targetAddress), "Invalid target address.");
 	$check(post("confirm") !== null, null);
 	
 	$aliasID = $GLOBALS["database"]->stdNew("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart, "targetAddress"=>$targetAddress));

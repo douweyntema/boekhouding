@@ -14,10 +14,10 @@ function main()
 	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
 	$localpart = post("localpart");
 	
-	$check(validLocalPart($localpart), "Invalid mailinglist address");
-	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailbox with the same name already exists");
-	$check(!$GLOBALS["database"]->stdExists("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart)), "An alias with the same name already exists");
-	$check($GLOBALS["database"]->stdGetTry("mailList", array("domainID"=>$domainID, "localpart"=>$localpart), "listID", $listID) == $listID, "A mailinglist with the same name already exists");
+	$check(validLocalPart($localpart), "Invalid mailing list name.");
+	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailbox with the chosen name already exists.");
+	$check(!$GLOBALS["database"]->stdExists("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart)), "An alias with the chosen name already exists.");
+	$check($GLOBALS["database"]->stdGetTry("mailList", array("domainID"=>$domainID, "localpart"=>$localpart), "listID", $listID) == $listID, "A mailing list with the chosen name already exists.");
 	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->stdSet("mailList", array("listID"=>$listID), array("localpart"=>$localpart));
