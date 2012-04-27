@@ -18,7 +18,7 @@ function main()
 	$check($tld !== false, "");
 	$fullDomainNameSql = $GLOBALS["database"]->addSlashes("$name.$tld");
 	
-	$check($GLOBALS["database"]->query("SELECT `httpDomain`.`domainID` FROM `httpDomain` LEFT JOIN `infrastructureDomainTld` USING(`domainTldID`) WHERE CONCAT_WS('.', `httpDomain`.`name`, `infrastructureDomainTld`.`name`) = '$fullDomainNameSql'")->numRows() == 0, "A domain with the same name already exists");
+	$check($GLOBALS["database"]->query("SELECT `httpDomain`.`domainID` FROM `httpDomain` INNER JOIN `infrastructureDomainTld` USING(`domainTldID`) WHERE CONCAT_WS('.', `httpDomain`.`name`, `infrastructureDomainTld`.`name`) = '$fullDomainNameSql'")->numRows() == 0, "A domain with the same name already exists");
 	
 	if(post("documentRoot") == null) {
 		$_POST["documentRoot"] = $name . "." . $tld;
