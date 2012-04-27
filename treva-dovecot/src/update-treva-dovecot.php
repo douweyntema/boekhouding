@@ -54,18 +54,18 @@ if($hostID === null) {
 	exit(1);
 }
 
-$mailSystems = $database->stdList("infrastructureMailServer", array("hostID"=>$hostID, "primary"=>true), array("mailSystemID", "dovecotVersion"));
+$mailSystems = $GLOBALS["database"]->stdList("infrastructureMailServer", array("hostID"=>$hostID, "primary"=>true), array("mailSystemID", "dovecotVersion"));
 
 $updateNeeded = false;
 foreach($mailSystems as $mailSystem) {
 	$id = $mailSystem["mailSystemID"];
 	$version = $mailSystem["dovecotVersion"];
 	
-	$databaseVersion = $database->stdGet("infrastructureMailSystem", array("mailSystemID"=>$id), "version");
+	$databaseVersion = $GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$id), "version");
 	
 	if($version != $databaseVersion) {
 		$updateNeeded = true;
-		$database->stdSet("infrastructureMailServer", array("hostID"=>$hostID, "mailSystemID"=>$id), array("dovecotVersion"=>$databaseVersion));
+		$GLOBALS["database"]->stdSet("infrastructureMailServer", array("hostID"=>$hostID, "mailSystemID"=>$id), array("dovecotVersion"=>$databaseVersion));
 	}
 }
 
@@ -75,7 +75,7 @@ if(!$updateNeeded && !$force) {
 
 $hostIDSql = $GLOBALS["database"]->addSlashes($hostID);
 
-$mailboxes = $GLOBALS["database"]->query("SELECT addressID AS id, localpart, mailDomain.name AS domain, password, canUseImap, quota, spambox, virusbox, groupname, adminCustomer.email AS customerEmail, adminCustomer.mailQuota AS customerQuota FROM mailAddress INNER JOIN mailDomain USING(domainID) INNER JOIN adminCustomer USING(customerID) INNER JOIN infrastructureMailServer USING(mailSystemID) WHERE infrastructureMailServer.hostID = '$hostIDSql' AND infrastructureMailServer.primary = 1")->fetchList();
+$mailboxes = $GLOBALS["database"]->query("SELECT addressID AS id, localpart, CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, password, canUseImap, quota, spambox, virusbox, groupname, adminCustomer.email AS customerEmail, adminCustomer.mailQuota AS customerQuota FROM mailAddress INNER JOIN mailDomain USING(domainID) INNER JOIN adminCustomer USING(customerID) INNER JOIN infrastructureMailServer USING(mailSystemID) INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE infrastructureMailServer.hostID = '$hostIDSql' AND infrastructureMailServer.primary = 1")->fetchList();
 
 $allMailboxes = array();
 $allDomains = array();

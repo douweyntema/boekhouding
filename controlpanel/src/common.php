@@ -11,9 +11,8 @@ ignore_user_abort(true);
 
 function exceptionHandler($exception)
 {
-	// TODO: netjes formatten
 	mailAdmin("Controlpanel exception", $exception->__toString());
-	die();
+	die("Internal error. An administrator has been informed.");
 }
 
 if($_SERVER["REMOTE_ADDR"] == "127.0.0.1") {
@@ -238,15 +237,6 @@ function menu()
 function page($content)
 {
 	echo htmlHeader(welcomeHeader() . "<div class=\"menu\">\n" . menu() . "</div>\n<div class=\"main\">\n" . $content . "</div>");
-}
-
-function inputValue($value) // TODO: remove
-{
-	if($value === null || $value === "") {
-		return "";
-	} else {
-		return "value=\"" . htmlentities($value) . "\"";
-	}
 }
 
 function hashPassword($password)

@@ -182,13 +182,4 @@ function editCustomerRightsForm($customerID, $error = "", $values = null)
 	return operationForm("editcustomerrights.php?id=$customerID", $error, "Edit customer rights", "Edit", $fields, $values);
 }
 
-function dropdown($list)
-{
-	$result = array();
-	foreach($list as $value=>$label) {
-		$result[] = array("value"=>$value, "label"=>$label);
-	}
-	return $result;
-}
-
 ?>

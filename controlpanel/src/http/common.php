@@ -41,12 +41,13 @@ function domainBreadcrumbs($domainID)
 	$parts = array();
 	$nextDomainID = $domainID;
 	while(true) {
-		$domain = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$nextDomainID), array("name", "parentDomainID", "customerID"));
+		$domain = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$nextDomainID), array("name", "domainTldID", "parentDomainID", "customerID"));
 		if($domain["parentDomainID"] === null) {
-			$parts[] = array("id"=>$nextDomainID, "name"=>$domain["name"]);
+			$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
+			$parts[] = array("id"=>$nextDomainID, "name"=>$domain["name"] . "." . $tld);
 			break;
 		} else if($domain["customerID"] != customerID()) {
-			$parts[] = array("id"=>$nextDomainID, "name"=>subDomainName($domain["name"], $domain["parentDomainID"]));
+			$parts[] = array("id"=>$nextDomainID, "name"=>domainName($domainID));
 			break;
 		} else {
 			$parts[] = array("id"=>$nextDomainID, "name"=>$domain["name"]);
@@ -104,7 +105,7 @@ function domainsList()
 	
 	$domains = array();
 	foreach($ownDomains as $ownDomain) {
-		$domainName = subDomainName($ownDomain["name"], $ownDomain["parentDomainID"]);
+		$domainName = domainName($ownDomain["domainID"]);
 		$domains[$domainName] = array("domainID"=>$ownDomain["domainID"], "name"=>$domainName);
 	}
 	ksort($domains);
@@ -194,8 +195,8 @@ function pathFunctionForm($pathID)
 function addDomainForm($error = "", $values = null)
 {
 	$domains = array();
-	foreach($GLOBALS["database"]->stdList("httpDomain", array("customerID"=>null), array("domainID", "name")) as $domain) {
-		$domains[] = array("value"=>$domain["domainID"], "label"=>$domain["name"]);
+	foreach($GLOBALS["database"]->stdList("infrastructureDomainTld", array("active"=>1), array("domainTldID", "name")) as $domain) {
+		$domains[] = array("value"=>$domain["domainTldID"], "label"=>$domain["name"]);
 	}
 	
 	if($values === null) {
@@ -209,7 +210,8 @@ function addDomainForm($error = "", $values = null)
 		array(
 			array("title"=>"Domain name", "type"=>"colspan", "columns"=>array(
 				array("type"=>"text", "name"=>"name", "fill"=>true),
-				array("type"=>"dropdown", "name"=>"rootDomainID", "options"=>$domains)
+				array("type"=>"html", "html"=>"."),
+				array("type"=>"dropdown", "name"=>"domainTldID", "options"=>$domains)
 			)),
 			pathFunctionForm(null)
 		),
@@ -376,6 +378,8 @@ function removePath($pathID, $keepsubs)
 	if($keepsubs) {
 		if(count($subpaths) == 0) {
 			$GLOBALS["database"]->stdDel("httpPath", array("pathID"=>$pathID));
+		} else {
+			$GLOBALS["database"]->stdSet("httpPath", array("pathID"=>$pathID), array("type"=>"NONE"));
 		}
 	} else {
 		foreach($subpaths as $subpath) {
@@ -503,11 +507,7 @@ function validDocumentRoot($root)
 
 function isRootDomain($domainID)
 {
-	$parentDomainID = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID");
-	if($parentDomainID === null) {
-		return true;
-	}
-	return $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$parentDomainID), "customerID") === null;
+	return $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID") === null;
 }
 
 function flattenDomainTree($tree, $parentID = null)
@@ -671,22 +671,12 @@ function domainPath($domainID)
 
 function domainName($domainID)
 {
-	$domain = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), array("parentDomainID", "name"), null);
-	if($domain === null) {
-		return null;
-	}
+	$domain = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), array("parentDomainID", "name", "domainTldID"));
 	if($domain["parentDomainID"] === null) {
-		return $domain["name"];
+		$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
+		return $domain["name"] . "." . $tld;
 	}
 	return $domain["name"] . "." . domainName($domain["parentDomainID"]);
-}
-
-function subDomainName($domainName, $parentDomainID)
-{
-	if($parentDomainID === null) {
-		return $domainName;
-	}
-	return $domainName . "." . domainName($parentDomainID);
 }
 
 function pathName($pathID)
