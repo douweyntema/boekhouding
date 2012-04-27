@@ -12,8 +12,8 @@ function main()
 	
 	$name = post("databaseName");
 	
-	$check(validDatabaseName($name), "Invalid database name");
-	$check(!mysqlDatabaseExists($name), "A database with the chosen name already exists");
+	$check(validDatabaseName($name), "Invalid database name.");
+	$check(!mysqlDatabaseExists($name), "A database with the chosen name already exists.");
 	$check(post("confirm") !== null, null);
 	
 	mysqlCreateDatabase($name);
