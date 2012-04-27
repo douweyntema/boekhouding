@@ -16,15 +16,8 @@ function exceptionHandler($exception)
 	die();
 }
 
-function exceptionHandlerTesting($exception)
-{
-	// TODO: netjes formatten
-	die($exception->__toString());
-}
-
 if($_SERVER["REMOTE_ADDR"] == "127.0.0.1") {
 	error_reporting(E_ALL);
-	set_exception_handler("exceptionHandlerTesting");
 } else {
 	error_reporting(0);
 	set_exception_handler("exceptionHandler");

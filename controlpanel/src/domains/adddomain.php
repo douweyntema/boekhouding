@@ -16,7 +16,8 @@ function main()
 	$check(($domainName = post("name")) !== null, "");
 	$check(($tldID = post("tldID")) !== null, "");
 	if(!isImpersonating()) {
-		$check(domainsCustomerUnpaidDomainsPrice(customerID()) < domainsCustomerUnpaidDomainsLimit(customerID()), "Too many unpaid bills.");
+		$messageUrl = urlencode("Domain registration limit reached");
+		$check(domainsCustomerUnpaidDomainsPrice(customerID()) < domainsCustomerUnpaidDomainsLimit(customerID()), "Registration limit reached. Please <a href=\"{$GLOBALS["root"]}ticket/addthread.php?title=$messageUrl\">contact us</a> for more information.");
 	}
 	$check(($tldName = $GLOBALS["database"]->stdGetTry("infrastructureDomainTld", array("domainTldID"=>$tldID), "name", null)) !== null, "");
 	$check(validDomainPart($domainName), "Invalid domain name.");

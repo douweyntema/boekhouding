@@ -39,9 +39,9 @@ function main()
 		$ipv4 = post("ipv4");
 		$ipv6 = post("ipv6");
 		
-		$check($ipv4 != "" || $ipv6 != "", "Enter at least an IPv4 or IPv6 address");
-		$check($ipv4 == "" || validIpv4($ipv4), "Invalid IPv4 address");
-		$check($ipv6 == "" || validIpv6($ipv6), "Invalid IPv6 address");
+		$check($ipv4 != "" || $ipv6 != "", "Please enter at least an IPv4 address or an IPv6 address.");
+		$check($ipv4 == "" || validIpv4($ipv4), "Invalid IPv4 address.");
+		$check($ipv6 == "" || validIpv6($ipv6), "Invalid IPv6 address.");
 		
 		$remove();
 		if($ipv4 != "") {
@@ -66,7 +66,7 @@ function main()
 			$target = post("cnameTarget");
 		}
 		
-		$check(validDomain($target), "Invalid cname target");
+		$check(validDomain($target), "Invalid target domain name.");
 		
 		$remove();
 		$function = array("addressType"=>"CNAME", "cnameTarget"=>$target);
