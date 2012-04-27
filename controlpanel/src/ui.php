@@ -35,6 +35,15 @@ function parseArrayField($values, $keys)
 	}
 }
 
+function dropdown($list)
+{
+	$result = array();
+	foreach($list as $value=>$label) {
+		$result[] = array("value"=>$value, "label"=>$label);
+	}
+	return $result;
+}
+
 function checkPassword($check, $field) {
 	if(post("confirm") === null) {
 		$check(post("$field-1") == post("$field-2"), "The entered passwords do not match.");

@@ -10,14 +10,18 @@ function main()
 		if(!$condition) die(page(makeHeader("Add domain", httpBreadcrumbs(), crumbs("Add domain", "adddomain.php")) . addDomainForm($error, $_POST)));
 	};
 	
-	$check(($rootDomainID = post("rootDomainID")) !== null, "");
-	$check(isRootDomain($rootDomainID), "");
+	$check(($domainTldID = post("domainTldID")) !== null, "");
 	$check(($name = post("name")) !== null, "");
 	$check(validSubdomain($name), "Invalid domain name.");
-	$check(!$GLOBALS["database"]->stdExists("httpDomain", array("parentDomainID"=>$rootDomainID, "name"=>$name)), "A domain with the given name already exists.");
+	
+	$tld = $GLOBALS["database"]->stdGetTry("infrastructureDomainTld", array("domainTldID"=>post("domainTldID")), "name", false);
+	$check($tld !== false, "");
+	$fullDomainNameSql = $GLOBALS["database"]->addSlashes("$name.$tld");
+	
+	$check($GLOBALS["database"]->query("SELECT `httpDomain`.`domainID` FROM `httpDomain` LEFT JOIN `infrastructureDomainTld` USING(`domainTldID`) WHERE CONCAT_WS('.', `httpDomain`.`name`, `infrastructureDomainTld`.`name`) = '$fullDomainNameSql'")->numRows() == 0, "A domain with the same name already exists");
 	
 	if(post("documentRoot") == null) {
-		$_POST["documentRoot"] = $name . "." . domainName($rootDomainID);
+		$_POST["documentRoot"] = $name . "." . $tld;
 	}
 	
 	$check(($type = searchKey($_POST, "hosted", "redirect", "mirror")) !== null, "");
@@ -47,7 +51,7 @@ function main()
 	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->startTransaction();
-	$newDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "parentDomainID"=>$rootDomainID, "name"=>$name));
+	$newDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "domainTldID"=>$domainTldID, "parentDomainID"=>null, "name"=>$name));
 	$GLOBALS["database"]->stdNew("httpPath", array_merge(array("parentPathID"=>null, "domainID"=>$newDomainID, "name"=>null), $function));
 	$GLOBALS["database"]->commitTransaction();
 	
