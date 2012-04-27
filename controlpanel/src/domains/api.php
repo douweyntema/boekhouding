@@ -9,19 +9,28 @@ function domainsRegisterDomain($customerID, $domainName, $tldID)
 	if(!getApi($tldID)->registerDomain($customerID, $domainName, $tldID)) {
 		return false;
 	}
-	if($GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), array("price")) > 0) {
-		billingNewSubscription($customerID, "Registratie domein $domainName", null, 0, 0, $tldID, "YEAR", 1, 0, null);
-	}
 	return true;
 }
 
 function domainsDisableAutoRenew($domainID)
 {
+	$subscriptionID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "subscriptionID");
+	if($subscriptionID !== null) {
+		$expiredate = domainsDomainExpiredate($domainID);
+		if($date = parseDate($expiredate) === null) {
+			return false;
+		}
+		billingEndSubscription($subscriptionID, $date);
+	}
 	return getApi(getTldID($domainID))->disableAutoRenew($domainID);
 }
 
 function domainsEnableAutoRenew($domainID)
 {
+	$subscriptionID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "subscriptionID");
+	if($subscriptionID !== null) {
+		billingEndSubscription($subscriptionID, null);
+	}
 	return getApi(getTldID($domainID))->enableAutoRenew($domainID);
 }
 

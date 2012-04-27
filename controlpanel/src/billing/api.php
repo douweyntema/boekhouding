@@ -87,7 +87,11 @@ function billingUpdateAllInvoiceLines()
 
 function billingCreateInvoiceBatch($customerID)
 {
+	if(!isset($GLOBALS["controlpanelEnableCustomerEmail"]) || !$GLOBALS["controlpanelEnableCustomerEmail"]) {
+		return;
+	}
 	billingUpdateInvoiceLines($customerID);
+	
 	$now = time();
 	$invoiceTime = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("invoiceFrequencyBase", "invoiceFrequencyMultiplier", "nextInvoiceDate"));
 	
