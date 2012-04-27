@@ -91,8 +91,14 @@ function customerSubscriptionList()
 {
 	$rows = array();
 	foreach($GLOBALS["database"]->stdList("billingSubscription", array("customerID"=>customerID()), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
+		$domainID = $GLOBALS["database"]->stdGetTry("dnsDomain", array("subscriptionID"=>$subscription["subscriptionID"]), "domainID");
+		if($domainID === null) {
+			$url = null;
+		} else {
+			$url = "{$GLOBALS["rootHtml"]}domains/domain.php?id={$domainID}";
+		}
 		$rows[] = array(
-			array("url"=>($subscription["domainTldID"] === null ? null : "{$GLOBALS["rootHtml"]}domains/domain.php?id={$subscription["domainTldID"]}"), "text"=>$subscription["description"]),
+			array("url"=>$url, "text"=>$subscription["description"]),
 			array("html"=>formatSubscriptionPrice($subscription))
 		);
 	}
