@@ -17,7 +17,7 @@ function main()
 	
 	$keepsubs = post("keepsubs") !== null;
 	
-	$aliases = array_unique(aliassesPointToDomain($domainID, !$keepsubs));
+	$aliases = array_unique(aliasesPointToDomain($domainID, !$keepsubs));
 	if(count($aliases) > 0) {
 		$error = "The requested site(s) cannot be removed because of the following aliases:";
 		$error .= "<ul>";

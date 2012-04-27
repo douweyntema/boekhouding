@@ -31,7 +31,7 @@ function main()
 			array_shift($directoryParts);
 		}
 	}
-	$check(count($directoryParts) > 0 || $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$parentPathID), "type") == "NONE", "A directory with the given name already exists.");
+	$check(count($directoryParts) > 0 || $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$parentPathID), "type") == "NONE", "A directory with the chosen name already exists.");
 	
 	if(post("documentRoot") == null) {
 		$_POST["documentRoot"] = str_replace("/", "-", pathName($pathID) . "/$directoryName");
@@ -44,7 +44,7 @@ function main()
 		$directory = trim(post("documentRoot"), "/");
 		
 		$check($GLOBALS["database"]->stdExists("adminUser", array("userID"=>$userID, "customerID"=>customerID())), "");
-		$check(validDocumentRoot($directory), "Invalid document root");
+		$check(validDocumentRoot($directory), "Invalid document root.");
 		
 		$function = array("type"=>"HOSTED", "hostedUserID"=>$userID, "hostedPath"=>$directory);
 	} else if($type == "redirect") {

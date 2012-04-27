@@ -13,7 +13,7 @@ function main()
 	
 	$check(($name = post("name")) !== null, "");
 	$check(validSubdomain($name), "Invalid domain name.");
-	$check(!$GLOBALS["database"]->stdExists("httpDomain", array("parentDomainID"=>$domainID, "name"=>$name)), "A domain with the given name already exists.");
+	$check(!$GLOBALS["database"]->stdExists("httpDomain", array("parentDomainID"=>$domainID, "name"=>$name)), "A domain with the chosen name already exists.");
 	
 	if(post("documentRoot") == null) {
 		$_POST["documentRoot"] = $name . "." . domainName($domainID);
@@ -26,7 +26,7 @@ function main()
 		$directory = trim(post("documentRoot"), "/");
 		
 		$check($GLOBALS["database"]->stdExists("adminUser", array("userID"=>$userID, "customerID"=>customerID())), "");
-		$check(validDocumentRoot($directory), "Invalid document root");
+		$check(validDocumentRoot($directory), "Invalid document root.");
 		
 		$function = array("type"=>"HOSTED", "hostedUserID"=>$userID, "hostedPath"=>$directory);
 	} else if($type == "redirect") {

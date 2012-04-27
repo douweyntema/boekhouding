@@ -39,11 +39,11 @@ function main()
 		$virusQuota = null;
 	}
 	
-	$check($spamboxType != "folder" || validDirectory($spambox), "Invalid spambox");
-	$check($virusboxType != "folder" || validDirectory($virusbox), "Invalid virusbox");
-	$check($quota === null || (is_numeric($quota) && 1 <= $quota && $quota <= 100000), "Invalid quota");
-	$check($spamQuota === null || (is_numeric($spamQuota) && 1 <= $spamQuota && $spamQuota <= 100000), "Invalid spambox quota");
-	$check($virusQuota === null || (is_numeric($virusQuota) && 1 <= $virusQuota && $virusQuota <= 100000), "Invalid virusbox quota");
+	$check($spamboxType != "folder" || validDirectory($spambox), "Invalid spam folder.");
+	$check($virusboxType != "folder" || validDirectory($virusbox), "Invalid malware folder.");
+	$check($quota === null || (is_numeric($quota) && 1 <= $quota && $quota <= 100000), "Invalid maximum size.");
+	$check($spamQuota === null || (is_numeric($spamQuota) && 1 <= $spamQuota && $spamQuota <= 100000), "Invalid spam folder size.");
+	$check($virusQuota === null || (is_numeric($virusQuota) && 1 <= $virusQuota && $virusQuota <= 100000), "Invalid malware folder size.");
 	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->stdSet("mailAddress", array("addressID"=>$addressID), array("spambox"=>$spambox, "virusbox"=>$virusbox, "quota"=>$quota, "spamQuota"=>$spamQuota, "virusQuota"=>$virusQuota));

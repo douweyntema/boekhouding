@@ -13,7 +13,7 @@ function main()
 	
 	$keepsubs = post("keepsubs") !== null;
 	
-	$aliases = array_unique(aliassesPointToPath($pathID, !$keepsubs));
+	$aliases = array_unique(aliasesPointToPath($pathID, !$keepsubs));
 	if(count($aliases) > 0) {
 		$error = "The requested site(s) cannot be removed because of the following aliases:";
 		$error .= "<ul>";

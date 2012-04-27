@@ -8,7 +8,9 @@ function main()
 	doDomain($domainID);
 	
 	$content = makeHeader((isSubDomain($domainID) ? "Subdomain " : "Domain ") . domainsFormatDomainName($domainID), domainBreadcrumbs($domainID));
-	$content .= domainDetail($domainID);
+	if(!isSubDomain($domainID)) {
+		$content .= domainDetail($domainID);
+	}
 	$content .= subDomainsList($domainID);
 	$content .= editAddressForm($domainID, "STUB");
 	$content .= editMailForm($domainID, "STUB");

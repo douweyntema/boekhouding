@@ -14,7 +14,7 @@ function main()
 	$domainID = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), "domainID");
 	$targetAddress = post("targetAddress");
 	
-	$check(validEmail($targetAddress), "Invalid target address");
+	$check(validEmail($targetAddress), "Invalid target address.");
 	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->stdSet("mailAlias", array("aliasID"=>$aliasID), array("targetAddress"=>$targetAddress));

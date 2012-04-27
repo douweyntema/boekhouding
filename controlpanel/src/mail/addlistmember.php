@@ -20,9 +20,14 @@ function main()
 		}
 	}
 	
+	$messages = array();
 	foreach($realMembers as $member) {
-		$check(validEmail($member), "Invalid member address ($member)");
+		if(!validEmail($member)) {
+			$memberHtml = htmlentities($member);
+			$messages[] = "Invalid member address <em>$memberHtml</em>.";
+		}
 	}
+	$check(count($messages) == 0, implode("<br />", $messages));
 	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->startTransaction();

@@ -38,15 +38,15 @@ function main()
 		$virusQuota = null;
 	}
 	
-	$check(validLocalPart($localpart), "Invalid mailbox name");
-	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "Another mailbox with the same name already exists");
-	$check(!$GLOBALS["database"]->stdExists("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart)), "An alias with the same name already exists");
-	$check(!$GLOBALS["database"]->stdExists("mailList", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailinx list with the same name already exists");
-	$check($spamboxType != "folder" || validDirectory($spambox), "Invalid spambox");
-	$check($virusboxType != "folder" || validDirectory($virusbox), "Invalid virusbox");
-	$check($quota === null || (is_numeric($quota) && 1 <= $quota && $quota <= 100000), "Invalid quota");
-	$check($spamQuota === null || (is_numeric($spamQuota) && 1 <= $spamQuota && $spamQuota <= 100000), "Invalid spambox quota");
-	$check($virusQuota === null || (is_numeric($virusQuota) && 1 <= $virusQuota && $virusQuota <= 100000), "Invalid virusbox quota");
+	$check(validLocalPart($localpart), "Invalid mailbox name.");
+	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "Another mailbox with the chosen name already exists.");
+	$check(!$GLOBALS["database"]->stdExists("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart)), "An alias with the chosen name already exists.");
+	$check(!$GLOBALS["database"]->stdExists("mailList", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailinx list with the chosen name already exists.");
+	$check($spamboxType != "folder" || validDirectory($spambox), "Invalid spam folder.");
+	$check($virusboxType != "folder" || validDirectory($virusbox), "Invalid malware.");
+	$check($quota === null || (is_numeric($quota) && 1 <= $quota && $quota <= 100000), "Invalid maximum size.");
+	$check($spamQuota === null || (is_numeric($spamQuota) && 1 <= $spamQuota && $spamQuota <= 100000), "Invalid spam folder size.");
+	$check($virusQuota === null || (is_numeric($virusQuota) && 1 <= $virusQuota && $virusQuota <= 100000), "Invalid malware folder size.");
 	
 	$password = checkPassword($check, "password");
 	$check(post("confirm") !== null, null);

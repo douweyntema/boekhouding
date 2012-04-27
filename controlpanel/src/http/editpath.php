@@ -19,7 +19,7 @@ function main()
 		$directory = trim(post("documentRoot"), "/");
 		
 		$check($GLOBALS["database"]->stdExists("adminUser", array("userID"=>$userID, "customerID"=>customerID())), "");
-		$check(validDocumentRoot($directory), "Invalid document root");
+		$check(validDocumentRoot($directory), "Invalid document root.");
 		
 		$function = array("type"=>"HOSTED", "hostedUserID"=>$userID, "hostedPath"=>$directory);
 	} else if($type == "redirect") {

@@ -125,6 +125,10 @@ HTML;
 
 function newThreadForm($error = "", $values = null)
 {
+	if($values === null || count($values) == 0) {
+		$values = $_GET;
+	}
+	
 	return operationForm("addthread.php", $error, "New ticket", "Create Ticket",
 		array(
 			array("title"=>"Title", "type"=>"text", "name"=>"title"),
