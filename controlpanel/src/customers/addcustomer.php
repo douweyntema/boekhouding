@@ -6,28 +6,36 @@ function main()
 {
 	doCustomers();
 	
-	$content = "<h1>Customers</h1>\n";
-	$content .= breadcrumbs(array(
-		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/"),
-		array("name"=>"Add customer", "url"=>"{$GLOBALS["root"]}customers/addcustomer.php")
-		));
+	$check = function($condition, $error) {
+		if(!$condition) die(page(makeHeader("Add new customer", customersBreadcrumbs(), crumbs("Add customer", "addcustomer.php")) . addCustomerForm($error, $_POST)));
+	};
 	
-	$nickname = post("customerNickname");
-	$initials = post("customerInitials");
-	$lastName = post("customerLastName");
-	$companyName = post("customerCompanyName");
-	$address = post("customerAddress");
-	$postalCode = post("customerPostalCode");
-	$city = post("customerCity");
-	$countryCode = post("customerCountryCode");
-	$email = post("customerEmail");
-	$phoneNumber = post("customerPhoneNumber");
-	$group = post("customerGroup");
+	$notempty = function($field) use($check) {
+		$check(trim(post($field)) != "", "Invalid $field");
+	};
+	
+	$notempty("name");
+	$notempty("initials");
+	$notempty("lastName");
+	$notempty("address");
+	$notempty("postalCode");
+	$notempty("city");
+	$notempty("countryCode");
+	$notempty("email");
+	$notempty("groupname");
+	$notempty("invoiceFrequencyMultiplier");
+	$notempty("invoiceFrequencyBase");
+	
+	$check($GLOBALS["database"]->stdExists("infrastructureFileSystem", array("fileSystemID"=>post("fileSystemID"))), "Invalid filesystem");
+	$check($GLOBALS["database"]->stdExists("infrastructureMailSystem", array("mailSystemID"=>post("mailSystemID"))), "Invalid mailsystem");
+	$check($GLOBALS["database"]->stdExists("infrastructureNameSystem", array("nameSystemID"=>post("nameSystemID"))), "Invalid namesystem");
+	
+	$check(ctype_digit(post("invoiceFrequencyMultiplier")), "Invalid invoiceFrequencyMultiplier");
+	$check(post("invoiceFrequencyBase") == "DAY" || post("invoiceFrequencyBase") == "MONTH" || post("invoiceFrequencyBase") == "YEAR", "Invalid invoiceFrequencyBase");
+	
 	$diskQuota = post("diskQuota");
 	$mailQuota = post("mailQuota");
-	$fileSystemID = post("customerFileSystem");
-	$mailSystemID = post("customerMailSystem");
-	$nameSystemID = post("customerNameSystem");
+	$companyName = post("companyName");
 	
 	if($diskQuota == "") {
 		$diskQuota = null;
@@ -35,28 +43,18 @@ function main()
 	if($mailQuota == "") {
 		$mailQuota = null;
 	}
-	
-	if(trim($nickname) == "" || trim($initials) == "" || trim($lastName) == "" || trim($email) == "" || trim($group) == "" || !$GLOBALS["database"]->stdExists("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID)) || !$GLOBALS["database"]->stdExists("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID)) || !$GLOBALS["database"]->stdExists("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID))) {
-		$content .= addCustomerForm("Please fill in more fields", $nickname, $initials, $lastName, $companyName, $address, $postalCode, $city, $countryCode, $email, $phoneNumber, $group, $diskQuota, $mailQuota, $fileSystemID, $mailSystemID, $nameSystemID);
-		die(page($content));
+	if($companyName == "") {
+		$companyName = null;
 	}
 	
-	if(($diskQuota !== null && !ctype_digit($diskQuota)) || ($mailQuota !== null && !ctype_digit($mailQuota))) {
-		$content .= addCustomerForm("Invalid quota", $nickname, $initials, $lastName, $companyName, $address, $postalCode, $city, $countryCode, $email, $phoneNumber, $group, $diskQuota, $mailQuota, $fileSystemID, $mailSystemID, $nameSystemID);
-		die(page($content));
-	}
+	$check($diskQuota === null || ctype_digit($diskQuota), "Invalid disk quota");
+	$check($mailQuota === null || ctype_digit($mailQuota), "Invalid mail quota");
 	
-	if($GLOBALS["database"]->stdGetTry("adminCustomer", array("name"=>$nickname), "customerID", false) !== false) {
-		$content .= addCustomerForm("A customer with the chosen nickname already exists.", $nickname, $initials, $lastName, $companyName, $address, $postalCode, $city, $countryCode, $email, $phoneNumber, $group, $diskQuota, $mailQuota, $fileSystemID, $mailSystemID, $nameSystemID);
-		die(page($content));
-	}
+	$check(!$GLOBALS["database"]->stdExists("adminCustomer", array("name"=>post("nickname")), "customerID"), "A customer with the chosen nickname already exists");
 	
-	if(post("confirm") === null) {
-		$content .= addCustomerForm(null, $nickname, $initials, $lastName, $companyName, $address, $postalCode, $city, $countryCode, $email, $phoneNumber, $group, $diskQuota, $mailQuota, $fileSystemID, $mailSystemID, $nameSystemID);
-		die(page($content));
-	}
+	$check(post("confirm") !== null, null);
 	
-	$customerID = $GLOBALS["database"]->stdNew("adminCustomer", array("name"=>$nickname, "initials"=>$initials, "lastName"=>$lastName, "companyName"=>$companyName, "address"=>$address, "postalCode"=>$postalCode, "city"=>$city, "countryCode"=>$countryCode, "email"=>$email, "phoneNumber"=>$phoneNumber, "groupname"=>$group, "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "fileSystemID"=>$fileSystemID, "mailSystemID"=>$mailSystemID, "nameSystemID"=>$nameSystemID));
+	$customerID = $GLOBALS["database"]->stdNew("adminCustomer", array("name"=>post("name"), "initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("countryCode"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "groupname"=>post("groupname"), "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "fileSystemID"=>post("fileSystemID"), "mailSystemID"=>post("mailSystemID"), "nameSystemID"=>post("nameSystemID"), "invoiceFrequencyBase"=>post("invoiceFrequencyBase"), "invoiceFrequencyMultiplier"=>post("invoiceFrequencyMultiplier")));
 	
 	domainsUpdateContactInfo($customerID);
 	

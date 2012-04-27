@@ -8,16 +8,9 @@ function main()
 {
 	doCustomers();
 	
-	$content = "<h1>Customers</h1>\n";
-	
-	$content .= breadcrumbs(array(
-		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/")
-		));
-	
+	$content = makeHeader("Customers", customersBreadcrumbs());
 	$content .= customerList();
-	
 	$content .= addCustomerForm();
-	
 	echo page($content);
 }
 

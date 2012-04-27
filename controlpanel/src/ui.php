@@ -102,7 +102,15 @@ function renderCell($cell, $values, $readOnly)
 	$fieldclass = isset($cell["fieldclass"]) ? $cell["fieldclass"] : null;
 	
 	if($cell["type"] == "html") {
-		$output["content"] = $cell["html"];
+		$output["content"] = "";
+		if(isset($cell["url"]) && $cell["url"] !== null) {
+			$urlHtml = htmlentities($cell["url"]);
+			$output["content"] .= "<a href=\"$urlHtml\">";
+		}
+		$output["content"] .= $cell["html"];
+		if(isset($cell["url"]) && $cell["url"] !== null) {
+			$output["content"] .= "</a>";
+		}
 	} else if($cell["type"] == "label") {
 		$output["content"] .= "<label for=\"{$cell["id"]}\">{$cell["label"]}</label>";
 	} else if($cell["type"] == "text") {
@@ -187,7 +195,11 @@ function renderCell($cell, $values, $readOnly)
 			$output["content"] .= "<input type=\"hidden\" name=\"$name\" value=\"$valueHtml\" />";
 		}
 	} else if($cell["type"] == "checkbox") {
-		$output["content"] = "<label><input type=\"checkbox\"";
+		$output["content"] = "";
+		if(isset($cell["label"]) && $cell["label"] !== null) {
+			$output["content"] .= "<label>";
+		}
+		$output["content"] .= "<input type=\"checkbox\"";
 		if(!isset($cell["value"]) || $cell["value"] === null) {
 			$valueHtml = "1";
 			$checked = ($value !== null);
@@ -207,7 +219,13 @@ function renderCell($cell, $values, $readOnly)
 		} else {
 			$output["content"] .= " name=\"$name\"";
 		}
-		$output["content"] .= " /> {$cell["label"]}</label>";
+		if(isset($cell["id"]) && $cell["id"] !== null) {
+			$output["content"] .= " id=\"{$cell["id"]}\"";
+		}
+		$output["content"] .= " />";
+		if(isset($cell["label"]) && $cell["label"] !== null) {
+			$output["content"] .= " {$cell["label"]}</label>";
+		}
 		if($readOnly && $checked) {
 			$output["content"] .= "<input type=\"hidden\" name=\"$name\" value=\"$valueHtml\" />";
 		}
