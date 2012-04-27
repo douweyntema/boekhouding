@@ -205,6 +205,9 @@ function addDomainForm($error = "", $values = null)
 	if(!isset($values["documentOwner"])) {
 		$values["documentOwner"] = userID();
 	}
+	if(!isset($values["redirectTarget"])) {
+		$values["redirectTarget"] = "http://";
+	}
 	
 	return operationForm("adddomain.php", $error, "Add domain", "Add",
 		array(
@@ -226,6 +229,9 @@ function addSubdomainForm($domainID, $error = "", $values = null)
 	if(!isset($values["documentOwner"])) {
 		$values["documentOwner"] = userID();
 	}
+	if(!isset($values["redirectTarget"])) {
+		$values["redirectTarget"] = "http://";
+	}
 	
 	return operationForm("addsubdomain.php?id=$domainID", $error, "Add subdomain", "Add",
 		array(
@@ -245,6 +251,9 @@ function addPathForm($pathID, $error = "", $values = null)
 	}
 	if(!isset($values["documentOwner"])) {
 		$values["documentOwner"] = userID();
+	}
+	if(!isset($values["redirectTarget"])) {
+		$values["redirectTarget"] = "http://";
 	}
 	
 	return operationForm("addpath.php?id=$pathID", $error, "Add subdirectory", "Add",
@@ -301,6 +310,9 @@ function editPathForm($pathID, $error = "", $values = null)
 		} else if($path["type"] == "MIRROR") {
 			$values = array("mirror"=>"1", "mirrorTarget"=>$path["mirrorTargetPathID"]);
 		}
+	}
+	if(!isset($values["redirectTarget"])) {
+		$values["redirectTarget"] = "http://";
 	}
 	
 	return operationForm("editpath.php?id=$pathID", $error, "Edit site $pathNameHtml", "Edit",
