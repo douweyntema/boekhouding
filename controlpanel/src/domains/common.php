@@ -462,7 +462,7 @@ function validIPv4($ip)
 	return true;
 }
 
-function validIPv6($ip) // TODO
+function validIPv6($ip)
 {
 	$parts = explode(":", $ip);
 	if(count($parts) > 8) {
@@ -478,6 +478,12 @@ function validIPv6($ip) // TODO
 			}
 		}
 	}
+	if($parts[0] == "" && $parts[1] != "") {
+		return false;
+	}
+	if($parts[count($parts) - 1] == "" && $parts[count($parts) - 2] != "") {
+		return false;
+	}
 	if(!$emptyFound && count($parts) != 8) {
 		return false;
 	}
@@ -486,7 +492,7 @@ function validIPv6($ip) // TODO
 			return false;
 		}
 		for($i = 0; $i < strlen($part); $i++) {
-			if(strpos($part[$i], "1234567890abcdefABCDEF") === false) {
+			if(trim($part[$i], "1234567890abcdefABCDEF") != "") {
 				return false;
 			}
 		}

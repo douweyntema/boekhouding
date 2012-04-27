@@ -378,6 +378,8 @@ function removePath($pathID, $keepsubs)
 	if($keepsubs) {
 		if(count($subpaths) == 0) {
 			$GLOBALS["database"]->stdDel("httpPath", array("pathID"=>$pathID));
+		} else {
+			$GLOBALS["database"]->stdSet("httpPath", array("pathID"=>$pathID), array("type"=>"NONE"));
 		}
 	} else {
 		foreach($subpaths as $subpath) {

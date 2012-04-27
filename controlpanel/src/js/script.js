@@ -7,7 +7,6 @@ $(document).ready(function() {
 			return $.tablesorter.formatInt(s.substr(1));
 		}, type: "numeric"
 	});
-	// TODO: sorteren op de .sorted colom
 	$(".sortable table").tablesorter({widgets: ['zebra']});
 	$(".tree table").treeTable({zebra: true, initialState: "expanded"});
 	$(".list:not(.tree, .sortable) table").each(zebra);

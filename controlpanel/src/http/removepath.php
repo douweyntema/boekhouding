@@ -33,7 +33,6 @@ function main()
 	$parentPathID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "parentPathID");
 	$domainID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "domainID");
 	
-	/// TODO: niet-recursieve remove is stuk geloof ik
 	$GLOBALS["database"]->startTransaction();
 	removePath($pathID, $keepsubs);
 	while($parentPathID !== null &&
