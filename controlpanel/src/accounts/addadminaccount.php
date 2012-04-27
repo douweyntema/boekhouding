@@ -14,8 +14,8 @@ function main()
 	
 	$username = post("username");
 	
-	$check(!$GLOBALS["database"]->stdExists("adminUser", array("username"=>$username)), "An account with the chosen name already exists.");
 	$check(validAccountName($username), "Invalid account name.");
+	$check(!$GLOBALS["database"]->stdExists("adminUser", array("username"=>$username)), "An account with the chosen name already exists.");
 	
 	$password = checkPassword($check, "password");
 	$check(post("confirm") !== null, null);

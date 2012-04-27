@@ -1,7 +1,7 @@
 <?php
 
 $mailTitle = "Email";
-$mailDescription = "Email";
+$mailDescription = "Email management";
 $mailTarget = "customer";
 
 ?>
