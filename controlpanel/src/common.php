@@ -373,10 +373,8 @@ function makeHeader($title/*, $breadcrumbs*/)
 	return "<h1>$title</h1>\n" . breadcrumbs($breadcrumbs);
 }
 
-function mailCustomer($customerID, $subject, $body, $bccAdmin = false)
+function mailCustomer($customerID, $subject, $body, $bccAdmin = true)
 {
-	global $adminMail, $adminMailName;
-	
 	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("email", "name", "companyName", "initials", "lastName"));
 	
 	$name = trim($customer["initials"] . " " . $customer["lastName"]);
@@ -388,11 +386,16 @@ function mailCustomer($customerID, $subject, $body, $bccAdmin = false)
 	}
 	
 	$mail = new mimemail();
-	$mail->addReceiver($customer["email"], $name);
-	$mail->setSender($adminMail, $adminMailName);
+	if(isset($GLOBALS["controlpanelEnableCustomerEmail"]) && $GLOBALS["controlpanelEnableCustomerEmail"]) {
+		$mail->addReceiver($customer["email"], $name);
+	} else {
+		$mail->addReceiver($GLOBALS["adminMail"], $GLOBALS["adminMailName"]);
+		$subject = "TEST: " . $subject;
+	}
+	$mail->setSender($GLOBALS["adminMail"], $GLOBALS["adminMailName"]);
 	$mail->setSubject($subject);
 	if($bccAdmin) {
-		$mail->addBcc($adminMail, $adminMailName);
+		$mail->addBcc($GLOBALS["adminMail"], $GLOBALS["adminMailName"]);
 	}
 	$mail->setTextMessage($body);
 	$mail->send();
@@ -400,11 +403,9 @@ function mailCustomer($customerID, $subject, $body, $bccAdmin = false)
 
 function mailAdmin($subject, $body)
 {
-	global $adminMail, $adminMailName;
-	
 	$mail = new mimemail();
-	$mail->addReceiver($adminMail, $adminMailName);
-	$mail->setSender($adminMail, "Controlpanel");
+	$mail->addReceiver($GLOBALS["adminMail"], $GLOBALS["adminMailName"]);
+	$mail->setSender($GLOBALS["adminMail"], "Controlpanel");
 	$mail->setSubject($subject);
 	$mail->setTextMessage($body);
 	$mail->send();

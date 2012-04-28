@@ -6,6 +6,8 @@ $adminMailName = "Treva Technologies";
 $controlpanelDisabled = false;
 $controlpanelDisabledNotice = "<p>The Treva control panel is currently disabled for maintenance.</p>";
 
+$controlpanelEnableCustomerEmail = false;
+
 $controlpanelUrl = "http://controlpanel.treva.nl/";
 
 $database_hostname = "localhost";

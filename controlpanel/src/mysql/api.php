@@ -18,14 +18,14 @@ function mysqlCreateDatabase($database, $db = null)
 		$db = mysqlDatabaseConnection();
 	}
 	foreach($db->query("SELECT DISTINCT GRANTEE FROM SCHEMA_PRIVILEGES WHERE TABLE_SCHEMA='$database';")->fetchList("GRANTEE") as $revokeUser) {
-		$db->setQuery("REVOKE ALL ON $database.* FROM $revokeUser");
+		$db->setQuery("REVOKE ALL ON `$database`.* FROM $revokeUser");
 	}
-	$db->setQuery("CREATE DATABASE $database");
+	$db->setQuery("CREATE DATABASE `$database`");
 	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username")) as $user) {
 		if(canUserAccessComponent($user["userID"], "mysql")) {
-			$db->setQuery("GRANT ALL ON $database.* TO '{$user["username"]}'@'%'");
+			$db->setQuery("GRANT ALL ON `$database`.* TO '{$user["username"]}'@'%'");
 		} else {
-			$db->setQuery("GRANT ALL ON $database.* TO '{$user["username"]}'@'0.0.0.0'");
+			$db->setQuery("GRANT ALL ON `$database`.* TO '{$user["username"]}'@'0.0.0.0'");
 		}
 	}
 }
@@ -37,7 +37,7 @@ function mysqlRevokeRights($database, $db = null)
 	}
 	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username")) as $user) {
 		$host = (canUserAccessComponent($user["userID"], "mysql")) ? "%" : "0.0.0.0";
-		$db->setQuery("REVOKE ALL ON $database.* FROM '{$user["username"]}'@'$host'");
+		$db->setQuery("REVOKE ALL ON `$database`.* FROM '{$user["username"]}'@'$host'");
 	}
 }
 
@@ -83,7 +83,7 @@ function mysqlCreateUser($user, $password, $enabled = true, $db = null)
 	}
 
 	foreach($db->query("SELECT DISTINCT TABLE_SCHEMA AS name FROM SCHEMA_PRIVILEGES WHERE GRANTEE='\'$oldUser\'@\'$oldHost\'';")->fetchList("name") as $database) {
-		$db->setQuery("GRANT ALL ON $database.* TO '$user'@$host");
+		$db->setQuery("GRANT ALL ON `$database`.* TO '$user'@$host");
 	}
 }
 
