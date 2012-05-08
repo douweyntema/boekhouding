@@ -34,6 +34,9 @@ function billingAddInvoiceLine($customerID, $description, $price, $discount)
 
 function billingUpdateInvoiceLines($customerID)
 {
+	if($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "invoicesEnabled") === 0) {
+		return;
+	}
 	$now = time();
 	$GLOBALS["database"]->startTransaction();
 	foreach($GLOBALS["database"]->stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
@@ -88,6 +91,9 @@ function billingUpdateAllInvoiceLines()
 function billingCreateInvoiceBatch($customerID)
 {
 	if(!isset($GLOBALS["controlpanelEnableCustomerEmail"]) || !$GLOBALS["controlpanelEnableCustomerEmail"]) {
+		return;
+	}
+	if($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID) "invoicesEnabled") === 0) {
 		return;
 	}
 	billingUpdateInvoiceLines($customerID);
