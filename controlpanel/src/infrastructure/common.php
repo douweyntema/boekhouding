@@ -212,7 +212,7 @@ function hostMailSystemList($hostID)
 			($hostMailSystem["eximVersion"] === null ? "-" : ($hostMailSystem["eximVersion"] == $hostMailSystem["systemVersion"] ? "OK" : "Out of date"))
 		);
 	}
-	return listTable(array("Hostname", "Primary", "Dovecot", "Exim"), $rows, "sortable list", "Mailsystems used by host $hostname");
+	return listTable(array("Name", "Primary", "Dovecot", "Exim"), $rows, "sortable list", "Mailsystems used by host $hostname");
 }
 
 function hostNameSystemList($hostID)
@@ -225,7 +225,7 @@ function hostNameSystemList($hostID)
 			($hostNameSystem["hostVersion"] === null ? "-" : ($hostNameSystem["hostVersion"] == $hostNameSystem["systemVersion"] ? "OK" : "Out of date"))
 		);
 	}
-	return listTable(array("Hostname", "Bind"), $rows, "sortable list", "Namesystems used by host $hostname");
+	return listTable(array("Name", "Bind"), $rows, "sortable list", "Namesystems used by host $hostname");
 }
 
 function fileSystemRefreshForm($fileSystemID)
