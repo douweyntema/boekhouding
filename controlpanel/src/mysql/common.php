@@ -32,7 +32,7 @@ function databaseList()
 	foreach(mysqlListDatabases() as $database) {
 		$rows[] = array(array("url"=>"{$phpMyAdmin}{$database}", "text"=>$database));
 	}
-	return listTable(array("Database name"), $rows, "sortable list");
+	return listTable(array("Database name"), $rows, null, false, "sortable list");
 }
 
 function addDatabaseForm($error = "", $values = null)

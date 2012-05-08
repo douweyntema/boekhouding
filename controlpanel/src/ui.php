@@ -803,12 +803,20 @@ function listTableCell($cell, $type)
 	return $output;
 }
 
-function listTable($header, $rows, $properties = null, $caption = null)
+function listTable($header, $rows, $caption, $showIfEmpty, $properties = null)
 {
 	if($properties === null) {
 		$properties = array();
 	} else if(!is_array($properties)) {
 		$properties = array("divclass"=>$properties);
+	}
+	
+	if (is_array($showIfEmpty) && count($rows) == 0) {
+		$caption = $showIfEmpty[0];
+		$showIfEmpty = $showIfEmpty[1];
+	}
+	if ($showIfEmpty === false && count($rows) == 0) {
+		return "";
 	}
 	
 	$output = "";
@@ -835,6 +843,10 @@ function listTable($header, $rows, $properties = null, $caption = null)
 	
 	if($caption !== null) {
 		$output .= "<caption>$caption</caption>\n";
+	}
+	
+	if (is_string($showIfEmpty) && count($rows) == 0) {
+		return $output . "<tr><td>$showIfEmpty</td></tr>\n</table>\n</div>\n";
 	}
 	
 	$output .= "<thead>\n";

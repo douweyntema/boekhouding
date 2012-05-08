@@ -116,7 +116,7 @@ function domainsList()
 			array("url"=>"{$GLOBALS["root"]}http/domain.php?id={$domain["domainID"]}", "text"=>$domain["name"])
 		);
 	}
-	return listTable(array("Domain"), $rows, "list sortable");
+	return listTable(array("Domain"), $rows, null, false, "list sortable");
 }
 
 function domainSummary($domainID)
@@ -131,7 +131,7 @@ function domainSummary($domainID)
 			functionDescription($address)
 		));
 	}
-	return listTable(array("Address", "Function"), $rows, "list tree");
+	return listTable(array("Address", "Function"), $rows, null, true, "list tree");
 }
 
 function pathSummary($pathID)
@@ -146,7 +146,7 @@ function pathSummary($pathID)
 			functionDescription($address)
 		));
 	}
-	return listTable(array("Address", "Function"), $rows, "list tree");
+	return listTable(array("Address", "Function"), $rows, null, true, "list tree");
 }
 
 function singlePathSummary($pathID)
@@ -157,7 +157,7 @@ function singlePathSummary($pathID)
 		array("url"=>(isset($address["domainID"]) ? "domain.php?id={$address["domainID"]}" : ("path.php?id={$address["pathID"]}")), "text"=>$address["name"]),
 		functionDescription($address)
 	));
-	return listTable(array("Address", "Function"), $rows, "list tree");
+	return listTable(array("Address", "Function"), $rows, null, true, "list tree");
 }
 
 function pathFunctionForm($pathID)

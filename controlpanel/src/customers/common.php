@@ -53,7 +53,7 @@ function customerList()
 			array("url"=>"{$GLOBALS["rootHtml"]}billing/customer.php?id={$customer["customerID"]}", "html"=>formatPrice(billingBalance($customer["customerID"])))
 		);
 	}
-	return listTable(array("Nickname", "Name", "Email", "Filesystem", "Mailsystem", "Namesystem", "Balance"), $rows, "sortable list");
+	return listTable(array("Nickname", "Name", "Email", "Filesystem", "Mailsystem", "Namesystem", "Balance"), $rows, "Customers", true, "sortable list");
 }
 
 function customerBalance($customerID)

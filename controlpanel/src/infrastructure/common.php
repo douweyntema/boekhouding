@@ -33,7 +33,7 @@ function fileSystemList()
 			$fileSystem["description"]
 		);
 	}
-	return listTable(array("Name", "Description"), $rows, "sortable list", "Filesystems");
+	return listTable(array("Name", "Description"), $rows, "Filesystems", true, "sortable list");
 }
 
 function mailSystemList()
@@ -45,7 +45,7 @@ function mailSystemList()
 			$mailSystem["description"]
 		);
 	}
-	return listTable(array("Name", "Description"), $rows, "sortable list", "Mailsystems");
+	return listTable(array("Name", "Description"), $rows, "Mailsystems", true, "sortable list");
 }
 
 function nameSystemList()
@@ -57,7 +57,7 @@ function nameSystemList()
 			$nameSystem["description"]
 		);
 	}
-	return listTable(array("Name", "Description"), $rows, "sortable list", "Namesystems");
+	return listTable(array("Name", "Description"), $rows, "Namesystems", true, "sortable list");
 }
 
 function hostList()
@@ -69,7 +69,7 @@ function hostList()
 			$host["description"]
 		);
 	}
-	return listTable(array("Name", "Description"), $rows, "sortable list", "Hosts");
+	return listTable(array("Name", "Description"), $rows, "Hosts", true, "sortable list");
 }
 
 function customerList($entityName, $customers)
@@ -82,7 +82,7 @@ function customerList($entityName, $customers)
 			array("url"=>"mailto:{$customer["email"]}", "text"=>$customer["email"])
 		);
 	}
-	return listTable(array("Nickname", "Name", "Email"), $rows, "sortable list", "Customers using $entityName");
+	return listTable(array("Nickname", "Name", "Email"), $rows, "Customers using $entityName", true, "sortable list");
 }
 
 function fileSystemDetail($fileSystemID)
@@ -113,7 +113,7 @@ function fileSystemHostList($fileSystemID)
 			($hostFileSystem["webserverVersion"] === null ? "-" : ($hostFileSystem["webserverVersion"] == $hostFileSystem["httpVersion"] ? "OK" : "Out of date"))
 		);
 	}
-	return listTable(array("Name", "Login", "Mount", "Webhosting"), $rows, "sortable list", "Hosts in filesystem $fileSystemName");
+	return listTable(array("Name", "Login", "Mount", "Webhosting"), $rows, "Hosts in filesystem $fileSystemName", true, "sortable list");
 }
 
 function mailSystemDetail($mailSystemID)
@@ -144,7 +144,7 @@ function mailSystemHostList($mailSystemID)
 			($hostMailSystem["eximVersion"] === null ? "-" : ($hostMailSystem["eximVersion"] == $hostMailSystem["systemVersion"] ? "OK" : "Out of date"))
 		);
 	}
-	return listTable(array("Hostname", "Primary", "Dovecot", "Exim"), $rows, "sortable list", "Hosts in mailsystem $mailSystemName");
+	return listTable(array("Hostname", "Primary", "Dovecot", "Exim"), $rows, "Hosts in mailsystem $mailSystemName", true, "sortable list");
 }
 
 function nameSystemDetail($nameSystemID)
@@ -173,7 +173,7 @@ function nameSystemHostList($nameSystemID)
 			($hostNameSystem["hostVersion"] === null ? "-" : ($hostNameSystem["hostVersion"] == $hostNameSystem["systemVersion"] ? "OK" : "Out of date"))
 		);
 	}
-	return listTable(array("Hostname", "Bind"), $rows, "sortable list", "Hosts in namesystem $nameSystemName");
+	return listTable(array("Hostname", "Bind"), $rows, "Hosts in namesystem $nameSystemName", true, "sortable list");
 }
 
 function hostDetail($hostID)
@@ -197,7 +197,7 @@ function hostFileSystemList($hostID)
 			($hostFileSystem["webserverVersion"] === null ? "-" : ($hostFileSystem["webserverVersion"] == $hostFileSystem["httpVersion"] ? "OK" : "Out of date"))
 		);
 	}
-	return listTable(array("Name", "Login", "Mount", "Webhosting"), $rows, "sortable list", "Filesystems used by host $hostname");
+	return listTable(array("Name", "Login", "Mount", "Webhosting"), $rows, "Filesystems used by host $hostname", true, "sortable list");
 }
 
 function hostMailSystemList($hostID)
@@ -212,7 +212,7 @@ function hostMailSystemList($hostID)
 			($hostMailSystem["eximVersion"] === null ? "-" : ($hostMailSystem["eximVersion"] == $hostMailSystem["systemVersion"] ? "OK" : "Out of date"))
 		);
 	}
-	return listTable(array("Name", "Primary", "Dovecot", "Exim"), $rows, "sortable list", "Mailsystems used by host $hostname");
+	return listTable(array("Name", "Primary", "Dovecot", "Exim"), $rows, "Mailsystems used by host $hostname", true, "sortable list");
 }
 
 function hostNameSystemList($hostID)
@@ -225,7 +225,7 @@ function hostNameSystemList($hostID)
 			($hostNameSystem["hostVersion"] === null ? "-" : ($hostNameSystem["hostVersion"] == $hostNameSystem["systemVersion"] ? "OK" : "Out of date"))
 		);
 	}
-	return listTable(array("Name", "Bind"), $rows, "sortable list", "Namesystems used by host $hostname");
+	return listTable(array("Name", "Bind"), $rows, "Namesystems used by host $hostname", true, "sortable list");
 }
 
 function fileSystemRefreshForm($fileSystemID)

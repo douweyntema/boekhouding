@@ -96,7 +96,7 @@ function domainsList()
 			$domain["status"]
 		);
 	}
-	return listTable(array("Domain", "Status"), $rows, "sortable list");
+	return listTable(array("Domain name", "Status"), $rows, "Domains", false, "sortable list");
 }
 
 function subDomainsList($parentDomainID)
@@ -114,7 +114,7 @@ function subDomainsList($parentDomainID)
 			array("url"=>"{$GLOBALS["root"]}domains/domain.php?id={$domain["domainID"]}", "text"=>$domain["name"])
 		);
 	}
-	return listTable(array("Subdomains"), $rows, "sortable list");
+	return listTable(array("Subdomains"), $rows, null, false, "sortable list");
 }
 
 function domainDetail($domainID)

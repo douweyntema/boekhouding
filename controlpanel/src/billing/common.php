@@ -84,7 +84,7 @@ function subscriptionList($customerID)
 			$endDate
 		);
 	}
-	return listTable(array("Description", "Price", "Discounts", "Renew date", "End date"), $rows, "sortable list", "Subscriptions");
+	return listTable(array("Description", "Price", "Discounts", "Renew date", "End date"), $rows, "Subscriptions", true, "sortable list");
 }
 
 function customerSubscriptionList()
@@ -102,7 +102,7 @@ function customerSubscriptionList()
 			array("html"=>formatSubscriptionPrice($subscription))
 		);
 	}
-	return listTable(array("Description", "Price"), $rows, "sortable list", "Subscriptions");
+	return listTable(array("Description", "Price"), $rows, "Subscriptions", false, "sortable list");
 }
 
 function subscriptionDetail($subscriptionID)
@@ -172,7 +172,7 @@ function invoiceList($customerID)
 			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"])))
 		);
 	}
-	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount"), $rows, "sortable list", "Invoices");
+	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount"), $rows, "Invoices", "No invoices have been sent to far.", "sortable list");
 }
 
 function paymentList($customerID)
@@ -185,7 +185,7 @@ function paymentList($customerID)
 			$payment["description"]
 		);
 	}
-	return listTable(array("Date", "Amount", "Description"), $rows, "sortable list", "Payments");
+	return listTable(array("Date", "Amount", "Description"), $rows, "Payments", true, "sortable list");
 }
 
 function addPaymentForm($customerID, $error = "", $values = null)

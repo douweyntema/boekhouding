@@ -91,7 +91,7 @@ function mailDomainsList()
 			$GLOBALS["database"]->stdCount("mailAddress", array("domainID"=>$domain["domainID"]))
 		);
 	}
-	return listTable(array("Domain", "Number of mailboxes"), $rows, "sortable list");
+	return listTable(array("Domain name", "Number of mailboxes"), $rows, null, false, "sortable list");
 }
 
 function mailboxList($domainID)
@@ -104,7 +104,7 @@ function mailboxList($domainID)
 			"{$mailbox["quota"]} MiB"
 		);
 	}
-	return listTable(array(array("text"=>"Mailbox", "class"=>"entityalign"), "Maximum size"), $rows, "sortable list");
+	return listTable(array(array("text"=>"Address", "class"=>"entityalign"), "Maximum size"), $rows, "Mailboxes", false, "sortable list");
 }
 
 function mailAliasList($domainID)
@@ -117,7 +117,7 @@ function mailAliasList($domainID)
 			array("text"=>"{$alias["targetAddress"]}", "class"=>"nowrap")
 		);
 	}
-	return listTable(array(array("text"=>"Alias", "class"=>"entityalign"), "Forward to"), $rows, "sortable list");
+	return listTable(array(array("text"=>"Address", "class"=>"entityalign"), "Forward to"), $rows, "Aliases", false, "sortable list");
 }
 
 function mailListList($domainID)
@@ -131,7 +131,7 @@ function mailListList($domainID)
 			"$count members"
 		);
 	}
-	return listTable(array(array("text"=>"Mailinglist", "class"=>"entityalign"), "Members"), $rows, "sortable list");
+	return listTable(array(array("text"=>"Address", "class"=>"entityalign"), "Members"), $rows, "Mailing lists", false, "sortable list");
 }
 
 function mailListMemberList($listID)
@@ -148,7 +148,7 @@ function mailListMemberList($listID)
 	$footer = array(
 		array("html"=>"<table class=\"inline\" style=\"width: 100%\"><tr><td style=\"width: 100%; text-align: center; margin: 10px -6px -6px -6px; padding: 10px 27px 6px 27px; background-color: #ffffff;\"><input type=\"submit\" value=\"Remove Selected Members\" style=\"width: 100%\" /></td><td style=\"white-space: nowrap; background-color: #ffffff; vertical-align: middle;\"><a href=\"#\" class=\"rightalign selectall\" id=\"$id\" style=\"margin-right: 2px;\">Select all</a></td></tr></table>")
 	);
-	return listTable(array("Member"), $rows, array("divclass"=>"sortable list", "formtarget"=>"removemember.php?id=$listID", "footer"=>$footer, "footerclass"=>"selectallsubmit"));
+	return listTable(array("Member"), $rows, null, array("Members", "This mailing list does not contain any members."), array("divclass"=>"sortable list", "formtarget"=>"removemember.php?id=$listID", "footer"=>$footer, "footerclass"=>"selectallsubmit"));
 }
 
 function mailboxSummary($addressID)

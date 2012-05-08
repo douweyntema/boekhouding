@@ -76,7 +76,7 @@ function accountList()
 			($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$account["userID"], "customerRightID"=>null))) ? "Full access" : "Limited rights"
 		);
 	}
-	return listTable(array("Account name", "Type"), $rows, "list sortable");
+	return listTable(array("Account name", "Type"), $rows, null, array("Accounts", "No accounts have been created."), "list sortable");
 }
 
 function adminAccountList()
@@ -87,7 +87,7 @@ function adminAccountList()
 			array("url"=>"{$GLOBALS["rootHtml"]}accounts/adminaccount.php?id={$account["userID"]}", "text"=>$account["username"])
 		);
 	}
-	return listTable(array("Account name"), $rows, "list sortable");
+	return listTable(array("Account name"), $rows, null, true, "list sortable");
 }
 
 function addAccountForm($error = "", $values = null)

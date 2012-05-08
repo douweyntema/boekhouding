@@ -51,7 +51,8 @@ function adminThreadList($status)
 			date("d-m-Y H:i", $thread["date"])
 		);
 	}
-	return listTable(array("Ticket nr.", "Customer", "User", "Title", "Date"), $rows, "sortable list");
+	$statusLower = strtolower($status);
+	return listTable(array("Ticket nr.", "Customer", "User", "Title", "Date"), $rows, null, array("Tickets", "There are currently no $statusLower tickets."), "sortable list");
 }
 
 function threadList($status)
@@ -66,7 +67,8 @@ function threadList($status)
 			date("d-m-Y H:i", $thread["date"])
 		);
 	}
-	return listTable(array("Ticket nr.", "User", "Title", "Date"), $rows, "sortable list");
+	$statusLower = strtolower($status);
+	return listTable(array("Ticket nr.", "User", "Title", "Date"), $rows, null, array("Tickets", "There are currently no $statusLower tickets."), "sortable list");
 }
 
 function showThread($threadID)
