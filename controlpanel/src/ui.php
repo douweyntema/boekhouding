@@ -792,7 +792,7 @@ function listTableCell($cell, $type)
 	if(isset($cell["html"]) && $cell["html"] !== null) {
 		$output .= $cell["html"];
 	} else if(isset($cell["text"]) && $cell["text"] !== null) {
-		$output .= htmlentities($cell["text"]);
+		$output .= nl2br(htmlentities($cell["text"]));
 	}
 	
 	if(isset($cell["url"]) && $cell["url"] !== null) {
@@ -910,7 +910,7 @@ function summaryTable($title, $values)
 		if(isset($value["html"]) && $value["html"] !== null) {
 			$html = $value["html"];
 		} else if(isset($value["text"]) && $value["text"] !== null) {
-			$html = htmlentities($value["text"]);
+			$html = nl2br(htmlentities($value["text"]));
 		} else {
 			$html = "";
 		}
