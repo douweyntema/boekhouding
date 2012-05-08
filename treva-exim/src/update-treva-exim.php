@@ -78,6 +78,8 @@ $hostIDSql = $GLOBALS["database"]->addSlashes($hostID);
 $databaseDirectory = "/etc/exim4/database";
 umask(077);
 
+file_put_contents("$databaseDirectory/mailname-$time", "primary_hostname = $hostname\n");
+
 $localDomains = "";
 $relayDomains = "";
 foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS name, self.`primary` AS `primary` FROM infrastructureMailServer AS self INNER JOIN infrastructureMailServer AS master USING(mailSystemID) INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE self.hostID='$hostIDSql' AND master.`primary` = 1")->fetchList() as $domain) {
@@ -133,7 +135,7 @@ foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infr
 }
 file_put_contents("$databaseDirectory/auth_passwords-$time", $authPasswords);
 
-foreach(array("local_domains", "relay_domains", "local_mailboxes", "local_aliases", "relay_addresses", "auth_passwords") as $file) {
+foreach(array("local_domains", "relay_domains", "local_mailboxes", "local_aliases", "relay_addresses", "auth_passwords", "mailname") as $file) {
 	chown("$databaseDirectory/$file-$time", "Debian-exim");
 	chgrp("$databaseDirectory/$file-$time", "Debian-exim");
 	rename("$databaseDirectory/$file-$time", "$databaseDirectory/$file");

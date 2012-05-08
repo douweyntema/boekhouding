@@ -11,7 +11,7 @@ fi
 
 umask 077
 mkdir -p /etc/exim4/database
-touch /etc/exim4/database/{local_domains,relay_domains,local_mailboxes,local_aliases,relay_addresses,auth_passwords}
+touch /etc/exim4/database/{local_domains,relay_domains,local_mailboxes,local_aliases,relay_addresses,auth_passwords,mailname}
 chown -R Debian-exim:Debian-exim /etc/exim4/database/
 
 echo "ENABLED=1" >> /etc/default/spamassassin
