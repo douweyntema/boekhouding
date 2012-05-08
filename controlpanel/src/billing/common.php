@@ -244,14 +244,28 @@ function editSubscriptionForm($subscriptionID, $error = "", $values = null)
 {
 	if($values === null) {
 		$values = $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
+		$values["priceType"] = $values["price"] === null ? "domain" : "custom";
 		$values["price"] = formatPriceRaw($values["price"]);
 		$values["discountAmount"] = formatPriceRaw($values["discountAmount"]);
 		$values["invoiceDelay"] = round($values["invoiceDelay"] / (24 * 3600));
+		if($values["discountPercentage"] === null) {
+			$values["discountPercentage"] = 0;
+		}
 	}
+	$domainTldID = $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), "domainTldID");
 	return operationForm("editsubscription.php?id=$subscriptionID", $error, "Edit subscription", "Save",
 		array(
 			array("title"=>"Description", "type"=>"text", "name"=>"description"),
-			array("title"=>"Price", "type"=>"text", "name"=>"price"),
+			$domainTldID !== null ?
+				array("title"=>"Price", "type"=>"subformchooser", "name"=>"priceType", "subforms"=>array(
+					array("value"=>"domain", "label"=>"Use tld price (" . formatPrice(billingDomainPrice($domainTldID)) . ")", "subform"=>array()),
+					array("value"=>"custom", "label"=>"Custom", "subform"=>array(
+						array("type"=>"text", "name"=>"price")
+					))
+				))
+			:
+				array("title"=>"Price", "type"=>"text", "name"=>"price")
+			,
 			array("title"=>"Discount percentage", "type"=>"text", "name"=>"discountPercentage"),
 			array("title"=>"Discount amount", "type"=>"text", "name"=>"discountAmount"),
 			array("title"=>"Frequency", "type"=>"colspan", "columns"=>array(
