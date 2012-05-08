@@ -15,7 +15,7 @@ function main()
 	$targetAddress = post("targetAddress");
 	
 	if(strpos($targetAddress, "@") === false) {
-		$targetAddress .= "@" . $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), "name");
+		$targetAddress .= "@" . domainName($domainID);
 		$_POST["targetAddress"] = $targetAddress;
 	}
 	
