@@ -93,7 +93,7 @@ function billingCreateInvoiceBatch($customerID)
 	if(!isset($GLOBALS["controlpanelEnableCustomerEmail"]) || !$GLOBALS["controlpanelEnableCustomerEmail"]) {
 		return;
 	}
-	if($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID) "invoicesEnabled") === 0) {
+	if($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "invoicesEnabled") === 0) {
 		return;
 	}
 	billingUpdateInvoiceLines($customerID);
