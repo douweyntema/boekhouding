@@ -28,6 +28,8 @@ foreach($newsItems as $item) {
 HTML;
 }
 
+$content .= customersOverview();
+
 if(isRoot()) {
 	$content .= <<<HTML
 <div class="operation">
