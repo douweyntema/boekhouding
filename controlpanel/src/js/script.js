@@ -34,7 +34,15 @@ function setupAutoCollapse()
 		$("input[type=radio][name=" + $(this).attr("name") + "]").each(function() {
 			checked = $(this).attr("checked") != undefined;
 			$(".if-selected-" + $(this).attr("id")).each(function() {
-				$(this).css("visibility", checked ? "visible" : "collapse");
+				if($(this).hasClass("collapse-disable")) {
+					if(checked) {
+						$(this).find(":input").removeAttr("disabled");
+					} else {
+						$(this).find(":input").attr("disabled", "disabled");
+					}
+				} else {
+					$(this).css("visibility", checked ? "visible" : "collapse");
+				}
 			});
 		});
 	}).change();

@@ -99,11 +99,14 @@ function addAccountForm($error = "", $values = null)
 		}
 		$rights[] = array("type"=>"checkbox", "label"=>htmlentities($right["description"]), "name"=>"right-{$right["name"]}");
 	}
+	if($values === null) {
+		$values = array("rights"=>"full");
+	}
 	return operationForm("addaccount.php", $error, "Add account", "Add",
 		array(
 			array("title"=>"Username", "type"=>"text", "name"=>"username"),
 			array("title"=>"Password", "type"=>"password", "name"=>"password", "confirmtitle"=>"Confirm password"),
-			array("title"=>"Rights", "type"=>"subformchooser", "name"=>"rights", "subforms"=>array(
+			array("title"=>"Rights", "type"=>"subformchooser", "name"=>"rights", "rowclass"=>"collapse-disable", "subforms"=>array(
 				array("value"=>"full", "label"=>"Full access", "subform"=>array()),
 				array("value"=>"limited", "label"=>"Limited rights", "subform"=>$rights)
 			))
@@ -143,7 +146,7 @@ function changeAccountRightsForm($userID, $error = "", $values = null)
 	}
 	return operationForm("editrights.php?id=$userID", $error, "Change account access rights", "Change",
 		array(
-			array("title"=>"Rights", "type"=>"subformchooser", "name"=>"rights", "subforms"=>array(
+			array("title"=>"Rights", "type"=>"subformchooser", "name"=>"rights", "rowclass"=>"collapse-disable", "subforms"=>array(
 				array("value"=>"full", "label"=>"Full access", "subform"=>array()),
 				array("value"=>"limited", "label"=>"Limited rights", "subform"=>$rights)
 			))
