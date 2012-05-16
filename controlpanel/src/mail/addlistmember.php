@@ -11,10 +11,13 @@ function main()
 		if(!$condition) die(page(listHeader($listID) . addMailListMemberForm($listID, $error, $_POST)));
 	};
 	
-	$members = explode("\n", post("members"));
+	$members = explode(" ", str_replace(array(" ", "\n", "\t", ",", ";", "<", ">"), " ", post("members")));
 	$realMembers = array();
 	foreach($members as $member) {
 		$member = trim($member);
+		if(strpos($member, "@") === false) {
+			continue;
+		}
 		if($member != "") {
 			$realMembers[] = $member;
 		}
@@ -28,6 +31,9 @@ function main()
 		}
 	}
 	$check(count($messages) == 0, implode("<br />", $messages));
+	
+	$_POST["members"] = implode("\n", $realMembers);
+	
 	$check(post("confirm") !== null, null);
 	
 	$GLOBALS["database"]->startTransaction();
