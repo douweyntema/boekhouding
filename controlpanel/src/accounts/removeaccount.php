@@ -12,6 +12,7 @@ function main()
 		if(!$condition) die(page(makeHeader("Accounts - $username", accountBreadcrumbs($userID), crumbs("Remove account", "removeaccount.php?id=$userID")) . removeAccountForm($userID, $error, $_POST)));
 	};
 	
+	$check(!accountsIsMainAccount($userID), "Unable to remove your main account.");
 	$check(post("confirm") !== null, null);
 	
 	mysqlRemoveAccount($username);

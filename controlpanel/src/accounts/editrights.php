@@ -28,6 +28,7 @@ function main()
 		$check(false, "");
 	}
 	
+	$check(!accountsIsMainAccount($userID), "Unable to edit rights on your main account.");
 	$check(post("confirm") !== null, null);
 	
 	if($rights === true || (isset($rights["mysql"]) && $rights["mysql"])) {
