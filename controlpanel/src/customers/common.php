@@ -82,8 +82,19 @@ function addCustomerForm($error = "", $values = null)
 			"invoiceFrequencyBase"=>"MONTH",
 		);
 	}
+	
+	$rights = array();
+	foreach(rights() as $right) {
+		$rights[] = array("type"=>"colspan", "columns"=>array(
+			array("type"=>"checkbox", "name"=>"right-{$right["name"]}", "id"=>"checkbox-right-{$right["name"]}"),
+			array("type"=>"label", "label"=>$right["title"], "id"=>"checkbox-right-{$right["name"]}", "cellclass"=>"nowrap"),
+			array("type"=>"html", "html"=>htmlentities($right["description"]), "fill"=>true)
+		));
+	}
+	
 	return operationForm("addcustomer.php", $error, "Add customer", "Add", array(
 		array("title"=>"Nickname", "type"=>"text", "name"=>"name"),
+		array("title"=>"Account password", "confirmtitle"=>"Confirm account password", "type"=>"password", "name"=>"password"),
 		array("title"=>"Initials", "type"=>"text", "name"=>"initials"),
 		array("title"=>"Last name", "type"=>"text", "name"=>"lastName"),
 		array("title"=>"Company name", "type"=>"text", "name"=>"companyName"),
@@ -109,7 +120,8 @@ function addCustomerForm($error = "", $values = null)
 			array("type"=>"html", "html"=>"per"),
 			array("type"=>"text", "name"=>"invoiceFrequencyMultiplier", "fill"=>true),
 			array("type"=>"dropdown", "name"=>"invoiceFrequencyBase", "options"=>dropdown(array("DAY"=>"days", "MONTH"=>"months", "YEAR"=>"years")))
-		))
+		)),
+		array("title"=>"Rights", "type"=>"rowspan", "rows"=>$rights)
 	), $values);
 }
 
