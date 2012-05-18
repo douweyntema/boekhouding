@@ -23,12 +23,12 @@ function main()
 	};
 	
 	if($type == "none") {
-		$check(!isSubDomain($domainID), "");
+		$check(!domainsIsSubDomain($domainID), "");
 		
 		$remove();
 		$function = array("addressType"=>"NONE");
 	} else if($type == "inherit") {
-		$check(isSubDomain($domainID), "");
+		$check(domainsIsSubDomain($domainID), "");
 		
 		$remove();
 		$function = array("addressType"=>"INHERIT");
@@ -58,7 +58,7 @@ function main()
 			$_POST["cnameTarget"] = substr($target, 0, -1);
 			$target = post("cnameTarget");
 		} else if(strpos($target, ".") === false) {
-			if(isSubDomain($domainID)) {
+			if(domainsIsSubDomain($domainID)) {
 				$_POST["cnameTarget"] .= "." . domainsFormatDomainName($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID"));
 			} else {
 				$_POST["cnameTarget"] .= "." . domainsFormatDomainName($domainID);
@@ -103,8 +103,7 @@ function main()
 	
 	updateDomains(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}domains/domain.php?id=$domainID");
+	redirect("domains/domain.php?id=$domainID");
 }
 
 main();

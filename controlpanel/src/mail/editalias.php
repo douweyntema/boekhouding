@@ -21,8 +21,7 @@ function main()
 	
 	updateMail(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}mail/domain.php?id=$domainID");
+	redirect("domain.php?id=$domainID");
 }
 
 main();

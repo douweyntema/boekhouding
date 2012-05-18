@@ -10,10 +10,10 @@ function main()
 	$fileSystemName = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "name");
 	
 	if(post("refreshall") !== null || post("refreshmount") !== null) {
-		refreshFileSystemMount($fileSystemID);
+		infrastructureRefreshFileSystemMount($fileSystemID);
 	}
 	if(post("refreshall") !== null || post("refreshwebserver") !== null) {
-		refreshFileSystemWebServer($fileSystemID);
+		infrastructureRefreshFileSystemWebServer($fileSystemID);
 	}
 	
 	$content = makeHeader("Infrastructure - filesystem " . htmlentities($fileSystemName), infrastructureBreadcrumbs(), crumbs($fileSystemName, "filesystem.php?id=$fileSystemID"));

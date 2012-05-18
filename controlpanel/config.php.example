@@ -15,6 +15,7 @@ $database_username = "";
 $database_password = "";
 $database_name = "treva-panel";
 
+$mysql_management_disabled = false;
 $mysql_management_username = "";
 $mysql_management_password = "";
 

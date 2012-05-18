@@ -447,69 +447,6 @@ function removeMailboxForm($addressID, $error = "", $values = null)
 	return operationForm("removemailbox.php?id=$addressID", $error, "Delete mailbox", "Yes, delete the mail", array(), $values, array("confirmdelete"=>"Are you sure you want to remove this mailbox? This will permanently delete all mail stored in it."));
 }
 
-function validDomainPart($name)
-{
-	return preg_match('/^[-a-zA-Z0-9_]+$/', $name) == 1;
-}
-
-function validDomain($name)
-{
-	if(strlen($name) < 1 || strlen($name) > 255) {
-		return false;
-	}
-	$parts = explode(".", $name);
-	foreach($parts as $part) {
-		if(!validDomainPart($part)) {
-			return false;
-		}
-	}
-	return true;
-}
-
-function validLocalPart($localpart)
-{
-	if(strlen($localpart) == 0) {
-		return false;
-	}
-	if(strlen($localpart) > 255) {
-		return false;
-	}
-	if(substr($localpart, 0, 1) == ".") {
-		return false;
-	}
-	
-	if(trim($localpart, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-_.^*={}") != "") {
-		return false;
-	}
-	return true;
-}
-
-function validDirectory($name)
-{
-	if(strlen($name) < 1 || strlen($name) > 255) {
-		return false;
-	}
-	if(preg_match('/^[-a-zA-Z0-9_.]*$/', $name) != 1) {
-		return false;
-	}
-	return true;
-}
-
-function validEmail($email)
-{
-	if(strlen($email) == 0) {
-		return false;
-	}
-	if(strlen($email) > 255) {
-		return false;
-	}
-	$atpos = strpos($email, "@");
-	if($atpos === false || $atpos == 0 || $atpos == strlen($email) - 1) {
-		return false;
-	}
-	return true;
-}
-
 function domainName($domainID)
 {
 	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), array("name", "domainTldID"));

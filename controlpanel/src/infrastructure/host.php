@@ -10,19 +10,19 @@ function main()
 	$hostname = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), "hostname");
 	
 	if(post("refreshall") !== null || post("refreshmount") !== null) {
-		refreshHostMount($hostID);
+		infrastructureRefreshHostMount($hostID);
 	}
 	if(post("refreshall") !== null || post("refreshwebserver") !== null) {
-		refreshHostWebServer($hostID);
+		infrastructureRefreshHostWebServer($hostID);
 	}
 	if(post("refreshall") !== null || post("refreshdovecot") !== null) {
-		refreshHostDovecot($hostID);
+		infrastructureRefreshHostDovecot($hostID);
 	}
 	if(post("refreshall") !== null || post("refreshexim") !== null) {
-		refreshHostExim($hostID);
+		infrastructureRefreshHostExim($hostID);
 	}
 	if(post("refreshall") !== null || post("refreshbind") !== null) {
-		refreshHostBind($hostID);
+		infrastructureRefreshHostBind($hostID);
 	}
 	
 	$content = makeHeader("Infrastructure - host " . htmlentities($hostname), infrastructureBreadcrumbs(), crumbs($hostname, "host.php?id=$hostID"));

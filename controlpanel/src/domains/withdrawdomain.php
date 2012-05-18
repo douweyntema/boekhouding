@@ -8,7 +8,7 @@ function main()
 	doDomains($domainID);
 	doDomainsBilling();
 	
-	if(isSubDomain($domainID) || domainsDomainStatus($domainID) != "active") {
+	if(domainsIsSubDomain($domainID) || domainsDomainStatus($domainID) != "active") {
 		error404();
 	}
 	$autorenew = domainsDomainAutorenew($domainID);
@@ -24,8 +24,7 @@ function main()
 	
 	domainsDisableAutoRenew($domainID);
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}domains/domain.php?id=$domainID");
+	redirect("domains/domain.php?id=$domainID");
 }
 
 main();

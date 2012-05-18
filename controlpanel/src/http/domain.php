@@ -12,7 +12,7 @@ function main()
 		error404();
 	}
 	
-	$content = makeHeader("Web hosting - " . domainName($domainID), domainBreadcrumbs($domainID));
+	$content = makeHeader("Web hosting - " . httpDomainName($domainID), domainBreadcrumbs($domainID));
 	$content .= domainSummary($domainID);
 	$content .= editPathForm($pathID, "STUB");
 	$content .= addSubdomainForm($domainID, "STUB");

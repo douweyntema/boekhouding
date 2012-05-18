@@ -12,11 +12,11 @@ function main()
 	};
 	
 	$check(($name = post("name")) !== null, "");
-	$check(validSubdomain($name), "Invalid domain name.");
+	$check(validDomainPart($name), "Invalid domain name.");
 	$check(!$GLOBALS["database"]->stdExists("httpDomain", array("parentDomainID"=>$domainID, "name"=>$name)), "A domain with the chosen name already exists.");
 	
 	if(post("documentRoot") == null) {
-		$_POST["documentRoot"] = $name . "." . domainName($domainID);
+		$_POST["documentRoot"] = $name . "." . httpDomainName($domainID);
 	}
 	
 	$check(($type = searchKey($_POST, "hosted", "redirect", "mirror")) !== null, "");
@@ -52,8 +52,7 @@ function main()
 	
 	updateHttp(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}http/domain.php?id=$newDomainID");
+	redirect("domain.php?id=$newDomainID");
 }
 
 main();

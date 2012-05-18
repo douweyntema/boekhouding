@@ -34,7 +34,7 @@ function main()
 	$check(count($directoryParts) > 0 || $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$parentPathID), "type") == "NONE", "A directory with the chosen name already exists.");
 	
 	if(post("documentRoot") == null) {
-		$_POST["documentRoot"] = str_replace("/", "-", pathName($pathID) . "/$directoryName");
+		$_POST["documentRoot"] = str_replace("/", "-", httpPathName($pathID) . "/$directoryName");
 	}
 	
 	$check(($type = searchKey($_POST, "hosted", "redirect", "mirror")) !== null, "");
@@ -72,8 +72,7 @@ function main()
 	
 	updateHttp(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}http/path.php?id=$parentPathID");
+	redirect("http/path.php?id=$parentPathID");
 }
 
 main();

@@ -7,14 +7,14 @@ function main()
 	$domainID = get("id");
 	doDomain($domainID);
 	
-	$content = makeHeader((isSubDomain($domainID) ? "Subdomain " : "Domain ") . domainsFormatDomainName($domainID), domainBreadcrumbs($domainID));
-	if(!isSubDomain($domainID)) {
+	$content = makeHeader((domainsIsSubDomain($domainID) ? "Subdomain " : "Domain ") . domainsFormatDomainName($domainID), domainBreadcrumbs($domainID));
+	if(!domainsIsSubDomain($domainID)) {
 		$content .= domainDetail($domainID);
 	}
 	$content .= subDomainsList($domainID);
 	$content .= editAddressForm($domainID, "STUB");
 	$content .= editMailForm($domainID, "STUB");
-	if(isSubDomain($domainID)) {
+	if(domainsIsSubDomain($domainID)) {
 		$content .= deleteDomainForm($domainID);
 	} else if(!canAccessComponent("billing")) {
 		// All further operations forbidden

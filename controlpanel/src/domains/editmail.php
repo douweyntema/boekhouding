@@ -54,8 +54,7 @@ function main()
 	
 	updateDomains(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}domains/domain.php?id=$domainID");
+	redirect("domains/domain.php?id=$domainID");
 }
 
 main();

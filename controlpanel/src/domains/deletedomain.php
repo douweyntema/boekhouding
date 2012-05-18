@@ -7,7 +7,7 @@ function main()
 	$domainID = get("id");
 	doDomains($domainID);
 	
-	if(!isSubDomain($domainID)) {
+	if(!domainsIsSubDomain($domainID)) {
 		error404();
 	}
 	
@@ -20,13 +20,12 @@ function main()
 	$parentDomainID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID");
 	
 	$GLOBALS["database"]->startTransaction();
-	removeDomain($domainID);
+	domainsRemoveDomain($domainID);
 	$GLOBALS["database"]->commitTransaction();
 	
 	updateDomains(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}domains/domain.php?id=$parentDomainID");
+	redirect("domains/domain.php?id=$parentDomainID");
 }
 
 main();

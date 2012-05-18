@@ -16,8 +16,7 @@ function main()
 	
 	$GLOBALS["database"]->stdDel("adminUser", array("userID"=>$userID, "customerID"=>null));
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}accounts/");
+	redirect("accounts/");
 }
 
 main();

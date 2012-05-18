@@ -31,10 +31,12 @@ function main()
 	$check(!accountsIsMainAccount($userID), "Unable to edit rights on your main account.");
 	$check(post("confirm") !== null, null);
 	
-	if($rights === true || (isset($rights["mysql"]) && $rights["mysql"])) {
-		mysqlEnableAccount($username);
-	} else {
-		mysqlDisableAccount($username);
+	if(!$GLOBALS["mysql_management_disabled"]) {
+		if($rights === true || (isset($rights["mysql"]) && $rights["mysql"])) {
+			mysqlEnableAccount($username);
+		} else {
+			mysqlDisableAccount($username);
+		}
 	}
 	
 	$GLOBALS["database"]->startTransaction();
@@ -53,8 +55,7 @@ function main()
 	
 	updateAccounts(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}accounts/account.php?id=$userID");
+	redirect("accounts/account.php?id=$userID");
 }
 
 main();

@@ -9,7 +9,7 @@ function main()
 	$domainID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "domainID");
 	
 	$check = function($condition, $error) use($domainID, $pathID) {
-		if(!$condition) die(page(makeHeader("Web hosting - " . domainName($domainID), pathBreadcrumbs($pathID), crumbs("Edit site", "editpath.php?id=$pathID")) . editPathForm($pathID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("Web hosting - " . httpDomainName($domainID), pathBreadcrumbs($pathID), crumbs("Edit site", "editpath.php?id=$pathID")) . editPathForm($pathID, $error, $_POST)));
 	};
 	
 	$check(($type = searchKey($_POST, "hosted", "redirect", "mirror")) !== null, "");
@@ -43,8 +43,7 @@ function main()
 	
 	updateHttp(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}http/domain.php?id=$domainID");
+	redirect("http/domain.php?id=$domainID");
 }
 
 main();

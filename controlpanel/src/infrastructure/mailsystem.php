@@ -10,10 +10,10 @@ function main()
 	$mailSystemName = $GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID), "name");
 	
 	if(post("refreshall") !== null || post("refreshdovecot") !== null) {
-		refreshMailSystemDovecot($mailSystemID);
+		infrastructureRefreshMailSystemDovecot($mailSystemID);
 	}
 	if(post("refreshall") !== null || post("refreshexim") !== null) {
-		refreshMailSystemExim($mailSystemID);
+		infrastructureRefreshMailSystemExim($mailSystemID);
 	}
 	
 	$content = makeHeader("Infrastructure - mailsystem " . htmlentities($mailSystemName), infrastructureBreadcrumbs(), crumbs($mailSystemName, "mailsystem.php?id=$mailSystemID"));

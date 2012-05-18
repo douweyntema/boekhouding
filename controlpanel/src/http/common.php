@@ -47,7 +47,7 @@ function domainBreadcrumbs($domainID)
 			$parts[] = array("id"=>$nextDomainID, "name"=>$domain["name"] . "." . $tld);
 			break;
 		} else if($domain["customerID"] != customerID()) {
-			$parts[] = array("id"=>$nextDomainID, "name"=>domainName($domainID));
+			$parts[] = array("id"=>$nextDomainID, "name"=>httpDomainName($domainID));
 			break;
 		} else {
 			$parts[] = array("id"=>$nextDomainID, "name"=>$domain["name"]);
@@ -74,7 +74,7 @@ function pathBreadcrumbs($pathID)
 	$nextPathID = $pathID;
 	$domainID = null;
 	while(true) {
-		$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$nextPathID), array("name", "parentPathID", "domainID", "type", "userDatabaseID"));
+		$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$nextPathID), array("name", "parentPathID", "domainID", "type"));
 		if($path["parentPathID"] === null) {
 			$domainID = $path["domainID"];
 			break;
@@ -105,7 +105,7 @@ function domainsList()
 	
 	$domains = array();
 	foreach($ownDomains as $ownDomain) {
-		$domainName = domainName($ownDomain["domainID"]);
+		$domainName = httpDomainName($ownDomain["domainID"]);
 		$domains[$domainName] = array("domainID"=>$ownDomain["domainID"], "name"=>$domainName);
 	}
 	ksort($domains);
@@ -169,7 +169,7 @@ function pathFunctionForm($pathID)
 	
 	$paths = array();
 	foreach($GLOBALS["database"]->query("SELECT pathID FROM httpPath INNER JOIN httpDomain ON httpPath.domainID = httpDomain.domainID WHERE httpDomain.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' AND httpPath.type != 'MIRROR'" . ($pathID === null ? "" : " AND httpPath.pathID <> '" . $GLOBALS["database"]->addSlashes($pathID) . "'"))->fetchList() as $path) {
-		$paths[] = array("value"=>$path["pathID"], "label"=>pathName($path["pathID"]));
+		$paths[] = array("value"=>$path["pathID"], "label"=>httpPathName($path["pathID"]));
 	}
 	asort($paths);
 	
@@ -237,7 +237,7 @@ function addSubdomainForm($domainID, $error = "", $values = null)
 		array(
 			array("title"=>"Subdomain name", "type"=>"colspan", "columns"=>array(
 				array("type"=>"text", "name"=>"name", "fill"=>true),
-				array("type"=>"html", "html"=>("." . domainName($domainID)))
+				array("type"=>"html", "html"=>("." . httpDomainName($domainID)))
 			)),
 			pathFunctionForm(null)
 		),
@@ -259,7 +259,7 @@ function addPathForm($pathID, $error = "", $values = null)
 	return operationForm("addpath.php?id=$pathID", $error, "Add subdirectory", "Add",
 		array(
 			array("title"=>"Directory name", "type"=>"colspan", "columns"=>array(
-				array("type"=>"html", "html"=>(pathName($pathID) . "/")),
+				array("type"=>"html", "html"=>(httpPathName($pathID) . "/")),
 				array("type"=>"text", "name"=>"name", "fill"=>true)
 			)),
 			pathFunctionForm(null)
@@ -269,7 +269,7 @@ function addPathForm($pathID, $error = "", $values = null)
 
 function editPathForm($pathID, $error = "", $values = null)
 {
-	$pathNameHtml = htmlentities(pathName($pathID));
+	$pathNameHtml = htmlentities(httpPathName($pathID));
 	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("type", "hostedUserID", "hostedPath", "redirectTarget", "mirrorTargetPathID"));
 	
 	if($error == "STUB") {
@@ -286,14 +286,14 @@ function editPathForm($pathID, $error = "", $values = null)
 		} else if($path["type"] == "MIRROR") {
 			$function = "Alias";
 			$dataTitle = "Target";
-			$urlHtml = htmlentities("http://" . pathName($path["mirrorTargetPathID"]) . "/");
+			$urlHtml = htmlentities("http://" . httpPathName($path["mirrorTargetPathID"]) . "/");
 			$dataContent = "<a href=\"$urlHtml\">$urlHtml</a>";
 		} else {
 			$function = "Unknown";
 			$dataTitle = "Details";
 			$dataContent = functionDescription($pathID);
 		}
-		$urlHtml = htmlentities("http://" . pathName($pathID) . "/");
+		$urlHtml = htmlentities("http://" . httpPathName($pathID) . "/");
 		return operationForm("editpath.php?id=$pathID", $error, "Site function", "Edit", array(
 			array("title"=>"Function", "type"=>"html", "html"=>$function),
 			array("title"=>"Url", "type"=>"html", "html"=>"<a href=\"$urlHtml\">$urlHtml</a>"),
@@ -362,201 +362,13 @@ function removePathForm($pathID, $error = "", $values = null)
 		$values, $messages);
 }
 
-function removeDomain($domainID, $keepsubs)
-{
-	unsetAliases($domainID, !$keepsubs);
-	$pathID = $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "pathID");
-	if($pathID !== null) {
-		removePath($pathID, false);
-	}
-	$subdomains = $GLOBALS["database"]->stdList("httpDomain", array("parentDomainID"=>$domainID), "domainID");
-	if($keepsubs) {
-		if(count($subdomains) == 0) {
-			$GLOBALS["database"]->stdDel("httpDomain", array("domainID"=>$domainID));
-		}
-	} else {
-		foreach($subdomains as $subdomain) {
-			removeDomain($subdomain, false);
-		}
-		$GLOBALS["database"]->stdDel("httpDomain", array("domainID"=>$domainID));
-	}
-}
 
-function removePath($pathID, $keepsubs)
-{
-	$subpaths = $GLOBALS["database"]->stdList("httpPath", array("parentPathID"=>$pathID), "pathID");
-	$GLOBALS["database"]->stdDel("httpPathUser", array("pathID"=>$pathID));
-	$GLOBALS["database"]->stdDel("httpPathGroup", array("pathID"=>$pathID));
-	if($keepsubs) {
-		if(count($subpaths) == 0) {
-			$GLOBALS["database"]->stdDel("httpPath", array("pathID"=>$pathID));
-		} else {
-			$GLOBALS["database"]->stdSet("httpPath", array("pathID"=>$pathID), array("type"=>"NONE"));
-		}
-	} else {
-		foreach($subpaths as $subpath) {
-			removePath($subpath, false);
-		}
-		$GLOBALS["database"]->stdDel("httpPath", array("pathID"=>$pathID));
-	}
-}
-
-function unsetAliases($domainID, $recursive)
-{
-	$aliasesList = array();
-	$pathIDs = toBeRemovedPathsDomain($domainID, $recursive);
-	foreach($pathIDs as $pathID) {
-		$GLOBALS["database"]->stdSet("httpPath", array("pathID"=>$pathID), array("mirrorTargetPathID"=>null));
-	}
-	return $aliasesList;
-}
-
-function aliasesPointToDomain($domainID, $recursive)
-{
-	$aliasesList = array();
-	$pathIDs = toBeRemovedPathsDomain($domainID, $recursive);
-	foreach($pathIDs as $pathID) {
-		$aliases = $GLOBALS["database"]->stdList("httpPath", array("mirrorTargetPathID"=>$pathID), "pathID");
-		foreach($aliases as $alias) {
-			if(!in_array($alias, $pathIDs)) {
-				$aliasesList[] = $alias;
-			}
-		}
-	}
-	return $aliasesList;
-}
-
-function aliasesPointToPath($pathID, $recursive)
-{
-	$aliasesList = array();
-	$pathIDs = toBeRemovedPathsPath($pathID, $recursive);
-	foreach($pathIDs as $pathID) {
-		$aliases = $GLOBALS["database"]->stdList("httpPath", array("mirrorTargetPathID"=>$pathID), "pathID");
-		foreach($aliases as $alias) {
-			if(!in_array($alias, $pathIDs)) {
-				$aliasesList[] = $alias;
-			}
-		}
-	}
-	return $aliasesList;
-}
-
-
-function toBeRemovedPathsDomain($domainID, $recursive)
-{
-	$list = array();
-	$pathID = $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "pathID");
-	if($pathID !== null) {
-		$list = toBeRemovedPathsPath($pathID, true);
-	}
-	$subdomains = $GLOBALS["database"]->stdList("httpDomain", array("parentDomainID"=>$domainID), "domainID");
-	if($recursive) {
-		foreach($subdomains as $subdomain) {
-			$list = array_merge($list, toBeRemovedPathsDomain($subdomain, $recursive));
-		}
-	}
-	return $list;
-}
-
-function toBeRemovedPathsPath($pathID, $recursive)
-{
-	$list = array($pathID);
-	$subpaths = $GLOBALS["database"]->stdList("httpPath", array("parentPathID"=>$pathID), "pathID");
-	if($recursive) {
-		foreach($subpaths as $subpath) {
-			$list = array_merge($list, toBeRemovedPathsPath($subpath, $recursive));
-		}
-	}
-	return $list;
-}
-
-
-
-function validSubdomain($name)
-{
-	if(strlen($name) < 1 || strlen($name) > 255) {
-		return false;
-	}
-	if(preg_match('/^[-a-zA-Z0-9_]*$/', $name) != 1) {
-		return false;
-	}
-	return true;
-}
-
-function validDirectory($name)
-{
-	if(strlen($name) < 1 || strlen($name) > 255) {
-		return false;
-	}
-	if(preg_match('/^[-a-zA-Z0-9_.]*$/', $name) != 1) {
-		return false;
-	}
-	return true;
-}
-
-function validDocumentRoot($root)
-{
-	if(strlen($root) > 255) {
-		return false;
-	}
-	if(substr($root, 0, 1) == '/') {
-		$root = substr($root, 1);
-	}
-	if(substr($root, -1) == '/') {
-		$root = substr($root, 0, -1);
-	}
-	$parts = explode("/", $root);
-	foreach($parts as $part) {
-		if(preg_match('/^[a-zA-Z0-9_\-.]+$/', $part) != 1) {
-			return false;
-		}
-		if($part == "." || $part == "..") {
-			return false;
-		}
-	}
-	return true;
-}
-
-function isRootDomain($domainID)
-{
-	return $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID") === null;
-}
-
-function flattenDomainTree($tree, $parentID = null)
-{
-	$id = "domain-" . $tree["domainID"];
-	$output = array();
-	
-	if(isset($tree["customerID"])) {
-		$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID, "type"=>"OTHERUSER"));
-		return $output;
-	}
-	$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID));
-	foreach($tree["subdomains"] as $domain) {
-		$output = array_merge($output, flattenDomainTree($domain, $id));
-	}
-	foreach($tree["paths"] as $path) {
-		$output = array_merge($output, flattenPathTree($path, $id));
-	}
-	return $output;
-}
-
-function flattenPathTree($tree, $parentID = null)
-{
-	$id = "path-" . $tree["pathID"];
-	$output = array();
-	$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID));
-	foreach($tree["paths"] as $path) {
-		$output = array_merge($output, flattenPathTree($path, $id));
-	}
-	return $output;
-}
 
 function domainTree($domainID)
 {
 	$output = array();
 	$output["domainID"] = $domainID;
-	$output["name"] = domainName($domainID);
+	$output["name"] = httpDomainName($domainID);
 	$output["subdomains"] = subdomainTrees($domainID, $output["name"], $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "customerID"));
 	
 	$path = domainPathTree($domainID, $output["name"]);
@@ -594,23 +406,20 @@ function subdomainTrees($domainID, $name, $customerID)
 
 function domainPathTree($domainID, $name)
 {
-	$path = $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), array("pathID", "type", "hostedUserID", "hostedPath", "svnPath", "redirectTarget", "mirrorTargetPathID", "userDatabaseID"));
+	$path = $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), array("pathID", "type", "hostedUserID", "hostedPath", "redirectTarget", "mirrorTargetPathID"));
 	if($path === null) {
 		return null;
 	}
 	$output = array();
 	$output["pathID"] = $path["pathID"];
 	$output["type"] = $path["type"];
-	$output["userDatabaseID"] = $path["userDatabaseID"];
 	if($path["type"] == "HOSTED") {
 		$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$path["hostedUserID"]), "username");
 		$output["target"] = "/home/$username/www/{$path["hostedPath"]}/";
-	} else if($path["type"] == "SVN") {
-		$output["target"] = $path["svnPath"];
 	} else if($path["type"] == "REDIRECT") {
 		$output["target"] = $path["redirectTarget"];
 	} else if($path["type"] == "MIRROR") {
-		$output["target"] = pathName($path["mirrorTargetPathID"]);
+		$output["target"] = httpPathName($path["mirrorTargetPathID"]);
 	}
 	$output["paths"] = pathTrees($path["pathID"], $name);
 	return $output;
@@ -618,24 +427,21 @@ function domainPathTree($domainID, $name)
 
 function pathTree($pathID)
 {
-	$path = $GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$pathID), array("pathID", "type", "hostedPath", "svnPath", "redirectTarget", "mirrorTargetPathID", "userDatabaseID"));
+	$path = $GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$pathID), array("pathID", "type", "hostedPath", "redirectTarget", "mirrorTargetPathID"));
 	if($path === null) {
 		return null;
 	}
-	$name = pathName($pathID);
+	$name = httpPathName($pathID);
 	$output = array();
 	$output["pathID"] = $path["pathID"];
 	$output["name"] = $name;
 	$output["type"] = $path["type"];
-	$output["userDatabaseID"] = $path["userDatabaseID"];
 	if($path["type"] == "HOSTED") {
 		$output["target"] = $path["hostedPath"];
-	} else if($path["type"] == "SVN") {
-		$output["target"] = $path["svnPath"];
 	} else if($path["type"] == "REDIRECT") {
 		$output["target"] = $path["redirectTarget"];
 	} else if($path["type"] == "MIRROR") {
-		$output["target"] = pathName($path["mirrorTargetPathID"]);
+		$output["target"] = httpPathName($path["mirrorTargetPathID"]);
 	}
 	$output["paths"] = pathTrees($path["pathID"], $name);
 	return $output;
@@ -644,7 +450,7 @@ function pathTree($pathID)
 function pathTrees($pathID, $name)
 {
 	$output = array();
-	foreach($GLOBALS["database"]->stdList("httpPath", array("parentPathID"=>$pathID), array("pathID", "name", "type", "hostedPath", "svnPath", "redirectTarget", "mirrorTargetPathID", "userDatabaseID")) as $subPath) {
+	foreach($GLOBALS["database"]->stdList("httpPath", array("parentPathID"=>$pathID), array("pathID", "name", "type", "hostedPath", "redirectTarget", "mirrorTargetPathID")) as $subPath) {
 		$pathName = $name . "/" . $subPath["name"];
 		$paths = pathTrees($subPath["pathID"], $pathName);
 		if($subPath["type"] == "NONE") {
@@ -654,21 +460,53 @@ function pathTrees($pathID, $name)
 			$path["pathID"] = $subPath["pathID"];
 			$path["name"] = $pathName;
 			$path["type"] = $subPath["type"];
-			$path["userDatabaseID"] = $subPath["userDatabaseID"];
 			if($subPath["type"] == "HOSTED") {
 				$path["target"] = $subPath["hostedPath"];
-			} else if($subPath["type"] == "SVN") {
-				$path["target"] = $subPath["svnPath"];
 			} else if($subPath["type"] == "REDIRECT") {
 				$path["target"] = $subPath["redirectTarget"];
 			} else if($subPath["type"] == "MIRROR") {
-				$path["target"] = pathName($subPath["mirrorTargetPathID"]);
+				$path["target"] = httpPathName($subPath["mirrorTargetPathID"]);
 			}
 			$path["paths"] = $paths;
 			$output[] = $path;
 		}
 	}
 	return $output;
+}
+
+function flattenDomainTree($tree, $parentID = null)
+{
+	$id = "domain-" . $tree["domainID"];
+	$output = array();
+	
+	if(isset($tree["customerID"])) {
+		$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID, "type"=>"OTHERUSER"));
+		return $output;
+	}
+	$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID));
+	foreach($tree["subdomains"] as $domain) {
+		$output = array_merge($output, flattenDomainTree($domain, $id));
+	}
+	foreach($tree["paths"] as $path) {
+		$output = array_merge($output, flattenPathTree($path, $id));
+	}
+	return $output;
+}
+
+function flattenPathTree($tree, $parentID = null)
+{
+	$id = "path-" . $tree["pathID"];
+	$output = array();
+	$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID));
+	foreach($tree["paths"] as $path) {
+		$output = array_merge($output, flattenPathTree($path, $id));
+	}
+	return $output;
+}
+
+function isRootDomain($domainID)
+{
+	return $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID") === null;
 }
 
 function isStubDomain($domainID)
@@ -681,42 +519,14 @@ function domainPath($domainID)
 	return $GLOBALS["database"]->stdGet("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "pathID");
 }
 
-function domainName($domainID)
-{
-	$domain = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), array("parentDomainID", "name", "domainTldID"));
-	if($domain["parentDomainID"] === null) {
-		$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
-		return $domain["name"] . "." . $tld;
-	}
-	return $domain["name"] . "." . domainName($domain["parentDomainID"]);
-}
-
-function pathName($pathID)
-{
-	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("name", "parentPathID", "domainID"));
-	if($path["parentPathID"] == null) {
-		return domainName($path["domainID"]);
-	} else {
-		return pathName($path["parentPathID"]) . "/" . $path["name"];
-	}
-}
-
 function functionDescription($address)
 {
 	if($address["type"] == "HOSTED") {
-		if($address["userDatabaseID"] !== null) {
-			return "Secured hosted site: {$address["target"]}";
-		} else {
-			return "Hosted site: {$address["target"]}";
-		}
-	} else if($address["type"] == "SVN") {
-		return "SVN repository: {$address["target"]}";
+		return "Hosted site: {$address["target"]}";
 	} else if($address["type"] == "REDIRECT") {
 		return "Redirect to {$address["target"]}";
 	} else if($address["type"] == "MIRROR") {
 		return "Alias for {$address["target"]}";
-	} else if($address["type"] == "NONE" && $address["userDatabaseID"] !== null) {
-		return "Secured subdirectory";
 	} else if($address["type"] == "OTHERUSER") {
 		$customerName = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$address["customerID"]), "name");
 		return "Delegated to customer $customerName";

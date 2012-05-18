@@ -18,8 +18,7 @@ function main()
 	
 	mysqlCreateDatabase($name);
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}mysql/");
+	redirect("mysql/");
 }
 
 main();

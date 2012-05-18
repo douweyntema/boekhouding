@@ -10,7 +10,7 @@ function main()
 	$nameSystemName = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "name");
 	
 	if(post("refreshall") !== null || post("refreshbind") !== null) {
-		refreshNameSystem($nameSystemID);
+		infrastructureRefreshNameSystem($nameSystemID);
 	}
 	
 	$content = makeHeader("Infrastructure - namesystem " . htmlentities($nameSystemName), infrastructureBreadcrumbs(), crumbs($nameSystemName, "namesystem.php?id=$nameSystemID"));

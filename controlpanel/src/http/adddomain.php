@@ -12,7 +12,7 @@ function main()
 	
 	$check(($domainTldID = post("domainTldID")) !== null, "");
 	$check(($name = post("name")) !== null, "");
-	$check(validSubdomain($name), "Invalid domain name.");
+	$check(validDomainPart($name), "Invalid domain name.");
 	
 	$tld = $GLOBALS["database"]->stdGetTry("infrastructureDomainTld", array("domainTldID"=>post("domainTldID")), "name", false);
 	$check($tld !== false, "");
@@ -57,8 +57,7 @@ function main()
 	
 	updateHttp(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}http/domain.php?id=$newDomainID");
+	redirect("http/domain.php?id=$newDomainID");
 }
 
 main();

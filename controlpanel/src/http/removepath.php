@@ -7,20 +7,24 @@ function main()
 	$pathID = get("id");
 	doHttpPath($pathID);
 	
+	if($GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "parentPathID") === null) {
+		error404();
+	}
+	
 	$check = function($condition, $error) use($pathID) {
-		if(!$condition) die(page(makeHeader("Web hosting - " . pathName($pathID), pathBreadcrumbs($pathID), crumbs("Remove site", "removepath.php?id=$pathID")) . removePathForm($pathID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("Web hosting - " . httpPathName($pathID), pathBreadcrumbs($pathID), crumbs("Remove site", "removepath.php?id=$pathID")) . removePathForm($pathID, $error, $_POST)));
 	};
 	
 	$keepsubs = post("keepsubs") !== null;
 	
-	$aliases = array_unique(aliasesPointToPath($pathID, !$keepsubs));
+	$aliases = array_unique(httpAliasesToPath($pathID, !$keepsubs));
 	if(count($aliases) > 0) {
 		$error = "The requested site(s) cannot be removed because of the following aliases:";
 		$error .= "<ul>";
 		foreach($aliases as $alias) {
-			$name = pathName($alias);
+			$name = httpPathName($alias);
 			$target = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$alias), "mirrorTargetPathID");
-			$targetName = pathName($target);
+			$targetName = httpPathName($target);
 			$error .= "<li><a href=\"{$GLOBALS["root"]}http/path.php?id=$alias\">$name</a>: alias for <a href=\"{$GLOBALS["root"]}http/path.php?id=$target\">$targetName</a></li>";
 		}
 		$error .= "</ul>";
@@ -34,7 +38,7 @@ function main()
 	$domainID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "domainID");
 	
 	$GLOBALS["database"]->startTransaction();
-	removePath($pathID, $keepsubs);
+	httpRemovePath($pathID, $keepsubs);
 	while($parentPathID !== null &&
 		$GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$parentPathID), "type") == "NONE" &&
 		!$GLOBALS["database"]->stdExists("httpPath", array("parentPathID"=>$parentPathID)))
@@ -48,11 +52,10 @@ function main()
 	// Distribute the accounts database
 	updateHttp(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	if($parentPathID === null) {
-		header("Location: {$GLOBALS["root"]}http/domain.php?id=$domainID");
+	if($GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$parentPathID), "parentPathID") === null) {
+		redirect("http/domain.php?id=$domainID");
 	} else {
-		header("Location: {$GLOBALS["root"]}http/path.php?id=$parentPathID");
+		redirect("http/path.php?id=$parentPathID");
 	}
 }
 

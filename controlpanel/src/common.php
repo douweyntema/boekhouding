@@ -1,11 +1,10 @@
 <?php
 
-define("COUNTRYCODES_FILE", dirname(__FILE__) . "/../countrycodes");
-
 require_once(dirname(__FILE__) . "/config.php");
 require_once("/usr/lib/phpdatabase/database.php");
 require_once("/usr/lib/phpmail/mimemail.php");
 require_once(dirname(__FILE__) . "/ui.php");
+require_once(dirname(__FILE__) . "/util.php");
 
 ignore_user_abort(true);
 
@@ -45,18 +44,6 @@ function get($id)
 function post($id)
 {
 	return isset($_POST[$id]) ? $_POST[$id] : null;
-}
-
-function searchKey($array /*, $keys */)
-{
-	$keys = func_get_args();
-	array_shift($keys);
-	foreach($keys as $key) {
-		if(isset($array[$key])) {
-			return $key;
-		}
-	}
-	return null;
 }
 
 function relativeRoot()
@@ -277,75 +264,12 @@ function decryptPassword($cipher)
 	return $password;
 }
 
-function formatPrice($cents)
-{
-	return "&euro; " . formatPriceRaw($cents);
-}
-
-function formatPriceRaw($cents)
-{
-	return floor($cents / 100) . "," . str_pad($cents % 100, 2, "0", STR_PAD_LEFT);
-}
-
-function parsePrice($string)
-{
-	$count = preg_match("/^(?<euro>[0-9]*)([,\\.](?<cent>[0-9]{2}))?$/", $string, $matches);
-	if($count !== 1) {
-		return null;
-	}
-	if(isset($matches["cent"])) {
-		return $matches["euro"] * 100 + $matches["cent"];
-	} else {
-		return $matches["euro"] * 100;
-	}
-}
-
-function parseDate($string)
-{
-	$date = strtotime($string);
-	if($date === false) {
-		return null;
-	}
-	return $date;
-}
-
 function updateHosts($hosts, $command)
 {
 	foreach($hosts as $hostID) {
 		$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("ipv4Address", "sshPort"));
 		`/usr/bin/ssh -i {$GLOBALS["ssh_private_key_file"]} -l root -p {$host["sshPort"]} {$host["ipv4Address"]} '$command' > /dev/null &`;
 	}
-}
-
-// TODO: move update* functies naar de respectivelijke api
-function updateAccounts($customerID)
-{
-	// Update the fileSystem version
-	$fileSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "fileSystemID");
-	$GLOBALS["database"]->stdIncrement("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "fileSystemVersion", 1000000000);
-	
-	// Update all servers
-	$hosts = $GLOBALS["database"]->stdList("infrastructureMount", array("fileSystemID"=>$fileSystemID), "hostID");
-	updateHosts($hosts, "update-treva-passwd");
-}
-
-function updateMail($customerID)
-{
-	$mailSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "mailSystemID");
-	$GLOBALS["database"]->stdIncrement("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID), "version", 1000000000);
-	
-	$hosts = $GLOBALS["database"]->stdList("infrastructureMailServer", array("mailSystemID"=>$mailSystemID), "hostID");
-	updateHosts($hosts, "update-treva-dovecot");
-	updateHosts($hosts, "update-treva-exim");
-}
-
-function updateHttp($customerID)
-{
-	$fileSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "fileSystemID");
-	$GLOBALS["database"]->stdIncrement("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "httpVersion", 1000000000);
-	
-	$hosts = $GLOBALS["database"]->stdList("infrastructureWebServer", array("fileSystemID"=>$fileSystemID), "hostID");
-	updateHosts($hosts, "update-treva-apache");
 }
 
 function breadcrumbs($breadcrumbs)
@@ -439,58 +363,17 @@ function pdfLatex($tex)
 	return $pdf;
 }
 
-function texdate($date)
-{
-	$maanden = array("",
-		"januari",
-		"februari",
-		"maart",
-		"april",
-		"mei",
-		"juni",
-		"juli",
-		"augustus",
-		"september",
-		"oktober",
-		"november",
-		"december");
-	$day = date("j", $date);
-	$month = date("n", $date);
-	$year = date("Y", $date);
-	return $day . " " . $maanden[$month] . " " . $year;
-}
-
-function countryCodes()
-{
-	$countryCodes = array();
-	foreach(explode("\n", file_get_contents(COUNTRYCODES_FILE)) as $line) {
-		if($line == "") {
-			continue;
-		}
-		$parts = explode(" ", $line);
-		$code = $parts[0];
-		array_shift($parts);
-		$name = implode(" ", $parts);
-		$countryCodes[$code] = $name; 
-	}
-	return $countryCodes;
-}
-
-function countryName($code)
-{
-	$code = strtoupper($code);
-	$country = countryCodes();
-	if(isset($country[$code])) {
-		return $country[$code];
-	} else {
-		return $code;
-	}
-}
-
 function error404()
 {
 	header("HTTP/1.1 404 Not Found");
 	die("The requested page could not be found.");
+}
+
+function redirect($url)
+{
+	header("HTTP/1.1 303 See Other");
+	header("Location: {$GLOBALS["root"]}$url");
+	die();
 }
 
 ?>

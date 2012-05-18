@@ -17,17 +17,14 @@ function main()
 	$doClose = post("close") !== null;
 	
 	if($text === null || $text == "") {
-		header("HTTP/1.1 303 See Other");
-		header("Location: {$GLOBALS["root"]}ticket/thread.php?id=$threadID");
-		die();
+		redirect("ticket/thread.php?id=$threadID");
 	}
 	
 	$check(post("confirm") !== null, null);
 	
 	ticketNewReply($threadID, userID(), $text, ($closed ? $doReopen : !$doClose) ? "OPEN" : "CLOSED");
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}ticket/thread.php?id=$threadID");
+	redirect("ticket/thread.php?id=$threadID");
 }
 
 main();

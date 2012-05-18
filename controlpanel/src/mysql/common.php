@@ -43,15 +43,4 @@ function addDatabaseForm($error = "", $values = null)
 		), $values);
 }
 
-function validDatabaseName($name)
-{
-	if(strlen($name) < 1 || strlen($name) > 255) {
-		return false;
-	}
-	if(preg_match('/^[-a-zA-Z0-9_]*$/', $name) != 1) {
-		return false;
-	}
-	return true;
-}
-
 ?>

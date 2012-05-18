@@ -8,7 +8,7 @@ function main()
 	doDomains($domainID);
 	doDomainsBilling();
 	
-	if(isSubDomain($domainID) || domainsDomainStatus($domainID) != "activeforever") {
+	if(domainsIsSubDomain($domainID) || domainsDomainStatus($domainID) != "activeforever") {
 		error404();
 	}
 	
@@ -20,8 +20,7 @@ function main()
 	
 	domainsDisableAutoRenew($domainID);
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}domains/");
+	redirect("domains/");
 }
 
 main();

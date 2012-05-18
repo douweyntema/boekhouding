@@ -35,8 +35,7 @@ function main()
 	
 	billingNewSubscription($customerID, post("description"), $price, $discountPercentage, $discountAmount, null, post("frequencyBase"), post("frequencyMultiplier"), $invoiceDelay, $nextPeriodStart);
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}billing/customer.php?id=$customerID");
+	redirect("billing/customer.php?id=$customerID");
 }
 
 main();

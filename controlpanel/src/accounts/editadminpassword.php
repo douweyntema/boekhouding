@@ -18,8 +18,7 @@ function main()
 	
 	$GLOBALS["database"]->stdSet("adminUser", array("userID"=>$userID), array("password"=>hashPassword($password)));
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}accounts/adminaccount.php?id=$userID");
+	redirect("accounts/adminaccount.php?id=$userID");
 }
 
 main();

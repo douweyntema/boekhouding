@@ -73,8 +73,7 @@ function main()
 	
 	domainsUpdateContactInfo($customerID);
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}customers/customer.php?id=$customerID");
+	redirect("customers/customer.php?id=$customerID");
 }
 
 main();

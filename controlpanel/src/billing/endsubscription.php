@@ -17,8 +17,7 @@ function main()
 	
 	billingEndSubscription($subscriptionID, $endDate);
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}billing/customer.php?id=$customerID");
+	redirect("billing/customer.php?id=$customerID");
 }
 
 main();

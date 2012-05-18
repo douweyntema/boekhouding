@@ -50,8 +50,7 @@ function main()
 	
 	updateMail(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}mail/mailbox.php?id=$addressID");
+	redirect("mail/mailbox.php?id=$addressID");
 }
 
 main();

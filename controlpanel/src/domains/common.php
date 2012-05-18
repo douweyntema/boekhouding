@@ -18,9 +18,9 @@ function doDomain($domainID)
 {
 	doDomains();
 	useCustomer($GLOBALS["database"]->stdGetTry("dnsDomain", array("domainID"=>$domainID), "customerID", false));
-	$rootDomainID = rootDomainID($domainID);
+	$rootDomainID = domainsRootDomainID($domainID);
 	if(domainsDomainStatus($rootDomainID) == "expired") {
-		removeDomain($rootDomainID);
+		domainsRemoveDomain($rootDomainID);
 		useCustomer(false);
 	}
 }
@@ -80,7 +80,7 @@ function domainsList()
 	$domains = array();
 	foreach($domainIDs as $domainID) {
 		if(domainsDomainStatus($domainID) == "expired") {
-			removeDomain($domainID);
+			domainsRemoveDomain($domainID);
 			continue;
 		}
 		$domainName = domainsFormatDomainName($domainID);
@@ -389,17 +389,6 @@ function deleteDomainForm($domainID, $error = "", $values = null)
 	return operationForm("deletedomain.php?id=$domainID", $error, "Delete subdomain", "Delete Subdomain", array(), $values, array("custom"=>"<p>This will remove <em>$domainNameHtml</em> and all of its subdomains.</p>"));
 }
 
-function removeDomain($domainID)
-{
-	foreach($GLOBALS["database"]->stdList("dnsDomain", array("parentDomainID"=>$domainID), "domainID") as $subDomainID) {
-		removeDomain($subDomainID);
-	}
-	$GLOBALS["database"]->stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
-	$GLOBALS["database"]->stdDel("dnsMailServer", array("domainID"=>$domainID));
-	$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID));
-	$GLOBALS["database"]->stdDel("dnsDomain", array("domainID"=>$domainID));
-}
-
 function subdomains($domainID) {
 	$subDomains = $GLOBALS["database"]->stdList("dnsDomain", array("parentDomainID"=>$domainID), "domainID");
 	$subSubDomains = array();
@@ -407,106 +396,6 @@ function subdomains($domainID) {
 		$subSubDomains = array_merge($subSubDomains, subdomains($subDomainID));
 	}
 	return array_merge($subDomains, $subSubDomains);
-}
-
-function rootDomainID($domainID)
-{
-	$parentDomainID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID");
-	if($parentDomainID == null) {
-		return $domainID;
-	} else {
-		return rootDomainID($parentDomainID);
-	}
-}
-
-function isSubDomain($domainID)
-{
-	return $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID") != null;
-}
-
-function validDomainPart($name)
-{
-	if(strlen($name) < 1 || strlen($name) > 255) {
-		return false;
-	}
-	if(preg_match('/^[-_a-zA-Z0-9]*$/', $name) != 1) {
-		return false;
-	}
-	return true;
-}
-
-function validDomain($name)
-{
-	if(strlen($name) < 1 || strlen($name) > 255) {
-		return false;
-	}
-	
-	$parts = explode(".", $name);
-	if(count($parts) == 0) {
-		return false;
-	}
-	
-	foreach($parts as $part) {
-		if(!validDomainPart($part)) {
-			return false;
-		}
-	}
-	
-	return true;
-}
-
-function validIPv4($ip)
-{
-	if(count(explode(".", $ip)) != 4) {
-		return false;
-	}
-	foreach(explode(".", $ip) as $part) {
-		if(!ctype_digit($part)) {
-			return false;
-		}
-		if($part < 0 || $part > 255) {
-			return false;
-		}
-	}
-	return true;
-}
-
-function validIPv6($ip)
-{
-	$parts = explode(":", $ip);
-	if(count($parts) > 8) {
-		return false;
-	}
-	$emptyFound = false;
-	for($i = 1; $i < count($parts) - 1; $i++) {
-		if($parts[$i] == "") {
-			if($emptyFound) {
-				return false;
-			} else {
-				$emptyFound = true;
-			}
-		}
-	}
-	if($parts[0] == "" && $parts[1] != "") {
-		return false;
-	}
-	if($parts[count($parts) - 1] == "" && $parts[count($parts) - 2] != "") {
-		return false;
-	}
-	if(!$emptyFound && count($parts) != 8) {
-		return false;
-	}
-	foreach($parts as $part) {
-		if(strlen($part) > 4) {
-			return false;
-		}
-		for($i = 0; $i < strlen($part); $i++) {
-			if(trim($part[$i], "1234567890abcdefABCDEF") != "") {
-				return false;
-			}
-		}
-	}
-	return true;
 }
 
 ?>

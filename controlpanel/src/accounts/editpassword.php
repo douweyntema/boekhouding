@@ -20,12 +20,13 @@ function main()
 	
 	$mysqlRightID = $GLOBALS["database"]->stdGetTry("adminCustomerRight", array("customerID"=>customerID(), "right"=>"mysql"), "customerRightID", false);
 	
-	mysqlSetPassword($username, $password);
+	if(!$GLOBALS["mysql_management_disabled"]) {
+		mysqlSetPassword($username, $password);
+	}
 	
 	updateAccounts(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}accounts/account.php?id=$userID");
+	redirect("accounts/account.php?id=$userID");
 }
 
 main();

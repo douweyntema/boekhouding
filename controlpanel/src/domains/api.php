@@ -4,9 +4,18 @@ $domainsTitle = "Domains";
 $domainsDescription = "Domain registrations";
 $domainsTarget = "customer";
 
+function updateDomains($customerID)
+{
+	$nameSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "nameSystemID");
+	$GLOBALS["database"]->stdIncrement("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "version", 1000000000);
+	
+	$hosts = $GLOBALS["database"]->stdList("infrastructureNameServer", array("nameSystemID"=>$nameSystemID), "hostID");
+	updateHosts($hosts, "update-treva-bind");
+}
+
 function domainsRegisterDomain($customerID, $domainName, $tldID)
 {
-	if(!getApi($tldID)->registerDomain($customerID, $domainName, $tldID)) {
+	if(!domainsGetApi($tldID)->registerDomain($customerID, $domainName, $tldID)) {
 		return false;
 	}
 	return true;
@@ -22,7 +31,7 @@ function domainsDisableAutoRenew($domainID)
 		}
 		billingEndSubscription($subscriptionID, $date);
 	}
-	return getApi(getTldID($domainID))->disableAutoRenew($domainID);
+	return domainsGetApi(domainsGetTldID($domainID))->disableAutoRenew($domainID);
 }
 
 function domainsEnableAutoRenew($domainID)
@@ -31,13 +40,13 @@ function domainsEnableAutoRenew($domainID)
 	if($subscriptionID !== null) {
 		billingEndSubscription($subscriptionID, null);
 	}
-	return getApi(getTldID($domainID))->enableAutoRenew($domainID);
+	return domainsGetApi(domainsGetTldID($domainID))->enableAutoRenew($domainID);
 }
 
 function domainsDomainStatus($domainID)
 {
 	try {
-		return getApi(getTldID($domainID))->domainStatus($domainID);
+		return domainsGetApi(domainsGetTldID($domainID))->domainStatus($domainID);
 	} catch(DomainsNoApiException $e) {
 		return "Externally hosted";
 	}
@@ -46,7 +55,7 @@ function domainsDomainStatus($domainID)
 function domainsDomainExpiredate($domainID)
 {
 	try {
-		return getApi(getTldID($domainID))->domainExpiredate($domainID);
+		return domainsGetApi(domainsGetTldID($domainID))->domainExpiredate($domainID);
 	} catch(DomainsNoApiException $e) {
 		return "Unknown";
 	}
@@ -55,7 +64,7 @@ function domainsDomainExpiredate($domainID)
 function domainsDomainAutorenew($domainID)
 {
 	try {
-		return getApi(getTldID($domainID))->domainAutorenew($domainID);
+		return domainsGetApi(domainsGetTldID($domainID))->domainAutorenew($domainID);
 	} catch(DomainsNoApiException $e) {
 		return null;
 	}
@@ -63,7 +72,7 @@ function domainsDomainAutorenew($domainID)
 
 function domainsDomainAvailable($domainName, $tldID)
 {
-	return getApi($tldID)->domainAvailable($domainName, $tldID);
+	return domainsGetApi($tldID)->domainAvailable($domainName, $tldID);
 }
 
 function domainsDomainAutorenewDescription($domainID)
@@ -100,21 +109,12 @@ function domainsDomainStatusDescription($domainID)
 
 function domainsUpdateContactInfo($customerID)
 {
-	getApiName("mijndomeinreseller")->updateContactInfo($customerID);
-}
-
-function updateDomains($customerID)
-{
-	$nameSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "nameSystemID");
-	$GLOBALS["database"]->stdIncrement("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "version", 1000000000);
-	
-	$hosts = $GLOBALS["database"]->stdList("infrastructureNameServer", array("nameSystemID"=>$nameSystemID), "hostID");
-	updateHosts($hosts, "update-treva-bind");
+	domainsGetApiName("mijndomeinreseller")->updateContactInfo($customerID);
 }
 
 $GLOBAL["domainsCachedApis"] = array();
 
-function getApiName($identifier)
+function domainsGetApiName($identifier)
 {
 	if(!isset($GLOBALS["domainsCachedApis"][$identifier])) {
 		$parameters = $GLOBALS["database"]->stdGet("infrastructureDomainRegistrar", array("identifier"=>$identifier), "parameters");
@@ -126,7 +126,7 @@ function getApiName($identifier)
 	return $GLOBALS["domainsCachedApis"][$identifier];
 }
 
-function getApi($tldID)
+function domainsGetApi($tldID)
 {
 	if($tldID === null) {
 		throw new DomainsNoApiException();
@@ -140,7 +140,7 @@ function getApi($tldID)
 	return $GLOBALS["domainsCachedApis"][$registrar["identifier"]];
 }
 
-function getTldID($domainID)
+function domainsGetTldID($domainID)
 {
 	return $GLOBALS["database"]->stdGetTry("dnsDomain", array("domainID"=>$domainID), "domainTldID", null);
 }
@@ -184,6 +184,32 @@ function domainsCustomerUnpaidDomainsPrice($customerID)
 	billingUpdateInvoiceLines($customerID);
 	$price = $GLOBALS["database"]->query("SELECT (sum(billingInvoiceLine.price) - sum(billingInvoiceLine.discount)) AS total FROM billingInvoiceLine LEFT JOIN billingInvoice USING(invoiceID) WHERE billingInvoiceLine.domain = 1 AND billingInvoiceLine.customerID = $customerID AND (billingInvoice.remainingAmount IS NULL OR billingInvoice.remainingAmount > 0)")->fetchArray();
 	return ($price["total"] === null ? 0 : $price["total"]);
+}
+
+function domainsRemoveDomain($domainID)
+{
+	foreach($GLOBALS["database"]->stdList("dnsDomain", array("parentDomainID"=>$domainID), "domainID") as $subDomainID) {
+		domainsRemoveDomain($subDomainID);
+	}
+	$GLOBALS["database"]->stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
+	$GLOBALS["database"]->stdDel("dnsMailServer", array("domainID"=>$domainID));
+	$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID));
+	$GLOBALS["database"]->stdDel("dnsDomain", array("domainID"=>$domainID));
+}
+
+function domainsRootDomainID($domainID)
+{
+	$parentDomainID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID");
+	if($parentDomainID == null) {
+		return $domainID;
+	} else {
+		return domainsRootDomainID($parentDomainID);
+	}
+}
+
+function domainsIsSubDomain($domainID)
+{
+	return $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID") != null;
 }
 
 ?>

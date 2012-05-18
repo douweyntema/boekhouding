@@ -15,7 +15,9 @@ function main()
 	$check(!accountsIsMainAccount($userID), "Unable to remove your main account.");
 	$check(post("confirm") !== null, null);
 	
-	mysqlRemoveAccount($username);
+	if(!$GLOBALS["mysql_management_disabled"]) {
+		mysqlRemoveAccount($username);
+	}
 	
 	$GLOBALS["database"]->startTransaction();
 	$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID));
@@ -24,8 +26,7 @@ function main()
 	
 	updateAccounts(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}accounts/");
+	redirect("accounts/");
 }
 
 main();

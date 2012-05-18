@@ -39,8 +39,7 @@ function main()
 	
 	billingEditSubscription($subscriptionID, post("description"), $price, $discountPercentage, $discountAmount, post("frequencyBase"), post("frequencyMultiplier"), $invoiceDelay);
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}billing/customer.php?id=$customerID");
+	redirect("billing/customer.php?id=$customerID");
 }
 
 main();

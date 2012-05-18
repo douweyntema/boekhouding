@@ -20,8 +20,7 @@ function main()
 	
 	updateDomains(customerID());
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}domains/domain.php?id={$subdomainID}");
+	redirect("domains/domain.php?id=$subdomainID");
 }
 
 main();

@@ -9,6 +9,15 @@ function billingDomainPrice($tldID)
 	return $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "price");
 }
 
+function billingBasePrice($subscription)
+{
+	if($subscription["price"] === null) {
+		return $baseprice = billingDomainPrice($subscription["domainTldID"]);
+	} else {
+		return $baseprice = $subscription["price"];
+	}
+}
+
 function billingNewSubscription($customerID, $description, $price, $discountPercentage, $discountAmount, $domainTldID, $frequencyBase, $frequencyMultiplier, $invoiceDelay, $startDate)
 {
 	if($startDate == null) {

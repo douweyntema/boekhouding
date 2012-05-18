@@ -20,10 +20,9 @@ function main()
 	$password = checkPassword($check, "password");
 	$check(post("confirm") !== null, null);
 	
-	$accountID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>null, "username"=>$username, "password"=>hashPassword($password)));
+	$userID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>null, "username"=>$username, "password"=>hashPassword($password)));
 	
-	header("HTTP/1.1 303 See Other");
-	header("Location: {$GLOBALS["root"]}accounts/adminaccount.php?id=$accountID");
+	redirect("accounts/adminaccount.php?id=$userID");
 }
 
 main();

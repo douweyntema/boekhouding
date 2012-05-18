@@ -59,7 +59,7 @@ function subscriptionList($customerID)
 		if($subscription["discountPercentage"] === null && $subscription["discountAmount"] === null) {
 			$priceDetail = "None";
 		} else {
-			$priceDetail = formatPrice(basePrice($subscription));
+			$priceDetail = formatPrice(billingBasePrice($subscription));
 			if($subscription["discountPercentage"] !== null) {
 				$priceDetail .= " - " . $subscription["discountPercentage"] . "%";
 			}
@@ -110,7 +110,7 @@ function subscriptionDetail($subscriptionID)
 	$subscription = $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
 	
 	if($subscription["discountPercentage"] !== null) {
-		$discountPercentage = $subscription["discountPercentage"] . "% (" . formatPrice(discountPercentage($subscription)) . ")";
+		$discountPercentage = $subscription["discountPercentage"] . "% (" . formatPrice(billingBasePrice($subscription) * $subscription["discountPercentage"] / 100) . ")";
 	} else {
 		$discountPercentage = "-";
 	}
@@ -144,7 +144,7 @@ function subscriptionDetail($subscriptionID)
 	return summaryTable("Subscription", array(
 		"Description"=>$subscription["description"],
 		"Price"=>array("html"=>formatSubscriptionPrice($subscription)),
-		"Base price"=>array("html"=>formatPrice(basePrice($subscription))),
+		"Base price"=>array("html"=>formatPrice(billingBasePrice($subscription))),
 		"Discount percentage"=>array("html"=>$discountPercentage),
 		"Discount amoung"=>array("html"=>$discountAmount),
 		"Frequency"=>frequency($subscription),
@@ -356,20 +356,6 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 	return operationForm("sendinvoice.php?id=$customerID", $error, "Send invoice", "Send", $lines, $values);
 }
 
-function basePrice($subscription)
-{
-	if($subscription["price"] === null) {
-		return $baseprice = billingDomainPrice($subscription["domainTldID"]);
-	} else {
-		return $baseprice = $subscription["price"];
-	}
-}
-
-function discountPercentage($subscription)
-{
-	return basePrice($subscription) * $subscription["discountPercentage"] / 100;
-}
-
 function frequency($subscription)
 {
 	if($subscription["frequencyBase"] == "DAY") {
@@ -385,7 +371,8 @@ function frequency($subscription)
 
 function formatSubscriptionPrice($subscription)
 {
-	$price = (int)(basePrice($subscription) - discountPercentage($subscription) - $subscription["discountAmount"]);
+	$percentageDiscount = billingBasePrice($subscription) * $subscription["discountPercentage"] / 100;
+	$price = (int)(billingBasePrice($subscription) - $percentageDiscount - $subscription["discountAmount"]);
 	return formatPrice($price) . " " . frequency($subscription);
 }
 
