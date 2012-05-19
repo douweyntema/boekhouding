@@ -180,15 +180,16 @@ function invoiceList($customerID)
 			$amount += $line["price"] - $line["discount"];
 		}
 		
-		
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}", "text"=>$invoice["invoiceNumber"]),
 			date("d-m-Y", $invoice["date"]),
 			array("html"=>formatPrice($amount)),
-			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"])))
+			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"]))),
+			$invoice["remainingAmount"] == 0 ? array("html"=>"") : array("url"=>"reminder.php?id={$invoice["invoiceID"]}", "text"=>"Send reminder"),
+			array("url"=>"resend.php?id={$invoice["invoiceID"]}", "text"=>"Resend")
 		);
 	}
-	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount"), $rows, "Invoices", "No invoices have been sent to far.", "sortable list");
+	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount", "Reminder", "Resend"), $rows, "Invoices", "No invoices have been sent to far.", "sortable list");
 }
 
 function paymentList($customerID)
