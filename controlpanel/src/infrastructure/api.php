@@ -5,6 +5,9 @@ $infrastructureTarget = "admin";
 
 function infrastructureOverview()
 {
+	if(customerID() == 0) {
+		return;
+	}
 	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>customerID()), array("fileSystemID", "mailSystemID"));
 	$mailsystem = $GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), array("incomingServer", "outgoingServer"));
 	$filesystem = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), array("ftpServer", "databaseServer"));
