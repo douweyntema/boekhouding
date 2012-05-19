@@ -52,6 +52,22 @@ function adminSubscriptionBreadcrumbs($subscriptionID)
 	return array_merge(adminCustomerBreadcrumbs($subscription["customerID"]), crumbs($subscription["description"], "subscription.php?id=$subscriptionID"));
 }
 
+function invoiceStatusForm($customerID, $error = "", $values = null)
+{
+	if($values === null) {
+		$values = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("invoiceStatus"));
+	}
+	return operationForm("changestatus.php?id=$customerID", $error, "Change invoice status", "Save",
+		array(
+			array("title"=>"Status", "type"=>"dropdown", "name"=>"invoiceStatus", "options"=>array(
+				array("label"=>"Disabled", "value"=>"DISABLED"),
+				array("label"=>"Preview", "value"=>"PREVIEW"),
+				array("label"=>"Enabled", "value"=>"ENABLED")
+			)),
+		),
+		$values);
+}
+
 function subscriptionList($customerID)
 {
 	$rows = array();
@@ -164,15 +180,16 @@ function invoiceList($customerID)
 			$amount += $line["price"] - $line["discount"];
 		}
 		
-		
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}", "text"=>$invoice["invoiceNumber"]),
 			date("d-m-Y", $invoice["date"]),
 			array("html"=>formatPrice($amount)),
-			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"])))
+			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"]))),
+			$invoice["remainingAmount"] == 0 ? array("html"=>"") : array("url"=>"reminder.php?id={$invoice["invoiceID"]}", "text"=>"Send reminder"),
+			array("url"=>"resend.php?id={$invoice["invoiceID"]}", "text"=>"Resend")
 		);
 	}
-	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount"), $rows, "Invoices", "No invoices have been sent to far.", "sortable list");
+	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount", "Reminder", "Resend"), $rows, "Invoices", "No invoices have been sent to far.", "sortable list");
 }
 
 function paymentList($customerID)
@@ -353,7 +370,12 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 			array("type"=>"html", "cellclass"=>"nowrap", "html"=>$invoiceLine["periodEnd"] == null ? "-" : date("d-m-Y", $invoiceLine["periodEnd"]))
 		));
 	}
-	return operationForm("sendinvoice.php?id=$customerID", $error, "Send invoice", "Send", $lines, $values);
+	$lines[] = array("type"=>"typechooser", "options"=>array(
+		array("title"=>"Delete", "submitcaption"=>"Delete", "name"=>"delete", "summary"=>"Delete selected invoice lines", "subform"=>array()),
+		array("title"=>"Create invoice", "submitcaption"=>"Create Invoice", "name"=>"create", "summary"=>"Create and send an invoice with the selected invoice lines", "subform"=>array())
+		));
+
+	return operationForm("sendinvoice.php?id=$customerID", $error, "Invoice lines", "Create Invoice", $lines, $values);
 }
 
 function frequency($subscription)

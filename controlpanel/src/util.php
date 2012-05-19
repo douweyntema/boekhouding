@@ -27,14 +27,19 @@ function formatPriceRaw($cents)
 
 function parsePrice($string)
 {
-	$count = preg_match("/^(?<euro>[0-9]*)([,\\.](?<cent>[0-9]{2}))?$/", $string, $matches);
+	$count = preg_match("/^(?<negatief>[-]?)(?<euro>[0-9]*)([,\\.](?<cent>[0-9]{2}))?$/", $string, $matches);
 	if($count !== 1) {
 		return null;
 	}
-	if(isset($matches["cent"])) {
-		return $matches["euro"] * 100 + $matches["cent"];
+	if(isset($matches["negatief"]) && $matches["negatief"] == "-") {
+		$negatief = -1;
 	} else {
-		return $matches["euro"] * 100;
+		$negatief = 1;
+	}
+	if(isset($matches["cent"])) {
+		return $negatief * ($matches["euro"] * 100 + $matches["cent"]);
+	} else {
+		return $negatief * ($matches["euro"] * 100);
 	}
 }
 

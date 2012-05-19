@@ -256,19 +256,20 @@ function billingCreateInvoicePdf($invoiceID)
 	billingCreateInvoiceEmail($invoiceID);
 }
 
-function billingCreateInvoiceEmail($invoiceID)
+function billingCreateInvoiceEmail($invoiceID, $reminder=false)
 {
 	$invoice = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "remainingAmount", "invoiceNumber", "pdf"));
 	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("name", "companyName", "initials", "lastName", "email"));
 	
 	if($invoice["remainingAmount"] > 0) {
 		$bedrag = formatPriceRaw($invoice["remainingAmount"]);
-		$betalen = "Wij verzoeken u dit bedrag ($bedrag) binnen 30 dagen over te maken op rekeningnummer 3962370 t.n.v. Treva Technologies, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}) en uw accountnaam ({$customer["name"]}).";
+		$betalen = "Wij verzoeken u dit bedrag (€ $bedrag) binnen 30 dagen over te maken op rekeningnummer 3962370 t.n.v. Treva Technologies, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}) en uw accountnaam ({$customer["name"]}).";
 	} else {
 		$betalen = "Deze factuur is reeds verrekend met eerdere betalingen.";
 	}
 	
 	$mail = new mimemail();
+	$mail->setCharset("utf-8");
 	if($customer["companyName"] == null || $customer["companyName"] == "") {
 		$mail->addReceiver($customer["email"], $customer["initials"] . " " . $customer["lastName"]);
 	} else {
@@ -276,13 +277,23 @@ function billingCreateInvoiceEmail($invoiceID)
 	}
 	$mail->setSender("treva@treva.nl", "Treva Technologies");
 	$mail->addBcc("klantfacturen@treva.nl");
-	$mail->setSubject("Factuur {$invoice["invoiceNumber"]}");
+	if($reminder) {
+		$mail->setSubject("Herrinnering: factuur {$invoice["invoiceNumber"]}");
+	} else {
+		$mail->setSubject("Factuur {$invoice["invoiceNumber"]}");
+	}
 	$mail->addAttachment("factuur-{$invoice["invoiceNumber"]}.pdf", $invoice["pdf"], "application/pdf");
+	
+	if($reminder) {
+		$inleiding = "Uit onze administratie blijkt dat deze rekening met factuurnummer {$invoice["invoiceNumber"]} nog niet is betaald. Wellicht is het aan uw aandacht ontsnapt. Mocht u reeds betaald hebben, dan kunt u deze herinnering als niet verzonden beschouwen.";
+	} else {
+		$inleiding = "In de bijlage van dit e-mail bericht vindt u de factuur met factuurnummer {$invoice["invoiceNumber"]} voor de afgenomen diensten/producten.";
+	}
 	
 	$mail->setTextMessage(<<<TEXT
 Geachte {$customer["initials"]} {$customer["lastName"]},
 
-In de bijlage van dit e-mail bericht vindt u de factuur met factuurnummer {$invoice["invoiceNumber"]} voor de afgenomen diensten/producten.
+{$inleiding}
 
 {$betalen}
 
