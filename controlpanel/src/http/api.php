@@ -138,4 +138,66 @@ function httpDescendantPaths($pathID, $recursive)
 	return $list;
 }
 
+function httpPathFunctionForm($pathID)
+{
+	$users = array();
+	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username")) as $user) {
+		$users[] = array("value"=>$user["userID"], "label"=>$user["username"]);
+	}
+	
+	$paths = array();
+	foreach($GLOBALS["database"]->query("SELECT pathID FROM httpPath INNER JOIN httpDomain ON httpPath.domainID = httpDomain.domainID WHERE httpDomain.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' AND httpPath.type != 'MIRROR'" . ($pathID === null ? "" : " AND httpPath.pathID <> '" . $GLOBALS["database"]->addSlashes($pathID) . "'"))->fetchList() as $path) {
+		$paths[] = array("value"=>$path["pathID"], "label"=>httpPathName($path["pathID"]));
+	}
+	asort($paths);
+	
+	return array("type"=>"typechooser", "options"=>array(
+		array("title"=>"Hosted site", "submitcaption"=>"Use Hosted Site", "name"=>"hosted", "subform"=>array(
+			array("title"=>"Document root", "type"=>"colspan", "columns"=>array(
+				array("type"=>"html", "html"=>"/home/"),
+				array("type"=>"dropdown", "name"=>"documentOwner", "options"=>$users),
+				array("type"=>"html", "html"=>"/www/"),
+				array("type"=>"text", "name"=>"documentRoot", "fill"=>true),
+				array("type"=>"html", "html"=>"/")
+			))
+		)),
+		array("title"=>"Redirect", "submitcaption"=>"Use Redirect", "name"=>"redirect", "summary"=>"A redirect to an external site.", "subform"=>array(
+			array("title"=>"Redirect target", "type"=>"text", "name"=>"redirectTarget")
+		)),
+		array("title"=>"Alias", "submitcaption"=>"Use Alias", "name"=>"mirror", "summary"=>"An alternative address to reach one of your existing sites.", "subform"=>array(
+			array("title"=>"Aliased website", "type"=>"dropdown", "name"=>"mirrorTarget", "options"=>$paths)
+		))
+	));
+}
+
+function httpPathFunctionStubForm($pathName, $type, $userID, $hostedPath, $redirectTarget, $mirrorTargetPathID, $description)
+{
+	if($type == "HOSTED") {
+		$function = "Hosted site";
+		$dataTitle = "Document root";
+		$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$userID), "username");
+		$dataContent = htmlentities("/home/$username/www/$hostedPath/");
+	} else if($type == "REDIRECT") {
+		$function = "Redirect";
+		$dataTitle = "Target";
+		$urlHtml = htmlentities($redirectTarget);
+		$dataContent = "<a href=\"$urlHtml\">$urlHtml</a>";
+	} else if($type == "MIRROR") {
+		$function = "Alias";
+		$dataTitle = "Target";
+		$urlHtml = htmlentities("http://" . httpPathName($mirrorTargetPathID) . "/");
+		$dataContent = "<a href=\"$urlHtml\">$urlHtml</a>";
+	} else {
+		$function = "Unknown";
+		$dataTitle = "Details";
+		$dataContent = $description;
+	}
+	$urlHtml = htmlentities("http://$pathName/");
+	return array(
+		array("title"=>"Function", "type"=>"html", "html"=>$function),
+		array("title"=>"Url", "type"=>"html", "html"=>"<a href=\"$urlHtml\">$urlHtml</a>"),
+		array("title"=>$dataTitle, "type"=>"html", "html"=>$dataContent)
+	);
+}
+
 ?>

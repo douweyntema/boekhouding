@@ -165,6 +165,71 @@ function addSubdomainForm($domainID, $error = "", $values = null)
 		$values);
 }
 
+function domainAddressForm($domainName, $parentDomainName)
+{
+	return array(array("type"=>"typechooser", "options"=>array(
+		($parentDomainName === null)
+			? array("title"=>"None", "submitcaption"=>"No Address", "name"=>"none", "summary"=>"Do not configure any address for this domain.", "subform"=>array())
+			: array("title"=>"Inherit", "submitcaption"=>"Use $parentDomainName Settings", "name"=>"inherit", "summary"=>"Use the same settings as <em>$parentDomainName</em>.", "subform"=>array()),
+		array("title"=>"Our webservers", "submitcaption"=>"Use Our Webservers", "name"=>"trevaweb", "summary"=>"Use the address of our webservers.", "subform"=>array()),
+		array("title"=>"Custom address", "submitcaption"=>"Use These Adresses", "name"=>"ip", "summary"=>"Use your own custom address configuration.", "subform"=>array(
+			array("title"=>"IPv4 address", "type"=>"text", "name"=>"ipv4"),
+			array("title"=>"IPv6 address", "type"=>"text", "name"=>"ipv6")
+		)),
+		array("title"=>"Alias", "submitcaption"=>"Use This Alias", "name"=>"cname", "summary"=>"Let <em>$domainName</em> be an alias (also known as a <em>CNAME</em>) for another domain name.", "subform"=>array(
+			array("title"=>"Target domain name", "type"=>"text", "name"=>"cnameTarget")
+		)),
+		array("title"=>"Nameserver delegation", "submitcaption"=>"Use Nameserver Delegation", "name"=>"delegation", "summary"=>"Delegate authority over <em>$domainName</em> to external nameservers.", "subform"=>array(
+			array("title"=>"", "type"=>"colspan", "columns"=>array(
+				array("type"=>"html", "html"=>"Hostname", "celltype"=>"th", "fill"=>true),
+				array("type"=>"html", "html"=>"IPv4 Address", "celltype"=>"th"),
+				array("type"=>"html", "html"=>"IPv6 Address", "celltype"=>"th")
+			)),
+			array("type"=>"array", "field"=>array("title"=>"Nameserver", "type"=>"colspan", "columns"=>array(
+				array("type"=>"text", "name"=>"hostname", "fill"=>true),
+				array("type"=>"text", "name"=>"ipv4Address"),
+				array("type"=>"text", "name"=>"ipv6Address")
+			)))
+		))
+	)));
+}
+
+function domainAddressStubForm($type, $parentDomainName, $ipv4Addresses, $ipv6Addresses, $cnameTarget, $delegatedNameServers)
+{
+	$form = array();
+	if($type == "NONE") {
+		$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"No address.");
+	} else if($type == "INHERIT") {
+		$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Inherit from <em>$parentDomainName</em>");
+	} else if($type == "TREVA-WEB") {
+		$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Use our webservers");
+	} else if($type == "IP") {
+		$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Custom address");
+		$form[] = array("title"=>"IPv4 address", "type"=>"html", "html"=>count($ipv4Addresses) == 0 ? "None" : implode(" ", $ipv4Addresses));
+		$form[] = array("title"=>"IPv6 address", "type"=>"html", "html"=>count($ipv6Addresses) == 0 ? "None" : implode(" ", $ipv6Addresses));
+	} else if($type == "CNAME") {
+		$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Alias");
+		$form[] = array("title"=>"Target domain name", "type"=>"html", "html"=>htmlentities($cnameTarget));
+	} else if($type == "DELEGATION") {
+		$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Nameserver delegation");
+		$form[] = array("title"=>"Nameservers", "type"=>"colspan", "columns"=>array(
+			array("type"=>"html", "html"=>"Hostname", "celltype"=>"th", "fill"=>true),
+			array("type"=>"html", "html"=>"IPv4 Address", "celltype"=>"th"),
+			array("type"=>"html", "html"=>"IPv6 Address", "celltype"=>"th")
+		));
+		foreach($delegatedNameServers as $server) {
+			$form[] = array("title"=>"", "type"=>"colspan", "columns"=>array(
+				array("type"=>"html", "html"=>htmlentities($server["hostname"]), "fill"=>true),
+				array("type"=>"html", "html"=>$server["ipv4Address"] === null ? "None" : $server["ipv4Address"]),
+				array("type"=>"html", "html"=>$server["ipv6Address"] === null ? "None" : $server["ipv6Address"])
+			));
+		}
+	} else {
+		$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Unknown");
+	}
+	return $form;
+}
+
 function editAddressForm($domainID, $error = "", $values = null)
 {
 	$domain = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), array("addressType", "cnameTarget"));
@@ -177,43 +242,11 @@ function editAddressForm($domainID, $error = "", $values = null)
 	if($parentDomainID !== null) {
 		$parentDomainName = domainsFormatDomainName($parentDomainID);
 	} else {
-		$parentDomainName = "";
+		$parentDomainName = null;
 	}
 	
 	if($error == "STUB") {
-		$form = array();
-		if($domain["addressType"] == "NONE") {
-			$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"No address.");
-		} else if($domain["addressType"] == "INHERIT") {
-			$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Inherit from <em>$parentDomainName</em>");
-		} else if($domain["addressType"] == "TREVA-WEB") {
-			$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Use our webservers");
-		} else if($domain["addressType"] == "IP") {
-			$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Custom address");
-			$form[] = array("title"=>"IPv4 address", "type"=>"html", "html"=>count($ipv4) == 0 ? "None" : implode(" ", $ipv4));
-			$form[] = array("title"=>"IPv6 address", "type"=>"html", "html"=>count($ipv6) == 0 ? "None" : implode(" ", $ipv6));
-		} else if($domain["addressType"] == "CNAME") {
-			$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Alias");
-			$form[] = array("title"=>"Target domain name", "type"=>"html", "html"=>htmlentities($domain["cnameTarget"]));
-		} else if($domain["addressType"] == "DELEGATION") {
-			$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Nameserver delegation");
-			$form[] = array("title"=>"Nameservers", "type"=>"colspan", "columns"=>array(
-				array("type"=>"html", "html"=>"Hostname", "celltype"=>"th", "fill"=>true),
-				array("type"=>"html", "html"=>"IPv4 Address", "celltype"=>"th"),
-				array("type"=>"html", "html"=>"IPv6 Address", "celltype"=>"th")
-			));
-			foreach($delegatedNameServers as $server) {
-				$form[] = array("title"=>"", "type"=>"colspan", "columns"=>array(
-					array("type"=>"html", "html"=>htmlentities($server["hostname"]), "fill"=>true),
-					array("type"=>"html", "html"=>$server["ipv4Address"] === null ? "None" : $server["ipv4Address"]),
-					array("type"=>"html", "html"=>$server["ipv6Address"] === null ? "None" : $server["ipv6Address"])
-				));
-			}
-		} else {
-			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Unknown");
-		}
-		
-		return operationForm("editaddress.php?id=$domainID", "STUB", "Edit address configuration for $domainName", "Edit", $form, null);
+		return operationForm("editaddress.php?id=$domainID", "STUB", "Edit address configuration for $domainName", "Edit", domainAddressStubForm($domain["addressType"], $parentDomainName, $ipv4, $ipv6, $domain["cnameTarget"], $delegatedNameServers), null);
 	}
 	
 	if($values === null || (!isset($values["none"]) && !isset($values["inherit"]) && !isset($values["trevaweb"]) && !isset($values["ip"]) && !isset($values["cname"]) && !isset($values["delegation"])))
@@ -269,35 +302,44 @@ function editAddressForm($domainID, $error = "", $values = null)
 		}
 	}
 	
-	return operationForm("editaddress.php?id=$domainID", $error, "Edit address configuration for $domainName", "Edit",
-		array(
-			array("type"=>"typechooser", "options"=>array(
-				($parentDomainID === null)
-					? array("title"=>"None", "submitcaption"=>"No Address", "name"=>"none", "summary"=>"Do not configure any address for this domain.", "subform"=>array())
-					: array("title"=>"Inherit", "submitcaption"=>"Use $parentDomainName Settings", "name"=>"inherit", "summary"=>"Use the same settings as <em>$parentDomainName</em>.", "subform"=>array()),
-				array("title"=>"Our webservers", "submitcaption"=>"Use Our Webservers", "name"=>"trevaweb", "summary"=>"Use the address of our webservers.", "subform"=>array()),
-				array("title"=>"Custom address", "submitcaption"=>"Use These Adresses", "name"=>"ip", "summary"=>"Use your own custom address configuration.", "subform"=>array(
-					array("title"=>"IPv4 address", "type"=>"text", "name"=>"ipv4"),
-					array("title"=>"IPv6 address", "type"=>"text", "name"=>"ipv6")
-				)),
-				array("title"=>"Alias", "submitcaption"=>"Use This Alias", "name"=>"cname", "summary"=>"Let <em>$domainName</em> be an alias (also known as a <em>CNAME</em>) for another domain name.", "subform"=>array(
-					array("title"=>"Target domain name", "type"=>"text", "name"=>"cnameTarget")
-				)),
-				array("title"=>"Nameserver delegation", "submitcaption"=>"Use Nameserver Delegation", "name"=>"delegation", "summary"=>"Delegate authority over <em>$domainName</em> to external nameservers.", "subform"=>array(
-					array("title"=>"", "type"=>"colspan", "columns"=>array(
-						array("type"=>"html", "html"=>"Hostname", "celltype"=>"th", "fill"=>true),
-						array("type"=>"html", "html"=>"IPv4 Address", "celltype"=>"th"),
-						array("type"=>"html", "html"=>"IPv6 Address", "celltype"=>"th")
-					)),
-					array("type"=>"array", "field"=>array("title"=>"Nameserver", "type"=>"colspan", "columns"=>array(
-						array("type"=>"text", "name"=>"hostname", "fill"=>true),
-						array("type"=>"text", "name"=>"ipv4Address"),
-						array("type"=>"text", "name"=>"ipv6Address")
-					)))
-				))
+	return operationForm("editaddress.php?id=$domainID", $error, "Edit address configuration for $domainName", "Edit", domainAddressForm($domainName, $parentDomainName), $values, $messages);
+}
+
+function domainMailForm()
+{
+	return array(
+		array("type"=>"typechooser", "options"=>array(
+			array("title"=>"No email", "submitcaption"=>"No Email", "name"=>"noemail", "summary"=>"Disable email for this domain.", "subform"=>array()),
+			array("title"=>"Email using our mailservers", "submitcaption"=>"Use Our Mailservers", "name"=>"treva", "summary"=>"Enable email for this domain, using our mailservers.", "subform"=>array()),
+			array("title"=>"Email using custom mailservers", "submitcaption"=>"Use These Mailservers", "name"=>"custom", "summary"=>"Enable email for this domain, using custom mailservers.", "subform"=>array(
+				array("type"=>"array", "field"=>array("title"=>"Mail server", "type"=>"text", "name"=>"server"))
 			))
-		),
-		$values, $messages);
+		))
+	);
+}
+
+function domainMailStubForm($type, $mailServers)
+{
+	$form = array();
+	if($type == "NONE") {
+		$form[] = array("title"=>"Status", "type"=>"html", "html"=>"No email");
+	} else if($type == "TREVA") {
+		$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Enabled using our mailservers");
+	} else if($type == "CUSTOM") {
+		$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Enabled using custom mailservers");
+		if(count($mailServers) == 0) {
+			$form[] = array("title"=>"Mailservers", "type"=>"html", "html"=>"None configured");
+		} else {
+			$form[] = array("title"=>"Mailservers", "type"=>"html", "html"=>htmlentities(array_shift($mailServers)));
+			foreach($mailServers as $server) {
+				$form[] = array("title"=>"", "type"=>"html", "html"=>htmlentities($server));
+			}
+		}
+	} else {
+		$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Unknown");
+	}
+	
+	return $form;
 }
 
 function editMailForm($domainID, $error = "", $values = null)
@@ -314,31 +356,12 @@ function editMailForm($domainID, $error = "", $values = null)
 	$mailServers = $GLOBALS["database"]->stdList("dnsMailServer", array("domainID"=>$domainID), "name", array("priority"=>"ASC"));
 	
 	if($error == "STUB") {
-		$form = array();
-		if($mailType == "NONE") {
-			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"No email");
-		} else if($mailType == "TREVA") {
-			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Enabled using our mailservers");
-		} else if($mailType == "CUSTOM") {
-			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Enabled using custom mailservers");
-			if(count($mailServers) == 0) {
-				$form[] = array("title"=>"Mailservers", "type"=>"html", "html"=>"None configured");
-			} else {
-				$form[] = array("title"=>"Mailservers", "type"=>"html", "html"=>htmlentities(array_shift($mailServers)));
-				foreach($mailServers as $server) {
-					$form[] = array("title"=>"", "type"=>"html", "html"=>htmlentities($server));
-				}
-			}
-		} else {
-			$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Unknown");
-		}
-		
-		return operationForm("editmail.php?id=$domainID", "STUB", "Edit email configuration for " . domainsFormatDomainName($domainID), "Edit", $form, null);
+		return operationForm("editmail.php?id=$domainID", "STUB", "Edit email configuration for " . domainsFormatDomainName($domainID), "Edit", domainMailStubForm($mailType, $mailServers), null);
 	}
 	
-	if($values === null || (!isset($values["none"]) && !isset($values["treva"]) && !isset($values["custom"]))) {
+	if($values === null || (!isset($values["noemail"]) && !isset($values["treva"]) && !isset($values["custom"]))) {
 		if($mailType == "NONE") {
-			$values = array("none"=>"1");
+			$values = array("noemail"=>"1");
 		} else if($mailType == "TREVA") {
 			$values = array("treva"=>"1");
 		} else if($mailType == "CUSTOM") {
@@ -353,17 +376,7 @@ function editMailForm($domainID, $error = "", $values = null)
 		}
 	}
 	
-	return operationForm("editmail.php?id=$domainID", $error, "Edit email configuration for " . domainsFormatDomainName($domainID), "Edit",
-		array(
-			array("type"=>"typechooser", "options"=>array(
-				array("title"=>"No email", "submitcaption"=>"No Email", "name"=>"none", "summary"=>"Disable email for this domain.", "subform"=>array()),
-				array("title"=>"Email using our mailservers", "submitcaption"=>"Use Our Mailservers", "name"=>"treva", "summary"=>"Enable email for this domain, using our mailservers.", "subform"=>array()),
-				array("title"=>"Email using custom mailservers", "submitcaption"=>"Use These Mailservers", "name"=>"custom", "summary"=>"Enable email for this domain, using custom mailservers.", "subform"=>array(
-					array("type"=>"array", "field"=>array("title"=>"Mail server", "type"=>"text", "name"=>"server"))
-				))
-			))
-		),
-		$values);
+	return operationForm("editmail.php?id=$domainID", $error, "Edit email configuration for " . domainsFormatDomainName($domainID), "Edit", domainMailForm(), $values);
 }
 
 function withdrawDomainForm($domainID, $error = "", $values = null)

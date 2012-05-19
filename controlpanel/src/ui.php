@@ -719,7 +719,7 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 			$output .= "<p class=\"confirmdelete\">{$messages["confirmdelete"]}</p>\n";
 		}
 		if(isset($messages["confirmbilling"])) {
-			$output .= "<p class=\"confirmbilling\">{$messages["confirmbilling"]}</p>\n";
+			$output .= "<p class=\"billing\">{$messages["confirmbilling"]}</p>\n";
 		}
 	} else if($error != "" && $error != "STUB") {
 		$output .= "<p class=\"error\">" . $error . "</p>\n";

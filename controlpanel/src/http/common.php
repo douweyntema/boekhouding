@@ -160,38 +160,6 @@ function singlePathSummary($pathID)
 	return listTable(array("Address", "Function"), $rows, null, true, "list tree");
 }
 
-function pathFunctionForm($pathID)
-{
-	$users = array();
-	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username")) as $user) {
-		$users[] = array("value"=>$user["userID"], "label"=>$user["username"]);
-	}
-	
-	$paths = array();
-	foreach($GLOBALS["database"]->query("SELECT pathID FROM httpPath INNER JOIN httpDomain ON httpPath.domainID = httpDomain.domainID WHERE httpDomain.customerID = '" . $GLOBALS["database"]->addSlashes(customerID()) . "' AND httpPath.type != 'MIRROR'" . ($pathID === null ? "" : " AND httpPath.pathID <> '" . $GLOBALS["database"]->addSlashes($pathID) . "'"))->fetchList() as $path) {
-		$paths[] = array("value"=>$path["pathID"], "label"=>httpPathName($path["pathID"]));
-	}
-	asort($paths);
-	
-	return array("type"=>"typechooser", "options"=>array(
-		array("title"=>"Hosted site", "submitcaption"=>"Use Hosted Site", "name"=>"hosted", "subform"=>array(
-			array("title"=>"Document root", "type"=>"colspan", "columns"=>array(
-				array("type"=>"html", "html"=>"/home/"),
-				array("type"=>"dropdown", "name"=>"documentOwner", "options"=>$users),
-				array("type"=>"html", "html"=>"/www/"),
-				array("type"=>"text", "name"=>"documentRoot", "fill"=>true),
-				array("type"=>"html", "html"=>"/")
-			))
-		)),
-		array("title"=>"Redirect", "submitcaption"=>"Use Redirect", "name"=>"redirect", "summary"=>"A redirect to an external site.", "subform"=>array(
-			array("title"=>"Redirect target", "type"=>"text", "name"=>"redirectTarget")
-		)),
-		array("title"=>"Alias", "submitcaption"=>"Use Alias", "name"=>"mirror", "summary"=>"An alternative address to reach one of your existing sites.", "subform"=>array(
-			array("title"=>"Aliased website", "type"=>"dropdown", "name"=>"mirrorTarget", "options"=>$paths)
-		))
-	));
-}
-
 function addDomainForm($error = "", $values = null)
 {
 	$domains = array();
@@ -216,7 +184,7 @@ function addDomainForm($error = "", $values = null)
 				array("type"=>"html", "html"=>"."),
 				array("type"=>"dropdown", "name"=>"domainTldID", "options"=>$domains)
 			)),
-			pathFunctionForm(null)
+			httpPathFunctionForm(null)
 		),
 		$values);
 }
@@ -239,7 +207,7 @@ function addSubdomainForm($domainID, $error = "", $values = null)
 				array("type"=>"text", "name"=>"name", "fill"=>true),
 				array("type"=>"html", "html"=>("." . httpDomainName($domainID)))
 			)),
-			pathFunctionForm(null)
+			httpPathFunctionForm(null)
 		),
 		$values);
 }
@@ -262,7 +230,7 @@ function addPathForm($pathID, $error = "", $values = null)
 				array("type"=>"html", "html"=>(httpPathName($pathID) . "/")),
 				array("type"=>"text", "name"=>"name", "fill"=>true)
 			)),
-			pathFunctionForm(null)
+			httpPathFunctionForm(null)
 		),
 		$values);
 }
@@ -273,33 +241,7 @@ function editPathForm($pathID, $error = "", $values = null)
 	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("type", "hostedUserID", "hostedPath", "redirectTarget", "mirrorTargetPathID"));
 	
 	if($error == "STUB") {
-		if($path["type"] == "HOSTED") {
-			$function = "Hosted site";
-			$dataTitle = "Document root";
-			$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$path["hostedUserID"]), "username");
-			$dataContent = htmlentities("/home/$username/www/{$path["hostedPath"]}/");
-		} else if($path["type"] == "REDIRECT") {
-			$function = "Redirect";
-			$dataTitle = "Target";
-			$urlHtml = htmlentities($path["redirectTarget"]);
-			$dataContent = "<a href=\"$urlHtml\">$urlHtml</a>";
-		} else if($path["type"] == "MIRROR") {
-			$function = "Alias";
-			$dataTitle = "Target";
-			$urlHtml = htmlentities("http://" . httpPathName($path["mirrorTargetPathID"]) . "/");
-			$dataContent = "<a href=\"$urlHtml\">$urlHtml</a>";
-		} else {
-			$function = "Unknown";
-			$dataTitle = "Details";
-			$dataContent = functionDescription($pathID);
-		}
-		$urlHtml = htmlentities("http://" . httpPathName($pathID) . "/");
-		return operationForm("editpath.php?id=$pathID", $error, "Site function", "Edit", array(
-			array("title"=>"Function", "type"=>"html", "html"=>$function),
-			array("title"=>"Url", "type"=>"html", "html"=>"<a href=\"$urlHtml\">$urlHtml</a>"),
-			array("title"=>$dataTitle, "type"=>"html", "html"=>$dataContent)
-		),
-		array());
+		return operationForm("editpath.php?id=$pathID", $error, "Site function", "Edit", httpPathFunctionStubForm(httpPathName($pathID), $path["type"], $path["hostedUserID"], $path["hostedPath"], $path["redirectTarget"], $path["mirrorTargetPathID"], functionDescription($pathID)), array());
 	}
 	
 	if($values === null || (!isset($values["hosted"]) && !isset($values["redirect"]) && !isset($values["mirror"]))) {
@@ -317,7 +259,7 @@ function editPathForm($pathID, $error = "", $values = null)
 	
 	return operationForm("editpath.php?id=$pathID", $error, "Edit site $pathNameHtml", "Edit",
 		array(
-			pathFunctionForm($pathID)
+			httpPathFunctionForm($pathID)
 		),
 		$values);
 }

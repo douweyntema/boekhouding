@@ -1,3 +1,4 @@
+
 <?php
 
 require_once("common.php");
@@ -11,7 +12,7 @@ function main()
 		if(!$condition) die(page(makeHeader("Domain " . domainsFormatDomainName($domainID), domainBreadcrumbs($domainID), crumbs("Edit email", "editmail.php?id=$domainID")) . editMailForm($domainID, $error, $_POST)));
 	};
 	
-	$check(($type = searchKey($_POST, "none", "treva", "custom")) !== null, "");
+	$check(($type = searchKey($_POST, "noemail", "treva", "custom")) !== null, "");
 	
 	$remove = function() use($domainID, $check) {
 		$check(post("confirm") !== null, null);
@@ -20,7 +21,7 @@ function main()
 		$GLOBALS["database"]->stdDel("dnsMailServer", array("domainID"=>$domainID));
 	};
 	
-	if($type == "none") {
+	if($type == "noemail") {
 		$remove();
 		$function = array("mailType"=>"NONE");
 	} else if($type == "treva") {
