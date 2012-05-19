@@ -43,7 +43,7 @@ function billingAddInvoiceLine($customerID, $description, $price, $discount)
 
 function billingUpdateInvoiceLines($customerID)
 {
-	if($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "invoicesEnabled") === 0) {
+	if($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "invoiceStatus") == "DISABLED") {
 		return;
 	}
 	$now = time();
@@ -102,7 +102,7 @@ function billingCreateInvoiceBatch($customerID)
 	if(!isset($GLOBALS["controlpanelEnableCustomerEmail"]) || !$GLOBALS["controlpanelEnableCustomerEmail"]) {
 		return;
 	}
-	if($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "invoicesEnabled") === 0) {
+	if($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "invoiceStatus") !== 'ENABLED') {
 		return;
 	}
 	billingUpdateInvoiceLines($customerID);
