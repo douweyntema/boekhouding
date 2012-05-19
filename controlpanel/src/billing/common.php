@@ -369,7 +369,12 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 			array("type"=>"html", "cellclass"=>"nowrap", "html"=>$invoiceLine["periodEnd"] == null ? "-" : date("d-m-Y", $invoiceLine["periodEnd"]))
 		));
 	}
-	return operationForm("sendinvoice.php?id=$customerID", $error, "Send invoice", "Send", $lines, $values);
+	$lines[] = array("type"=>"typechooser", "options"=>array(
+		array("title"=>"Delete", "submitcaption"=>"Delete", "name"=>"delete", "summary"=>"Delete selected invoice lines", "subform"=>array()),
+		array("title"=>"Create invoice", "submitcaption"=>"Create Invoice", "name"=>"create", "summary"=>"Create and send an invoice with the selected invoice lines", "subform"=>array())
+		));
+
+	return operationForm("sendinvoice.php?id=$customerID", $error, "Invoice lines", "Create Invoice", $lines, $values);
 }
 
 function frequency($subscription)
