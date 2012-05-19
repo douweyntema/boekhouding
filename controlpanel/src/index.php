@@ -29,6 +29,7 @@ HTML;
 }
 
 $content .= customersOverview();
+$content .= infrastructureOverview();
 
 if(isRoot()) {
 	$content .= <<<HTML

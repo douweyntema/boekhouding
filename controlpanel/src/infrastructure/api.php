@@ -3,6 +3,20 @@
 $infrastructureTitle = "Infrastructure";
 $infrastructureTarget = "admin";
 
+function infrastructureOverview()
+{
+	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>customerID()), array("fileSystemID", "mailSystemID"));
+	$mailsystem = $GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), array("incomingServer", "outgoingServer"));
+	$filesystem = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), array("ftpServer", "databaseServer"));
+
+	return summaryTable("Server information", array(
+		"Incoming mailserver"=>$mailsystem["incomingServer"],
+		"Outgoing mailserver"=>$mailsystem["outgoingServer"],
+		"FTP server"=>$filesystem["ftpServer"],
+		"Database server"=>$filesystem["databaseServer"]
+	));
+}
+
 function infrastructureRefreshHostMount($hostID)
 {
 	$GLOBALS["database"]->stdSet("infrastructureMount", array("hostID"=>$hostID), array("version"=>-1));
