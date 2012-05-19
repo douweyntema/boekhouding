@@ -52,6 +52,22 @@ function adminSubscriptionBreadcrumbs($subscriptionID)
 	return array_merge(adminCustomerBreadcrumbs($subscription["customerID"]), crumbs($subscription["description"], "subscription.php?id=$subscriptionID"));
 }
 
+function invoiceStatusForm($customerID, $error = "", $values = null)
+{
+	if($values === null) {
+		$values = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("invoiceStatus"));
+	}
+	return operationForm("changestatus.php?id=$customerID", $error, "Change invoice status", "Save",
+		array(
+			array("title"=>"Status", "type"=>"dropdown", "name"=>"invoiceStatus", "options"=>array(
+				array("label"=>"Disabled", "value"=>"DISABLED"),
+				array("label"=>"Preview", "value"=>"PREVIEW"),
+				array("label"=>"Enabled", "value"=>"ENABLED")
+			)),
+		),
+		$values);
+}
+
 function subscriptionList($customerID)
 {
 	$rows = array();
