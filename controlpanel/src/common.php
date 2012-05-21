@@ -10,7 +10,12 @@ ignore_user_abort(true);
 
 function exceptionHandler($exception)
 {
-	mailAdmin("Controlpanel exception", $exception->__toString());
+	$message = $exception->__toString() . "\n\n";
+	$message .= "\$_SERVER = " . var_export($_SERVER, TRUE) . "\n\n";
+	$message .= "\$_GET = " . var_export($_GET, TRUE) . "\n\n";
+	$message .= "\$_POST = " . var_export($_POST, TRUE) . "\n\n";
+	$message .= "\$_SESSION[username] = " . $_SESSION["username"] . "\n\n";
+	mailAdmin("Controlpanel exception", $message);
 	die("Internal error. An administrator has been informed.");
 }
 
