@@ -29,6 +29,7 @@ HTML;
 }
 
 $content .= customersOverview();
+$content .= trevaOverview();
 $content .= infrastructureOverview();
 
 if(isRoot()) {

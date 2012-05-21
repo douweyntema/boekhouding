@@ -221,6 +221,20 @@ function menu()
 	return $output;
 }
 
+function trevaOverview()
+{
+	return summaryTable("Our information", array(
+		"Name"=>"Treva Technologies",
+		"Address"=>"Sibeliuslaan 95\n5654 CV Eindhoven",
+		"Email"=>array("html"=>"treva@treva.nl", "url"=>"mailto:treva@treva.nl"),
+		"Emergency phone number"=>"040-7114037",
+		"KvK number"=>"17218313 in Eindhoven",
+		"BTW number"=>"NL0026006487B01",
+		"Bank number"=>"ING 3962370",
+		"IBAN number"=>"NL81INGB0003962370"
+	));
+}
+
 function page($content)
 {
 	echo htmlHeader(welcomeHeader() . "<div class=\"menu\">\n" . menu() . "</div>\n<div class=\"main\">\n" . $content . "</div>");
