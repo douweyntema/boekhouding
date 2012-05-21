@@ -63,6 +63,16 @@ function customerBalance($customerID)
 	));
 }
 
+function customerMijnDomeinReseller($customerID, $error = "", $values = null)
+{
+	$id = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "mijnDomeinResellerContactID");
+	return operationForm("updatemijndomeinreseller.php?id=$customerID", $error, "MijnDomeinReseller", "Update contact information", array(
+		$id === null ? 
+			array("title"=>"Contact ID", "type"=>"html", "html"=>"No ID yet") :
+			array("title"=>"Contact ID", "type"=>"html", "url"=>"https://manager.mijndomeinreseller.nl/contacts.php?a=details&id=$id", "html"=>$id)
+	), $values);
+}
+
 function customerLogin($customerID)
 {
 	$customerName = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "name");

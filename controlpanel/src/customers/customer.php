@@ -12,6 +12,7 @@ function main()
 	$content = makeHeader("Customers - $customerName", customerBreadcrumbs($customerID));
 	$content .= customerLogin($customerID);
 	$content .= customerBalance($customerID);
+	$content .= customerMijnDomeinReseller($customerID);
 	$content .= editCustomerForm($customerID);
 	$content .= editCustomerRightsForm($customerID);
 	echo page($content);
