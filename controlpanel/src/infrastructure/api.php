@@ -15,9 +15,10 @@ function infrastructureOverview()
 	return summaryTable("Server information", array(
 		"Incoming mailserver"=>$mailsystem["incomingServer"],
 		"Outgoing mailserver"=>$mailsystem["outgoingServer"],
+		$customer["webmail"] === null || $customer["webmail"] == "" ? null : "Webmail"=>array("html"=>$customer["webmail"], "url"=>"http://" . $customer["webmail"]),
 		"FTP server"=>$filesystem["ftpServer"],
 		"Database server"=>$filesystem["databaseServer"],
-		$customer["webmail"] === null ? null : "Webmail"=>array("html"=>$customer["webmail"], "url"=>"http://" . $customer["webmail"])
+		"Controlpanel"=>array("html"=>"controlpanel.treva.nl", "url"=>"http://controlpanel.treva.nl")
 	));
 }
 
