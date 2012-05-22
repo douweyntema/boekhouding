@@ -52,7 +52,7 @@ function main()
 	
 	updateHttp(customerID());
 	
-	redirect("domain.php?id=$newDomainID");
+	redirect("http/domain.php?id=$newDomainID");
 }
 
 main();
