@@ -115,14 +115,18 @@ function updateDomains($customerID)
 
 function domainID($domainname)
 {
-	$parts = explode(".", $domainname);
-	$tldID = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("name"=>$parts[count($parts) - 1]), "domainTldID");
-	$domainID = $GLOBALS["database"]->stdGet("dnsDomain", array("name"=>$parts[count($parts) - 2], "domainTldID"=>$tldID), "domainID");
-	
-	for($i = count($parts) - 3; $i >= 0; $i--) {
-		$domainID = $GLOBALS["database"]->stdGet("dnsDomain", array("name"=>$parts[$i], "parentDomainID"=>$domainID), "domainID");
+	try {
+		$parts = explode(".", $domainname);
+		$tldID = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("name"=>$parts[count($parts) - 1]), "domainTldID");
+		$domainID = $GLOBALS["database"]->stdGet("dnsDomain", array("name"=>$parts[count($parts) - 2], "domainTldID"=>$tldID), "domainID");
+		
+		for($i = count($parts) - 3; $i >= 0; $i--) {
+			$domainID = $GLOBALS["database"]->stdGet("dnsDomain", array("name"=>$parts[$i], "parentDomainID"=>$domainID), "domainID");
+		}
+		return $domainID;
+	} catch(NotFoundException $e) {
+		return false;
 	}
-	return $domainID;
 }
 
 ?>
