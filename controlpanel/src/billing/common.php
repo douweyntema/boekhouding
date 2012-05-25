@@ -189,7 +189,7 @@ function invoiceList($customerID)
 			array("url"=>"resend.php?id={$invoice["invoiceID"]}", "text"=>"Resend")
 		);
 	}
-	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount", "Reminder", "Resend"), $rows, "Invoices", "No invoices have been sent to far.", "sortable list");
+	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount", "Reminder", "Resend"), $rows, "Invoices", "No invoices have been sent so far.", "sortable list");
 }
 
 function paymentList($customerID)
