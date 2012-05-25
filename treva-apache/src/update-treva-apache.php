@@ -366,7 +366,7 @@ $output .= "</VirtualHost>\n";
 
 function getPathConfig($pathID, $location, $ancestors)
 {
-	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("domainID", "name", "type", "hostedUserID", "hostedPath", "hostedIndexes", "svnPath", "redirectTarget", "mirrorTargetPathID", "userDatabaseID", "userDatabaseRealm", "customLocationConfigText", "customDirectoryConfigText"));
+	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("domainID", "name", "type", "hostedUserID", "hostedPath", "hostedIndexes", /*"svnPath",*/ "redirectTarget", "mirrorTargetPathID", /*"userDatabaseID", "userDatabaseRealm",*/ "customLocationConfigText", "customDirectoryConfigText"));
 	
 	$childAncestors = $ancestors;
 	$childAncestors[$pathID] = $location;
@@ -430,7 +430,7 @@ function getPathConfig($pathID, $location, $ancestors)
 			$output .= "# $effectiveLocation is a mirror of " . pathName($path["mirrorTargetPathID"]) . ":\n";
 			$output .= getPathConfig($path["mirrorTargetPathID"], $location, $childAncestors);
 		}
-	} else if($path["type"] == "SVN") {
+/*	} else if($path["type"] == "SVN") {
 		$directoryPath = $path["svnPath"];
 		if(!is_dir($directoryPath)) {
 			return $output . "### WARNING: SVN directory does not exist; Ignoring site.\n";
@@ -441,10 +441,10 @@ SVNParentPath $directorypath
 
 SVN
 		);
-		$directoryBlocks = array();
-	} else if($path["type"] == "AUTH") {
+		$directoryBlocks = array();*/
+/*	} else if($path["type"] == "AUTH") {
 		$locationBlocks = array();
-		$output .= "# TODO\n";
+		$output .= "# TODO\n";*/
 	} else if($path["type"] == "NONE") {
 		$output .= "# nothing here\n";
 	}

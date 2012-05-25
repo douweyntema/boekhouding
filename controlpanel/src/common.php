@@ -10,7 +10,12 @@ ignore_user_abort(true);
 
 function exceptionHandler($exception)
 {
-	mailAdmin("Controlpanel exception", $exception->__toString());
+	$message = $exception->__toString() . "\n\n";
+	$message .= "\$_SERVER = " . var_export($_SERVER, TRUE) . "\n\n";
+	$message .= "\$_GET = " . var_export($_GET, TRUE) . "\n\n";
+	$message .= "\$_POST = " . var_export($_POST, TRUE) . "\n\n";
+	$message .= "\$_SESSION[username] = " . $_SESSION["username"] . "\n\n";
+	mailAdmin("Controlpanel exception", $message);
 	die("Internal error. An administrator has been informed.");
 }
 
@@ -219,6 +224,20 @@ function menu()
 	}
 	
 	return $output;
+}
+
+function trevaOverview()
+{
+	return summaryTable("Our information", array(
+		"Name"=>"Treva Technologies",
+		"Address"=>"Sibeliuslaan 95\n5654 CV Eindhoven",
+		"Email"=>array("html"=>"treva@treva.nl", "url"=>"mailto:treva@treva.nl"),
+		"Emergency phone number"=>"040-7114037",
+		"KvK number"=>"17218313 in Eindhoven",
+		"BTW number"=>"NL0026006487B01",
+		"Bank number"=>"ING 3962370",
+		"IBAN number"=>"NL81INGB0003962370"
+	));
 }
 
 function page($content)

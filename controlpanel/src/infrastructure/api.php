@@ -8,15 +8,17 @@ function infrastructureOverview()
 	if(customerID() == 0) {
 		return;
 	}
-	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>customerID()), array("fileSystemID", "mailSystemID"));
+	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>customerID()), array("fileSystemID", "mailSystemID", "webmail"));
 	$mailsystem = $GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), array("incomingServer", "outgoingServer"));
 	$filesystem = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), array("ftpServer", "databaseServer"));
-
+	
 	return summaryTable("Server information", array(
 		"Incoming mailserver"=>$mailsystem["incomingServer"],
 		"Outgoing mailserver"=>$mailsystem["outgoingServer"],
+		$customer["webmail"] === null || $customer["webmail"] == "" ? null : "Webmail"=>array("html"=>$customer["webmail"], "url"=>"http://" . $customer["webmail"]),
 		"FTP server"=>$filesystem["ftpServer"],
-		"Database server"=>$filesystem["databaseServer"]
+		"Database server"=>$filesystem["databaseServer"],
+		"Controlpanel"=>array("html"=>"controlpanel.treva.nl", "url"=>"http://controlpanel.treva.nl")
 	));
 }
 
