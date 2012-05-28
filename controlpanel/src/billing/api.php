@@ -118,12 +118,13 @@ function billingCreateInvoiceBatch($customerID)
 		$nextInvoiceTime = billingCalculateNextDate($nextInvoiceTime, $invoiceTime["invoiceFrequencyBase"], $invoiceTime["invoiceFrequencyMultiplier"]);
 	}
 	
-	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("nextInvoiceDate"=>$nextInvoiceTime));
-	
 	$invoiceLines = $GLOBALS["database"]->stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), "invoiceLineID");
 	if(count($invoiceLines) == 0) {
 		return;
 	}
+	
+	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("nextInvoiceDate"=>$nextInvoiceTime));
+	
 	billingCreateInvoice($customerID, $invoiceLines);
 }
 

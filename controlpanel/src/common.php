@@ -232,7 +232,7 @@ function trevaOverview()
 		"Name"=>"Treva Technologies",
 		"Address"=>"Sibeliuslaan 95\n5654 CV Eindhoven",
 		"Email"=>array("html"=>"treva@treva.nl", "url"=>"mailto:treva@treva.nl"),
-		"Emergency phone number"=>"040-7114037",
+		"Urgent tech support"=>"040-7114037 (24/7)",
 		"KvK number"=>"17218313 in Eindhoven",
 		"BTW number"=>"NL0026006487B01",
 		"Bank number"=>"ING 3962370",
