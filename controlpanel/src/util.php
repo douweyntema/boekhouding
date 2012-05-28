@@ -73,6 +73,34 @@ function texdate($date)
 	return $day . " " . $maanden[$month] . " " . $year;
 }
 
+function latexEscapeString($string)
+{
+	$replaces = array(
+		'~'=>'',
+		'`'=>'\\`{}',
+		'#'=>'\\#',
+		'$'=>'\\$',
+		'%'=>'\\%',
+		'^'=>'\\^',
+		'&'=>'\\&',
+		'_'=>'\\_',
+		'{'=>'\\{',
+		'}'=>'\\}',
+		'|'=>'\\textbar\\ ',
+		'\\'=>'\\backslash',
+		'<'=>'\\textless',
+		'>'=>'\\textgreater'
+	);
+	
+	$search = array();
+	$replace = array();
+	foreach($replaces as $from=>$to) {
+		$search[] = $from;
+		$replace = $to;
+	}
+	return str_replace($search, $replace, $string);
+}
+
 function countryCodes()
 {
 	$countryCodes = array();

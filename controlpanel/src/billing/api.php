@@ -197,7 +197,9 @@ function billingCreateInvoiceTex($invoiceID)
 	if($customer["countryCode"] != "NL") {
 		$to .= "\\\\" . countryName($customer["countryCode"]);
 	}
+	$toTex = latexEscapeString($to);
 	$username = $customer["name"];
+	$usernameTex = latexEscapeString($username);
 	
 	$posts = "";
 	$discounts = "";
@@ -214,14 +216,16 @@ function billingCreateInvoiceTex($invoiceID)
 			$price = (int)($line["price"] / 1.19);
 			$btw += $line["price"] - $price;
 			$priceFormat = formatPriceRaw($price);
-			$posts .= "\\post{{$line["description"]}}{{$startdate}}{{$enddate}}{{$priceFormat}}\n";
+			$desciptionTex = latexEscapeString($line["description"]);
+			$posts .= "\\post{{$desciptionTex}}{{$startdate}}{{$enddate}}{{$priceFormat}}\n";
 		}
 		if($line["discount"] != 0) {
 			$discountDescription = "Korting " . strtolower(substr($line["description"], 0, 1)) . substr($line["description"], 1);
+			$discountDescriptionTex = latexEscapeString($discountDescription);
 			$discountAmount = (int)($line["discount"] / 1.19);
 			$btw -= $line["discount"] - $discountAmount;
 			$discountamountFormat = formatPriceRaw($discountAmount);
-			$discounts .= "\\korting{{$discountDescription}}{{$discountamountFormat}}\n";
+			$discounts .= "\\korting{{$discountDescriptionTex}}{{$discountamountFormat}}\n";
 		}
 	}
 	$btw = formatPriceRaw($btw);
@@ -232,8 +236,8 @@ function billingCreateInvoiceTex($invoiceID)
 
 \begin{document}
 
-\begin{factuurbrief}{{$to}}{{$invoiceNumber}}
-\gebruikersnaam{{$username}}
+\begin{factuurbrief}{{$toTex}}{{$invoiceNumber}}
+\gebruikersnaam{{$usernameTex}}
 
 \begin{factuur}
 {$posts}{$discounts}\btw{{$btw}}
@@ -254,12 +258,19 @@ function billingCreateInvoicePdf($invoiceID)
 	$tex = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), "tex");
 	$pdf = pdfLatex($tex);
 	$GLOBALS["database"]->stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("pdf"=>$pdf));
+	if($pdf === null) {
+		mailAdmin("Invoice pdf generation failed", "Failed to generate a pdf for invoiceID $invoiceID with tex:\n\n$tex");
+		return;
+	}
 	billingCreateInvoiceEmail($invoiceID);
 }
 
 function billingCreateInvoiceEmail($invoiceID, $reminder=false)
 {
 	$invoice = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "remainingAmount", "invoiceNumber", "pdf"));
+	if($invoice["pdf"] === null) {
+		return;
+	}
 	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("name", "companyName", "initials", "lastName", "email"));
 	
 	if($invoice["remainingAmount"] > 0) {
