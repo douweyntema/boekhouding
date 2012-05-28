@@ -51,8 +51,8 @@ function main()
 	$check($mailQuota === null || ctype_digit($mailQuota), "Invalid mail quota");
 	
 	$check(!$GLOBALS["database"]->stdExists("adminCustomer", array("name"=>post("name")), "customerID"), "A customer with the chosen name already exists");
-	$check(accountsValidAccountName(post("name")), "Invalid account name.");
-	$check(!accountsReservedAccountName(post("name")), "An account with the chosen name already exists (reserved).");
+	$check(validAccountName(post("name")), "Invalid account name.");
+	$check(!reservedAccountName(post("name")), "An account with the chosen name already exists (reserved).");
 	$check($GLOBALS["database"]->stdGetTry("adminUser", array("username"=>post("name")), "customerID", false) === false, "An account with the chosen name already exists.");
 	
 	$password = checkPassword($check, "password");
