@@ -96,7 +96,7 @@ function latexEscapeString($string)
 	$replace = array();
 	foreach($replaces as $from=>$to) {
 		$search[] = $from;
-		$replace = $to;
+		$replace[] = $to;
 	}
 	return str_replace($search, $replace, $string);
 }

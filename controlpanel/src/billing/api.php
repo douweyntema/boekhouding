@@ -184,20 +184,19 @@ function billingCreateInvoiceTex($invoiceID)
 	$invoiceNumber = $invoice["invoiceNumber"];
 	$to = "";
 	if($customer["companyName"] !== null && $customer["companyName"] !== "") {
-		$to .= $customer["companyName"] . "\\\\";
+		$to .= latexEscapeString($customer["companyName"]) . "\\\\";
 		if($customer["initials"] . $customer["lastName"] !== "") {
 			$to .= "t.n.v ";
-			$to .= $customer["initials"] . " " . $customer["lastName"] . "\\\\";
+			$to .= latexEscapeString($customer["initials"]) . " " . latexEscapeString($customer["lastName"]) . "\\\\";
 		}
 	} else {
-		$to .= $customer["initials"] . " " . $customer["lastName"] . "\\\\";
+		$to .= latexEscapeString($customer["initials"]) . " " . latexEscapeString($customer["lastName"]) . "\\\\";
 	}
-	$to .= $customer["address"] . "\\\\";
-	$to .= $customer["postalCode"] . "~~" . $customer["city"];
+	$to .= latexEscapeString($customer["address"]) . "\\\\";
+	$to .= latexEscapeString($customer["postalCode"]) . "~~" . latexEscapeString($customer["city"]);
 	if($customer["countryCode"] != "NL") {
-		$to .= "\\\\" . countryName($customer["countryCode"]);
+		$to .= "\\\\" . latexEscapeString(countryName($customer["countryCode"]));
 	}
-	$toTex = latexEscapeString($to);
 	$username = $customer["name"];
 	$usernameTex = latexEscapeString($username);
 	
@@ -236,7 +235,7 @@ function billingCreateInvoiceTex($invoiceID)
 
 \begin{document}
 
-\begin{factuurbrief}{{$toTex}}{{$invoiceNumber}}
+\begin{factuurbrief}{{$to}}{{$invoiceNumber}}
 \gebruikersnaam{{$usernameTex}}
 
 \begin{factuur}
