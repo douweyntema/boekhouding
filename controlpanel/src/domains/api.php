@@ -26,7 +26,7 @@ function domainsDisableAutoRenew($domainID)
 	$subscriptionID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "subscriptionID");
 	if($subscriptionID !== null) {
 		$expiredate = domainsDomainExpiredate($domainID);
-		if($date = parseDate($expiredate) === null) {
+		if(($date = parseDate($expiredate)) === null) {
 			return false;
 		}
 		billingEndSubscription($subscriptionID, $date);
