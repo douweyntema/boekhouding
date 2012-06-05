@@ -12,10 +12,12 @@ function infrastructureOverview()
 	$mailsystem = $GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), array("incomingServer", "outgoingServer"));
 	$filesystem = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), array("ftpServer", "databaseServer"));
 	
+	$mailcount = $GLOBALS["database"]->stdCount("mailDomain", array("customerID"=>customerID()));
+	
 	return summaryTable("Server information", array(
-		"Incoming mailserver"=>$mailsystem["incomingServer"],
-		"Outgoing mailserver"=>$mailsystem["outgoingServer"],
-		$customer["webmail"] === null || $customer["webmail"] == "" ? null : "Webmail"=>array("html"=>$customer["webmail"], "url"=>"http://" . $customer["webmail"]),
+		$mailcount == 0 || $customer["webmail"] === null || $customer["webmail"] == "" ? null : "Webmail"=>array("html"=>$customer["webmail"], "url"=>"http://" . $customer["webmail"]),
+		$mailcount == 0 ? null : "Incoming mailserver"=>$mailsystem["incomingServer"],
+		$mailcount == 0 ? null : "Outgoing mailserver"=>$mailsystem["outgoingServer"],
 		"FTP server"=>$filesystem["ftpServer"],
 		"Database server"=>$filesystem["databaseServer"],
 		"Controlpanel"=>array("html"=>"controlpanel.treva.nl", "url"=>"http://controlpanel.treva.nl")
