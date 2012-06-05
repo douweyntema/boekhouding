@@ -181,7 +181,7 @@ function main()
 	
 	
 	$useWeb = ($addressType == "trevaweb");
-	if($useWeb) {
+	if($useWeb && canAccessComponent("http")) {
 		$check = function($condition, $error) {
 			if(!$condition) showPage(domainNameSummary() . addressTypeSummary() . httpTypeForm($error));
 		};
@@ -211,7 +211,7 @@ function main()
 	
 	
 	$check = function($condition, $error) use($useWeb) {
-		if(!$condition) showPage(domainNameSummary() . addressTypeSummary() . ($useWeb ? httpTypeSummary() : "") . mailTypeForm($error));
+		if(!$condition) showPage(domainNameSummary() . addressTypeSummary() . ($useWeb && canAccessComponent("http") ? httpTypeSummary() : "") . mailTypeForm($error));
 	};
 	
 	$check(($mailType = searchKey($_POST, "noemail", "treva", "custom")) !== null, "");
@@ -238,7 +238,7 @@ function main()
 	
 	
 	$check = function($condition, $error) use($useWeb) {
-		if(!$condition) showPage(domainNameSummary() . addressTypeSummary() . ($useWeb ? httpTypeSummary() : "") . mailTypeSummary() . confirmForm($error));
+		if(!$condition) showPage(domainNameSummary() . addressTypeSummary() . ($useWeb && canAccessComponent("http") ? httpTypeSummary() : "") . mailTypeSummary() . confirmForm($error));
 	};
 	
 	$check(post("confirm") !== null, null);
@@ -291,19 +291,23 @@ function main()
 	$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array_merge(array("cnameTarget"=>null), $function));
 	
 	if($useWeb) {
-		if($httpType == "hosted") {
-			$userID = post("documentOwner");
-			$directory = trim(post("documentRoot"), "/");
-			
-			$function = array("type"=>"HOSTED", "hostedUserID"=>$userID, "hostedPath"=>$directory);
-		} else if($httpType == "redirect") {
-			$function = array("type"=>"REDIRECT", "redirectTarget"=>post("redirectTarget"));
-		} else if($httpType == "mirror") {
-			$mirrorTarget = post("mirrorTarget");
-			
-			$function = array("type"=>"MIRROR", "mirrorTargetPathID"=>$mirrorTarget);
+		if(canAccessComponent("http")) {
+			if($httpType == "hosted") {
+				$userID = post("documentOwner");
+				$directory = trim(post("documentRoot"), "/");
+				
+				$function = array("type"=>"HOSTED", "hostedUserID"=>$userID, "hostedPath"=>$directory);
+			} else if($httpType == "redirect") {
+				$function = array("type"=>"REDIRECT", "redirectTarget"=>post("redirectTarget"));
+			} else if($httpType == "mirror") {
+				$mirrorTarget = post("mirrorTarget");
+				
+				$function = array("type"=>"MIRROR", "mirrorTargetPathID"=>$mirrorTarget);
+			} else {
+				die("Internal error");
+			}
 		} else {
-			die("Internal error");
+			$function = array("type"=>"NONE");
 		}
 		$httpDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "domainTldID"=>$tldID, "parentDomainID"=>null, "name"=>$domainName));
 		$GLOBALS["database"]->stdNew("httpPath", array_merge(array("parentPathID"=>null, "domainID"=>$httpDomainID, "name"=>null), $function));
