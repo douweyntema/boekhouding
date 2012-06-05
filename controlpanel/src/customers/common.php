@@ -73,6 +73,16 @@ function customerMijnDomeinReseller($customerID, $error = "", $values = null)
 	), $values);
 }
 
+function editCustomerWebmail($customerID, $error = "", $values = null)
+{
+	if($values === null) {
+		$values["webmail"] = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "webmail");
+	}
+	return operationForm("updatewebmail.php?id=$customerID", $error, "Update webmail", "Edit", array(
+			array("title"=>"Webmail", "type"=>"text", "name"=>"webmail")
+	), $values);
+}
+
 function customerLogin($customerID)
 {
 	$customerName = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "name");
