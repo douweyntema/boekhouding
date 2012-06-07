@@ -8,6 +8,7 @@ function main()
 	doMailDomain($domainID);
 	
 	$content = domainHeader($domainID);
+	$content .= editCatchAllFrom($domainID, "STUB");
 	$content .= mailboxList($domainID);
 	$content .= mailAliasList($domainID);
 	$content .= mailListList($domainID);
