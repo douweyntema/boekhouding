@@ -187,6 +187,10 @@ function httpPathFunctionStubForm($pathName, $type, $userID, $hostedPath, $redir
 		$dataTitle = "Target";
 		$urlHtml = htmlentities("http://" . httpPathName($mirrorTargetPathID) . "/");
 		$dataContent = "<a href=\"$urlHtml\">$urlHtml</a>";
+	} else if($type == "NONE") {
+		$function = "Not configured";
+		$dataTitle = null;
+		$dataContent = null;
 	} else {
 		$function = "Unknown";
 		$dataTitle = "Details";

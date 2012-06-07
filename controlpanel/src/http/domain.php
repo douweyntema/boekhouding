@@ -8,7 +8,7 @@ function main()
 	doHttpDomain($domainID);
 	$pathID = domainPath($domainID);
 	
-	if(isStubDomain($domainID)) {
+	if(isStubDomain($domainID) && !isRootDomain($domainID)) {
 		error404();
 	}
 	

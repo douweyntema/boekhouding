@@ -469,6 +469,8 @@ function functionDescription($address)
 		return "Redirect to {$address["target"]}";
 	} else if($address["type"] == "MIRROR") {
 		return "Alias for {$address["target"]}";
+	} else if($address["type"] == "NONE") {
+		return "Not configured";
 	} else if($address["type"] == "OTHERUSER") {
 		$customerName = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$address["customerID"]), "name");
 		return "Delegated to customer $customerName";

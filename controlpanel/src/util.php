@@ -22,7 +22,7 @@ function formatPrice($cents)
 
 function formatPriceRaw($cents)
 {
-	return floor($cents / 100) . "," . str_pad($cents % 100, 2, "0", STR_PAD_LEFT);
+	return ($cents < 0 ? "-" : "") . floor(abs($cents) / 100) . "," . str_pad(abs($cents) % 100, 2, "0", STR_PAD_LEFT);
 }
 
 function parsePrice($string)
@@ -71,6 +71,34 @@ function texdate($date)
 	$month = date("n", $date);
 	$year = date("Y", $date);
 	return $day . " " . $maanden[$month] . " " . $year;
+}
+
+function latexEscapeString($string)
+{
+	$replaces = array(
+		'~'=>'',
+		'`'=>'\\`{}',
+		'#'=>'\\#',
+		'$'=>'\\$',
+		'%'=>'\\%',
+		'^'=>'\\^',
+		'&'=>'\\&',
+		'_'=>'\\_',
+		'{'=>'\\{',
+		'}'=>'\\}',
+		'|'=>'\\textbar\\ ',
+		'\\'=>'\\backslash',
+		'<'=>'\\textless',
+		'>'=>'\\textgreater'
+	);
+	
+	$search = array();
+	$replace = array();
+	foreach($replaces as $from=>$to) {
+		$search[] = $from;
+		$replace[] = $to;
+	}
+	return str_replace($search, $replace, $string);
 }
 
 function countryCodes()
