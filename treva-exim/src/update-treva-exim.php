@@ -136,6 +136,9 @@ $relayAddresses = "";
 foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, localpart, host.hostname AS hostname FROM infrastructureMailServer AS backup INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN ((SELECT domainID, localpart FROM mailAddress) UNION (SELECT DISTINCT domainID, localpart FROM mailAlias)) AS localparts USING(domainID) INNER JOIN infrastructureMailServer AS master USING(mailSystemID) INNER JOIN infrastructureHost AS host ON host.hostID = master.hostID INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE backup.hostID='$hostIDSql' AND backup.`primary` = 0 AND master.`primary` = 1")->fetchList() as $address) {
 	$relayAddresses .= "{$address["localpart"]}@{$address["domain"]}:{$address["hostname"]}\n";
 }
+foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, host.hostname AS hostname FROM infrastructureMailServer AS backup INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN infrastructureMailServer AS master USING(mailSystemID) INNER JOIN infrastructureHost AS host ON host.hostID = master.hostID INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE backup.hostID='$hostIDSql' AND backup.`primary` = 0 AND master.`primary` = 1 AND mailDomain.catchAllType <> 'NONE'")->fetchList() as $address) {
+	$relayAddresses .= "@{$address["domain"]}:{$address["hostname"]}\n";
+}
 file_put_contents("$databaseDirectory/relay_addresses-$time", $relayAddresses);
 
 $authPasswords = "";
