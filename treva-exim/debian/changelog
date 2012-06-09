@@ -1,3 +1,9 @@
+treva-exim (0.5) squeeze; urgency=medium
+
+  * Cleaned up and improved catchall support.
+
+ -- Ruud Koolen <r.koolen@treva.nl>  Sat, 09 Jun 2012 05:15:42 +0200
+
 treva-exim (0.4.1) squeeze; urgency=medium
 
   * Updated the script to write a primary_hostname entry.
