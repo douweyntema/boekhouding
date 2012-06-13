@@ -47,12 +47,12 @@ class mijndomeinresellerapi
 	
 	public function disableAutoRenew($domainID)
 	{
-		return $this->domain_set_autorenew($this->domainsFormatDomainName($domainID), $this->domainTld($domainID), true, true);
+		return $this->domain_set_autorenew($this->domainsFormatDomainName($domainID), $this->domainTld($domainID), false, true);
 	}
 	
 	public function enableAutoRenew($domainID)
 	{
-		return $this->domain_set_autorenew($this->domainsFormatDomainName($domainID), $this->domainTld($domainID), false, true);
+		return $this->domain_set_autorenew($this->domainsFormatDomainName($domainID), $this->domainTld($domainID), true, true);
 	}
 	
 	private function doDomainDetails($domainID)

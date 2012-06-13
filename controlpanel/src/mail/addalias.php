@@ -29,7 +29,7 @@ function main()
 	
 	updateMail(customerID());
 	
-	redirect("domain.php?id=$domainID");
+	redirect("mail/domain.php?id=$domainID");
 }
 
 main();

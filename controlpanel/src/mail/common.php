@@ -208,6 +208,59 @@ function removeMailDomainForm($domainID, $error = "", $values = null)
 	return operationForm("removedomain.php?id=$domainID", $error, "Remove domain", "Remove Domain", array(), $values);
 }
 
+function editCatchAllFrom($domainID, $error = "", $values = null)
+{
+	if($values === null || (!isset($values["autonomous"]) && !isset($values["alias"]))) {
+		$catchall = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), array("catchAllType", "catchAllTarget"));
+		
+		$values["catchAllType"] = $catchall["catchAllType"];
+		if($catchall["catchAllType"] == "ADDRESS") {
+			$values["address"] = $catchall["catchAllTarget"];
+		}
+		if($catchall["catchAllType"] == "DOMAIN") {
+			$values["domain"] = $catchall["catchAllTarget"];
+			$values["alias"] = 1;
+		} else {
+			$values["autonomous"] = 1;
+		}
+	}
+	$domainName = domainName($domainID);
+	if($error == "STUB") {
+		$messages = null;
+		$form = array();
+		if(isset($values["alias"])) {
+			$messages["custom"] = "<p>Except for any configured exceptions, an alias domain forwards all incoming mail to the corresponding address at a different domain. For example, if <em>Target domain</em> is configured as <em>example.com</em>, mail destined for <em>info@{$domainName}</em> will be forwarded to <em>info@example.com</em>.</p>";
+			$form[] = array("title"=>"Domain type", "type"=>"html", "html"=>"Aliased domain");
+			$form[] = array("title"=>"Target domain", "type"=>"html", "html"=>$values["domain"]);
+		} else if(isset($values["autonomous"])) {
+			$form[] = array("title"=>"Domain type", "type"=>"html", "html"=>"Autonomous domain");
+			if($values["catchAllType"] == "NONE") {
+				$form[] = array("title"=>"Unknown address policy", "type"=>"html", "html"=>"Reject email to unknown addresses");
+			} else {
+				$form[] = array("title"=>"Unknown address policy", "type"=>"html", "html"=>"Forward email to unknown addresses to <em>{$values["address"]}</em>");
+			}
+		} else {
+			$form[] = array("title"=>"Domain type", "type"=>"html", "html"=>"Unknown type");
+		}
+		return operationForm("editcatchall.php?id=$domainID", "STUB", "Domain type", "Edit", $form, null, $messages);
+	}
+	return operationForm("editcatchall.php?id=$domainID", $error, "Edit domain type", null,
+		array(array("type"=>"typechooser", "options"=>array(
+			array("title"=>"Autonomous domain", "submitcaption"=>"Use autonomous domain", "name"=>"autonomous", "summary"=>"An autonomous domain does not rely on any other domains for email; the only email addresses in it are the ones you create. Mail to any other addresses is rejected, unless configured otherwise.", "subform"=>array(
+				array("title"=>"Unknown address policy", "type"=>"subformchooser", "name"=>"catchAllType", "subforms"=>array(
+					array("value"=>"NONE", "label"=>"Reject email to unknown addresses", "subform"=>array()),
+					array("value"=>"ADDRESS", "label"=>"Forward email to unknown addresses to the following address:", "subform"=>array(
+						array("type"=>"text", "name"=>"address")
+					))
+				))
+			)),
+			array("title"=>"Alias domain", "submitcaption"=>"Use alias domain", "name"=>"alias", "summary"=>"Except for any configured exceptions, an alias domain forwards all incoming mail to the corresponding address at a different domain. For example, if <em>Target domain</em> is configured as <em>example.com</em>, mail destined for <em>info@{$domainName}</em> will be forwarded to <em>info@example.com</em>.", "subform"=>array(
+				array("title"=>"Target domain", "type"=>"text", "name"=>"domain")
+			))
+		))),
+		$values);
+}
+
 function addMailAliasForm($domainID, $error = "", $values = null)
 {
 	$domainName = domainName($domainID);

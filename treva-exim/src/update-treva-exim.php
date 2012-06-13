@@ -120,11 +120,24 @@ $localAliases = "";
 foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, localpart, GROUP_CONCAT(targetAddress SEPARATOR ', ') AS aliases FROM infrastructureMailServer INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN ((SELECT domainID, localpart, targetAddress FROM mailAlias) UNION (SELECT domainID, localpart, targetAddress FROM mailList INNER JOIN mailListMember USING(listID))) AS aliases USING(domainID) INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE infrastructureMailServer.hostID='$hostIDSql' AND infrastructureMailServer.`primary` = 1 GROUP BY domain, localpart")->fetchList() as $aliases) {
 	$localAliases .= "{$aliases["localpart"]}@{$aliases["domain"]}:{$aliases["aliases"]}\n";
 }
+foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, mailDomain.catchAllTarget as target FROM infrastructureMailServer INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE infrastructureMailServer.hostID='$hostIDSql' AND infrastructureMailServer.`primary` = 1 AND mailDomain.catchAllType = 'ADDRESS'")->fetchList() as $aliases) {
+	$localAliases .= "@{$aliases["domain"]}:{$aliases["target"]}\n";
+}
 file_put_contents("$databaseDirectory/local_aliases-$time", $localAliases);
+
+$localDomainAliases = "";
+foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, mailDomain.catchAllTarget as target FROM infrastructureMailServer INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE infrastructureMailServer.hostID='$hostIDSql' AND infrastructureMailServer.`primary` = 1 AND mailDomain.catchAllType = 'DOMAIN'")->fetchList() as $aliases) {
+	$localDomainAliases .= "@{$aliases["domain"]}:{$aliases["target"]}\n";
+}
+file_put_contents("$databaseDirectory/local_domain_aliases-$time", $localDomainAliases);
+
 
 $relayAddresses = "";
 foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, localpart, host.hostname AS hostname FROM infrastructureMailServer AS backup INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN ((SELECT domainID, localpart FROM mailAddress) UNION (SELECT DISTINCT domainID, localpart FROM mailAlias)) AS localparts USING(domainID) INNER JOIN infrastructureMailServer AS master USING(mailSystemID) INNER JOIN infrastructureHost AS host ON host.hostID = master.hostID INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE backup.hostID='$hostIDSql' AND backup.`primary` = 0 AND master.`primary` = 1")->fetchList() as $address) {
 	$relayAddresses .= "{$address["localpart"]}@{$address["domain"]}:{$address["hostname"]}\n";
+}
+foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, host.hostname AS hostname FROM infrastructureMailServer AS backup INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN infrastructureMailServer AS master USING(mailSystemID) INNER JOIN infrastructureHost AS host ON host.hostID = master.hostID INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE backup.hostID='$hostIDSql' AND backup.`primary` = 0 AND master.`primary` = 1 AND mailDomain.catchAllType <> 'NONE'")->fetchList() as $address) {
+	$relayAddresses .= "@{$address["domain"]}:{$address["hostname"]}\n";
 }
 file_put_contents("$databaseDirectory/relay_addresses-$time", $relayAddresses);
 
@@ -135,7 +148,7 @@ foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infr
 }
 file_put_contents("$databaseDirectory/auth_passwords-$time", $authPasswords);
 
-foreach(array("local_domains", "relay_domains", "local_mailboxes", "local_aliases", "relay_addresses", "auth_passwords", "mailname") as $file) {
+foreach(array("local_domains", "relay_domains", "local_mailboxes", "local_aliases", "local_domain_aliases", "relay_addresses", "auth_passwords", "mailname") as $file) {
 	chown("$databaseDirectory/$file-$time", "Debian-exim");
 	chgrp("$databaseDirectory/$file-$time", "Debian-exim");
 	rename("$databaseDirectory/$file-$time", "$databaseDirectory/$file");

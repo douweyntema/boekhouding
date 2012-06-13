@@ -202,7 +202,7 @@ function domainAddressStubForm($type, $parentDomainName, $ipv4Addresses, $ipv6Ad
 	} else if($type == "INHERIT") {
 		$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Inherit from <em>$parentDomainName</em>");
 	} else if($type == "TREVA-WEB") {
-		$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Use our webservers");
+		$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Use our webservers", "url"=>canAccessComponent("http") ? "{$GLOBALS["root"]}http/" : null);
 	} else if($type == "IP") {
 		$form[] = array("title"=>"Address type", "type"=>"html", "html"=>"Custom address");
 		$form[] = array("title"=>"IPv4 address", "type"=>"html", "html"=>count($ipv4Addresses) == 0 ? "None" : implode(" ", $ipv4Addresses));
@@ -324,7 +324,7 @@ function domainMailStubForm($type, $mailServers)
 	if($type == "NONE") {
 		$form[] = array("title"=>"Status", "type"=>"html", "html"=>"No email");
 	} else if($type == "TREVA") {
-		$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Enabled using our mailservers");
+		$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Enabled using our mailservers", "url"=>canAccessComponent("mail") ? "{$GLOBALS["root"]}mail/" : null);
 	} else if($type == "CUSTOM") {
 		$form[] = array("title"=>"Status", "type"=>"html", "html"=>"Enabled using custom mailservers");
 		if(count($mailServers) == 0) {
