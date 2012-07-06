@@ -14,7 +14,7 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	billingCreateInvoiceEmail($invoiceID);
+	billingCreateInvoiceResend($invoiceID);
 	
 	redirect("billing/customer.php?id=$customerID");
 }

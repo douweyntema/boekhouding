@@ -76,7 +76,10 @@ function texdate($date)
 function latexEscapeString($string)
 {
 	$replaces = array(
-		'~'=>'',
+		'\\'=>'\\backslash',
+		'~'=>' ',
+		'{'=>'\\{',
+		'}'=>'\\}',
 		'`'=>'\\`{}',
 		'#'=>'\\#',
 		'$'=>'\\$',
@@ -84,10 +87,7 @@ function latexEscapeString($string)
 		'^'=>'\\^',
 		'&'=>'\\&',
 		'_'=>'\\_',
-		'{'=>'\\{',
-		'}'=>'\\}',
 		'|'=>'\\textbar\\ ',
-		'\\'=>'\\backslash',
 		'<'=>'\\textless',
 		'>'=>'\\textgreater'
 	);

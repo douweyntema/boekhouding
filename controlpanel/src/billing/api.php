@@ -318,6 +318,19 @@ TEXT
 	$mail->send();
 }
 
+function billingCreateInvoiceResend($invoiceID)
+{
+	$invoice = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("tex", "pdf"));
+	
+	if($invoice["tex"] === null) {
+		billingCreateInvoiceTex($invoiceID);
+	} else if($invoice["pdf"] === null) {
+		billingCreateInvoicePdf($invoiceID);
+	} else {
+		billingCreateInvoiceEmail($invoiceID);
+	}
+}
+
 function billingCustomerBalance($customerID)
 {
 	return $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
