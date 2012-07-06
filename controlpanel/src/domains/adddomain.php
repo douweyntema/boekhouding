@@ -335,6 +335,8 @@ function main()
 	$GLOBALS["database"]->commitTransaction();
 	
 	updateDomains(customerID());
+	updateHttp(customerID());
+	updateMail(customerID());
 	
 	redirect("domains/domain.php?id=$domainID");
 }
