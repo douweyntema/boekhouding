@@ -43,6 +43,7 @@ function customerList()
 		$fileSystemName = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), "name");
 		$mailSystemName = $GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), "name");
 		$nameSystemName = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$customer["nameSystemID"]), "name");
+		$balance = billingBalance($customer["customerID"]);
 		$rows[] = array(
 			array("html"=>"<a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a><a href=\"{$GLOBALS["rootHtml"]}index.php?customerID={$customer["customerID"]}\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}img/external.png\" alt=\"Impersonate\" /></a>"),
 			$customer["initials"] . " " . $customer["lastName"],
@@ -50,7 +51,7 @@ function customerList()
 			array("url"=>"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$customer["fileSystemID"]}", "text"=>$fileSystemName),
 			array("url"=>"{$GLOBALS["rootHtml"]}infrastructure/mailsystem.php?id={$customer["mailSystemID"]}", "text"=>$mailSystemName),
 			array("url"=>"{$GLOBALS["rootHtml"]}infrastructure/namesystem.php?id={$customer["nameSystemID"]}", "text"=>$nameSystemName),
-			array("url"=>"{$GLOBALS["rootHtml"]}billing/customer.php?id={$customer["customerID"]}", "html"=>formatPrice(billingBalance($customer["customerID"])))
+			array("url"=>"{$GLOBALS["rootHtml"]}billing/customer.php?id={$customer["customerID"]}", "html"=>formatPrice($balance), "class"=>$balance < 0 ? "balance-negative" : null)
 		);
 	}
 	return listTable(array("Nickname", "Name", "Email", "Filesystem", "Mailsystem", "Namesystem", "Balance"), $rows, "Customers", true, "sortable list");

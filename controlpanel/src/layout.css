@@ -390,3 +390,7 @@ table.inline, table.inline tr, table.inline td, table.inline th {
 	margin: 0px;
 	padding: 0px !important;
 }
+
+.balance-negative {
+	color: red;
+}
