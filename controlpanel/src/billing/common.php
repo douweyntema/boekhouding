@@ -348,6 +348,9 @@ function removeInvoiceLineForm($invoiceLineID, $error = "", $values = null)
 
 function sendInvoiceForm($customerID, $error = "", $values = null)
 {
+	if($values === null) {
+		$values = array("sendmail"=>true);
+	}
 	$lines = array();
 	$lines[] = array("type"=>"colspan", "columns"=>array(
 		array("type"=>"html", "html"=>"", "celltype"=>"th"),
@@ -372,8 +375,10 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 	}
 	$lines[] = array("type"=>"typechooser", "options"=>array(
 		array("title"=>"Delete", "submitcaption"=>"Delete", "name"=>"delete", "summary"=>"Delete selected invoice lines", "subform"=>array()),
-		array("title"=>"Create invoice", "submitcaption"=>"Create Invoice", "name"=>"create", "summary"=>"Create and send an invoice with the selected invoice lines", "subform"=>array())
-		));
+		array("title"=>"Create invoice", "submitcaption"=>"Create Invoice", "name"=>"create", "summary"=>"Create and send an invoice with the selected invoice lines", "subform"=>array(
+			array("title"=>"Send email", "type"=>"checkbox", "name"=>"sendmail", "label"=>"Send an email to the customer")
+		)),
+	));
 
 	return operationForm("sendinvoice.php?id=$customerID", $error, "Invoice lines", "Create Invoice", $lines, $values);
 }

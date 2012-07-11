@@ -20,8 +20,7 @@ function sendMain()
 	$check(count($invoiceLines) > 0, "");
 	$check(post("confirm") !== null, null);
 	
-	
-	billingCreateInvoice($customerID, $invoiceLines);
+	billingCreateInvoice($customerID, $invoiceLines, post("sendmail") !== null);
 	
 	redirect("billing/customer.php?id=$customerID");
 }

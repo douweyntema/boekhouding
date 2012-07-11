@@ -135,7 +135,7 @@ function billingCreateAllInvoices()
 	}
 }
 
-function billingCreateInvoice($customerID, $invoiceLines)
+function billingCreateInvoice($customerID, $invoiceLines, $sendEmail = true)
 {
 	if(count($invoiceLines) == 0) {
 		throw new BillingInvoiceException();
@@ -172,10 +172,10 @@ function billingCreateInvoice($customerID, $invoiceLines)
 	
 	billingDistributeFunds($customerID);
 	
-	billingCreateInvoiceTex($invoiceID);
+	billingCreateInvoiceTex($invoiceID, $sendEmail);
 }
 
-function billingCreateInvoiceTex($invoiceID)
+function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 {
 	$invoice = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "date", "invoiceNumber"));
 	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode"));
@@ -249,10 +249,10 @@ function billingCreateInvoiceTex($invoiceID)
 TEX;
 	$GLOBALS["database"]->stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("tex"=>$tex));
 	
-	billingCreateInvoicePdf($invoiceID);
+	billingCreateInvoicePdf($invoiceID, $sendEmail);
 }
 
-function billingCreateInvoicePdf($invoiceID)
+function billingCreateInvoicePdf($invoiceID, $sendEmail = true)
 {
 	$tex = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), "tex");
 	$pdf = pdfLatex($tex);
@@ -261,7 +261,9 @@ function billingCreateInvoicePdf($invoiceID)
 		mailAdmin("Invoice pdf generation failed", "Failed to generate a pdf for invoiceID $invoiceID with tex:\n\n$tex");
 		return;
 	}
-	billingCreateInvoiceEmail($invoiceID);
+	if($sendEmail) {
+		billingCreateInvoiceEmail($invoiceID);
+	}
 }
 
 function billingCreateInvoiceEmail($invoiceID, $reminder=false)
