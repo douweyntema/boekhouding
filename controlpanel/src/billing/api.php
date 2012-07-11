@@ -203,6 +203,7 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 	$posts = "";
 	$discounts = "";
 	$btw = 0;
+	$creditatie = true;
 	foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("invoiceID"=>$invoiceID), array("description", "periodStart", "periodEnd", "price", "discount")) as $line) {
 		if($line["periodStart"] != null && $line["periodEnd"] != null) {
 			$startdate = texdate($line["periodStart"]);
@@ -210,6 +211,9 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 		} else {
 			$startdate = "";
 			$enddate = "";
+		}
+		if($line["price"] > 0) {
+			$creditatie = false;
 		}
 		if($line["price"] != 0) {
 			$price = (int)($line["price"] / 1.19);
@@ -228,6 +232,7 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 		}
 	}
 	$btw = formatPriceRaw($btw);
+	$brieftype = $creditatie ? "creditatiebrief" : "factuurbrief";
 	$tex = <<<TEX
 \documentclass{trevabrief}
 \usepackage{treva-factuur}
@@ -235,14 +240,14 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 
 \begin{document}
 
-\begin{factuurbrief}{{$to}}{{$invoiceNumber}}
+\begin{{$brieftype}}{{$to}}{{$invoiceNumber}}
 \gebruikersnaam{{$usernameTex}}
 
 \begin{factuur}
 {$posts}{$discounts}\btw{{$btw}}
 \end{factuur}
 
-\end{factuurbrief}
+\end{{$brieftype}}
 
 \end{document}
 
