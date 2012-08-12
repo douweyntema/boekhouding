@@ -294,8 +294,17 @@ function download_afschrift($username, $password, $van, $tot)
 	$passwordField = $passwords["password"];
 	
 	$html = $session->post("/internetbankieren/SesamLoginServlet", array($usernameField=>$username, $passwordField=>$password));
+	if(strpos($html, '<form id="changepasswdform" action="/internetbankieren/SesamChangePasswordServlet" autocomplete="off" method="post">') !== false) {
+		$mail = new mimemail();
+		$mail->addReceiver($GLOBALS["mailAddress"], "Treva Afschriften");
+		$mail->setSender($GLOBALS["mailAddress"], "Treva Afschriften - Systeem");
+		$mail->setSubject("Wachtwoord wijzigen");
+		$mail->setTextMessage("Het wachtwoord van ing.nl moet gewijzigd worden. Tot dat punt is het afschrift import script stuk.");
+		$mail->send();
+		die("Het wachtwoord van ing.nl moet gewijzigd worden. Tot dat punt is het afschrift import script stuk.\n");
+	}
 	if(strpos($html, '<meta http-equiv="refresh" content="0;URL=/internetbankieren/jsp/IndexLogon.jsp" />') === false) {
-		die("Unable to login");
+		die("Unable to login\n");
 	}
 	
 	$session->get("/internetbankieren/jsp/IndexLogon.jsp");
