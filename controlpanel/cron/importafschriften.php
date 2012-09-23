@@ -13,6 +13,17 @@ $mailAddress = "afschriften@treva.nl";
 require_once("/usr/lib/phpdatabase/database.php");
 require_once("/usr/lib/phpmail/mimemail.php");
 
+function error($string)
+{
+	$mail = new mimemail();
+	$mail->addReceiver($GLOBALS["mailAddress"], "Treva Afschriften");
+	$mail->setSender($GLOBALS["mailAddress"], "Treva Afschriften - Systeem");
+	$mail->setSubject("Error afschriften script");
+	$mail->setTextMessage($string);
+	$mail->send();
+	die($string);
+}
+
 function my_http_request($server, $url, $referer, $cookies, $post_parameters = null, &$setcookies = null, &$headers = null)
 {
 	if(substr($server, 0, 6) == "ssl://" || substr($server, 0, 6) == "tls://") {
@@ -279,15 +290,15 @@ function download_afschrift($username, $password, $van, $tot)
 	$html = $session->get("/internetbankieren/SesamLoginServlet");
 	
 	if($html === null) {
-		die("Unable to start session\n");
+		error("Unable to start session\n");
 	}
 	
-	preg_match(':<div id="gebruikersnaam" class="form_element">\\s*<label>Gebruikersnaam</label>\\s*<div class="tooltip-icon"></div>\\s*<input type="text" autofocus="autofocus" class=" firstfield" tabindex="1" name="(?<username>[^"]*)"\\s*id="[^"]*" size="25"\\s*maxlength="20"\\s*value="" />\\s*</div>:', str_replace("\n", " ", $html), $usernames);
+	preg_match(':<div id="gebruikersnaam" class="form_element">\\s*<label[^>]*>Gebruikersnaam</label>\\s*<div class="tooltip-icon"></div>\\s*<input[^>]* type="text"[^>]* name="(?<username>[^"]*)"[^>]*/>\\s*</div>:', str_replace("\n", " ", $html), $usernames);
 	
-	preg_match(':<div id="wachtwoord" class="form_element">\\s*<label>Wachtwoord</label>\\s*<div class="tooltip-icon"></div>\\s*<input type="password" class="" tabindex="2"\\s*name="(?<password>[^"]*)"\\s*id="[^"]*" size="25" maxlength="20" />\\s*<div class="notification hide-element">\\s*<div class="notification-icon notification-error"></div>\\s*<div class="notification-message">\\s*</div>\\s*</div>\\s*</div>:', str_replace("\n", " ", $html), $passwords);
+	preg_match(':<div id="wachtwoord" class="form_element">\\s*<label[^>]*>Wachtwoord</label>\\s*<div class="tooltip-icon"></div>\\s*<input[^>]* type="password"[^>]*name="(?<password>[^"]*)"\\s*id="[^"]*"[^>]*/>\\s*<div class="notification hide-element">\\s*<div class="notification-icon notification-error"></div>\\s*<div class="notification-message">\\s*</div>\\s*</div>\\s*</div>:', str_replace("\n", " ", $html), $passwords);
 	
 	if(!count($usernames) || !count($passwords)) {
-		die("Unable to parse login page\n");
+		error("Unable to parse login page\n");
 	}
 	
 	$usernameField = $usernames["username"];
@@ -295,16 +306,10 @@ function download_afschrift($username, $password, $van, $tot)
 	
 	$html = $session->post("/internetbankieren/SesamLoginServlet", array($usernameField=>$username, $passwordField=>$password));
 	if(strpos($html, '<form id="changepasswdform" action="/internetbankieren/SesamChangePasswordServlet" autocomplete="off" method="post">') !== false) {
-		$mail = new mimemail();
-		$mail->addReceiver($GLOBALS["mailAddress"], "Treva Afschriften");
-		$mail->setSender($GLOBALS["mailAddress"], "Treva Afschriften - Systeem");
-		$mail->setSubject("Wachtwoord wijzigen");
-		$mail->setTextMessage("Het wachtwoord van ing.nl moet gewijzigd worden. Tot dat punt is het afschrift import script stuk.");
-		$mail->send();
-		die("Het wachtwoord van ing.nl moet gewijzigd worden. Tot dat punt is het afschrift import script stuk.\n");
+		error("Het wachtwoord van ing.nl moet gewijzigd worden. Tot dat punt is het afschrift import script stuk.\n");
 	}
 	if(strpos($html, '<meta http-equiv="refresh" content="0;URL=/internetbankieren/jsp/IndexLogon.jsp" />') === false) {
-		die("Unable to login\n");
+		error("Unable to login\n");
 	}
 	
 	$session->get("/internetbankieren/jsp/IndexLogon.jsp");
@@ -324,7 +329,7 @@ function download_afschrift($username, $password, $van, $tot)
 	preg_match(':menu/servlet/MenuServlet\\?seqts=[0-9]+&ID=GirorekRdpl&Load=Y:', $html, $menuMatch);
 	
 	if(!count($navMatch) || !count($menuMatch)) {
-		die("Unable to parse start page");
+		error("Unable to parse start page");
 	}
 	
 	$navUrl = "/mpz/" . $navMatch[0];
@@ -334,7 +339,7 @@ function download_afschrift($username, $password, $van, $tot)
 	$html = $session->get($menuUrl);
 	preg_match(':/mpz/girordpl/girorekeningraadplegeninit\\.do\\?seqts=[0-9]+:', $html, $match);
 	if(!count($match)) {
-		die("Unable to parse transaction page");
+		error("Unable to parse transaction page");
 	}
 	$initUrl = $match[0];
 	
@@ -363,16 +368,16 @@ function download_afschrift($username, $password, $van, $tot)
 		"datumvan"=>$van,
 		"datumtot"=>$tot,
 		"formaat"=>"kommacsv"));
-	preg_match(':parent\\.dummy\\.location= \"(?<url>[^"]*)\";:', $html, $match);
+	preg_match(':"download.do?(?<url>[^"]*)":', $html, $match);
 	if(!count($match)) {
-		die("Unable to parse download page");
+		error("Unable to parse download page");
 	}
-	$downloadUrl = "/mpz/girordpl/" . $match["url"];
+	$downloadUrl = "/mpz/girordpl/download.do?" . $match["url"];
 	
 	$csv = $session->get($downloadUrl);
 	$parsed = parse_csv($csv);
 	if($parsed === null) {
-		die("Unable to parse CSV");
+		error("Unable to parse CSV");
 	}
 	return $parsed;
 }
