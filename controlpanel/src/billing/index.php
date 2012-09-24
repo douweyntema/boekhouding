@@ -8,7 +8,7 @@ function main()
 	
 	$content = makeHeader("Billing", customersBillingBreadcrumbs());
 	$content .= customerSubscriptionList();
-	$content .= invoiceList(customerID());
+	$content .= customerInvoiceList(customerID());
 	
 	echo page($content);
 }

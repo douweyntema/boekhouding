@@ -192,6 +192,25 @@ function invoiceList($customerID)
 	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount", "Reminder", "Resend"), $rows, "Invoices", "No invoices have been sent so far.", "sortable list");
 }
 
+function customerInvoiceList($customerID)
+{
+	$rows = array();
+	foreach($GLOBALS["database"]->stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "date", "remainingAmount", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
+		$amount = 0;
+		foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("invoiceID"=>$invoice["invoiceID"]), array("price", "discount")) as $line) {
+			$amount += $line["price"] - $line["discount"];
+		}
+		
+		$rows[] = array(
+			array("url"=>"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}", "text"=>$invoice["invoiceNumber"]),
+			date("d-m-Y", $invoice["date"]),
+			array("html"=>formatPrice($amount)),
+			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"])))
+		);
+	}
+	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount"), $rows, "Invoices", "No invoices have been sent so far.", "sortable list");
+}
+
 function paymentList($customerID)
 {
 	$rows = array();
