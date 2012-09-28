@@ -1,3 +1,9 @@
+treva-dovecot (0.3.3) squeeze; urgency=medium
+
+  * Fixed mailbox deletion handling.
+
+ -- Ruud Koolen <r.koolen@treva.nl>  Fri, 28 Sep 2012 16:51:42 +0200
+
 treva-dovecot (0.3.2) squeeze; urgency=medium
 
   * Fixed support for case-insensitive usernames.

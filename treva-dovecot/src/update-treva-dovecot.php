@@ -168,6 +168,15 @@ while(($customer = readdir($dir)) !== false) {
 	if(!is_dir("/var/mail/$customer")) {
 		continue;
 	}
+	$uid = fileowner("/var/mail/$customer");
+	if($uid === false) {
+		continue;
+	}
+	$pwuid = posix_getpwuid($uid);
+	if($pwuid === false || $pwuid["name"] != "mailbox") {
+		continue;
+	}
+	
 	$customerDir = opendir("/var/mail/$customer");
 	while(($domain = readdir($customerDir)) !== false) {
 		if($domain == "." || $domain == "..") {
