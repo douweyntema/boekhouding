@@ -119,7 +119,7 @@ foreach($mailboxes as $mailbox) {
 	$mailboxDirectory = "$domainDirectory/{$mailbox["localpart"]}@{$mailbox["domain"]}-{$mailbox["id"]}";
 	
 	// Username
-	$passwd .= "{$mailbox["localpart"]}@{$mailbox["domain"]}:";
+	$passwd .= strtolower("{$mailbox["localpart"]}@{$mailbox["domain"]}:");
 	// Password
 	if($mailbox["canUseImap"]) {
 		// Base64'd in the database

@@ -1,3 +1,9 @@
+treva-dovecot (0.3.2) squeeze; urgency=medium
+
+  * Fixed support for case-insensitive usernames.
+
+ -- Stef Louwers <s.louwers@treva.nl>  Fri, 28 Sep 2012 16:24:42 +0200
+
 treva-dovecot (0.3.1) squeeze; urgency=medium
 
   * Added support for case-insensitive usernames to dovecot.
