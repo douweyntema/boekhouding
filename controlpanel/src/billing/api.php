@@ -216,7 +216,7 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 			$creditatie = false;
 		}
 		if($line["price"] != 0) {
-			$price = (int)($line["price"] / 1.19);
+			$price = (int)($line["price"] / 1.21);
 			$btw += $line["price"] - $price;
 			$priceFormat = formatPriceRaw($price);
 			$desciptionTex = latexEscapeString($line["description"]);
@@ -225,7 +225,7 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 		if($line["discount"] != 0) {
 			$discountDescription = "Korting " . strtolower(substr($line["description"], 0, 1)) . substr($line["description"], 1);
 			$discountDescriptionTex = latexEscapeString($discountDescription);
-			$discountAmount = (int)($line["discount"] / 1.19);
+			$discountAmount = (int)($line["discount"] / 1.21);
 			$btw -= $line["discount"] - $discountAmount;
 			$discountamountFormat = formatPriceRaw($discountAmount);
 			$discounts .= "\\korting{{$discountDescriptionTex}}{{$discountamountFormat}}\n";
