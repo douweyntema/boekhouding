@@ -82,7 +82,21 @@ file_put_contents("$databaseDirectory/mailname-$time", "primary_hostname = $host
 
 $localDomains = "";
 $relayDomains = "";
-foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS name, self.`primary` AS `primary` FROM infrastructureMailServer AS self INNER JOIN infrastructureMailServer AS master USING(mailSystemID) INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE self.hostID='$hostIDSql' AND master.`primary` = 1")->fetchList() as $domain) {
+foreach($GLOBALS["database"]->query(<<<SQL
+SELECT
+	CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS name,
+	self.`primary` AS `primary`
+FROM
+	infrastructureMailServer AS self
+	INNER JOIN infrastructureMailServer AS master USING(mailSystemID)
+	INNER JOIN adminCustomer USING(mailSystemID)
+	INNER JOIN mailDomain USING(customerID)
+	INNER JOIN infrastructureDomainTld USING(domainTldID)
+WHERE
+	self.hostID='$hostIDSql'
+	AND master.`primary` = 1
+SQL
+)->fetchList() as $domain) {
 	if($domain["primary"]) {
 		$localDomains .= $domain["name"] . "\n";
 	} else {
@@ -93,7 +107,23 @@ file_put_contents("$databaseDirectory/local_domains-$time", $localDomains);
 file_put_contents("$databaseDirectory/relay_domains-$time", $relayDomains);
 
 $localMailboxes = "";
-foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, localpart, spambox, virusbox FROM infrastructureMailServer INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN mailAddress USING(domainID) INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE infrastructureMailServer.hostID='$hostIDSql' AND infrastructureMailServer.`primary` = 1")->fetchList() as $address) {
+foreach($GLOBALS["database"]->query(<<<SQL
+SELECT
+	CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain,
+	localpart,
+	spambox,
+	virusbox
+FROM
+	infrastructureMailServer
+	INNER JOIN adminCustomer USING(mailSystemID)
+	INNER JOIN mailDomain USING(customerID)
+	INNER JOIN mailAddress USING(domainID)
+	INNER JOIN infrastructureDomainTld USING(domainTldID)
+WHERE
+	infrastructureMailServer.hostID='$hostIDSql'
+	AND infrastructureMailServer.`primary` = 1
+SQL
+)->fetchList() as $address) {
 	$localMailboxes .= "{$address["localpart"]}@{$address["domain"]}";
 	
 	if($address["spambox"] === null) {
@@ -117,32 +147,154 @@ foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infr
 file_put_contents("$databaseDirectory/local_mailboxes-$time", $localMailboxes);
 
 $localAliases = "";
-foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, localpart, GROUP_CONCAT(targetAddress SEPARATOR ', ') AS aliases FROM infrastructureMailServer INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN ((SELECT domainID, localpart, targetAddress FROM mailAlias) UNION (SELECT domainID, localpart, targetAddress FROM mailList INNER JOIN mailListMember USING(listID))) AS aliases USING(domainID) INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE infrastructureMailServer.hostID='$hostIDSql' AND infrastructureMailServer.`primary` = 1 GROUP BY domain, localpart")->fetchList() as $aliases) {
+foreach($GLOBALS["database"]->query(<<<SQL
+SELECT
+	CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain,
+	localpart,
+	GROUP_CONCAT(targetAddress SEPARATOR ', ') AS aliases
+FROM
+	infrastructureMailServer
+	INNER JOIN adminCustomer USING(mailSystemID)
+	INNER JOIN mailDomain USING(customerID)
+	INNER JOIN (
+			(SELECT
+				domainID,
+				localpart,
+				targetAddress
+			FROM
+				mailAlias)
+		UNION
+			(SELECT
+				domainID,
+				localpart,
+				targetAddress
+			FROM
+				mailList
+				INNER JOIN mailListMember USING(listID))
+		) AS aliases USING(domainID)
+	INNER JOIN infrastructureDomainTld USING(domainTldID)
+WHERE
+	infrastructureMailServer.hostID='$hostIDSql'
+	AND infrastructureMailServer.`primary` = 1
+GROUP BY
+	domain,
+	localpart
+SQL
+)->fetchList() as $aliases) {
 	$localAliases .= "{$aliases["localpart"]}@{$aliases["domain"]}:{$aliases["aliases"]}\n";
 }
-foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, mailDomain.catchAllTarget as target FROM infrastructureMailServer INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE infrastructureMailServer.hostID='$hostIDSql' AND infrastructureMailServer.`primary` = 1 AND mailDomain.catchAllType = 'ADDRESS'")->fetchList() as $aliases) {
+foreach($GLOBALS["database"]->query(<<<SQL
+SELECT
+	CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain,
+	mailDomain.catchAllTarget as target
+FROM
+	infrastructureMailServer
+	INNER JOIN adminCustomer USING(mailSystemID)
+	INNER JOIN mailDomain USING(customerID)
+	INNER JOIN infrastructureDomainTld USING(domainTldID)
+WHERE
+	infrastructureMailServer.hostID='$hostIDSql'
+	AND infrastructureMailServer.`primary` = 1
+	AND mailDomain.catchAllType = 'ADDRESS'
+SQL
+)->fetchList() as $aliases) {
 	$localAliases .= "@{$aliases["domain"]}:{$aliases["target"]}\n";
 }
 file_put_contents("$databaseDirectory/local_aliases-$time", $localAliases);
 
 $localDomainAliases = "";
-foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, mailDomain.catchAllTarget as target FROM infrastructureMailServer INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE infrastructureMailServer.hostID='$hostIDSql' AND infrastructureMailServer.`primary` = 1 AND mailDomain.catchAllType = 'DOMAIN'")->fetchList() as $aliases) {
+foreach($GLOBALS["database"]->query(<<<SQL
+SELECT
+	CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain,
+	mailDomain.catchAllTarget as target
+FROM
+	infrastructureMailServer
+	INNER JOIN adminCustomer USING(mailSystemID)
+	INNER JOIN mailDomain USING(customerID)
+	INNER JOIN infrastructureDomainTld USING(domainTldID)
+WHERE
+	infrastructureMailServer.hostID='$hostIDSql'
+	AND infrastructureMailServer.`primary` = 1
+	AND mailDomain.catchAllType = 'DOMAIN'
+SQL
+)->fetchList() as $aliases) {
 	$localDomainAliases .= "@{$aliases["domain"]}:{$aliases["target"]}\n";
 }
 file_put_contents("$databaseDirectory/local_domain_aliases-$time", $localDomainAliases);
 
 
 $relayAddresses = "";
-foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, localpart, host.hostname AS hostname FROM infrastructureMailServer AS backup INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN ((SELECT domainID, localpart FROM mailAddress) UNION (SELECT DISTINCT domainID, localpart FROM mailAlias)) AS localparts USING(domainID) INNER JOIN infrastructureMailServer AS master USING(mailSystemID) INNER JOIN infrastructureHost AS host ON host.hostID = master.hostID INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE backup.hostID='$hostIDSql' AND backup.`primary` = 0 AND master.`primary` = 1")->fetchList() as $address) {
+foreach($GLOBALS["database"]->query(<<<SQL
+SELECT
+	CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain,
+	localpart,
+	host.hostname AS hostname
+FROM
+	infrastructureMailServer AS backup
+	INNER JOIN adminCustomer USING(mailSystemID)
+	INNER JOIN mailDomain USING(customerID)
+	INNER JOIN (
+			(SELECT 
+				domainID,
+				localpart
+			FROM
+				mailAddress)
+		UNION
+			(SELECT DISTINCT
+				domainID,
+				localpart
+			FROM
+				mailAlias)
+		) AS localparts USING(domainID)
+	INNER JOIN infrastructureMailServer AS master USING(mailSystemID)
+	INNER JOIN infrastructureHost AS host ON host.hostID = master.hostID
+	INNER JOIN infrastructureDomainTld USING(domainTldID)
+WHERE
+	backup.hostID='$hostIDSql'
+	AND backup.`primary` = 0
+	AND master.`primary` = 1
+SQL
+)->fetchList() as $address) {
 	$relayAddresses .= "{$address["localpart"]}@{$address["domain"]}:{$address["hostname"]}\n";
 }
-foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, host.hostname AS hostname FROM infrastructureMailServer AS backup INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN infrastructureMailServer AS master USING(mailSystemID) INNER JOIN infrastructureHost AS host ON host.hostID = master.hostID INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE backup.hostID='$hostIDSql' AND backup.`primary` = 0 AND master.`primary` = 1 AND mailDomain.catchAllType <> 'NONE'")->fetchList() as $address) {
+foreach($GLOBALS["database"]->query(<<<SQL
+SELECT
+	CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain,
+	host.hostname AS hostname
+FROM
+	infrastructureMailServer AS backup
+	INNER JOIN adminCustomer USING(mailSystemID)
+	INNER JOIN mailDomain USING(customerID)
+	INNER JOIN infrastructureMailServer AS master USING(mailSystemID)
+	INNER JOIN infrastructureHost AS host ON host.hostID = master.hostID
+	INNER JOIN infrastructureDomainTld USING(domainTldID)
+WHERE
+	backup.hostID='$hostIDSql'
+	AND backup.`primary` = 0
+	AND master.`primary` = 1
+	AND mailDomain.catchAllType <> 'NONE'
+SQL
+)->fetchList() as $address) {
 	$relayAddresses .= "@{$address["domain"]}:{$address["hostname"]}\n";
 }
 file_put_contents("$databaseDirectory/relay_addresses-$time", $relayAddresses);
 
 $authPasswords = "";
-foreach($GLOBALS["database"]->query("SELECT CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain, localpart, password FROM infrastructureMailServer INNER JOIN adminCustomer USING(mailSystemID) INNER JOIN mailDomain USING(customerID) INNER JOIN mailAddress USING(domainID) INNER JOIN infrastructureDomainTld USING(domainTldID) WHERE infrastructureMailServer.hostID='$hostIDSql'")->fetchList() as $account) {
+foreach($GLOBALS["database"]->query(<<<SQL
+SELECT
+	CONCAT_WS('.', mailDomain.name, infrastructureDomainTld.name) AS domain,
+	localpart,
+	password
+FROM
+	infrastructureMailServer
+	INNER JOIN adminCustomer USING(mailSystemID)
+	INNER JOIN mailDomain USING(customerID)
+	INNER JOIN mailAddress USING(domainID)
+	INNER JOIN infrastructureDomainTld USING(domainTldID)
+WHERE
+	infrastructureMailServer.hostID='$hostIDSql'
+SQL
+)->fetchList() as $account) {
 	$encodedPassword = rfc2047_encode(base64_decode($account["password"]));
 	$authPasswords .= "{$account["localpart"]}@{$account["domain"]}:$encodedPassword\n";
 }
