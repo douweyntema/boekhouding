@@ -245,6 +245,12 @@ FROM
 				localpart
 			FROM
 				mailAlias)
+		UNION
+			(SELECT
+				domainID,
+				localpart,
+			FROM
+				mailList)
 		) AS localparts USING(domainID)
 	INNER JOIN infrastructureMailServer AS master USING(mailSystemID)
 	INNER JOIN infrastructureHost AS host ON host.hostID = master.hostID
@@ -254,6 +260,8 @@ WHERE
 	AND backup.`primary` = 0
 	AND master.`primary` = 1
 SQL
+
+
 )->fetchList() as $address) {
 	$relayAddresses .= "{$address["localpart"]}@{$address["domain"]}:{$address["hostname"]}\n";
 }
