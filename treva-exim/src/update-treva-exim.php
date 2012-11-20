@@ -248,7 +248,7 @@ FROM
 		UNION
 			(SELECT
 				domainID,
-				localpart,
+				localpart
 			FROM
 				mailList)
 		) AS localparts USING(domainID)
@@ -260,8 +260,6 @@ WHERE
 	AND backup.`primary` = 0
 	AND master.`primary` = 1
 SQL
-
-
 )->fetchList() as $address) {
 	$relayAddresses .= "{$address["localpart"]}@{$address["domain"]}:{$address["hostname"]}\n";
 }
