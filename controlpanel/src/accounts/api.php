@@ -23,4 +23,35 @@ function accountsIsMainAccount($userID)
 	return $GLOBALS["database"]->stdExists("adminCustomer", array("name"=>$username));
 }
 
+function accountsAddAccount($customerID, $username, $password, $rights)
+{
+	$GLOBALS["database"]->startTransaction();
+	$userID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>$customerID, "username"=>$username, "password"=>hashPassword($password)));
+	if($rights === true) {
+		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "customerRightID"=>null));
+	} else {
+		foreach($rights as $right=>$value) {
+			if($value) {
+				$customerRightID = $GLOBALS["database"]->stdGet("adminCustomerRight", array("customerID"=>$customerID, "right"=>$right), "customerRightID");
+				$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "customerRightID"=>$customerRightID));
+			}
+		}
+	}
+	$GLOBALS["database"]->commitTransaction();
+	
+	if(!$GLOBALS["mysql_management_disabled"]) {
+		if($rights === true) {
+			$mysqlEnabled = true;
+		} else {
+			$mysqlEnabled = isset($rights["mysql"]) && $rights["mysql"];
+		}
+		$mysqlEnabled = $mysqlEnabled && canAccessCustomerComponent("mysql", $customerID);
+		mysqlCreateUser($username, $password, $mysqlEnabled);
+	}
+	
+	updateAccounts($customerID);
+	
+	return $userID;
+}
+
 ?>

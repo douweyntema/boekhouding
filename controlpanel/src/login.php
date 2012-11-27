@@ -131,14 +131,17 @@ function isRoot()
 	return isLoggedIn() && customerID() == 0;
 }
 
-function canAccessCustomerComponent($component)
+function canAccessCustomerComponent($component, $customerID = null)
 {
+	if($customerID === null) {
+		$customerID = customerID();
+	}
 	$components = components();
 	if(!isset($components[$component])) {
 		return false;
 	}
 	
-	if(customerID() == 0) {
+	if($customerID == 0) {
 		return true;
 	}
 	
@@ -146,7 +149,7 @@ function canAccessCustomerComponent($component)
 		return false;
 	}
 	
-	$customerRightID = $GLOBALS["database"]->stdGetTry("adminCustomerRight", array("customerID"=>customerID(), "right"=>$component), "customerRightID", false);
+	$customerRightID = $GLOBALS["database"]->stdGetTry("adminCustomerRight", array("customerID"=>$customerID, "right"=>$component), "customerRightID", false);
 	if($customerRightID === false) {
 		return false;
 	}

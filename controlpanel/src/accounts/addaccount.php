@@ -36,25 +36,7 @@ function main()
 	$password = checkPassword($check, "password");
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->startTransaction();
-	$userID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>customerID(), "username"=>$username, "password"=>hashPassword($password)));
-	if($rights === true) {
-		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "customerRightID"=>null));
-	} else {
-		foreach($rights as $right=>$value) {
-			if($value) {
-				$customerRightID = $GLOBALS["database"]->stdGet("adminCustomerRight", array("customerID"=>customerID(), "right"=>$right), "customerRightID");
-				$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "customerRightID"=>$customerRightID));
-			}
-		}
-	}
-	$GLOBALS["database"]->commitTransaction();
-	
-	if(!$GLOBALS["mysql_management_disabled"]) {
-		mysqlCreateUser($username, $password, ($rights === true || (isset($rights["mysql"]) && $rights["mysql"])));
-	}
-	
-	updateAccounts(customerID());
+	$userID = accountsAddAccount(customerID(), $username, $password, $rights);
 	
 	redirect("accounts/account.php?id=$userID");
 }

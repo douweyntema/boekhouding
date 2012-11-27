@@ -66,10 +66,9 @@ function main()
 			$GLOBALS["database"]->stdNew("adminCustomerRight", array("customerID"=>$customerID, "right"=>$right["name"]));
 		}
 	}
-	
-	$accountID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>$customerID, "username"=>post("name"), "password"=>hashPassword($password)));
-	$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$accountID, "customerRightID"=>null));
 	$GLOBALS["database"]->commitTransaction();
+	
+	$userID = accountsAddAccount($customerID, post("name"), $password, true);
 	
 	domainsUpdateContactInfo($customerID);
 	
