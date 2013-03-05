@@ -1,15 +1,7 @@
 #!/usr/bin/php
 <?php
 
-$ingUsername = "";
-$ingPassword = "";
-
-$dbHostname = "";
-$dbUsername = "";
-$dbPassword = "";
-$dbDatabase = "";
-
-$mailAddress = "afschriften@treva.nl";
+require_once("settings.php");
 
 require_once("/usr/lib/phpdatabase/database.php");
 require_once("/usr/lib/phpmail/mimemail.php");
