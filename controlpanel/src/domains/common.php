@@ -19,7 +19,7 @@ function doDomain($domainID)
 	doDomains();
 	useCustomer($GLOBALS["database"]->stdGetTry("dnsDomain", array("domainID"=>$domainID), "customerID", false));
 	$rootDomainID = domainsRootDomainID($domainID);
-	if(domainsDomainStatus($rootDomainID) == "expired") {
+	if(domainsDomainStatus($rootDomainID) == "expired" || domainsDomainStatus($rootDomainID) == "quarantaine") {
 		domainsRemoveDomain($rootDomainID);
 		useCustomer(false);
 	}
@@ -79,7 +79,7 @@ function domainsList()
 	
 	$domains = array();
 	foreach($domainIDs as $domainID) {
-		if(domainsDomainStatus($domainID) == "expired") {
+		if(domainsDomainStatus($domainID) == "expired" || domainsDomainStatus($domainID) == "quarantaine") {
 			domainsRemoveDomain($domainID);
 			continue;
 		}
