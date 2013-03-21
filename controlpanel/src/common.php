@@ -19,6 +19,8 @@ function exceptionHandler($exception)
 	die("Internal error. An administrator has been informed.");
 }
 
+class AssertionError extends Exception {}
+
 if($_SERVER["REMOTE_ADDR"] == "127.0.0.1") {
 	error_reporting(E_ALL);
 } else {
