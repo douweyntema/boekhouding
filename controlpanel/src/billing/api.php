@@ -49,7 +49,11 @@ function billingUpdateInvoiceLines($customerID)
 	$now = time();
 	$GLOBALS["database"]->startTransaction();
 	foreach($GLOBALS["database"]->stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
-		while($subscription["nextPeriodStart"] < $now + $subscription["invoiceDelay"]) {
+		$isDomain = $subscription["domainTldID"] !== null;
+		
+		while($subscription["nextPeriodStart"] < $now + $subscription["invoiceDelay"] &&
+			!($subscription["endDate"] !== null && $subscription["nextPeriodStart"] >= $subscription["endDate"]))
+		{
 			$periodEnd = billingCalculateNextDate($subscription["nextPeriodStart"], $subscription["frequencyBase"], $subscription["frequencyMultiplier"]);
 			
 			if($subscription["price"] === null) {
@@ -65,26 +69,28 @@ function billingUpdateInvoiceLines($customerID)
 			
 			$discount = ($price * $subscription["discountPercentage"]) / 100 + $subscription["discountAmount"];
 			
-			$deleteSubscription = false;
 			if($subscription["endDate"] !== null && $periodEnd > $subscription["endDate"]) {
 				$fraction = ($subscription["endDate"] - $subscription["nextPeriodStart"]) / ($periodEnd - $subscription["nextPeriodStart"]);
 				$price *= $fraction;
 				$discount *= $fraction;
-				$deleteSubscription = true;
 				$periodEnd = $subscription["endDate"];
 			}
 			
-			$isDomain = $subscription["domainTldID"] !== null;
-			
 			$GLOBALS["database"]->stdNew("billingInvoiceLine", array("customerID"=>$customerID, "description"=>$subscription["description"], "periodStart"=>$subscription["nextPeriodStart"], "periodEnd"=>$periodEnd, "price"=>$price, "discount"=>$discount, "domain"=>$isDomain));
 			
-			if($deleteSubscription) {
-				$GLOBALS["database"]->stdDel("billingSubscription", array("subscriptionID"=>$subscription["subscriptionID"]));
-				continue 2;
-			} else {
-				$GLOBALS["database"]->stdSet("billingSubscription", array("subscriptionID"=>$subscription["subscriptionID"]), array("nextPeriodStart"=>$periodEnd));
-				$subscription["nextPeriodStart"] = $periodEnd;
+			$GLOBALS["database"]->stdSet("billingSubscription", array("subscriptionID"=>$subscription["subscriptionID"]), array("nextPeriodStart"=>$periodEnd));
+			$subscription["nextPeriodStart"] = $periodEnd;
+		}
+		if($subscription["endDate"] !== null && $subscription["nextPeriodStart"] >= $subscription["endDate"]) {
+			if($isDomain) {
+				$domainID = $GLOBALS["database"]->stdGet("dnsDomain", array("subscriptionID"=>$subscription["subscriptionID"]), "domainID");
+				if(domainsDomainStatus($domainID) == "expired" || domainsDomainStatus($domainID) == "quarantaine") {
+					domainsRemoveDomain($domainID);
+				} else {
+					continue;
+				}
 			}
+			$GLOBALS["database"]->stdDel("billingSubscription", array("subscriptionID"=>$subscription["subscriptionID"]));
 		}
 	}
 	$GLOBALS["database"]->commitTransaction();
@@ -273,6 +279,9 @@ function billingCreateInvoicePdf($invoiceID, $sendEmail = true)
 
 function billingCreateInvoiceEmail($invoiceID, $reminder=false)
 {
+	if(!isset($GLOBALS["controlpanelEnableCustomerEmail"]) || !$GLOBALS["controlpanelEnableCustomerEmail"]) {
+		return;
+	}
 	$invoice = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "remainingAmount", "invoiceNumber", "pdf"));
 	if($invoice["pdf"] === null) {
 		return;
