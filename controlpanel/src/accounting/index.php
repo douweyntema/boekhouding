@@ -9,7 +9,7 @@ function main()
 	echo page($content);
 }
 
+accountingFsck();
 main();
-
 
 ?>
