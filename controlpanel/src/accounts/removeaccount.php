@@ -13,6 +13,7 @@ function main()
 	};
 	
 	$check(!accountsIsMainAccount($userID), "Unable to remove your main account.");
+	$check(!$GLOBALS["database"]->stdExists("httpPath", array("hostedUserID"=>$userID)), "There are still websites configured for this account. Remove or reconfigure these sites before removing this account.");
 	$check(post("confirm") !== null, null);
 	
 	if(!$GLOBALS["mysql_management_disabled"]) {
