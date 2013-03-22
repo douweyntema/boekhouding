@@ -39,17 +39,11 @@ function accountList()
 
 function accountTree($accountID)
 {
-	$output = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), array("accountID", "name", "description", "isDirectory", "currency", "balance"));
-	$output["subaccounts"] = subAccountTrees($accountID);
-	return $output;
-}
-
-function subAccountTrees($parentAccountID)
-{
-	$output = array();
-	foreach($GLOBALS["database"]->stdList("accountingAccount", array("parentAccountID"=>$parentAccountID), array("accountID", "parentAccountID", "name", "description", "isDirectory", "currency", "balance")) as $subaccount) {
-		$subaccount["subaccounts"] = subAccountTrees($subaccount["accountID"]);
-		$output[] = $subaccount;
+	$accountIDSql = $GLOBALS["database"]->addSlashes($accountID);
+	$output = $GLOBALS["database"]->query("SELECT accountID, parentAccountID, accountingAccount.name AS name, description, isDirectory, balance, accountingCurrency.symbol AS currency FROM accountingAccount INNER JOIN accountingCurrency USING(currencyID) WHERE accountID = '$accountIDSql'")->fetchArray();
+	$output["subaccounts"] = array();
+	foreach($GLOBALS["database"]->stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID") as $subAccountID) {
+		$output["subaccounts"][] = accountTree($subAccountID);
 	}
 	return $output;
 }

@@ -15,9 +15,9 @@ function searchKey($array /*, $keys */)
 	return null;
 }
 
-function formatPrice($cents)
+function formatPrice($cents, $symbol = "&euro;")
 {
-	return "&euro; " . formatPriceRaw($cents);
+	return "$symbol " . formatPriceRaw($cents);
 }
 
 function formatPriceRaw($cents)
