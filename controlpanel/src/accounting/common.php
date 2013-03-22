@@ -2,6 +2,12 @@
 
 require_once(dirname(__FILE__) . "/../common.php");
 
+function doAccounting()
+{
+	useComponent("accounting");
+	$GLOBALS["menuComponent"] = "accounting";
+}
+
 function crumb($name, $filename)
 {
 	return array("name"=>$name, "url"=>"{$GLOBALS["root"]}accounting/$filename");
@@ -16,6 +22,13 @@ function accountingBreadcrumbs()
 {
 	return crumbs("Boekhouding", "");
 }
+
+function accountBreadcrumbs($accountID)
+{
+	$name = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "name");
+	return array_merge(accountingBreadcrumbs(), crumbs("Rekening " . $name, "account.php?id=$accountID"));
+}
+
 
 function accountList()
 {
@@ -60,5 +73,72 @@ function flattenAccountTree($tree, $parentID = null)
 	return $output;
 }
 
+function transactionList($accountID)
+{
+	$transactions = transactions($accountID);
+	uasort($transactions, function($a, $b) {
+		return $a["date"] - $b["date"];
+	});
+	$rows = array();
+	$balance = 0;
+	$subAccounts = subAccountList($accountID);
+	foreach($transactions as $transaction) {
+		$lines = $GLOBALS["database"]->stdList("accountingTransactionLine", array("transactionID"=>$transaction["transactionID"]), array("transactionLineID", "accountID", "amount"));
+		
+		$currentLineAmount = 0;
+		foreach($lines as $line) {
+			if(in_array($line["accountID"], $subAccounts)) {
+				$currentLineAmount += $line["amount"];
+			}
+		}
+		
+		$balance += $currentLineAmount;
+		
+		$rows[] = array("id"=>"transaction-{$transaction["transactionID"]}", "class"=>"transaction", "cells"=>array(
+			array("text"=>date("d-m-Y", $transaction["date"])),
+			array("text"=>$transaction["description"]),
+			array("html"=>formatPrice($currentLineAmount)),
+			array("html"=>formatPrice($balance)),
+		));
+		
+		foreach($lines as $line) {
+			$accountName = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$line["accountID"]), "name");
+			$rows[] = array("id"=>"transactionline-" . $line["transactionLineID"], "class"=>"child-of-transaction-{$transaction["transactionID"]} transactionline", "cells"=>array(
+				array("text"=>""),
+				array("url"=>"account.php?id={$line["accountID"]}", "text"=>$accountName),
+				array("html"=>formatPrice($line["amount"])),
+				array("text"=>""),
+			));
+		}
+	}
+	return listTable(array("Datum", "Beschrijving", "Bedrag", "Balans"), $rows, null, true, "list tree");
+}
+
+function transactions($accountID)
+{
+	if($GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory") == 0) {
+		return $GLOBALS["database"]->query("SELECT transactionID, date, description FROM accountingTransaction INNER JOIN accountingTransactionLine USING(transactionID) WHERE accountID = '" . $GLOBALS["database"]->addSlashes($accountID) . "'")->fetchMap("transactionID");
+	} else {
+		$output = array();
+		$subAccounts = $GLOBALS["database"]->stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID");
+		foreach($subAccounts as $subAccountID) {
+			$transactions = transactions($subAccountID);
+			foreach($transactions as $transactionID=>$transaction) {
+				$output[$transactionID] = $transaction;
+			}
+		}
+		return $output;
+	}
+}
+
+function subAccountList($accountID)
+{
+	$output = array($accountID);
+	$subAccounts = $GLOBALS["database"]->stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID");
+	foreach($subAccounts as $subAccount) {
+		$output = array_merge($output, subAccountList($subAccount));
+	}
+	return $output;
+}
 
 ?>

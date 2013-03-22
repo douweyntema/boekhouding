@@ -394,3 +394,12 @@ table.inline, table.inline tr, table.inline td, table.inline th {
 .balance-negative {
 	color: red;
 }
+
+/* accounting */
+.list table tbody tr.transaction td {
+	background-color: #F0F0F6;
+}
+
+.list table tbody tr.transactionline td {
+	background-color: #FFFFFF;
+}
