@@ -17,6 +17,14 @@ function doAccountingAccount($accountID)
 	}
 }
 
+function doAccountingTransaction($transactionID)
+{
+	if(!stdExists("accountingTransaction", array("transactionID"=>$transactionID))) {
+		error404();
+	}
+	doAccounting();
+}
+
 function crumb($name, $filename)
 {
 	return array("name"=>$name, "url"=>"{$GLOBALS["root"]}accounting/$filename");
@@ -39,6 +47,12 @@ function accountBreadcrumbs($accountID)
 	}
 	$name = stdGet("accountingAccount", array("accountID"=>$accountID), "name");
 	return array_merge(accountingBreadcrumbs(), crumbs("Account " . $name, "account.php?id=$accountID"));
+}
+
+function transactionBreadcrumbs($transactionID, $accountID)
+{
+	$date = stdGet("accountingTransaction", array("transactionID"=>$transactionID), "date");
+	return array_merge(accountBreadcrumbs($accountID), crumbs("Transaction on " . date("d-m-Y", $date), "transaction.php?id=$transactionID"));
 }
 
 
@@ -122,7 +136,7 @@ function transactionList($accountID)
 		
 		$rows[] = array("id"=>"transaction-{$transaction["transactionID"]}", "class"=>"transaction", "cells"=>array(
 			array("text"=>date("d-m-Y", $transaction["date"])),
-			array("text"=>$transaction["description"]),
+			array("text"=>$transaction["description"], "url"=>"transaction.php?id={$transaction["transactionID"]}&accountID={$accountID}"),
 			array("html"=>formatPrice($currentLineAmount, $currencySymbol)),
 			array("html"=>formatPrice($balance, $currencySymbol)),
 		));
@@ -169,63 +183,6 @@ function subAccountList($accountID, $currencyID = null)
 		$output = array_merge($output, subAccountList($subAccount, $currencyID));
 	}
 	return $output;
-}
-
-function addTransactionForm($accountID, $error = "", $values = null, $balance = null)
-{
-	if($values === null) {
-		$values = array("date"=>date("d-m-Y"), "accountID-0"=>$accountID);
-	}
-	if(isset($values["date"])) {
-		$values["date"] = date("d-m-Y", parseDate($values["date"]));
-	}
-	$lines = parseArrayField($_POST, array("accountID", "amount"));
-	foreach($lines as $line) {
-		if(isset($values["amount-" . $line[""]])) {
-			$values["amount-" . $line[""]] = formatPriceRaw(parsePrice($values["amount-" . $line[""]]));
-		}
-	}
-	
-	$accounts = stdList("accountingAccount", array("isDirectory"=>0), array("accountID", "name", "currencyID"));
-	$accountOptions = array(array("label"=>"", "value"=>""));
-	foreach($accounts as $account) {
-		$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "name");
-		$accountOptions[] = array("label"=>$account["name"] . " ("  . $currency . ")", "value"=>$account["accountID"]);
-	}
-	
-	$message = array();
-	$rates1 = null;
-	$rates2 = null;
-	if($error === null && $balance !== null) {
-		if($balance["type"] == "double") {
-			$currency1 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));
-			$currency2 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["to"]), array("name", "symbol"));
-			
-			$rates1 = array("title"=>"Exchange rate", "type"=>"colspan", "columns"=>array(
-				array("type"=>"html", "html"=>formatPrice(100, $currency1["symbol"]) . " (" . $currency1["name"] . ")"),
-				array("type"=>"html", "fill"=>true, "html"=>"<input type=\"text\" readonly=\"readonly\" value=\"" . formatPrice($balance["rates"][0]["rate"], $currency2["symbol"]) . " (" . $currency2["name"] . ")\" />")
-			));
-			$rates2 = array("title"=>"Exchange rate", "type"=>"colspan", "columns"=>array(
-				array("type"=>"html", "html"=>formatPrice(100, $currency2["symbol"]) . " (" . $currency2["name"] . ")"),
-				array("type"=>"html", "fill"=>true, "html"=>"<input type=\"text\" readonly=\"readonly\" value=\"" . formatPrice($balance["rates"][1]["rate"], $currency1["symbol"]) . " (" . $currency1["name"] . ")\" />")
-			));
-		} else if($balance["type"] == "multiple") {
-			$message["custom"] = "<p class=\"warning\">Warning, the correctness of this transaction cannot be checked because there are 3 or more currencies involved!</p>";
-		}
-	}
-	
-	return operationForm("addtransaction.php?id=$accountID", $error, "New transaction", "Save",
-		array(
-			array("title"=>"Description", "type"=>"text", "name"=>"description"),
-			array("title"=>"Date", "type"=>"text", "name"=>"date"),
-			$rates1,
-			$rates2,
-			array("type"=>"array", "field"=>array("title"=>"Account", "type"=>"colspan", "columns"=>array(
-				array("type"=>"dropdown", "name"=>"accountID", "options"=>$accountOptions),
-				array("type"=>"text", "name"=>"amount", "fill"=>true),
-			))),
-		),
-		$values, $message);
 }
 
 function currencyOptions()
@@ -312,6 +269,96 @@ function moveAccountForm($accountID, $error = "", $values = null)
 function deleteAccountForm($accountID, $error = "", $values = null)
 {
 	return operationForm("deleteaccount.php?id=$accountID", $error, "Delete account", "Delete", array(), $values);
+}
+
+function transactionForm($error = "", $values = null, $balance = null)
+{
+	if(isset($values["date"])) {
+		$values["date"] = date("d-m-Y", parseDate($values["date"]));
+	}
+	$lines = parseArrayField($_POST, array("accountID", "amount"));
+	foreach($lines as $line) {
+		if(isset($values["amount-" . $line[""]])) {
+			$values["amount-" . $line[""]] = formatPriceRaw(parsePrice($values["amount-" . $line[""]]));
+		}
+	}
+	
+	$accounts = stdList("accountingAccount", array("isDirectory"=>0), array("accountID", "name", "currencyID"));
+	$accountOptions = array(array("label"=>"", "value"=>""));
+	foreach($accounts as $account) {
+		$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "name");
+		$accountOptions[] = array("label"=>$account["name"] . " ("  . $currency . ")", "value"=>$account["accountID"]);
+	}
+	
+	$message = array();
+	$rates1 = null;
+	$rates2 = null;
+	if($error === null && $balance !== null) {
+		if($balance["type"] == "double") {
+			$currency1 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));
+			$currency2 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["to"]), array("name", "symbol"));
+			
+			$rates1 = array("title"=>"Exchange rate", "type"=>"colspan", "columns"=>array(
+				array("type"=>"html", "html"=>formatPrice(100, $currency1["symbol"]) . " (" . $currency1["name"] . ")"),
+				array("type"=>"html", "fill"=>true, "html"=>"<input type=\"text\" readonly=\"readonly\" value=\"" . formatPrice($balance["rates"][0]["rate"], $currency2["symbol"]) . " (" . $currency2["name"] . ")\" />")
+			));
+			$rates2 = array("title"=>"Exchange rate", "type"=>"colspan", "columns"=>array(
+				array("type"=>"html", "html"=>formatPrice(100, $currency2["symbol"]) . " (" . $currency2["name"] . ")"),
+				array("type"=>"html", "fill"=>true, "html"=>"<input type=\"text\" readonly=\"readonly\" value=\"" . formatPrice($balance["rates"][1]["rate"], $currency1["symbol"]) . " (" . $currency1["name"] . ")\" />")
+			));
+		} else if($balance["type"] == "multiple") {
+			$message["custom"] = "<p class=\"warning\">Warning, the correctness of this transaction cannot be checked because there are 3 or more currencies involved!</p>";
+		}
+	}
+	
+	
+	$fields = array(
+		array("title"=>"Description", "type"=>"text", "name"=>"description"),
+		array("title"=>"Date", "type"=>"text", "name"=>"date"),
+		$rates1,
+		$rates2,
+		array("type"=>"array", "field"=>array("title"=>"Account", "type"=>"colspan", "columns"=>array(
+			array("type"=>"dropdown", "name"=>"accountID", "options"=>$accountOptions),
+			array("type"=>"text", "name"=>"amount", "fill"=>true),
+		))),
+	);
+	return array("fields"=>$fields, "values"=>$values, "message"=>$message);
+}
+
+function addTransactionForm($accountID, $error = "", $values = null, $balance = null)
+{
+	if($values === null) {
+		$values = array("date"=>date("d-m-Y"), "accountID-0"=>$accountID);
+	}
+	
+	$formContent = transactionForm($error, $values, $balance);
+	
+	return operationForm("addtransaction.php?id=$accountID", $error, "New transaction", "Save", $formContent["fields"], $formContent["values"], $formContent["message"]);
+}
+
+function editTransactionForm($transactionID, $accountID, $error = "", $values = null, $balance = null)
+{
+	if($values === null) {
+		$transaction = stdGet("accountingTransaction", array("transactionID"=>$transactionID), array("date", "description"));
+		$lines = stdList("accountingTransactionLine", array("transactionID"=>$transactionID), array("accountID", "amount"));
+		
+		$values = array("date"=>date("d-m-Y", $transaction["date"]), "description"=>$transaction["description"]);
+		$index = 0;
+		foreach($lines as $line) {
+			$values["accountID-$index"] = $line["accountID"];
+			$values["amount-$index"] = formatPriceRaw($line["amount"]);
+			$index++;
+		}
+	}
+	
+	$formContent = transactionForm($error, $values, $balance);
+	
+	return operationForm("edittransaction.php?id=$transactionID&accountID=$accountID", $error, "Edit transaction", "Save", $formContent["fields"], $formContent["values"], $formContent["message"]);
+}
+
+function deleteTransactionForm($transactionID, $accountID, $error = "", $values = null)
+{
+	return operationForm("deletetransaction.php?id=$transactionID&accountID=$accountID", $error, "Delete transaction", "Delete", array(), $values);
 }
 
 ?>
