@@ -5,7 +5,7 @@ $accountingTarget = "admin";
 
 function accountingAddAccount($parentAccountID, $currencyID, $name, $description, $isDirectory)
 {
-	if($parentAccountID !== null && !stdGet("accountingAccount", array("accountID"=>$parentAccountID), "isDirectory") != 1) {
+	if($parentAccountID !== null && stdGet("accountingAccount", array("accountID"=>$parentAccountID), "isDirectory") != 1) {
 		throw new AssertionError();
 	}
 	
