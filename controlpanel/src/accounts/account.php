@@ -7,7 +7,7 @@ function main()
 	$userID = get("id");
 	doAccount($userID);
 	
-	$username = htmlentities($GLOBALS["database"]->stdGet("adminUser", array("userID"=>$userID), "username"));
+	$username = htmlentities(stdGet("adminUser", array("userID"=>$userID), "username"));
 	
 	$content = makeHeader("Accounts - $username", accountBreadcrumbs($userID));
 	$content .= changeAccountPasswordForm($userID);

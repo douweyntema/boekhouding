@@ -27,16 +27,16 @@ class mijndomeinresellerapi
 	
 	public function registerDomain($customerID, $domainName, $tldID)
 	{
-		$registrantID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "mijnDomeinResellerContactID");
+		$registrantID = stdGet("adminCustomer", array("customerID"=>$customerID), "mijnDomeinResellerContactID");
 		if($registrantID === null) {
 			$this->updateContactInfo();
-			$registrantID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "mijnDomeinResellerContactID");
+			$registrantID = stdGet("adminCustomer", array("customerID"=>$customerID), "mijnDomeinResellerContactID");
 			if($registrantID === null) {
 				return false;
 			}
 		}
-		$nameSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "nameSystemID");
-		$nsID = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "mijnDomeinResellerNameServerSetID");
+		$nameSystemID = stdGet("adminCustomer", array("customerID"=>$customerID), "nameSystemID");
+		$nsID = stdGet("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "mijnDomeinResellerNameServerSetID");
 		if($nsID === null) {
 			return false;
 		}
@@ -106,7 +106,7 @@ class mijndomeinresellerapi
 	
 	public function updateContactInfo($customerID)
 	{
-		$contact = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("customerID", "mijnDomeinResellerContactID", "nameSystemID", "name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber"));
+		$contact = stdGet("adminCustomer", array("customerID"=>$customerID), array("customerID", "mijnDomeinResellerContactID", "nameSystemID", "name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber"));
 		if($contact["mijnDomeinResellerContactID"] !== null) {
 			return true;
 		}
@@ -152,12 +152,12 @@ class mijndomeinresellerapi
 			$telefoonnummer = $contact["phoneNumber"];
 		}
 		
-		$nameServerID = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$contact["nameSystemID"]), "mijnDomeinResellerNameServerSetID");
+		$nameServerID = stdGet("infrastructureNameSystem", array("nameSystemID"=>$contact["nameSystemID"]), "mijnDomeinResellerNameServerSetID");
 		
 		try {
 			$contactID = $this->contact_add($contact["companyName"], null, null, $contact["initials"], null, $contact["lastName"], $straat, $huisnummer, $huisnummerToevoeging, $postcode, $city, $contact["countryCode"], $contact["email"], $telefoonnummer);
 			
-			foreach($GLOBALS["database"]->query("SELECT dnsDomain.domainID, dnsDomain.name, infrastructureDomainTld.domainTldID, infrastructureDomainTld.name AS tld FROM dnsDomain INNER JOIN infrastructureDomainTld USING(domainTldID) INNER JOIN infrastructureDomainRegistrar USING(domainRegistrarID) WHERE dnsDomain.customerID = $customerID AND dnsDomain.syncContactInfo = 1 AND infrastructureDomainRegistrar.identifier = 'mijndomeinreseller'")->fetchList() as $domain) {
+			foreach(query("SELECT dnsDomain.domainID, dnsDomain.name, infrastructureDomainTld.domainTldID, infrastructureDomainTld.name AS tld FROM dnsDomain INNER JOIN infrastructureDomainTld USING(domainTldID) INNER JOIN infrastructureDomainRegistrar USING(domainRegistrarID) WHERE dnsDomain.customerID = $customerID AND dnsDomain.syncContactInfo = 1 AND infrastructureDomainRegistrar.identifier = 'mijndomeinreseller'")->fetchList() as $domain) {
 				if($domain["tld"] == "nl" || $domain["tld"] == "eu") {
 					$this->domain_trade($domain["name"], $domain["tld"], $contactID, $this->adminID, $this->techID, null, $nameServerID);
 				} else if($domain["tld"] == "be") {
@@ -167,7 +167,7 @@ class mijndomeinresellerapi
 				}
 			}
 			
-			$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("mijnDomeinResellerContactID"=>$contactID));
+			stdSet("adminCustomer", array("customerID"=>$customerID), array("mijnDomeinResellerContactID"=>$contactID));
 		} catch(DomainResellerError $e) {
 			return false;
 		}
@@ -176,17 +176,17 @@ class mijndomeinresellerapi
 	
 	private function tld($tldID)
 	{
-		return $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "name");
+		return stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "name");
 	}
 	
 	private function domainsFormatDomainName($domainID)
 	{
-		return $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "name");
+		return stdGet("dnsDomain", array("domainID"=>$domainID), "name");
 	}
 	
 	private function domainTld($domainID)
 	{
-		return $this->tld($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID"));
+		return $this->tld(stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID"));
 	}
 	
 	private function contact_add($bedrijfsnaam, $rechtsvorm, $regnummer, $voorletter, $tussenvoegsel, $achternaam, $straat, $huisnr, $huisnrtoev, $postcode, $plaats, $land, $email, $tel)

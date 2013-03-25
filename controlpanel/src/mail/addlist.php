@@ -22,9 +22,9 @@ function main()
 	}
 	
 	$check(validLocalPart($localpart), "Invalid mailing list name.");
-	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailbox with the chosen name already exists.");
-	$check(!$GLOBALS["database"]->stdExists("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart)), "An alias with the chosen name already exists.");
-	$check(!$GLOBALS["database"]->stdExists("mailList", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailing list with the chosen name already exists.");
+	$check(!stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailbox with the chosen name already exists.");
+	$check(!stdExists("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart)), "An alias with the chosen name already exists.");
+	$check(!stdExists("mailList", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailing list with the chosen name already exists.");
 	$messages = array();
 	foreach($realMembers as $member) {
 		if(!validEmail($member)) {
@@ -35,15 +35,15 @@ function main()
 	$check(count($messages) == 0, implode("<br />", $messages));
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->startTransaction();
-	$listID = $GLOBALS["database"]->stdNew("mailList", array("domainID"=>$domainID, "localpart"=>$localpart));
+	startTransaction();
+	$listID = stdNew("mailList", array("domainID"=>$domainID, "localpart"=>$localpart));
 	foreach($realMembers as $member) {
-		if($GLOBALS["database"]->stdExists("mailListMember", array("listID"=>$listID, "targetAddress"=>$member))) {
+		if(stdExists("mailListMember", array("listID"=>$listID, "targetAddress"=>$member))) {
 			continue;
 		}
-		$GLOBALS["database"]->stdNew("mailListMember", array("listID"=>$listID, "targetAddress"=>$member));
+		stdNew("mailListMember", array("listID"=>$listID, "targetAddress"=>$member));
 	}
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 	
 	updateMail(customerID());
 	

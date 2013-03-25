@@ -6,7 +6,7 @@ function main()
 {
 	doAccountsAdmin();
 	$userID = get("id");
-	$username = htmlentities($GLOBALS["database"]->stdGet("adminUser", array("userID"=>$userID), "username"));
+	$username = htmlentities(stdGet("adminUser", array("userID"=>$userID), "username"));
 	
 	$check = function($condition, $error) use($userID, $username) {
 		if(!$condition) die(page(makeHeader("Accounts - $username", accountBreadcrumbs($userID), crumbs("Remove admin account", "removeadminaccount.php?id=$userID")) . removeAdminAccountForm($userID, $error, $_POST)));
@@ -14,7 +14,7 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->stdDel("adminUser", array("userID"=>$userID, "customerID"=>null));
+	stdDel("adminUser", array("userID"=>$userID, "customerID"=>null));
 	
 	redirect("accounts/");
 }

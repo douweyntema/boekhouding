@@ -11,13 +11,13 @@ function main()
 		if(!$condition) die(page(listHeader($listID) . removeMailListForm($listID, $error, $_POST)));
 	};
 	
-	$domainID = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), "domainID");
+	$domainID = stdGet("mailList", array("listID"=>$listID), "domainID");
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->startTransaction();
-	$GLOBALS["database"]->stdDel("mailListMember", array("listID"=>$listID));
-	$GLOBALS["database"]->stdDel("mailList", array("listID"=>$listID));
-	$GLOBALS["database"]->commitTransaction();
+	startTransaction();
+	stdDel("mailListMember", array("listID"=>$listID));
+	stdDel("mailList", array("listID"=>$listID));
+	commitTransaction();
 	
 	updateMail(customerID());
 	

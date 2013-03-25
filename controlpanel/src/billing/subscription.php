@@ -5,7 +5,7 @@ require_once("common.php");
 function main()
 {
 	$subscriptionID = get("id");
-	$customerID = $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), "customerID");
+	$customerID = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), "customerID");
 	doBillingAdmin($customerID);
 	
 	$content = makeHeader("Subscription", adminSubscriptionBreadcrumbs($subscriptionID));

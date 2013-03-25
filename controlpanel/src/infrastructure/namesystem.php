@@ -7,7 +7,7 @@ function main()
 	doInfrastructure();
 	
 	$nameSystemID = get("id");
-	$nameSystemName = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "name");
+	$nameSystemName = stdGet("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "name");
 	
 	if(post("refreshall") !== null || post("refreshbind") !== null) {
 		infrastructureRefreshNameSystem($nameSystemID);

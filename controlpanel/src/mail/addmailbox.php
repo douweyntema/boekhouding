@@ -39,9 +39,9 @@ function main()
 	}
 	
 	$check(validLocalPart($localpart), "Invalid mailbox name.");
-	$check(!$GLOBALS["database"]->stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "Another mailbox with the chosen name already exists.");
-	$check(!$GLOBALS["database"]->stdExists("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart)), "An alias with the chosen name already exists.");
-	$check(!$GLOBALS["database"]->stdExists("mailList", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailinx list with the chosen name already exists.");
+	$check(!stdExists("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart)), "Another mailbox with the chosen name already exists.");
+	$check(!stdExists("mailAlias", array("domainID"=>$domainID, "localpart"=>$localpart)), "An alias with the chosen name already exists.");
+	$check(!stdExists("mailList", array("domainID"=>$domainID, "localpart"=>$localpart)), "A mailinx list with the chosen name already exists.");
 	$check($spamboxType != "folder" || validDirectory($spambox), "Invalid spam folder.");
 	$check($virusboxType != "folder" || validDirectory($virusbox), "Invalid malware.");
 	$check($quota === null || (is_numeric($quota) && 1 <= $quota && $quota <= 100000), "Invalid maximum size.");
@@ -51,7 +51,7 @@ function main()
 	$password = checkPassword($check, "password");
 	$check(post("confirm") !== null, null);
 	
-	$addressID = $GLOBALS["database"]->stdNew("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart, "password"=>base64_encode($password), "canUseSmtp"=>1, "canUseImap"=>1, "spambox"=>$spambox, "virusbox"=>$virusbox, "quota"=>$quota, "spamQuota"=>$spamQuota, "virusQuota"=>$virusQuota));
+	$addressID = stdNew("mailAddress", array("domainID"=>$domainID, "localpart"=>$localpart, "password"=>base64_encode($password), "canUseSmtp"=>1, "canUseImap"=>1, "spambox"=>$spambox, "virusbox"=>$virusbox, "quota"=>$quota, "spamQuota"=>$spamQuota, "virusQuota"=>$virusQuota));
 	
 	updateMail(customerID());
 	

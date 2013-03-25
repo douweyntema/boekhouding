@@ -7,7 +7,7 @@ function main()
 	doInfrastructure();
 	
 	$mailSystemID = get("id");
-	$mailSystemName = $GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID), "name");
+	$mailSystemName = stdGet("infrastructureMailSystem", array("mailSystemID"=>$mailSystemID), "name");
 	
 	if(post("refreshall") !== null || post("refreshdovecot") !== null) {
 		infrastructureRefreshMailSystemDovecot($mailSystemID);

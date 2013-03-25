@@ -23,13 +23,13 @@ function addHiddens($fields, $reserved = null)
 
 function domainName()
 {
-	return post("name") . "." . $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>post("tldID")), "name");
+	return post("name") . "." . stdGet("infrastructureDomainTld", array("domainTldID"=>post("tldID")), "name");
 }
 
 function domainNameForm($error)
 {
 	$tlds = array();
-	foreach($GLOBALS["database"]->stdList("infrastructureDomainTld", array("active"=>1), array("domainTldID", "name", "price"), array("order"=>"A")) as $tld) {
+	foreach(stdList("infrastructureDomainTld", array("active"=>1), array("domainTldID", "name", "price"), array("order"=>"A")) as $tld) {
 		$tlds[] = array("value"=>$tld["domainTldID"], "label"=>$tld["name"] . " (" . formatPrice($tld["price"]) . " / year)");
 	}
 	
@@ -49,7 +49,7 @@ function domainNameSummary()
 {
 	return operationForm("adddomain.php?step=name", "", "Domain name", "Edit", addHiddens(array(
 		array("title"=>"Name", "type"=>"html", "html"=>domainName()),
-		array("title"=>"Price", "type"=>"html", "html"=>formatPrice($GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>post("tldID")), "price")))
+		array("title"=>"Price", "type"=>"html", "html"=>formatPrice(stdGet("infrastructureDomainTld", array("domainTldID"=>post("tldID")), "price")))
 	)), $_POST);
 }
 
@@ -97,7 +97,7 @@ function mailTypeSummary()
 function confirmForm($error)
 {
 	$name = domainName();
-	$price = formatPrice($GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>post("tldID")), "price"));
+	$price = formatPrice(stdGet("infrastructureDomainTld", array("domainTldID"=>post("tldID")), "price"));
 	return operationForm("adddomain.php", $error, "Confirmation", "Register Domain", addHiddens(array()), $_POST, array("confirmbilling"=>"Are you sure you want to register the domain <strong>$name</strong> as configured above at a cost of <strong>$price</strong> per year?"));
 }
 
@@ -114,21 +114,21 @@ function main()
 	
 	$check(($domainName = post("name")) !== null, "");
 	$check(($tldID = post("tldID")) !== null, "");
-	$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "name");
+	$tld = stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "name");
 	
 	if(!isImpersonating() && billingDomainPrice($tldID) > 0) {
 		$messageUrl = urlencode("Domain registration limit reached");
 		$check(domainsCustomerUnpaidDomainsPrice(customerID()) < domainsCustomerUnpaidDomainsLimit(customerID()), "Registration limit reached. Please <a href=\"{$GLOBALS["root"]}ticket/addthread.php?title=$messageUrl\">contact us</a> for more information.");
 	}
-	$check($GLOBALS["database"]->stdExists("infrastructureDomainTld", array("domainTldID"=>$tldID)), "");
+	$check(stdExists("infrastructureDomainTld", array("domainTldID"=>$tldID)), "");
 	
 	$check(validDomainPart($domainName), "Invalid domain name.");
 	
-	$check(!$GLOBALS["database"]->stdExists("dnsDomain", array("domainTldID"=>$tldID, "name"=>"domainName")), "The chosen domain name is already registered.");
+	$check(!stdExists("dnsDomain", array("domainTldID"=>$tldID, "name"=>"domainName")), "The chosen domain name is already registered.");
 	
-	$fullDomainNameSql = $GLOBALS["database"]->addSlashes("$domainName.$tld");
-	$check($GLOBALS["database"]->query("SELECT `httpDomain`.`domainID` FROM `httpDomain` INNER JOIN `infrastructureDomainTld` USING(`domainTldID`) WHERE CONCAT_WS('.', `httpDomain`.`name`, `infrastructureDomainTld`.`name`) = '$fullDomainNameSql'")->numRows() == 0, "The chosen domain name is already registered.");
-	$check($GLOBALS["database"]->query("SELECT `mailDomain`.`domainID` FROM `mailDomain` INNER JOIN `infrastructureDomainTld` USING(`domainTldID`) WHERE CONCAT_WS('.', `mailDomain`.`name`, `infrastructureDomainTld`.`name`) = '$fullDomainNameSql'")->numRows() == 0, "The chosen domain name is already registered.");
+	$fullDomainNameSql = dbAddSlashes("$domainName.$tld");
+	$check(query("SELECT `httpDomain`.`domainID` FROM `httpDomain` INNER JOIN `infrastructureDomainTld` USING(`domainTldID`) WHERE CONCAT_WS('.', `httpDomain`.`name`, `infrastructureDomainTld`.`name`) = '$fullDomainNameSql'")->numRows() == 0, "The chosen domain name is already registered.");
+	$check(query("SELECT `mailDomain`.`domainID` FROM `mailDomain` INNER JOIN `infrastructureDomainTld` USING(`domainTldID`) WHERE CONCAT_WS('.', `mailDomain`.`name`, `infrastructureDomainTld`.`name`) = '$fullDomainNameSql'")->numRows() == 0, "The chosen domain name is already registered.");
 	
 	if(!$databaseOnly) {
 		$check(domainsDomainAvailable($domainName, $tldID), "The chosen domain name is already registered.");
@@ -196,14 +196,14 @@ function main()
 			$userID = post("documentOwner");
 			$directory = trim(post("documentRoot"), "/");
 			
-			$check($GLOBALS["database"]->stdExists("adminUser", array("userID"=>$userID, "customerID"=>customerID())), "");
+			$check(stdExists("adminUser", array("userID"=>$userID, "customerID"=>customerID())), "");
 			$check(validDocumentRoot($directory), "Invalid document root.");
 		} else if($httpType == "mirror") {
 			$mirrorTarget = post("mirrorTarget");
 			
-			$check(($path = $GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$mirrorTarget), array("domainID", "type"))) !== null, "");
+			$check(($path = stdGetTry("httpPath", array("pathID"=>$mirrorTarget), array("domainID", "type"))) !== null, "");
 			$check($path["type"] != "MIRROR", "");
-			$check($GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$path["domainID"]), "customerID") == customerID(), "");
+			$check(stdGet("httpDomain", array("domainID"=>$path["domainID"]), "customerID") == customerID(), "");
 		}
 		$check(get("step") != "http", "");
 	}
@@ -245,18 +245,18 @@ function main()
 	
 	
 	
-	$GLOBALS["database"]->startTransaction();
-	$domainID = $GLOBALS["database"]->stdNew("dnsDomain", array("customerID"=>customerID(), "domainTldID"=>$tldID, "name"=>$domainName, "addressType"=>"NONE", "mailType"=>"NONE"));
+	startTransaction();
+	$domainID = stdNew("dnsDomain", array("customerID"=>customerID(), "domainTldID"=>$tldID, "name"=>$domainName, "addressType"=>"NONE", "mailType"=>"NONE"));
 	if(!$databaseOnly) {
 		$ok = domainsRegisterDomain(customerID(), $domainName, $tldID);
 		if(!$ok) {
-			$GLOBALS["database"]->rollbackTransaction();
+			rollbackTransaction();
 			$check(false, "An error occured while registering this domain. Please try again later or <a href=\"{$GLOBALS["root"]}ticket/addthread.php\">contact us</a>.");
 		}
 	}
-	if($GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), array("price")) > 0) {
+	if(stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), array("price")) > 0) {
 		$subscriptionID = billingNewSubscription(customerID(), "Registratie domein $domainName.$tld", null, null, null, $tldID, "YEAR", 1, 0, null);
-		$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array("subscriptionID"=>$subscriptionID));
+		stdSet("dnsDomain", array("domainID"=>$domainID), array("subscriptionID"=>$subscriptionID));
 	}
 	
 	if($addressType == "none") {
@@ -270,10 +270,10 @@ function main()
 		$ipv6 = post("ipv6");
 		
 		if($ipv4 != "") {
-			$GLOBALS["database"]->stdNew("dnsRecord", array("domainID"=>$domainID, "type"=>"A", "value"=>$ipv4));
+			stdNew("dnsRecord", array("domainID"=>$domainID, "type"=>"A", "value"=>$ipv4));
 		}
 		if($ipv6 != "") {
-			$GLOBALS["database"]->stdNew("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA", "value"=>$ipv6));
+			stdNew("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA", "value"=>$ipv6));
 		}
 		$function = array("addressType"=>"IP");
 	} else if($addressType == "cname") {
@@ -282,13 +282,13 @@ function main()
 		$delegations = parseArrayField($_POST, array("hostname", "ipv4Address", "ipv6Address"));
 		
 		foreach($delegations as $server) {
-			$GLOBALS["database"]->stdNew("dnsDelegatedNameServer", array("domainID"=>$domainID, "hostname"=>trim($server["hostname"]), "ipv4Address"=>trim($server["ipv4Address"]), "ipv6Address"=>trim($server["ipv6Address"]) == "" ? null : trim($server["ipv6Address"])));
+			stdNew("dnsDelegatedNameServer", array("domainID"=>$domainID, "hostname"=>trim($server["hostname"]), "ipv4Address"=>trim($server["ipv4Address"]), "ipv6Address"=>trim($server["ipv6Address"]) == "" ? null : trim($server["ipv6Address"])));
 		}
 		$function = array("addressType"=>"DELEGATION");
 	} else {
 		die("Internal error");
 	}
-	$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array_merge(array("cnameTarget"=>null), $function));
+	stdSet("dnsDomain", array("domainID"=>$domainID), array_merge(array("cnameTarget"=>null), $function));
 	
 	if($useWeb) {
 		if(canAccessComponent("http")) {
@@ -309,14 +309,14 @@ function main()
 		} else {
 			$function = array("type"=>"NONE");
 		}
-		$httpDomainID = $GLOBALS["database"]->stdNew("httpDomain", array("customerID"=>customerID(), "domainTldID"=>$tldID, "parentDomainID"=>null, "name"=>$domainName));
-		$GLOBALS["database"]->stdNew("httpPath", array_merge(array("parentPathID"=>null, "domainID"=>$httpDomainID, "name"=>null), $function));
+		$httpDomainID = stdNew("httpDomain", array("customerID"=>customerID(), "domainTldID"=>$tldID, "parentDomainID"=>null, "name"=>$domainName));
+		stdNew("httpPath", array_merge(array("parentPathID"=>null, "domainID"=>$httpDomainID, "name"=>null), $function));
 	}
 	
 	if($mailType == "noemail") {
 		$function = array("mailType"=>"NONE");
 	} else if($mailType == "treva") {
-		$GLOBALS["database"]->stdNew("mailDomain", array("customerID"=>customerID(), "domainTldID"=>$tldID, "name"=>$domainName));
+		stdNew("mailDomain", array("customerID"=>customerID(), "domainTldID"=>$tldID, "name"=>$domainName));
 		
 		$function = array("mailType"=>"TREVA");
 	} else if($mailType == "custom") {
@@ -324,15 +324,15 @@ function main()
 		
 		$index = 0;
 		foreach($servers as $server) {
-			$GLOBALS["database"]->stdNew("dnsMailServer", array("domainID"=>$domainID, "name"=>$server["server"], "priority"=>(10 * ++$index)));
+			stdNew("dnsMailServer", array("domainID"=>$domainID, "name"=>$server["server"], "priority"=>(10 * ++$index)));
 		}
 		$function = array("mailType"=>"CUSTOM");
 	} else {
 		die("Internal error");
 	}
-	$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), $function);
+	stdSet("dnsDomain", array("domainID"=>$domainID), $function);
 	
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 	
 	updateDomains(customerID());
 	updateHttp(customerID());

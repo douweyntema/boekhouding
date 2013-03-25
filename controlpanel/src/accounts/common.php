@@ -11,7 +11,7 @@ function doAccounts()
 function doAccount($userID)
 {
 	doAccounts();
-	useCustomer($GLOBALS["database"]->stdGetTry("adminUser", array("userID"=>$userID), "customerID", false));
+	useCustomer(stdGetTry("adminUser", array("userID"=>$userID), "customerID", false));
 }
 
 function doAccountsAdmin()
@@ -37,16 +37,16 @@ function accountsBreadcrumbs()
 
 function accountBreadcrumbs($userID)
 {
-	return array_merge(accountsBreadcrumbs(), crumbs($GLOBALS["database"]->stdGet("adminUser", array("userID"=>$userID), "username"), "account.php?id=$userID"));
+	return array_merge(accountsBreadcrumbs(), crumbs(stdGet("adminUser", array("userID"=>$userID), "username"), "account.php?id=$userID"));
 }
 
 function accountList()
 {
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username"), array("username"=>"ASC")) as $account) {
+	foreach(stdList("adminUser", array("customerID"=>customerID()), array("userID", "username"), array("username"=>"ASC")) as $account) {
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}accounts/account.php?id={$account["userID"]}", "text"=>$account["username"]),
-			($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$account["userID"], "customerRightID"=>null))) ? "Full access" : "Limited rights"
+			(stdExists("adminUserRight", array("userID"=>$account["userID"], "customerRightID"=>null))) ? "Full access" : "Limited rights"
 		);
 	}
 	return listTable(array("Account name", "Type"), $rows, null, array("Accounts", "No accounts have been created."), "list sortable");
@@ -55,7 +55,7 @@ function accountList()
 function adminAccountList()
 {
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>null), array("userID", "username"), array("username"=>"ASC")) as $account) {
+	foreach(stdList("adminUser", array("customerID"=>null), array("userID", "username"), array("username"=>"ASC")) as $account) {
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}accounts/adminaccount.php?id={$account["userID"]}", "text"=>$account["username"])
 		);
@@ -67,7 +67,7 @@ function addAccountForm($error = "", $values = null)
 {
 	$rights = array();
 	foreach(rights() as $right) {
-		if(!$GLOBALS["database"]->stdExists("adminCustomerRight", array("customerID"=>customerID(), "right"=>$right["name"]))) {
+		if(!stdExists("adminCustomerRight", array("customerID"=>customerID(), "right"=>$right["name"]))) {
 			continue;
 		}
 		$rights[] = array("type"=>"checkbox", "label"=>htmlentities($right["description"]), "name"=>"right-{$right["name"]}");
@@ -101,18 +101,18 @@ function changeAccountRightsForm($userID, $error = "", $values = null)
 {
 	if($values === null) {
 		$values = array();
-		if($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>null))) {
+		if(stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>null))) {
 			$values["rights"] = "full";
 		} else {
 			$values["rights"] = "limited";
-			foreach($GLOBALS["database"]->stdList("adminCustomerRight", array("customerID"=>customerID()), array("customerRightID", "right")) as $right) {
-				$values["right-{$right["right"]}"] = $GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>$right["customerRightID"])) ? "checked" : null;
+			foreach(stdList("adminCustomerRight", array("customerID"=>customerID()), array("customerRightID", "right")) as $right) {
+				$values["right-{$right["right"]}"] = stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>$right["customerRightID"])) ? "checked" : null;
 			}
 		}
 	}
 	$rights = array();
 	foreach(rights() as $right) {
-		if(!$GLOBALS["database"]->stdExists("adminCustomerRight", array("customerID"=>customerID(), "right"=>$right["name"]))) {
+		if(!stdExists("adminCustomerRight", array("customerID"=>customerID(), "right"=>$right["name"]))) {
 			continue;
 		}
 		$rights[] = array("type"=>"checkbox", "label"=>htmlentities($right["description"]), "name"=>"right-{$right["name"]}");

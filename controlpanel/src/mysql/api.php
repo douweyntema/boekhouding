@@ -21,7 +21,7 @@ function mysqlCreateDatabase($database, $db = null)
 		$db->setQuery("REVOKE ALL ON `$database`.* FROM $revokeUser");
 	}
 	$db->setQuery("CREATE DATABASE `$database`");
-	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username")) as $user) {
+	foreach(stdList("adminUser", array("customerID"=>customerID()), array("userID", "username")) as $user) {
 		if(canUserAccessComponent($user["userID"], "mysql")) {
 			$db->setQuery("GRANT ALL ON `$database`.* TO '{$user["username"]}'@'%'");
 		} else {
@@ -35,7 +35,7 @@ function mysqlRevokeRights($database, $db = null)
 	if($db === null) {
 		$db = mysqlDatabaseConnection();
 	}
-	foreach($GLOBALS["database"]->stdList("adminUser", array("customerID"=>customerID()), array("userID", "username")) as $user) {
+	foreach(stdList("adminUser", array("customerID"=>customerID()), array("userID", "username")) as $user) {
 		$host = (canUserAccessComponent($user["userID"], "mysql")) ? "%" : "0.0.0.0";
 		$db->setQuery("REVOKE ALL ON `$database`.* FROM '{$user["username"]}'@'$host'");
 	}
@@ -46,11 +46,11 @@ function mysqlListDatabases($db = null)
 	if($db === null) {
 		$db = mysqlDatabaseConnection();
 	}
-	$mysqlRightID = $GLOBALS["database"]->stdGetTry("adminCustomerRight", array("customerID"=>customerID(), "right"=>"mysql"), "customerRightID", null);
+	$mysqlRightID = stdGetTry("adminCustomerRight", array("customerID"=>customerID(), "right"=>"mysql"), "customerRightID", null);
 	if($mysqlRightID === null) {
 		return array();
 	}
-	$result = $GLOBALS["database"]->query("SELECT username FROM adminUser LEFT JOIN adminUserRight USING(userID) WHERE (customerRightID IS NULL OR customerRightID = $mysqlRightID) AND customerID=" . customerID() . " LIMIT 1")->fetchArray();
+	$result = query("SELECT username FROM adminUser LEFT JOIN adminUserRight USING(userID) WHERE (customerRightID IS NULL OR customerRightID = $mysqlRightID) AND customerID=" . customerID() . " LIMIT 1")->fetchArray();
 	$user = $result["username"];
 	
 	$databases = array();
@@ -71,7 +71,7 @@ function mysqlCreateUser($user, $password, $enabled = true, $db = null)
 	}
 	$host = $enabled ? "'%'" : "'0.0.0.0'";
 	$db->setQuery("CREATE USER '" . $db->addSlashes($user) . "'@$host IDENTIFIED BY '" . $db->addSlashes($password) . "'");
-	$result = $GLOBALS["database"]->query("SELECT username FROM adminUser LEFT JOIN adminUserRight USING(userID) WHERE  customerID=" . customerID() . " AND username <> '" . $db->addSlashes($user) . "' LIMIT 1")->fetchArray();
+	$result = query("SELECT username FROM adminUser LEFT JOIN adminUserRight USING(userID) WHERE  customerID=" . customerID() . " AND username <> '" . $db->addSlashes($user) . "' LIMIT 1")->fetchArray();
 	if($result === null) {
 		return;
 	}
@@ -137,7 +137,7 @@ function mysqlDatabaseConnection()
 {
 	global $mysql_management_username, $mysql_management_password;
 	
-	$hostname = array_shift($GLOBALS["database"]->query("SELECT hostname FROM infrastructureHost LEFT JOIN infrastructureWebServer USING(hostID) LEFT JOIN adminCustomer USING(fileSystemID) WHERE customerID='" . $GLOBALS["database"]->addSlashes(customerID()) . "' LIMIT 1")->fetchArray());
+	$hostname = array_shift(query("SELECT hostname FROM infrastructureHost LEFT JOIN infrastructureWebServer USING(hostID) LEFT JOIN adminCustomer USING(fileSystemID) WHERE customerID='" . dbAddSlashes(customerID()) . "' LIMIT 1")->fetchArray());
 	
 	$db = new MysqlConnection();
 	$db->open($hostname, $mysql_management_username, $mysql_management_password, "information_schema");

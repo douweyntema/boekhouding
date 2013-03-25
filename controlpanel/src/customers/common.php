@@ -32,17 +32,17 @@ function customersBreadcrumbs()
 
 function customerBreadcrumbs($customerID)
 {
-	return array_merge(customersBreadcrumbs(), crumbs($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "name"), "customer.php?id=$customerID"));
+	return array_merge(customersBreadcrumbs(), crumbs(stdGet("adminCustomer", array("customerID"=>$customerID), "name"), "customer.php?id=$customerID"));
 }
 
 function customerList()
 {
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), array("customerID", "fileSystemID", "mailSystemID", "nameSystemID", "name", "initials", "lastName", "email"), array("name"=>"ASC")) as $customer) {
+	foreach(stdList("adminCustomer", array(), array("customerID", "fileSystemID", "mailSystemID", "nameSystemID", "name", "initials", "lastName", "email"), array("name"=>"ASC")) as $customer) {
 		$nicknameHtml = htmlentities($customer["name"]);
-		$fileSystemName = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), "name");
-		$mailSystemName = $GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), "name");
-		$nameSystemName = $GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$customer["nameSystemID"]), "name");
+		$fileSystemName = stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), "name");
+		$mailSystemName = stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), "name");
+		$nameSystemName = stdGet("infrastructureNameSystem", array("nameSystemID"=>$customer["nameSystemID"]), "name");
 		$balance = billingBalance($customer["customerID"]);
 		$rows[] = array(
 			array("html"=>"<a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a><a href=\"{$GLOBALS["rootHtml"]}index.php?customerID={$customer["customerID"]}\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}img/external.png\" alt=\"Impersonate\" /></a>"),
@@ -66,7 +66,7 @@ function customerBalance($customerID)
 
 function customerMijnDomeinReseller($customerID, $error = "", $values = null)
 {
-	$id = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "mijnDomeinResellerContactID");
+	$id = stdGet("adminCustomer", array("customerID"=>$customerID), "mijnDomeinResellerContactID");
 	return operationForm("updatemijndomeinreseller.php?id=$customerID", $error, "MijnDomeinReseller", "Update contact information", array(
 		$id === null ? 
 			array("title"=>"Contact ID", "type"=>"html", "html"=>"No ID yet") :
@@ -77,7 +77,7 @@ function customerMijnDomeinReseller($customerID, $error = "", $values = null)
 function editCustomerWebmail($customerID, $error = "", $values = null)
 {
 	if($values === null) {
-		$values["webmail"] = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "webmail");
+		$values["webmail"] = stdGet("adminCustomer", array("customerID"=>$customerID), "webmail");
 	}
 	return operationForm("updatewebmail.php?id=$customerID", $error, "Update webmail", "Edit", array(
 			array("title"=>"Webmail", "type"=>"text", "name"=>"webmail")
@@ -86,7 +86,7 @@ function editCustomerWebmail($customerID, $error = "", $values = null)
 
 function customerLogin($customerID)
 {
-	$customerName = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "name");
+	$customerName = stdGet("adminCustomer", array("customerID"=>$customerID), "name");
 	$customerNameHtml = htmlentities($customerName);
 	$usernameHtml = htmlentities(username());
 	
@@ -134,9 +134,9 @@ function addCustomerForm($error = "", $values = null)
 			array("type"=>"text", "name"=>"mailQuota", "fill"=>true),
 			array("type"=>"html", "html"=>"MiB")
 		)),
-		array("title"=>"Filesystem", "type"=>"dropdown", "name"=>"fileSystemID", "options"=>dropdown($GLOBALS["database"]->stdMap("infrastructureFileSystem", array(), "fileSystemID", "name"))),
-		array("title"=>"Mailsystem", "type"=>"dropdown", "name"=>"mailSystemID", "options"=>dropdown($GLOBALS["database"]->stdMap("infrastructureMailSystem", array(), "mailSystemID", "name"))),
-		array("title"=>"Namesystem", "type"=>"dropdown", "name"=>"nameSystemID", "options"=>dropdown($GLOBALS["database"]->stdMap("infrastructureNameSystem", array(), "nameSystemID", "name"))),
+		array("title"=>"Filesystem", "type"=>"dropdown", "name"=>"fileSystemID", "options"=>dropdown(stdMap("infrastructureFileSystem", array(), "fileSystemID", "name"))),
+		array("title"=>"Mailsystem", "type"=>"dropdown", "name"=>"mailSystemID", "options"=>dropdown(stdMap("infrastructureMailSystem", array(), "mailSystemID", "name"))),
+		array("title"=>"Namesystem", "type"=>"dropdown", "name"=>"nameSystemID", "options"=>dropdown(stdMap("infrastructureNameSystem", array(), "nameSystemID", "name"))),
 		array("title"=>"Invoice interval", "type"=>"colspan", "columns"=>array(
 			array("type"=>"html", "html"=>"per"),
 			array("type"=>"text", "name"=>"invoiceFrequencyMultiplier", "fill"=>true),
@@ -148,11 +148,11 @@ function addCustomerForm($error = "", $values = null)
 
 function editCustomerForm($customerID, $error = "", $values = null)
 {
-	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("fileSystemID", "mailSystemID", "nameSystemID", "name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber", "groupname", "diskQuota", "mailQuota", "invoiceFrequencyBase", "invoiceFrequencyMultiplier"));
+	$customer = stdGet("adminCustomer", array("customerID"=>$customerID), array("fileSystemID", "mailSystemID", "nameSystemID", "name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber", "groupname", "diskQuota", "mailQuota", "invoiceFrequencyBase", "invoiceFrequencyMultiplier"));
 	
-	$fileSystemNameHtml = htmlentities($GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), "name"));
-	$mailSystemNameHtml = htmlentities($GLOBALS["database"]->stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), "name"));
-	$nameSystemNameHtml = htmlentities($GLOBALS["database"]->stdGet("infrastructureNameSystem", array("nameSystemID"=>$customer["nameSystemID"]), "name"));
+	$fileSystemNameHtml = htmlentities(stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), "name"));
+	$mailSystemNameHtml = htmlentities(stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), "name"));
+	$nameSystemNameHtml = htmlentities(stdGet("infrastructureNameSystem", array("nameSystemID"=>$customer["nameSystemID"]), "name"));
 	
 	if($values === null) {
 		$values = $customer;
@@ -192,7 +192,7 @@ function editCustomerRightsForm($customerID, $error = "", $values = null)
 {
 	if($values === null) {
 		$values = array();
-		foreach($GLOBALS["database"]->stdList("adminCustomerRight", array("customerID"=>$customerID), "right") as $right) {
+		foreach(stdList("adminCustomerRight", array("customerID"=>$customerID), "right") as $right) {
 			$values["right-" . $right] = true;
 		}
 	}

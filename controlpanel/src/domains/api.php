@@ -6,10 +6,10 @@ $domainsTarget = "customer";
 
 function updateDomains($customerID)
 {
-	$nameSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "nameSystemID");
-	$GLOBALS["database"]->stdIncrement("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "version", 1000000000);
+	$nameSystemID = stdGet("adminCustomer", array("customerID"=>$customerID), "nameSystemID");
+	stdIncrement("infrastructureNameSystem", array("nameSystemID"=>$nameSystemID), "version", 1000000000);
 	
-	$hosts = $GLOBALS["database"]->stdList("infrastructureNameServer", array("nameSystemID"=>$nameSystemID), "hostID");
+	$hosts = stdList("infrastructureNameServer", array("nameSystemID"=>$nameSystemID), "hostID");
 	updateHosts($hosts, "update-treva-bind");
 }
 
@@ -23,7 +23,7 @@ function domainsRegisterDomain($customerID, $domainName, $tldID)
 
 function domainsDisableAutoRenew($domainID)
 {
-	$subscriptionID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "subscriptionID");
+	$subscriptionID = stdGet("dnsDomain", array("domainID"=>$domainID), "subscriptionID");
 	if($subscriptionID !== null) {
 		$expiredate = domainsDomainExpiredate($domainID);
 		if(($date = parseDate($expiredate)) === null) {
@@ -36,7 +36,7 @@ function domainsDisableAutoRenew($domainID)
 
 function domainsEnableAutoRenew($domainID)
 {
-	$subscriptionID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "subscriptionID");
+	$subscriptionID = stdGet("dnsDomain", array("domainID"=>$domainID), "subscriptionID");
 	if($subscriptionID !== null) {
 		billingEndSubscription($subscriptionID, null);
 	}
@@ -117,7 +117,7 @@ $GLOBAL["domainsCachedApis"] = array();
 function domainsGetApiName($identifier)
 {
 	if(!isset($GLOBALS["domainsCachedApis"][$identifier])) {
-		$parameters = $GLOBALS["database"]->stdGet("infrastructureDomainRegistrar", array("identifier"=>$identifier), "parameters");
+		$parameters = stdGet("infrastructureDomainRegistrar", array("identifier"=>$identifier), "parameters");
 		
 		$name = $identifier . "api";
 		require_once(dirname(__FILE__) . "/" . $name . ".php");
@@ -131,7 +131,7 @@ function domainsGetApi($tldID)
 	if($tldID === null) {
 		throw new DomainsNoApiException();
 	}
-	$registrar = $GLOBALS["database"]->query("SELECT identifier, parameters FROM infrastructureDomainTld INNER JOIN infrastructureDomainRegistrar USING(domainRegistrarID) WHERE domainTldID=" . $GLOBALS["database"]->addSlashes($tldID) . ";")->fetchArray();
+	$registrar = query("SELECT identifier, parameters FROM infrastructureDomainTld INNER JOIN infrastructureDomainRegistrar USING(domainRegistrarID) WHERE domainTldID=" . dbAddSlashes($tldID) . ";")->fetchArray();
 	if(!isset($GLOBALS["domainsCachedApis"][$registrar["identifier"]])) {
 		$name = $registrar["identifier"] . "api";
 		require_once(dirname(__FILE__) . "/" . $name . ".php");
@@ -142,7 +142,7 @@ function domainsGetApi($tldID)
 
 function domainsGetTldID($domainID)
 {
-	return $GLOBALS["database"]->stdGetTry("dnsDomain", array("domainID"=>$domainID), "domainTldID", null);
+	return stdGetTry("dnsDomain", array("domainID"=>$domainID), "domainTldID", null);
 }
 
 function domainsFormatDomainName($domainID)
@@ -150,11 +150,11 @@ function domainsFormatDomainName($domainID)
 	$name = "";
 	$separator = "";
 	while(true) {
-		$domain = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), array("parentDomainID", "domainTldID", "name"));
+		$domain = stdGet("dnsDomain", array("domainID"=>$domainID), array("parentDomainID", "domainTldID", "name"));
 		$name .= $separator . $domain["name"];
 		$separator = ".";
 		if($domain["domainTldID"] != null) {
-			$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
+			$tld = stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
 			$name .= $separator . $tld;
 			break;
 		}
@@ -174,32 +174,32 @@ function domainsCustomerUnpaidDomainsLimit($customerID)
 {
 	billingUpdateInvoiceLines($customerID);
 	$date = time() - (86400 * 366);
-	$price = $GLOBALS["database"]->query("SELECT (sum(billingInvoiceLine.price) - sum(billingInvoiceLine.discount)) AS total FROM billingInvoiceLine INNER JOIN billingInvoice USING(invoiceID) WHERE billingInvoiceLine.domain = 1 AND billingInvoice.customerID = $customerID AND billingInvoice.remainingAmount = 0 AND billingInvoice.date > $date")->fetchArray();
-	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("unpaidDomainPriceBase", "unpaidDomainPriceHistoryPercentage"));
+	$price = query("SELECT (sum(billingInvoiceLine.price) - sum(billingInvoiceLine.discount)) AS total FROM billingInvoiceLine INNER JOIN billingInvoice USING(invoiceID) WHERE billingInvoiceLine.domain = 1 AND billingInvoice.customerID = $customerID AND billingInvoice.remainingAmount = 0 AND billingInvoice.date > $date")->fetchArray();
+	$customer = stdGet("adminCustomer", array("customerID"=>$customerID), array("unpaidDomainPriceBase", "unpaidDomainPriceHistoryPercentage"));
 	return (int)(($price["total"] === null ? 0 : $price["total"]) * $customer["unpaidDomainPriceHistoryPercentage"] / 100) + $customer["unpaidDomainPriceBase"];
 }
 
 function domainsCustomerUnpaidDomainsPrice($customerID)
 {
 	billingUpdateInvoiceLines($customerID);
-	$price = $GLOBALS["database"]->query("SELECT (sum(billingInvoiceLine.price) - sum(billingInvoiceLine.discount)) AS total FROM billingInvoiceLine LEFT JOIN billingInvoice USING(invoiceID) WHERE billingInvoiceLine.domain = 1 AND billingInvoiceLine.customerID = $customerID AND (billingInvoice.remainingAmount IS NULL OR billingInvoice.remainingAmount > 0)")->fetchArray();
+	$price = query("SELECT (sum(billingInvoiceLine.price) - sum(billingInvoiceLine.discount)) AS total FROM billingInvoiceLine LEFT JOIN billingInvoice USING(invoiceID) WHERE billingInvoiceLine.domain = 1 AND billingInvoiceLine.customerID = $customerID AND (billingInvoice.remainingAmount IS NULL OR billingInvoice.remainingAmount > 0)")->fetchArray();
 	return ($price["total"] === null ? 0 : $price["total"]);
 }
 
 function domainsRemoveDomain($domainID)
 {
-	foreach($GLOBALS["database"]->stdList("dnsDomain", array("parentDomainID"=>$domainID), "domainID") as $subDomainID) {
+	foreach(stdList("dnsDomain", array("parentDomainID"=>$domainID), "domainID") as $subDomainID) {
 		domainsRemoveDomain($subDomainID);
 	}
-	$GLOBALS["database"]->stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
-	$GLOBALS["database"]->stdDel("dnsMailServer", array("domainID"=>$domainID));
-	$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID));
-	$GLOBALS["database"]->stdDel("dnsDomain", array("domainID"=>$domainID));
+	stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
+	stdDel("dnsMailServer", array("domainID"=>$domainID));
+	stdDel("dnsRecord", array("domainID"=>$domainID));
+	stdDel("dnsDomain", array("domainID"=>$domainID));
 }
 
 function domainsRootDomainID($domainID)
 {
-	$parentDomainID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID");
+	$parentDomainID = stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID");
 	if($parentDomainID == null) {
 		return $domainID;
 	} else {
@@ -209,7 +209,7 @@ function domainsRootDomainID($domainID)
 
 function domainsIsSubDomain($domainID)
 {
-	return $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID") != null;
+	return stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID") != null;
 }
 
 ?>

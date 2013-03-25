@@ -8,7 +8,7 @@ function customersOverview()
 	if(customerID() == 0) {
 		return;
 	}
-	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>customerID()), array("name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber", "diskQuota", "mailQuota"));
+	$customer = stdGet("adminCustomer", array("customerID"=>customerID()), array("name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber", "diskQuota", "mailQuota"));
 	return summaryTable("Your information", array(
 		"Name"=>$customer["initials"] . " " . $customer["lastName"],
 		$customer["companyName"] === null ? null : "Company Name"=>$customer["companyName"],

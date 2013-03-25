@@ -25,8 +25,8 @@ function mysqlBreadcrumbs()
 
 function databaseList()
 {
-	$fileSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>customerID()), "fileSystemID");
-	$phpMyAdmin = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "phpMyAdmin");
+	$fileSystemID = stdGet("adminCustomer", array("customerID"=>customerID()), "fileSystemID");
+	$phpMyAdmin = stdGet("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "phpMyAdmin");
 	
 	$rows = array();
 	foreach(mysqlListDatabases() as $database) {

@@ -18,7 +18,7 @@ function doBillingAdmin($customerID)
 function doInvoice($invoiceID)
 {
 	doBilling();
-	useCustomer($GLOBALS["database"]->stdGetTry("billingInvoice", array("invoiceID"=>$invoiceID), "customerID", false));
+	useCustomer(stdGetTry("billingInvoice", array("invoiceID"=>$invoiceID), "customerID", false));
 }
 
 function crumb($name, $filename)
@@ -38,7 +38,7 @@ function customersBillingBreadcrumbs()
 
 function adminCustomerBreadcrumbs($customerID)
 {
-	$name = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "name");
+	$name = stdGet("adminCustomer", array("customerID"=>$customerID), "name");
 	return array(
 		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/"),
 		array("name"=>$name, "url"=>"{$GLOBALS["root"]}customers/customer.php?id=$customerID"),
@@ -48,14 +48,14 @@ function adminCustomerBreadcrumbs($customerID)
 
 function adminSubscriptionBreadcrumbs($subscriptionID)
 {
-	$subscription = $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("customerID", "description"));
+	$subscription = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("customerID", "description"));
 	return array_merge(adminCustomerBreadcrumbs($subscription["customerID"]), crumbs($subscription["description"], "subscription.php?id=$subscriptionID"));
 }
 
 function invoiceStatusForm($customerID, $error = "", $values = null)
 {
 	if($values === null) {
-		$values = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("invoiceStatus"));
+		$values = stdGet("adminCustomer", array("customerID"=>$customerID), array("invoiceStatus"));
 	}
 	return operationForm("changestatus.php?id=$customerID", $error, "Change invoice status", "Save",
 		array(
@@ -71,7 +71,7 @@ function invoiceStatusForm($customerID, $error = "", $values = null)
 function subscriptionList($customerID)
 {
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
+	foreach(stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
 		if($subscription["discountPercentage"] === null && $subscription["discountAmount"] === null) {
 			$priceDetail = "None";
 		} else {
@@ -106,8 +106,8 @@ function subscriptionList($customerID)
 function customerSubscriptionList()
 {
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("billingSubscription", array("customerID"=>customerID()), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
-		$domainID = $GLOBALS["database"]->stdGetTry("dnsDomain", array("subscriptionID"=>$subscription["subscriptionID"]), "domainID");
+	foreach(stdList("billingSubscription", array("customerID"=>customerID()), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
+		$domainID = stdGetTry("dnsDomain", array("subscriptionID"=>$subscription["subscriptionID"]), "domainID");
 		if($domainID === null) {
 			$url = null;
 		} else {
@@ -123,7 +123,7 @@ function customerSubscriptionList()
 
 function subscriptionDetail($subscriptionID)
 {
-	$subscription = $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
+	$subscription = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
 	
 	if($subscription["discountPercentage"] !== null) {
 		$discountPercentage = $subscription["discountPercentage"] . "% (" . formatPrice(billingBasePrice($subscription) * $subscription["discountPercentage"] / 100) . ")";
@@ -146,9 +146,9 @@ function subscriptionDetail($subscriptionID)
 	}
 	
 	if($subscription["domainTldID"] !== null) {
-		$domainID = $GLOBALS["database"]->stdGetTry("dnsDomain", array("subscriptionID"=>$subscriptionID), "domainID");
+		$domainID = stdGetTry("dnsDomain", array("subscriptionID"=>$subscriptionID), "domainID");
 		if($domainID === null) {
-			$domainTldName = "." . $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$subscription["domainTldID"]), "name");
+			$domainTldName = "." . stdGet("infrastructureDomainTld", array("domainTldID"=>$subscription["domainTldID"]), "name");
 			$domainName = "unknown $domainTldName domain";
 		} else {
 			$domainName = domainsFormatDomainName($domainID);
@@ -174,9 +174,9 @@ function subscriptionDetail($subscriptionID)
 function invoiceList($customerID)
 {
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "date", "remainingAmount", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
+	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "date", "remainingAmount", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
 		$amount = 0;
-		foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("invoiceID"=>$invoice["invoiceID"]), array("price", "discount")) as $line) {
+		foreach(stdList("billingInvoiceLine", array("invoiceID"=>$invoice["invoiceID"]), array("price", "discount")) as $line) {
 			$amount += $line["price"] - $line["discount"];
 		}
 		
@@ -195,9 +195,9 @@ function invoiceList($customerID)
 function customerInvoiceList($customerID)
 {
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "date", "remainingAmount", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
+	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "date", "remainingAmount", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
 		$amount = 0;
-		foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("invoiceID"=>$invoice["invoiceID"]), array("price", "discount")) as $line) {
+		foreach(stdList("billingInvoiceLine", array("invoiceID"=>$invoice["invoiceID"]), array("price", "discount")) as $line) {
 			$amount += $line["price"] - $line["discount"];
 		}
 		
@@ -214,7 +214,7 @@ function customerInvoiceList($customerID)
 function paymentList($customerID)
 {
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("billingPayment", array("customerID"=>$customerID), array("amount", "date", "description"), array("date"=>"DESC", "paymentID"=>"DESC")) as $payment) {
+	foreach(stdList("billingPayment", array("customerID"=>$customerID), array("amount", "date", "description"), array("date"=>"DESC", "paymentID"=>"DESC")) as $payment) {
 		$rows[] = array(
 			date("d-m-Y", $payment["date"]),
 			array("html"=>formatPrice($payment["amount"])),
@@ -279,7 +279,7 @@ function addSubscriptionForm($customerID, $error = "", $values = null)
 function editSubscriptionForm($subscriptionID, $error = "", $values = null)
 {
 	if($values === null) {
-		$values = $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
+		$values = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
 		$values["priceType"] = $values["price"] === null ? "domain" : "custom";
 		$values["price"] = formatPriceRaw($values["price"]);
 		$values["discountAmount"] = formatPriceRaw($values["discountAmount"]);
@@ -288,7 +288,7 @@ function editSubscriptionForm($subscriptionID, $error = "", $values = null)
 			$values["discountPercentage"] = 0;
 		}
 	}
-	$domainTldID = $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), "domainTldID");
+	$domainTldID = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), "domainTldID");
 	return operationForm("editsubscription.php?id=$subscriptionID", $error, "Edit subscription", "Save",
 		array(
 			array("title"=>"Description", "type"=>"text", "name"=>"description"),
@@ -343,7 +343,7 @@ function addInvoiceLineForm($customerID, $error = "", $values = null)
 function editInvoiceLineForm($invoiceLineID, $error = "", $values = null)
 {
 	if($values === null) {
-		$values = $GLOBALS["database"]->stdGet("billingInvoiceLine", array("invoiceLineID"=>$invoiceLineID), array("description", "price", "discount", "periodStart", "periodEnd"));
+		$values = stdGet("billingInvoiceLine", array("invoiceLineID"=>$invoiceLineID), array("description", "price", "discount", "periodStart", "periodEnd"));
 		$values["price"] = floor($values["price"] / 100) . "," . str_pad($values["price"] % 100, 2, "0");
 		$values["discount"] = floor($values["discount"] / 100) . "," . str_pad($values["discount"] % 100, 2, "0");
 		$values["periodStart"] = date("d-m-Y", $values["periodStart"]);
@@ -379,7 +379,7 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 		array("type"=>"html", "html"=>"Start date", "celltype"=>"th"),
 		array("type"=>"html", "html"=>"End date", "celltype"=>"th")
 	));
-	foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), array("invoiceLineID", "description", "price", "discount", "periodStart", "periodEnd")) as $invoiceLine) {
+	foreach(stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), array("invoiceLineID", "description", "price", "discount", "periodStart", "periodEnd")) as $invoiceLine) {
 		if($error === null && !isset($values["invoiceline-{$invoiceLine["invoiceLineID"]}"])) {
 			continue;
 		}

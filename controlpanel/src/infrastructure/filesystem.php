@@ -7,7 +7,7 @@ function main()
 	doInfrastructure();
 	
 	$fileSystemID = get("id");
-	$fileSystemName = $GLOBALS["database"]->stdGet("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "name");
+	$fileSystemName = stdGet("infrastructureFileSystem", array("fileSystemID"=>$fileSystemID), "name");
 	
 	if(post("refreshall") !== null || post("refreshmount") !== null) {
 		infrastructureRefreshFileSystemMount($fileSystemID);

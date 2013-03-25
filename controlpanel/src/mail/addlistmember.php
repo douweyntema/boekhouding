@@ -36,14 +36,14 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->startTransaction();
+	startTransaction();
 	foreach($realMembers as $member) {
-		if($GLOBALS["database"]->stdExists("mailListMember", array("listID"=>$listID, "targetAddress"=>$member))) {
+		if(stdExists("mailListMember", array("listID"=>$listID, "targetAddress"=>$member))) {
 			continue;
 		}
-		$GLOBALS["database"]->stdNew("mailListMember", array("listID"=>$listID, "targetAddress"=>$member));
+		stdNew("mailListMember", array("listID"=>$listID, "targetAddress"=>$member));
 	}
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 	
 	updateMail(customerID());
 	

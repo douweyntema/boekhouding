@@ -5,7 +5,7 @@ require_once("common.php");
 function main()
 {
 	$invoiceID = get("id");
-	$customerID = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), "customerID");
+	$customerID = stdGet("billingInvoice", array("invoiceID"=>$invoiceID), "customerID");
 	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($customerID, $invoiceID) {

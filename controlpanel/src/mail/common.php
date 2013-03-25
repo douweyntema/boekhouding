@@ -11,24 +11,24 @@ function doMail()
 function doMailDomain($domainID)
 {
 	doMail();
-	useCustomer($GLOBALS["database"]->stdGetTry("mailDomain", array("domainID"=>$domainID), "customerID", false));
+	useCustomer(stdGetTry("mailDomain", array("domainID"=>$domainID), "customerID", false));
 }
 
 function doMailAlias($aliasID)
 {
-	$domainID = $GLOBALS["database"]->stdGetTry("mailAlias", array("aliasID"=>$aliasID), "domainID", false);
+	$domainID = stdGetTry("mailAlias", array("aliasID"=>$aliasID), "domainID", false);
 	doMailDomain($domainID);
 }
 
 function doMailList($listID)
 {
-	$domainID = $GLOBALS["database"]->stdGetTry("mailList", array("listID"=>$listID), "domainID", false);
+	$domainID = stdGetTry("mailList", array("listID"=>$listID), "domainID", false);
 	doMailDomain($domainID);
 }
 
 function doMailAddress($addressID)
 {
-	$domainID = $GLOBALS["database"]->stdGetTry("mailAddress", array("addressID"=>$addressID), "domainID", false);
+	$domainID = stdGetTry("mailAddress", array("addressID"=>$addressID), "domainID", false);
 	doMailDomain($domainID);
 }
 
@@ -63,21 +63,21 @@ function domainHeader($domainID, $title = null, $url = null)
 
 function aliasHeader($aliasID)
 {
-	$alias = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), array("domainID", "localpart"));
+	$alias = stdGet("mailAlias", array("aliasID"=>$aliasID), array("domainID", "localpart"));
 	$address = $alias["localpart"] . "@" . domainName($alias["domainID"]);
 	return makeHeader("Alias $address", domainBreadcrumbs($alias["domainID"]), crumbs("Alias $address", "alias.php?id=$aliasID"));
 }
 
 function listHeader($listID)
 {
-	$list = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), array("domainID", "localpart"));
+	$list = stdGet("mailList", array("listID"=>$listID), array("domainID", "localpart"));
 	$address = $list["localpart"] . "@" . domainName($list["domainID"]);
 	return makeHeader("Mailing list $address", domainBreadcrumbs($list["domainID"]), crumbs("Mailinglist $address", "list.php?id=$listID"));
 }
 
 function mailboxHeader($addressID)
 {
-	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart"));
+	$mailbox = stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart"));
 	$address = $mailbox["localpart"] . "@" . domainName($mailbox["domainID"]);
 	return makeHeader("Mailbox $address", domainBreadcrumbs($mailbox["domainID"]), crumbs("Mailbox $address", "mailbox.php?id=$addressID"));
 }
@@ -85,10 +85,10 @@ function mailboxHeader($addressID)
 function mailDomainsList()
 {
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("mailDomain", array("customerID"=>customerID()), array("domainID", "name"), array("name"=>"asc")) as $domain) {
+	foreach(stdList("mailDomain", array("customerID"=>customerID()), array("domainID", "name"), array("name"=>"asc")) as $domain) {
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}mail/domain.php?id={$domain["domainID"]}", "text"=>domainName($domain["domainID"])),
-			$GLOBALS["database"]->stdCount("mailAddress", array("domainID"=>$domain["domainID"]))
+			stdCount("mailAddress", array("domainID"=>$domain["domainID"]))
 		);
 	}
 	return listTable(array("Domain name", "Number of mailboxes"), $rows, null, false, "sortable list");
@@ -98,7 +98,7 @@ function mailboxList($domainID)
 {
 	$domain = domainName($domainID);
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("mailAddress", array("domainID"=>$domainID), array("addressID", "localpart", "quota"), array("localpart"=>"asc")) as $mailbox) {
+	foreach(stdList("mailAddress", array("domainID"=>$domainID), array("addressID", "localpart", "quota"), array("localpart"=>"asc")) as $mailbox) {
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}mail/mailbox.php?id={$mailbox["addressID"]}", "text"=>"{$mailbox["localpart"]}@$domain"),
 			"{$mailbox["quota"]} MiB"
@@ -111,7 +111,7 @@ function mailAliasList($domainID)
 {
 	$domain = domainName($domainID);
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("mailAlias", array("domainID"=>$domainID), array("aliasID", "localpart", "targetAddress"), array("localpart"=>"asc")) as $alias) {
+	foreach(stdList("mailAlias", array("domainID"=>$domainID), array("aliasID", "localpart", "targetAddress"), array("localpart"=>"asc")) as $alias) {
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}mail/alias.php?id={$alias["aliasID"]}", "text"=>"{$alias["localpart"]}@$domain"),
 			array("text"=>"{$alias["targetAddress"]}", "class"=>"nowrap")
@@ -124,8 +124,8 @@ function mailListList($domainID)
 {
 	$domain = domainName($domainID);
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("mailList", array("domainID"=>$domainID), array("listID", "localpart"), array("localpart"=>"asc")) as $list) {
-		$count = $GLOBALS["database"]->stdCount("mailListMember", array("listID"=>$list["listID"]));
+	foreach(stdList("mailList", array("domainID"=>$domainID), array("listID", "localpart"), array("localpart"=>"asc")) as $list) {
+		$count = stdCount("mailListMember", array("listID"=>$list["listID"]));
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}mail/list.php?id={$list["listID"]}", "text"=>"{$list["localpart"]}@$domain"),
 			"$count members"
@@ -138,7 +138,7 @@ function mailListMemberList($listID)
 {
 	$id = getHtmlID();
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("mailListMember", array("listID"=>$listID), array("memberID", "targetAddress"), array("targetAddress"=>"asc")) as $member) {
+	foreach(stdList("mailListMember", array("listID"=>$listID), array("memberID", "targetAddress"), array("targetAddress"=>"asc")) as $member) {
 		$targetHtml = htmlentities($member["targetAddress"]);
 		$rows[] = array(
 			array("html"=>"<label>$targetHtml <input type=\"checkbox\" name=\"member-{$member["memberID"]}\" class=\"rightalign selectall-$id\" value=\"1\"></label>")
@@ -153,7 +153,7 @@ function mailListMemberList($listID)
 
 function mailboxSummary($addressID)
 {
-	$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart", "spambox", "virusbox", "quota", "spamQuota", "virusQuota", "canUseSmtp", "canUseImap"));
+	$mailbox = stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart", "spambox", "virusbox", "quota", "spamQuota", "virusQuota", "canUseSmtp", "canUseImap"));
 	$domain = domainName($mailbox["domainID"]);
 	
 	if($mailbox["spambox"] === null) {
@@ -191,7 +191,7 @@ function mailboxSummary($addressID)
 
 function addMailDomainForm($error = "", $values = null)
 {
-	$tlds = dropdown($GLOBALS["database"]->stdMap("infrastructureDomainTld", array("active"=>1), "domainTldID", "name", array("order"=>"ASC")));
+	$tlds = dropdown(stdMap("infrastructureDomainTld", array("active"=>1), "domainTldID", "name", array("order"=>"ASC")));
 	return operationForm("adddomain.php", $error, "Add domain", "Save",
 		array(
 			array("title"=>"Domain name", "type"=>"colspan", "columns"=>array(
@@ -211,7 +211,7 @@ function removeMailDomainForm($domainID, $error = "", $values = null)
 function editCatchAllFrom($domainID, $error = "", $values = null)
 {
 	if($values === null || (!isset($values["autonomous"]) && !isset($values["alias"]))) {
-		$catchall = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), array("catchAllType", "catchAllTarget"));
+		$catchall = stdGet("mailDomain", array("domainID"=>$domainID), array("catchAllType", "catchAllTarget"));
 		
 		$values["catchAllType"] = $catchall["catchAllType"];
 		if($catchall["catchAllType"] == "ADDRESS") {
@@ -278,7 +278,7 @@ function addMailAliasForm($domainID, $error = "", $values = null)
 
 function editMailAliasForm($aliasID, $error = "", $values = null)
 {
-	$alias = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), array("domainID", "localpart", "targetAddress"));
+	$alias = stdGet("mailAlias", array("aliasID"=>$aliasID), array("domainID", "localpart", "targetAddress"));
 	$domainName = domainName($alias["domainID"]);
 	
 	if($values === null) {
@@ -315,7 +315,7 @@ function addMailListForm($domainID, $error = "", $values = null)
 
 function editMailListForm($listID, $error = "", $values = null)
 {
-	$list = $GLOBALS["database"]->stdGet("mailList", array("listID"=>$listID), array("domainID", "localpart"));
+	$list = stdGet("mailList", array("listID"=>$listID), array("domainID", "localpart"));
 	$domainName = domainName($list["domainID"]);
 	
 	if($values === null) {
@@ -353,7 +353,7 @@ function editMailListMemberForm($listID, $error = "", $values = null)
 	}
 	
 	if($values === null || !isset($values["members"])) {
-		$members = $GLOBALS["database"]->stdList("mailListMember", array("listID"=>$listID), "targetAddress");
+		$members = stdList("mailListMember", array("listID"=>$listID), "targetAddress");
 		$values = array("members"=>(implode("\n", $members) . "\n"));
 	}
 	
@@ -369,7 +369,7 @@ function removeMailListMemberForm($listID, $error = "", $values = null)
 	if($error === null) {
 		$fields = array();
 		$memberList = "<ul>\n";
-		foreach($GLOBALS["database"]->stdList("mailListMember", array("listID"=>$listID), array("memberID", "targetAddress")) as $member) {
+		foreach(stdList("mailListMember", array("listID"=>$listID), array("memberID", "targetAddress")) as $member) {
 			if(isset($values["member-{$member["memberID"]}"])) {
 				$memberList .= "<li>" . htmlentities($member["targetAddress"]) . "</li>\n";
 				$fields[] = array("type"=>"hidden", "name"=>"member-{$member["memberID"]}");
@@ -439,7 +439,7 @@ function addMailboxForm($domainID, $error = "", $values = null)
 function editMailboxForm($addressID, $error = "", $values = null)
 {
 	if($values === null) {
-		$mailbox = $GLOBALS["database"]->stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart", "quota", "spambox", "spamQuota", "virusbox", "virusQuota"));
+		$mailbox = stdGet("mailAddress", array("addressID"=>$addressID), array("domainID", "localpart", "quota", "spambox", "spamQuota", "virusbox", "virusQuota"));
 		$values = array(
 			"quota"=>($mailbox["quota"] === null ? "" : $mailbox["quota"]),
 			"spambox"=>($mailbox["spambox"] === null ? "none" : ($mailbox["spambox"] === "" ? "inbox" : "folder")),
@@ -502,8 +502,8 @@ function removeMailboxForm($addressID, $error = "", $values = null)
 
 function domainName($domainID)
 {
-	$domain = $GLOBALS["database"]->stdGet("mailDomain", array("domainID"=>$domainID), array("name", "domainTldID"));
-	$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
+	$domain = stdGet("mailDomain", array("domainID"=>$domainID), array("name", "domainTldID"));
+	$tld = stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
 	return $domain["name"] . "." . $tld;
 }
 

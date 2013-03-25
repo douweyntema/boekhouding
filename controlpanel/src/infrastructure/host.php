@@ -7,7 +7,7 @@ function main()
 	doInfrastructure();
 	
 	$hostID = get("id");
-	$hostname = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), "hostname");
+	$hostname = stdGet("infrastructureHost", array("hostID"=>$hostID), "hostname");
 	
 	if(post("refreshall") !== null || post("refreshmount") !== null) {
 		infrastructureRefreshHostMount($hostID);

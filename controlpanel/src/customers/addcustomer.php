@@ -26,9 +26,9 @@ function main()
 	$notempty("invoiceFrequencyMultiplier");
 	$notempty("invoiceFrequencyBase");
 	
-	$check($GLOBALS["database"]->stdExists("infrastructureFileSystem", array("fileSystemID"=>post("fileSystemID"))), "Invalid filesystem");
-	$check($GLOBALS["database"]->stdExists("infrastructureMailSystem", array("mailSystemID"=>post("mailSystemID"))), "Invalid mailsystem");
-	$check($GLOBALS["database"]->stdExists("infrastructureNameSystem", array("nameSystemID"=>post("nameSystemID"))), "Invalid namesystem");
+	$check(stdExists("infrastructureFileSystem", array("fileSystemID"=>post("fileSystemID"))), "Invalid filesystem");
+	$check(stdExists("infrastructureMailSystem", array("mailSystemID"=>post("mailSystemID"))), "Invalid mailsystem");
+	$check(stdExists("infrastructureNameSystem", array("nameSystemID"=>post("nameSystemID"))), "Invalid namesystem");
 	
 	$check(ctype_digit(post("invoiceFrequencyMultiplier")), "Invalid invoiceFrequencyMultiplier");
 	$check(post("invoiceFrequencyBase") == "DAY" || post("invoiceFrequencyBase") == "MONTH" || post("invoiceFrequencyBase") == "YEAR", "Invalid invoiceFrequencyBase");
@@ -50,23 +50,23 @@ function main()
 	$check($diskQuota === null || ctype_digit($diskQuota), "Invalid disk quota");
 	$check($mailQuota === null || ctype_digit($mailQuota), "Invalid mail quota");
 	
-	$check(!$GLOBALS["database"]->stdExists("adminCustomer", array("name"=>post("name")), "customerID"), "A customer with the chosen name already exists");
+	$check(!stdExists("adminCustomer", array("name"=>post("name")), "customerID"), "A customer with the chosen name already exists");
 	$check(validAccountName(post("name")), "Invalid account name.");
 	$check(!reservedAccountName(post("name")), "An account with the chosen name already exists (reserved).");
-	$check($GLOBALS["database"]->stdGetTry("adminUser", array("username"=>post("name")), "customerID", false) === false, "An account with the chosen name already exists.");
+	$check(stdGetTry("adminUser", array("username"=>post("name")), "customerID", false) === false, "An account with the chosen name already exists.");
 	
 	$password = checkPassword($check, "password");
 	
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->startTransaction();
-	$customerID = $GLOBALS["database"]->stdNew("adminCustomer", array("name"=>post("name"), "initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("countryCode"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "groupname"=>post("groupname"), "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "fileSystemID"=>post("fileSystemID"), "mailSystemID"=>post("mailSystemID"), "nameSystemID"=>post("nameSystemID"), "invoiceFrequencyBase"=>post("invoiceFrequencyBase"), "invoiceFrequencyMultiplier"=>post("invoiceFrequencyMultiplier")));
+	startTransaction();
+	$customerID = stdNew("adminCustomer", array("name"=>post("name"), "initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("countryCode"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "groupname"=>post("groupname"), "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "fileSystemID"=>post("fileSystemID"), "mailSystemID"=>post("mailSystemID"), "nameSystemID"=>post("nameSystemID"), "invoiceFrequencyBase"=>post("invoiceFrequencyBase"), "invoiceFrequencyMultiplier"=>post("invoiceFrequencyMultiplier")));
 	foreach(rights() as $right) {
 		if(post("right-" . $right["name"]) !== null) {
-			$GLOBALS["database"]->stdNew("adminCustomerRight", array("customerID"=>$customerID, "right"=>$right["name"]));
+			stdNew("adminCustomerRight", array("customerID"=>$customerID, "right"=>$right["name"]));
 		}
 	}
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 	
 	$userID = accountsAddAccount($customerID, post("name"), $password, true);
 	
