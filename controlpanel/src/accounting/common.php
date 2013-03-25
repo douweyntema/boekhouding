@@ -52,7 +52,7 @@ function accountBreadcrumbs($accountID)
 function transactionBreadcrumbs($transactionID, $accountID)
 {
 	$date = stdGet("accountingTransaction", array("transactionID"=>$transactionID), "date");
-	return array_merge(accountBreadcrumbs($accountID), crumbs("Transaction on " . date("d-m-Y", $date), "transaction.php?id=$transactionID"));
+	return array_merge(accountBreadcrumbs($accountID), crumbs("Transaction on " . date("d-m-Y", $date), "transaction.php?id=$transactionID&accountID=$accountID"));
 }
 
 
