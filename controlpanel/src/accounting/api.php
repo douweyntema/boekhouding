@@ -5,7 +5,7 @@ $accountingTarget = "admin";
 
 function accountingAddAccount($parentAccountID, $currencyID, $name, $description, $isDirectory)
 {
-	if($parentAccountID !== null && $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$parentAccountID)) != 1) {
+	if($parentAccountID !== null && !$GLOBALS["database"]->stdExists("accountingAccount", array("accountID"=>$parentAccountID))) {
 		throw new AssertionError();
 	}
 	

@@ -6,6 +6,15 @@ function doAccounting()
 {
 	useComponent("accounting");
 	$GLOBALS["menuComponent"] = "accounting";
+	useCustomer(0);
+}
+
+function doAccountingAccount($accountID)
+{
+	doAccounting();
+	if($accountID != 0 && !$GLOBALS["database"]->stdExists("accountingAccount", array("accountID"=>$accountID))) {
+		error404();
+	}
 }
 
 function crumb($name, $filename)
@@ -140,5 +149,53 @@ function subAccountList($accountID)
 	}
 	return $output;
 }
+
+function currencyOptions()
+{
+	$output = array();
+	foreach($GLOBALS["database"]->stdList("accountingCurrency", array(), array("currencyID", "name")) as $currency) {
+		$output[] = array("label"=>$currency["name"], "value"=>$currency["currencyID"]);
+	}
+	return $output;
+}
+
+function addAccountForm($accountID, $error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("addaccount.php?id=$accountID", "", "Add account", "Add Account", array(), array());
+	}
+	
+	return operationForm("addaccount.php?id=$accountID", $error, "Add account", "Add Account",
+		array(
+			array("title"=>"Name", "type"=>"text", "name"=>"name"),
+			array("title"=>"Currency", "type"=>"dropdown", "name"=>"currencyID", "options"=>currencyOptions()),
+			array("title"=>"Type", "type"=>"radio", "name"=>"type", "options"=>array(
+				array("label"=>"Account", "value"=>"account"),
+				array("label"=>"Directory", "value"=>"directory")
+			)),
+			array("title"=>"Description", "type"=>"textarea", "name"=>"description")
+		),
+		$values);
+}
+
+function editAccountForm($accountID, $error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("editaccount.php?id=$accountID", "", "Edit account", "Edit Account", array(), array());
+	}
+	
+	if($values === null || $error === "") {
+		$values = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), array("name", "description"));
+	}
+	
+	return operationForm("editaccount.php?id=$accountID", $error, "Edit account", "Save",
+		array(
+			array("title"=>"Name", "type"=>"text", "name"=>"name"),
+			array("title"=>"Description", "type"=>"textarea", "name"=>"description")
+		),
+		$values);
+}
+
+
 
 ?>

@@ -4,12 +4,15 @@ require_once("common.php");
 
 function main()
 {
-	doAccounting();
-	
 	$accountID = get("id");
-	$content = makeHeader("Boekhouding", accountBreadcrumbs($accountID));
+	doAccountingAccount($accountID);
 	
+	$content = makeHeader("Boekhouding", accountBreadcrumbs($accountID));
 	$content .= transactionList($accountID);
+	if($GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory")) {
+		$content .= addAccountForm($accountID, "STUB");
+	}
+	$content .= editAccountForm($accountID, "STUB");
 	echo page($content);
 }
 
