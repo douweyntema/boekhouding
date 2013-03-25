@@ -9,10 +9,10 @@ function main()
 	
 	doAccountingTransaction($transactionID);
 	
-	$check = function($condition, $error) use($transactionID, $accountID) {
+	$check = function($condition, $error, $balance = null) use($transactionID, $accountID) {
 		$date = stdGet("accountingTransaction", array("transactionID"=>$transactionID), "date");
 		$content = makeHeader("Transaction on " . date("d-m-Y", $date), transactionBreadcrumbs($transactionID, $accountID));
-		if(!$condition) die(page(makeHeader("Transaction on " . date("d-m-Y", $date), transactionBreadcrumbs($transactionID, $accountID), crumbs("Edit transaction", "edittransaction.php?id=$transactionID&accountID=$accountID")) . editTransactionForm($transactionID, $accountID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("Transaction on " . date("d-m-Y", $date), transactionBreadcrumbs($transactionID, $accountID), crumbs("Edit transaction", "edittransaction.php?id=$transactionID&accountID=$accountID")) . editTransactionForm($transactionID, $accountID, $error, $_POST, $balance)));
 	};
 	
 	$check(($description = post("description")) != "", "No description given.");
