@@ -14,7 +14,7 @@ function main()
 	$password = checkPassword($check, "password");
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->stdSet("mailAddress", array("addressID"=>$addressID), array("password"=>base64_encode($password)));
+	stdSet("mailAddress", array("addressID"=>$addressID), array("password"=>base64_encode($password)));
 	
 	updateMail(customerID());
 	

@@ -14,7 +14,7 @@ function main()
 		redirect("");
 	}
 	
-	$GLOBALS["database"]->stdNew("adminNews", array("title"=>$title, "text"=>$text, "date"=>$date));
+	stdNew("adminNews", array("title"=>$title, "text"=>$text, "date"=>$date));
 	
 	redirect("");
 }

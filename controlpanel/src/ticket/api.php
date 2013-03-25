@@ -6,7 +6,7 @@ $ticketTarget = "both";
 
 function ticketNewThread($customerID, $userID, $title, $text)
 {
-	$threadID = $GLOBALS["database"]->stdNew("ticketThread", array("customerID"=>$customerID, "userID"=>$userID, "title"=>$title, "text"=>$text, "status"=>"OPEN", "date"=>time()));
+	$threadID = stdNew("ticketThread", array("customerID"=>$customerID, "userID"=>$userID, "title"=>$title, "text"=>$text, "status"=>"OPEN", "date"=>time()));
 	
 	global $controlpanelUrl;
 	
@@ -28,12 +28,12 @@ MAIL;
 
 function ticketNewReply($threadID, $userID, $text, $status)
 {
-	$GLOBALS["database"]->startTransaction();
-	$replyID = $GLOBALS["database"]->stdNew("ticketReply", array("threadID"=>$threadID, "userID"=>$userID, "text"=>$text, "date"=>time()));
-	$GLOBALS["database"]->stdSet("ticketThread", array("threadID"=>$threadID), array("status"=>$status));
-	$customerID = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "customerID");
-	$title = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "title");
-	$GLOBALS["database"]->commitTransaction();
+	startTransaction();
+	$replyID = stdNew("ticketReply", array("threadID"=>$threadID, "userID"=>$userID, "text"=>$text, "date"=>time()));
+	stdSet("ticketThread", array("threadID"=>$threadID), array("status"=>$status));
+	$customerID = stdGet("ticketThread", array("threadID"=>$threadID), "customerID");
+	$title = stdGet("ticketThread", array("threadID"=>$threadID), "title");
+	commitTransaction();
 	
 	global $controlpanelUrl;
 	

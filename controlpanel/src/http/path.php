@@ -7,7 +7,7 @@ function main()
 	$pathID = get("id");
 	doHttpPath($pathID);
 	
-	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("parentPathID", "domainID"));
+	$path = stdGet("httpPath", array("pathID"=>$pathID), array("parentPathID", "domainID"));
 	if($path["parentPathID"] === null) {
 		redirect("http/domain.php?id={$path["domainID"]}");
 	}

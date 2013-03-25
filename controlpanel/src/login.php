@@ -31,7 +31,7 @@ if((isset($_SESSION["username"]) && isset($_SESSION["password"])) ||
 		$password = $_SESSION["password"];
 	}
 	
-	$user = $GLOBALS["database"]->stdGetTry("adminUser", array("username"=>$username), array("userID", "customerID", "username", "password"), false);
+	$user = stdGetTry("adminUser", array("username"=>$username), array("userID", "customerID", "username", "password"), false);
 	if($user === false) {
 		loginFailed();
 	}
@@ -57,7 +57,7 @@ if((isset($_SESSION["username"]) && isset($_SESSION["password"])) ||
 	}
 	
 	if($impersonate) {
-		$customer = $GLOBALS["database"]->stdGetTry("adminCustomer", array("customerID"=>$customerID), "name", false);
+		$customer = stdGetTry("adminCustomer", array("customerID"=>$customerID), "name", false);
 		if($customer === false) {
 			$customerID = 0;
 			$impersonate = false;
@@ -149,7 +149,7 @@ function canAccessCustomerComponent($component, $customerID = null)
 		return false;
 	}
 	
-	$customerRightID = $GLOBALS["database"]->stdGetTry("adminCustomerRight", array("customerID"=>$customerID, "right"=>$component), "customerRightID", false);
+	$customerRightID = stdGetTry("adminCustomerRight", array("customerID"=>$customerID, "right"=>$component), "customerRightID", false);
 	if($customerRightID === false) {
 		return false;
 	}
@@ -158,11 +158,11 @@ function canAccessCustomerComponent($component, $customerID = null)
 		return true;
 	}
 	
-	if($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>userID(), "customerRightID"=>null))) {
+	if(stdExists("adminUserRight", array("userID"=>userID(), "customerRightID"=>null))) {
 		return true;
 	}
 	
-	if($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>userID(), "customerRightID"=>$customerRightID))) {
+	if(stdExists("adminUserRight", array("userID"=>userID(), "customerRightID"=>$customerRightID))) {
 		return true;
 	}
 	
@@ -194,17 +194,17 @@ function canUserAccessComponent($userID, $component)
 		return false;
 	}
 	
-	$customerID = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$userID), "customerID");
-	$customerRightID = $GLOBALS["database"]->stdGetTry("adminCustomerRight", array("customerID"=>$customerID, "right"=>$component), "customerRightID", false);
+	$customerID = stdGet("adminUser", array("userID"=>$userID), "customerID");
+	$customerRightID = stdGetTry("adminCustomerRight", array("customerID"=>$customerID, "right"=>$component), "customerRightID", false);
 	if($customerRightID === false) {
 		return false;
 	}
 	
-	if($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>null))) {
+	if(stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>null))) {
 		return true;
 	}
 	
-	if($GLOBALS["database"]->stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>$customerRightID))) {
+	if(stdExists("adminUserRight", array("userID"=>$userID, "customerRightID"=>$customerRightID))) {
 		return true;
 	}
 	

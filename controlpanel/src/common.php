@@ -31,6 +31,26 @@ if($_SERVER["REMOTE_ADDR"] == "127.0.0.1") {
 $GLOBALS["database"] = new MysqlConnection();
 $GLOBALS["database"]->open($database_hostname, $database_username, $database_password, $database_name);
 
+function rawQuery($query) { return $GLOBALS["database"]->rawQuery($query); }
+function query($query) { return $GLOBALS["database"]->query($query); }
+function setQuery($query) { return $GLOBALS["database"]->setQuery($query); }
+function dbAddSlashes($string) { return $GLOBALS["database"]->addSlashes($string); }
+function stdGet($table, $where, $get) { return $GLOBALS["database"]->stdGet($table, $where, $get); }
+function stdGetTry($table, $where, $get, $default = null) { return $GLOBALS["database"]->stdGetTry($table, $where, $get, $default); }
+function stdList($table, $where, $get, $sort = null, $number = 0, $skip = 0) { return $GLOBALS["database"]->stdList($table, $where, $get, $sort, $number, $skip); }
+function stdMap($table, $where, $mapKey, $get, $sort = null, $number = 0, $skip = 0) { return $GLOBALS["database"]->stdMap($table, $where, $mapKey, $get, $sort, $number, $skip); }
+function stdCount($table, $where) { return $GLOBALS["database"]->stdCount($table, $where); }
+function stdExists($table, $where) { return $GLOBALS["database"]->stdExists($table, $where); }
+function stdSet($table, $where, $set) { return $GLOBALS["database"]->stdSet($table, $where, $set); }
+function stdNew($table, $set) { return $GLOBALS["database"]->stdNew($table, $set); }
+function stdDel($table, $where) { return $GLOBALS["database"]->stdDel($table, $where); }
+function stdIncrement($table, $where, $field, $modulo = null) { return $GLOBALS["database"]->stdIncrement($table, $where, $field, $modulo); }
+function stdLock($table, $where, $shared = false) { return $GLOBALS["database"]->stdLock($table, $where, $shared); }
+function startTransaction($consistent = true) { return $GLOBALS["database"]->startTransaction($consistent); }
+function commitTransaction() { return $GLOBALS["database"]->commitTransaction(); }
+function rollbackTransaction() { return $GLOBALS["database"]->rollbackTransaction(); }
+
+
 if(get_magic_quotes_gpc()) {
 	foreach($_GET as $key=>$value) {
 		$_GET[$key] = utf8_decode(stripslashes($value));
@@ -127,7 +147,7 @@ function rights()
 
 function getRootUser()
 {
-	$userID = $GLOBALS["database"]->stdList("adminUser", array("customerID"=>null), "userID", array("userID"=>"asc"), 1);
+	$userID = stdList("adminUser", array("customerID"=>null), "userID", array("userID"=>"asc"), 1);
 	return $userID[0];
 }
 
@@ -288,7 +308,7 @@ function decryptPassword($cipher)
 function updateHosts($hosts, $command)
 {
 	foreach($hosts as $hostID) {
-		$host = $GLOBALS["database"]->stdGet("infrastructureHost", array("hostID"=>$hostID), array("ipv4Address", "sshPort"));
+		$host = stdGet("infrastructureHost", array("hostID"=>$hostID), array("ipv4Address", "sshPort"));
 		`/usr/bin/ssh -i {$GLOBALS["ssh_private_key_file"]} -l root -p {$host["sshPort"]} {$host["ipv4Address"]} '$command' > /dev/null &`;
 	}
 }
@@ -320,7 +340,7 @@ function makeHeader($title/*, $breadcrumbs*/)
 
 function mailCustomer($customerID, $subject, $body, $bccAdmin = true)
 {
-	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("email", "name", "companyName", "initials", "lastName"));
+	$customer = stdGet("adminCustomer", array("customerID"=>$customerID), array("email", "name", "companyName", "initials", "lastName"));
 	
 	$name = trim($customer["initials"] . " " . $customer["lastName"]);
 	if($name == "") {

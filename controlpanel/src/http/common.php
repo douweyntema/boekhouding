@@ -11,12 +11,12 @@ function doHttp()
 function doHttpDomain($domainID)
 {
 	doHttp();
-	useCustomer($GLOBALS["database"]->stdGetTry("httpDomain", array("domainID"=>$domainID), "customerID", false));
+	useCustomer(stdGetTry("httpDomain", array("domainID"=>$domainID), "customerID", false));
 }
 
 function doHttpPath($pathID)
 {
-	doHttpDomain($GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$pathID), "domainID", null));
+	doHttpDomain(stdGetTry("httpPath", array("pathID"=>$pathID), "domainID", null));
 }
 
 function crumb($name, $filename)
@@ -41,9 +41,9 @@ function domainBreadcrumbs($domainID)
 	$parts = array();
 	$nextDomainID = $domainID;
 	while(true) {
-		$domain = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$nextDomainID), array("name", "domainTldID", "parentDomainID", "customerID"));
+		$domain = stdGet("httpDomain", array("domainID"=>$nextDomainID), array("name", "domainTldID", "parentDomainID", "customerID"));
 		if($domain["parentDomainID"] === null) {
-			$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
+			$tld = stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
 			$parts[] = array("id"=>$nextDomainID, "name"=>$domain["name"] . "." . $tld);
 			break;
 		} else if($domain["customerID"] != customerID()) {
@@ -59,7 +59,7 @@ function domainBreadcrumbs($domainID)
 	$postfix = "";
 	while(count($parts) > 0) {
 		$part = array_shift($parts);
-		if(count($parts) == 0 || $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$part["id"], "parentPathID"=>null), "pathID") !== null) {
+		if(count($parts) == 0 || stdGetTry("httpPath", array("domainID"=>$part["id"], "parentPathID"=>null), "pathID") !== null) {
 			$crumbs[] = crumb("{$part["name"]}$postfix", "domain.php?id={$part["id"]}");
 		}
 		$postfix = "." . $part["name"] . $postfix;
@@ -74,7 +74,7 @@ function pathBreadcrumbs($pathID)
 	$nextPathID = $pathID;
 	$domainID = null;
 	while(true) {
-		$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$nextPathID), array("name", "parentPathID", "domainID", "type"));
+		$path = stdGet("httpPath", array("pathID"=>$nextPathID), array("name", "parentPathID", "domainID", "type"));
 		if($path["parentPathID"] === null) {
 			$domainID = $path["domainID"];
 			break;
@@ -101,7 +101,7 @@ function pathBreadcrumbs($pathID)
 function domainsList()
 {
 	$customerID = customerID();
-	$ownDomains = $GLOBALS["database"]->query("SELECT domainID, parentDomainID, name FROM httpDomain AS child WHERE customerID='$customerID' AND (parentDomainID IS NULL OR (SELECT customerID FROM httpDomain AS parent WHERE parent.domainID = child.parentDomainID) IS NULL OR customerID <> (SELECT customerID FROM httpDomain AS parent WHERE parent.domainID = child.parentDomainID))")->fetchList();
+	$ownDomains = query("SELECT domainID, parentDomainID, name FROM httpDomain AS child WHERE customerID='$customerID' AND (parentDomainID IS NULL OR (SELECT customerID FROM httpDomain AS parent WHERE parent.domainID = child.parentDomainID) IS NULL OR customerID <> (SELECT customerID FROM httpDomain AS parent WHERE parent.domainID = child.parentDomainID))")->fetchList();
 	
 	$domains = array();
 	foreach($ownDomains as $ownDomain) {
@@ -163,7 +163,7 @@ function singlePathSummary($pathID)
 function addDomainForm($error = "", $values = null)
 {
 	$domains = array();
-	foreach($GLOBALS["database"]->stdList("infrastructureDomainTld", array("active"=>1), array("domainTldID", "name")) as $domain) {
+	foreach(stdList("infrastructureDomainTld", array("active"=>1), array("domainTldID", "name")) as $domain) {
 		$domains[] = array("value"=>$domain["domainTldID"], "label"=>$domain["name"]);
 	}
 	
@@ -238,7 +238,7 @@ function addPathForm($pathID, $error = "", $values = null)
 function editPathForm($pathID, $error = "", $values = null)
 {
 	$pathNameHtml = htmlentities(httpPathName($pathID));
-	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("type", "hostedUserID", "hostedPath", "redirectTarget", "mirrorTargetPathID"));
+	$path = stdGet("httpPath", array("pathID"=>$pathID), array("type", "hostedUserID", "hostedPath", "redirectTarget", "mirrorTargetPathID"));
 	
 	if($error == "STUB") {
 		return operationForm("editpath.php?id=$pathID", $error, "Site function", "Edit", httpPathFunctionStubForm(httpPathName($pathID), $path["type"], $path["hostedUserID"], $path["hostedPath"], $path["redirectTarget"], $path["mirrorTargetPathID"], functionDescription($pathID)), array());
@@ -311,7 +311,7 @@ function domainTree($domainID)
 	$output = array();
 	$output["domainID"] = $domainID;
 	$output["name"] = httpDomainName($domainID);
-	$output["subdomains"] = subdomainTrees($domainID, $output["name"], $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "customerID"));
+	$output["subdomains"] = subdomainTrees($domainID, $output["name"], stdGet("httpDomain", array("domainID"=>$domainID), "customerID"));
 	
 	$path = domainPathTree($domainID, $output["name"]);
 	return array_merge($output, $path);
@@ -320,7 +320,7 @@ function domainTree($domainID)
 function subdomainTrees($domainID, $name, $customerID)
 {
 	$output = array();
-	foreach($GLOBALS["database"]->stdList("httpDomain", array("parentDomainID"=>$domainID), array("domainID", "name", "customerID")) as $subdomain) {
+	foreach(stdList("httpDomain", array("parentDomainID"=>$domainID), array("domainID", "name", "customerID")) as $subdomain) {
 		$subID = $subdomain["domainID"];
 		$subName = $subdomain["name"] . "." . $name;
 		if($subdomain["customerID"] != $customerID) {
@@ -348,7 +348,7 @@ function subdomainTrees($domainID, $name, $customerID)
 
 function domainPathTree($domainID, $name)
 {
-	$path = $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), array("pathID", "type", "hostedUserID", "hostedPath", "redirectTarget", "mirrorTargetPathID"));
+	$path = stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), array("pathID", "type", "hostedUserID", "hostedPath", "redirectTarget", "mirrorTargetPathID"));
 	if($path === null) {
 		return null;
 	}
@@ -356,7 +356,7 @@ function domainPathTree($domainID, $name)
 	$output["pathID"] = $path["pathID"];
 	$output["type"] = $path["type"];
 	if($path["type"] == "HOSTED") {
-		$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$path["hostedUserID"]), "username");
+		$username = stdGet("adminUser", array("userID"=>$path["hostedUserID"]), "username");
 		$output["target"] = "/home/$username/www/{$path["hostedPath"]}/";
 	} else if($path["type"] == "REDIRECT") {
 		$output["target"] = $path["redirectTarget"];
@@ -369,7 +369,7 @@ function domainPathTree($domainID, $name)
 
 function pathTree($pathID)
 {
-	$path = $GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$pathID), array("pathID", "type", "hostedPath", "redirectTarget", "mirrorTargetPathID"));
+	$path = stdGetTry("httpPath", array("pathID"=>$pathID), array("pathID", "type", "hostedPath", "redirectTarget", "mirrorTargetPathID"));
 	if($path === null) {
 		return null;
 	}
@@ -392,7 +392,7 @@ function pathTree($pathID)
 function pathTrees($pathID, $name)
 {
 	$output = array();
-	foreach($GLOBALS["database"]->stdList("httpPath", array("parentPathID"=>$pathID), array("pathID", "name", "type", "hostedPath", "redirectTarget", "mirrorTargetPathID")) as $subPath) {
+	foreach(stdList("httpPath", array("parentPathID"=>$pathID), array("pathID", "name", "type", "hostedPath", "redirectTarget", "mirrorTargetPathID")) as $subPath) {
 		$pathName = $name . "/" . $subPath["name"];
 		$paths = pathTrees($subPath["pathID"], $pathName);
 		if($subPath["type"] == "NONE") {
@@ -448,17 +448,17 @@ function flattenPathTree($tree, $parentID = null)
 
 function isRootDomain($domainID)
 {
-	return $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID") === null;
+	return stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID") === null;
 }
 
 function isStubDomain($domainID)
 {
-	return $GLOBALS["database"]->stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "type", "NONE") == "NONE";
+	return stdGetTry("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "type", "NONE") == "NONE";
 }
 
 function domainPath($domainID)
 {
-	return $GLOBALS["database"]->stdGet("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "pathID");
+	return stdGet("httpPath", array("domainID"=>$domainID, "parentPathID"=>null), "pathID");
 }
 
 function functionDescription($address)
@@ -472,7 +472,7 @@ function functionDescription($address)
 	} else if($address["type"] == "NONE") {
 		return "Not configured";
 	} else if($address["type"] == "OTHERUSER") {
-		$customerName = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$address["customerID"]), "name");
+		$customerName = stdGet("adminCustomer", array("customerID"=>$address["customerID"]), "name");
 		return "Delegated to customer $customerName";
 	} else {
 		return "";

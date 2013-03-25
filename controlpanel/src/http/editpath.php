@@ -6,7 +6,7 @@ function main()
 {
 	$pathID = get("id");
 	doHttpPath($pathID);
-	$domainID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "domainID");
+	$domainID = stdGet("httpPath", array("pathID"=>$pathID), "domainID");
 	
 	$check = function($condition, $error) use($domainID, $pathID) {
 		if(!$condition) die(page(makeHeader("Web hosting - " . httpDomainName($domainID), pathBreadcrumbs($pathID), crumbs("Edit site", "editpath.php?id=$pathID")) . editPathForm($pathID, $error, $_POST)));
@@ -18,7 +18,7 @@ function main()
 		$userID = post("documentOwner");
 		$directory = trim(post("documentRoot"), "/");
 		
-		$check($GLOBALS["database"]->stdExists("adminUser", array("userID"=>$userID, "customerID"=>customerID())), "");
+		$check(stdExists("adminUser", array("userID"=>$userID, "customerID"=>customerID())), "");
 		$check(validDocumentRoot($directory), "Invalid document root.");
 		
 		$function = array("type"=>"HOSTED", "hostedUserID"=>$userID, "hostedPath"=>$directory);
@@ -28,9 +28,9 @@ function main()
 		$mirrorTarget = post("mirrorTarget");
 	
 		$check((int)$mirrorTarget != (int)$pathID, "");
-		$check(($path = $GLOBALS["database"]->stdGetTry("httpPath", array("pathID"=>$mirrorTarget), array("domainID", "type"))) !== null, "");
+		$check(($path = stdGetTry("httpPath", array("pathID"=>$mirrorTarget), array("domainID", "type"))) !== null, "");
 		$check($path["type"] != "MIRROR", "");
-		$check($GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$path["domainID"]), "customerID") == customerID(), "");
+		$check(stdGet("httpDomain", array("domainID"=>$path["domainID"]), "customerID") == customerID(), "");
 		
 		$function = array("type"=>"MIRROR", "mirrorTargetPathID"=>$mirrorTarget);
 	} else {
@@ -39,7 +39,7 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->stdSet("httpPath", array("pathID"=>$pathID), array_merge(array("hostedUserID"=>null, "hostedPath"=>null, "redirectTarget"=>null, "mirrorTargetPathID"=>null), $function));
+	stdSet("httpPath", array("pathID"=>$pathID), array_merge(array("hostedUserID"=>null, "hostedPath"=>null, "redirectTarget"=>null, "mirrorTargetPathID"=>null), $function));
 	
 	updateHttp(customerID());
 	

@@ -11,10 +11,10 @@ function main()
 		if(!$condition) die(page(aliasHeader($aliasID) . removeMailAliasForm($aliasID, $error, $_POST)));
 	};
 	
-	$domainID = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), "domainID");
+	$domainID = stdGet("mailAlias", array("aliasID"=>$aliasID), "domainID");
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->stdDel("mailAlias", array("aliasID"=>$aliasID));
+	stdDel("mailAlias", array("aliasID"=>$aliasID));
 	
 	updateMail(customerID());
 	

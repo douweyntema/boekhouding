@@ -17,8 +17,8 @@ function main()
 	$remove = function() use($domainID, $check) {
 		$check(post("confirm") !== null, null);
 		
-		$GLOBALS["database"]->startTransaction();
-		$GLOBALS["database"]->stdDel("dnsMailServer", array("domainID"=>$domainID));
+		startTransaction();
+		stdDel("dnsMailServer", array("domainID"=>$domainID));
 	};
 	
 	if($type == "noemail") {
@@ -43,15 +43,15 @@ function main()
 		$remove();
 		$index = 0;
 		foreach($servers as $server) {
-			$GLOBALS["database"]->stdNew("dnsMailServer", array("domainID"=>$domainID, "name"=>$server["server"], "priority"=>(10 * ++$index)));
+			stdNew("dnsMailServer", array("domainID"=>$domainID, "name"=>$server["server"], "priority"=>(10 * ++$index)));
 		}
 		$function = array("mailType"=>"CUSTOM");
 	} else {
 		die("Internal error");
 	}
 	
-	$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), $function);
-	$GLOBALS["database"]->commitTransaction();
+	stdSet("dnsDomain", array("domainID"=>$domainID), $function);
+	commitTransaction();
 	
 	updateDomains(customerID());
 	

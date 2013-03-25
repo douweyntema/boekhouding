@@ -11,13 +11,13 @@ function main()
 		if(!$condition) die(page(aliasHeader($aliasID) . editMailAliasForm($aliasID, $error, $_POST)));
 	};
 	
-	$domainID = $GLOBALS["database"]->stdGet("mailAlias", array("aliasID"=>$aliasID), "domainID");
+	$domainID = stdGet("mailAlias", array("aliasID"=>$aliasID), "domainID");
 	$targetAddress = post("targetAddress");
 	
 	$check(validEmail($targetAddress), "Invalid target address.");
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->stdSet("mailAlias", array("aliasID"=>$aliasID), array("targetAddress"=>$targetAddress));
+	stdSet("mailAlias", array("aliasID"=>$aliasID), array("targetAddress"=>$targetAddress));
 	
 	updateMail(customerID());
 	

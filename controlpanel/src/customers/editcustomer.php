@@ -7,7 +7,7 @@ function main()
 	$customerID = get("id");
 	doCustomer($customerID);
 	
-	$customerName = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "name");
+	$customerName = stdGet("adminCustomer", array("customerID"=>$customerID), "name");
 	$customerNameHtml = htmlentities($customerName);
 	
 	$check = function($condition, $error) use($customerID, $customerNameHtml) {
@@ -49,7 +49,7 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("countryCode"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "invoiceFrequencyBase"=>post("invoiceFrequencyBase"), "invoiceFrequencyMultiplier"=>post("invoiceFrequencyMultiplier"), "mijnDomeinResellerContactID"=>null));
+	stdSet("adminCustomer", array("customerID"=>$customerID), array("initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("countryCode"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "invoiceFrequencyBase"=>post("invoiceFrequencyBase"), "invoiceFrequencyMultiplier"=>post("invoiceFrequencyMultiplier"), "mijnDomeinResellerContactID"=>null));
 	
 	updateMail($customerID);
 	updateDomains($customerID);

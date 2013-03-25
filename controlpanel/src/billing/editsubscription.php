@@ -5,7 +5,7 @@ require_once("common.php");
 function main()
 {
 	$subscriptionID = get("id");
-	$customerID = $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), "customerID");
+	$customerID = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), "customerID");
 	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($customerID, $subscriptionID) {
@@ -14,7 +14,7 @@ function main()
 	
 	$invoiceDelay = post("invoiceDelay") * 3600 * 24;
 	
-	if(post("priceType") == "domain" && $GLOBALS["database"]->stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), "domainTldID") !== null) {
+	if(post("priceType") == "domain" && stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), "domainTldID") !== null) {
 		$price = null;
 	} else {
 		$check(($price = parsePrice(post("price"))) !== null, "Invalid price");

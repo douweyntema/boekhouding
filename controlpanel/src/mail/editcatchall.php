@@ -37,7 +37,7 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->stdSet("mailDomain", array("domainID"=>$domainID), array("catchAllType"=>$catchAllType, "catchAllTarget"=>$catchAllTarget));
+	stdSet("mailDomain", array("domainID"=>$domainID), array("catchAllType"=>$catchAllType, "catchAllTarget"=>$catchAllTarget));
 	
 	updateMail(customerID());
 	

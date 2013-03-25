@@ -7,7 +7,7 @@ require_once("common.php");
 $content = "<h1>Welcome</h1>";
 $content .= breadcrumbs(array(array("name"=>"Home", "url"=>"{$GLOBALS["root"]}")));
 
-$newsItems = $GLOBALS["database"]->stdList("adminNews", array(), array("title", "text", "date"), array("date"=>"desc"));
+$newsItems = stdList("adminNews", array(), array("title", "text", "date"), array("date"=>"desc"));
 $count = 0;
 foreach($newsItems as $item) {
 	$count++;

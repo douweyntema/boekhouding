@@ -17,7 +17,7 @@ function doDomainsBilling()
 function doDomain($domainID)
 {
 	doDomains();
-	useCustomer($GLOBALS["database"]->stdGetTry("dnsDomain", array("domainID"=>$domainID), "customerID", false));
+	useCustomer(stdGetTry("dnsDomain", array("domainID"=>$domainID), "customerID", false));
 	$rootDomainID = domainsRootDomainID($domainID);
 	if(domainsDomainStatus($rootDomainID) == "expired" || domainsDomainStatus($rootDomainID) == "quarantaine") {
 		domainsRemoveDomain($rootDomainID);
@@ -45,10 +45,10 @@ function domainBreadcrumbs($domainID)
 	$parts = array();
 	$nextDomainID = $domainID;
 	while(true) {
-		$domain = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$nextDomainID), array("name", "parentDomainID", "customerID", "domainTldID"));
+		$domain = stdGet("dnsDomain", array("domainID"=>$nextDomainID), array("name", "parentDomainID", "customerID", "domainTldID"));
 		if($domain["parentDomainID"] === null) {
 			$parts[] = array("id"=>$nextDomainID, "name"=>$domain["name"], "show"=>true);
-			$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
+			$tld = stdGet("infrastructureDomainTld", array("domainTldID"=>$domain["domainTldID"]), "name");
 			$parts[] = array("id"=>0, "name"=>$tld, "show"=>false);
 			break;
 		} else if($domain["customerID"] != customerID()) {
@@ -75,7 +75,7 @@ function domainBreadcrumbs($domainID)
 
 function domainsList()
 {
-	$domainIDs = $GLOBALS["database"]->stdList("dnsDomain", array("customerID"=>customerID(), "parentDomainID"=>null), "domainID");
+	$domainIDs = stdList("dnsDomain", array("customerID"=>customerID(), "parentDomainID"=>null), "domainID");
 	
 	$domains = array();
 	foreach($domainIDs as $domainID) {
@@ -102,7 +102,7 @@ function domainsList()
 function subDomainsList($parentDomainID)
 {
 	$domains = array();
-	foreach($GLOBALS["database"]->stdList("dnsDomain", array("customerID"=>customerID(), "parentDomainID"=>$parentDomainID), array("domainID", "parentDomainID", "name")) as $domain) {
+	foreach(stdList("dnsDomain", array("customerID"=>customerID(), "parentDomainID"=>$parentDomainID), array("domainID", "parentDomainID", "name")) as $domain) {
 		$domainName = domainsFormatDomainName($domain["domainID"]);
 		$domains[$domainName] = array("domainID"=>$domain["domainID"], "name"=>$domainName);
 	}
@@ -120,7 +120,7 @@ function subDomainsList($parentDomainID)
 function domainDetail($domainID)
 {
 	$domainName = domainsFormatDomainName($domainID);
-	$tldID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID");
+	$tldID = stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID");
 	return summaryTable("Domain $domainName", array(
 		"Name"=>$domainName,
 		"Status"=>domainsDomainStatusDescription($domainID),
@@ -131,7 +131,7 @@ function domainDetail($domainID)
 function addDomainForm($error = "", $values = null)
 {
 	$tlds = array();
-	foreach($GLOBALS["database"]->stdList("infrastructureDomainTld", array("active"=>1), array("domainTldID", "name", "price"), array("order"=>"A")) as $tld) {
+	foreach(stdList("infrastructureDomainTld", array("active"=>1), array("domainTldID", "name", "price"), array("order"=>"A")) as $tld) {
 		$tlds[] = array("value"=>$tld["domainTldID"], "label"=>$tld["name"] . " (" . formatPrice($tld["price"]) . " / year)");
 	}
 	
@@ -149,7 +149,7 @@ function addDomainForm($error = "", $values = null)
 
 function addSubdomainForm($domainID, $error = "", $values = null)
 {
-	$addressType = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "addressType");
+	$addressType = stdGet("dnsDomain", array("domainID"=>$domainID), "addressType");
 	if($addressType == "DELEGATION" || $addressType == "TREVA-DELEGATION") {
 		return operationForm(null, "", "Add subdomain", null, array(array("type"=>"html", "html"=>"Adding subdomains is not available for this domain, because the domain address is currently configured as \"Nameserver delegation\".")), null);
 	}
@@ -232,13 +232,13 @@ function domainAddressStubForm($type, $parentDomainName, $ipv4Addresses, $ipv6Ad
 
 function editAddressForm($domainID, $error = "", $values = null)
 {
-	$domain = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), array("addressType", "cnameTarget"));
-	$ipv4 = $GLOBALS["database"]->stdList("dnsRecord", array("domainID"=>$domainID, "type"=>"A"), "value");
-	$ipv6 = $GLOBALS["database"]->stdList("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA"), "value");
-	$delegatedNameServers = $GLOBALS["database"]->stdList("dnsDelegatedNameServer", array("domainID"=>$domainID), array("hostname", "ipv4Address", "ipv6Address"));
+	$domain = stdGet("dnsDomain", array("domainID"=>$domainID), array("addressType", "cnameTarget"));
+	$ipv4 = stdList("dnsRecord", array("domainID"=>$domainID, "type"=>"A"), "value");
+	$ipv6 = stdList("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA"), "value");
+	$delegatedNameServers = stdList("dnsDelegatedNameServer", array("domainID"=>$domainID), array("hostname", "ipv4Address", "ipv6Address"));
 	
 	$domainName = domainsFormatDomainName($domainID);
-	$parentDomainID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID");
+	$parentDomainID = stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID");
 	if($parentDomainID !== null) {
 		$parentDomainName = domainsFormatDomainName($parentDomainID);
 	} else {
@@ -280,10 +280,10 @@ function editAddressForm($domainID, $error = "", $values = null)
 		$warning = array();
 		if(isset($values["cname"]) || isset($values["delegation"])) {
 			$warning = array();
-			if($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "mailType") != "NONE") {
+			if(stdGet("dnsDomain", array("domainID"=>$domainID), "mailType") != "NONE") {
 				$warning[] = "This will disable email for this domain.";
 			}
-			foreach($GLOBALS["database"]->stdList("dnsRecord", array("domainID"=>$domainID), array("type", "value")) as $record) {
+			foreach(stdList("dnsRecord", array("domainID"=>$domainID), array("type", "value")) as $record) {
 				if($record["type"] == "A" || $record["type"] == "AAAA") {
 					continue;
 				}
@@ -344,7 +344,7 @@ function domainMailStubForm($type, $mailServers)
 
 function editMailForm($domainID, $error = "", $values = null)
 {
-	$addressType = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "addressType");
+	$addressType = stdGet("dnsDomain", array("domainID"=>$domainID), "addressType");
 	if($addressType == "CNAME" || $addressType == "DELEGATION" || $addressType == "TREVA-DELEGATION") {
 		$type = $addressType == "CNAME" ? "\"Alias\"" : "\"Nameserver delegation\"";
 		return operationForm(null, "", "Email configuration", null, array(
@@ -352,8 +352,8 @@ function editMailForm($domainID, $error = "", $values = null)
 		), null);
 	}
 	
-	$mailType = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "mailType");
-	$mailServers = $GLOBALS["database"]->stdList("dnsMailServer", array("domainID"=>$domainID), "name", array("priority"=>"ASC"));
+	$mailType = stdGet("dnsDomain", array("domainID"=>$domainID), "mailType");
+	$mailServers = stdList("dnsMailServer", array("domainID"=>$domainID), "name", array("priority"=>"ASC"));
 	
 	if($error == "STUB") {
 		return operationForm("editmail.php?id=$domainID", "STUB", "Edit email configuration for " . domainsFormatDomainName($domainID), "Edit", domainMailStubForm($mailType, $mailServers), null);
@@ -403,7 +403,7 @@ function deleteDomainForm($domainID, $error = "", $values = null)
 }
 
 function subdomains($domainID) {
-	$subDomains = $GLOBALS["database"]->stdList("dnsDomain", array("parentDomainID"=>$domainID), "domainID");
+	$subDomains = stdList("dnsDomain", array("parentDomainID"=>$domainID), "domainID");
 	$subSubDomains = array();
 	foreach($subDomains as $subDomainID) {
 		$subSubDomains = array_merge($subSubDomains, subdomains($subDomainID));

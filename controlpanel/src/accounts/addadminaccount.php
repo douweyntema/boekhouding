@@ -15,12 +15,12 @@ function main()
 	$username = post("username");
 	
 	$check(validAccountName($username), "Invalid account name.");
-	$check(!$GLOBALS["database"]->stdExists("adminUser", array("username"=>$username)), "An account with the chosen name already exists.");
+	$check(!stdExists("adminUser", array("username"=>$username)), "An account with the chosen name already exists.");
 	
 	$password = checkPassword($check, "password");
 	$check(post("confirm") !== null, null);
 	
-	$userID = $GLOBALS["database"]->stdNew("adminUser", array("customerID"=>null, "username"=>$username, "password"=>hashPassword($password)));
+	$userID = stdNew("adminUser", array("customerID"=>null, "username"=>$username, "password"=>hashPassword($password)));
 	
 	redirect("accounts/adminaccount.php?id=$userID");
 }

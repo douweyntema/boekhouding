@@ -6,7 +6,7 @@ $billingTarget = "customer";
 
 function billingDomainPrice($tldID)
 {
-	return $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "price");
+	return stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "price");
 }
 
 function billingBasePrice($subscription)
@@ -23,32 +23,32 @@ function billingNewSubscription($customerID, $description, $price, $discountPerc
 	if($startDate == null) {
 		$startDate = time();
 	}
-	return $GLOBALS["database"]->stdNew("billingSubscription", array("customerID"=>$customerID, "domainTldID"=>$domainTldID, "description"=>$description, "price"=>$price, "discountPercentage"=>$discountPercentage, "discountAmount"=>$discountAmount, "frequencyBase"=>$frequencyBase, "frequencyMultiplier"=>$frequencyMultiplier, "invoiceDelay"=>$invoiceDelay, "nextPeriodStart"=>$startDate));
+	return stdNew("billingSubscription", array("customerID"=>$customerID, "domainTldID"=>$domainTldID, "description"=>$description, "price"=>$price, "discountPercentage"=>$discountPercentage, "discountAmount"=>$discountAmount, "frequencyBase"=>$frequencyBase, "frequencyMultiplier"=>$frequencyMultiplier, "invoiceDelay"=>$invoiceDelay, "nextPeriodStart"=>$startDate));
 }
 
 function billingEditSubscription($subscriptionID, $description, $price, $discountPercentage, $discountAmount, $frequencyBase, $frequencyMultiplier, $invoiceDelay)
 {
-	return $GLOBALS["database"]->stdSet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("description"=>$description, "price"=>$price, "discountPercentage"=>$discountPercentage, "discountAmount"=>$discountAmount, "frequencyBase"=>$frequencyBase, "frequencyMultiplier"=>$frequencyMultiplier, "invoiceDelay"=>$invoiceDelay));
+	return stdSet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("description"=>$description, "price"=>$price, "discountPercentage"=>$discountPercentage, "discountAmount"=>$discountAmount, "frequencyBase"=>$frequencyBase, "frequencyMultiplier"=>$frequencyMultiplier, "invoiceDelay"=>$invoiceDelay));
 }
 
 function billingEndSubscription($subscriptionID, $endDate)
 {
-	$GLOBALS["database"]->stdSet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("endDate"=>$endDate));
+	stdSet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("endDate"=>$endDate));
 }
 
 function billingAddInvoiceLine($customerID, $description, $price, $discount)
 {
-	return $GLOBALS["database"]->stdNew("billingInvoiceLine", array("customerID"=>$customerID, "description"=>$description, "price"=>$price, "discount"=>$discount, "domain"=>0));
+	return stdNew("billingInvoiceLine", array("customerID"=>$customerID, "description"=>$description, "price"=>$price, "discount"=>$discount, "domain"=>0));
 }
 
 function billingUpdateInvoiceLines($customerID)
 {
-	if($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "invoiceStatus") == "DISABLED") {
+	if(stdGet("adminCustomer", array("customerID"=>$customerID), "invoiceStatus") == "DISABLED") {
 		return;
 	}
 	$now = time();
-	$GLOBALS["database"]->startTransaction();
-	foreach($GLOBALS["database"]->stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
+	startTransaction();
+	foreach(stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
 		$isDomain = $subscription["domainTldID"] !== null;
 		
 		while($subscription["nextPeriodStart"] < $now + $subscription["invoiceDelay"] &&
@@ -76,29 +76,29 @@ function billingUpdateInvoiceLines($customerID)
 				$periodEnd = $subscription["endDate"];
 			}
 			
-			$GLOBALS["database"]->stdNew("billingInvoiceLine", array("customerID"=>$customerID, "description"=>$subscription["description"], "periodStart"=>$subscription["nextPeriodStart"], "periodEnd"=>$periodEnd, "price"=>$price, "discount"=>$discount, "domain"=>$isDomain));
+			stdNew("billingInvoiceLine", array("customerID"=>$customerID, "description"=>$subscription["description"], "periodStart"=>$subscription["nextPeriodStart"], "periodEnd"=>$periodEnd, "price"=>$price, "discount"=>$discount, "domain"=>$isDomain));
 			
-			$GLOBALS["database"]->stdSet("billingSubscription", array("subscriptionID"=>$subscription["subscriptionID"]), array("nextPeriodStart"=>$periodEnd));
+			stdSet("billingSubscription", array("subscriptionID"=>$subscription["subscriptionID"]), array("nextPeriodStart"=>$periodEnd));
 			$subscription["nextPeriodStart"] = $periodEnd;
 		}
 		if($subscription["endDate"] !== null && $subscription["nextPeriodStart"] >= $subscription["endDate"]) {
 			if($isDomain) {
-				$domainID = $GLOBALS["database"]->stdGet("dnsDomain", array("subscriptionID"=>$subscription["subscriptionID"]), "domainID");
+				$domainID = stdGet("dnsDomain", array("subscriptionID"=>$subscription["subscriptionID"]), "domainID");
 				if(domainsDomainStatus($domainID) == "expired" || domainsDomainStatus($domainID) == "quarantaine") {
 					domainsRemoveDomain($domainID);
 				} else {
 					continue;
 				}
 			}
-			$GLOBALS["database"]->stdDel("billingSubscription", array("subscriptionID"=>$subscription["subscriptionID"]));
+			stdDel("billingSubscription", array("subscriptionID"=>$subscription["subscriptionID"]));
 		}
 	}
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 }
 
 function billingUpdateAllInvoiceLines()
 {
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), "customerID") as $customerID) {
+	foreach(stdList("adminCustomer", array(), "customerID") as $customerID) {
 		billingUpdateInvoiceLines($customerID);
 	}
 }
@@ -108,13 +108,13 @@ function billingCreateInvoiceBatch($customerID)
 	if(!isset($GLOBALS["controlpanelEnableCustomerEmail"]) || !$GLOBALS["controlpanelEnableCustomerEmail"]) {
 		return;
 	}
-	if($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "invoiceStatus") !== 'ENABLED') {
+	if(stdGet("adminCustomer", array("customerID"=>$customerID), "invoiceStatus") !== 'ENABLED') {
 		return;
 	}
 	billingUpdateInvoiceLines($customerID);
 	
 	$now = time();
-	$invoiceTime = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), array("invoiceFrequencyBase", "invoiceFrequencyMultiplier", "nextInvoiceDate"));
+	$invoiceTime = stdGet("adminCustomer", array("customerID"=>$customerID), array("invoiceFrequencyBase", "invoiceFrequencyMultiplier", "nextInvoiceDate"));
 	
 	if($invoiceTime["nextInvoiceDate"] > $now) {
 		return;
@@ -124,19 +124,19 @@ function billingCreateInvoiceBatch($customerID)
 		$nextInvoiceTime = billingCalculateNextDate($nextInvoiceTime, $invoiceTime["invoiceFrequencyBase"], $invoiceTime["invoiceFrequencyMultiplier"]);
 	}
 	
-	$invoiceLines = $GLOBALS["database"]->stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), "invoiceLineID");
+	$invoiceLines = stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), "invoiceLineID");
 	if(count($invoiceLines) == 0) {
 		return;
 	}
 	
-	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("nextInvoiceDate"=>$nextInvoiceTime));
+	stdSet("adminCustomer", array("customerID"=>$customerID), array("nextInvoiceDate"=>$nextInvoiceTime));
 	
 	billingCreateInvoice($customerID, $invoiceLines);
 }
 
 function billingCreateAllInvoices()
 {
-	foreach($GLOBALS["database"]->stdList("adminCustomer", array(), "customerID") as $customerID) {
+	foreach(stdList("adminCustomer", array(), "customerID") as $customerID) {
 		billingCreateInvoiceBatch($customerID);
 	}
 }
@@ -149,32 +149,32 @@ function billingCreateInvoice($customerID, $invoiceLines, $sendEmail = true)
 	$now = time();
 	$factuurnrDatum = date("Ymd", $now);
 	
-	$GLOBALS["database"]->startTransaction();
-	$GLOBALS["database"]->stdLock("billingInvoice", array());
-	$factuurnrCount = $GLOBALS["database"]->query("SELECT invoiceID FROM billingInvoice WHERE invoiceNumber LIKE '" . $GLOBALS["database"]->addSlashes($factuurnrDatum) . "-%'")->numRows();
+	startTransaction();
+	stdLock("billingInvoice", array());
+	$factuurnrCount = query("SELECT invoiceID FROM billingInvoice WHERE invoiceNumber LIKE '" . dbAddSlashes($factuurnrDatum) . "-%'")->numRows();
 	$factuurnr = $factuurnrDatum . "-" . ($factuurnrCount + 1);
 	
 	$amount = 0;
 	foreach($invoiceLines as $lineID) {
-		$line = $GLOBALS["database"]->stdGet("billingInvoiceLine", array("invoiceLineID"=>$lineID), array("customerID", "invoiceID", "price", "discount"));
+		$line = stdGet("billingInvoiceLine", array("invoiceLineID"=>$lineID), array("customerID", "invoiceID", "price", "discount"));
 		if($line["customerID"] != $customerID) {
-			$GLOBALS["database"]->rollbackTransaction();
+			rollbackTransaction();
 			throw new BillingInvoiceException();
 		}
 		if($line["invoiceID"] !== null) {
-			$GLOBALS["database"]->rollbackTransaction();
+			rollbackTransaction();
 			throw new BillingInvoiceException();
 		}
 		$amount += $line["price"];
 		$amount -= $line["discount"];
 	}
 	
-	$invoiceID = $GLOBALS["database"]->stdNew("billingInvoice", array("customerID"=>$customerID, "date"=>$now, "remainingAmount"=>$amount, "invoiceNumber"=>$factuurnr));
+	$invoiceID = stdNew("billingInvoice", array("customerID"=>$customerID, "date"=>$now, "remainingAmount"=>$amount, "invoiceNumber"=>$factuurnr));
 	
 	foreach($invoiceLines as $lineID) {
-		$GLOBALS["database"]->stdSet("billingInvoiceLine", array("invoiceLineID"=>$lineID), array("invoiceID"=>$invoiceID));
+		stdSet("billingInvoiceLine", array("invoiceLineID"=>$lineID), array("invoiceID"=>$invoiceID));
 	}
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 	
 	billingDistributeFunds($customerID);
 	
@@ -183,8 +183,8 @@ function billingCreateInvoice($customerID, $invoiceLines, $sendEmail = true)
 
 function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 {
-	$invoice = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "date", "invoiceNumber"));
-	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode"));
+	$invoice = stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "date", "invoiceNumber"));
+	$customer = stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode"));
 	
 	$texdatum = date("d/m/Y", $invoice["date"]);
 	$invoiceNumber = $invoice["invoiceNumber"];
@@ -210,7 +210,7 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 	$discounts = "";
 	$btw = 0;
 	$creditatie = true;
-	foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("invoiceID"=>$invoiceID), array("description", "periodStart", "periodEnd", "price", "discount")) as $line) {
+	foreach(stdList("billingInvoiceLine", array("invoiceID"=>$invoiceID), array("description", "periodStart", "periodEnd", "price", "discount")) as $line) {
 		if($line["periodStart"] != null && $line["periodEnd"] != null) {
 			$startdate = texdate($line["periodStart"]);
 			$enddate = texdate($line["periodEnd"] - 86400);
@@ -258,16 +258,16 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 \end{document}
 
 TEX;
-	$GLOBALS["database"]->stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("tex"=>$tex));
+	stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("tex"=>$tex));
 	
 	billingCreateInvoicePdf($invoiceID, $sendEmail);
 }
 
 function billingCreateInvoicePdf($invoiceID, $sendEmail = true)
 {
-	$tex = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), "tex");
+	$tex = stdGet("billingInvoice", array("invoiceID"=>$invoiceID), "tex");
 	$pdf = pdfLatex($tex);
-	$GLOBALS["database"]->stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("pdf"=>$pdf));
+	stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("pdf"=>$pdf));
 	if($pdf === null) {
 		mailAdmin("Invoice pdf generation failed", "Failed to generate a pdf for invoiceID $invoiceID with tex:\n\n$tex");
 		return;
@@ -282,11 +282,11 @@ function billingCreateInvoiceEmail($invoiceID, $reminder=false)
 	if(!isset($GLOBALS["controlpanelEnableCustomerEmail"]) || !$GLOBALS["controlpanelEnableCustomerEmail"]) {
 		return;
 	}
-	$invoice = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "remainingAmount", "invoiceNumber", "pdf"));
+	$invoice = stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "remainingAmount", "invoiceNumber", "pdf"));
 	if($invoice["pdf"] === null) {
 		return;
 	}
-	$customer = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("name", "companyName", "initials", "lastName", "email"));
+	$customer = stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("name", "companyName", "initials", "lastName", "email"));
 	
 	if($invoice["remainingAmount"] > 0) {
 		$bedrag = formatPriceRaw($invoice["remainingAmount"]);
@@ -336,7 +336,7 @@ TEXT
 
 function billingCreateInvoiceResend($invoiceID)
 {
-	$invoice = $GLOBALS["database"]->stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("tex", "pdf"));
+	$invoice = stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("tex", "pdf"));
 	
 	if($invoice["tex"] === null) {
 		billingCreateInvoiceTex($invoiceID);
@@ -349,50 +349,50 @@ function billingCreateInvoiceResend($invoiceID)
 
 function billingCustomerBalance($customerID)
 {
-	return $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
+	return stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
 }
 
 function billingAddPayment($customerID, $amount, $date, $desciption)
 {
-	$GLOBALS["database"]->startTransaction();
-	$GLOBALS["database"]->stdLock("adminCustomer", array("customerID"=>$customerID));
-	$GLOBALS["database"]->stdNew("billingPayment", array("customerID"=>$customerID, "amount"=>$amount, "date"=>$date, "description"=>$desciption));
-	$balance = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
-	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("balance"=>$balance + $amount));
-	$GLOBALS["database"]->commitTransaction();
+	startTransaction();
+	stdLock("adminCustomer", array("customerID"=>$customerID));
+	stdNew("billingPayment", array("customerID"=>$customerID, "amount"=>$amount, "date"=>$date, "description"=>$desciption));
+	$balance = stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
+	stdSet("adminCustomer", array("customerID"=>$customerID), array("balance"=>$balance + $amount));
+	commitTransaction();
 	
 	billingDistributeFunds($customerID);
 }
 
 function billingDistributeFunds($customerID)
 {
-	$GLOBALS["database"]->startTransaction();
-	$GLOBALS["database"]->stdLock("adminCustomer", array("customerID"=>$customerID));
-	$GLOBALS["database"]->stdLock("billingInvoice", array("customerID"=>$customerID));
+	startTransaction();
+	stdLock("adminCustomer", array("customerID"=>$customerID));
+	stdLock("billingInvoice", array("customerID"=>$customerID));
 	
-	$balance = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
+	$balance = stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
 	
-	foreach($GLOBALS["database"]->query("SELECT invoiceID, remainingAmount FROM billingInvoice WHERE customerID='" . $GLOBALS["database"]->addSlashes($customerID) . "' AND remainingAmount > 0 ORDER BY date")->fetchMap("invoiceID", "remainingAmount") as $invoiceID=>$remainingAmount) {
+	foreach(query("SELECT invoiceID, remainingAmount FROM billingInvoice WHERE customerID='" . dbAddSlashes($customerID) . "' AND remainingAmount > 0 ORDER BY date")->fetchMap("invoiceID", "remainingAmount") as $invoiceID=>$remainingAmount) {
 		$change = min($balance, $remainingAmount);
 		if($change > 0) {
 			$remainingAmount -= $change;
 			$balance -= $change;
-			$GLOBALS["database"]->stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("remainingAmount"=>$remainingAmount));
+			stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("remainingAmount"=>$remainingAmount));
 		}
 	}
-	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("balance"=>$balance));
+	stdSet("adminCustomer", array("customerID"=>$customerID), array("balance"=>$balance));
 	
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 }
 
 function billingBalance($customerID)
 {
 	billingDistributeFunds($customerID);
-	$balance = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
+	$balance = stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
 	if($balance > 0) {
 		return $balance;
 	}
-	$result = $GLOBALS["database"]->query("SELECT SUM(remainingAmount) AS sum FROM billingInvoice WHERE customerID='" . $GLOBALS["database"]->addSlashes($customerID) . "'")->fetchArray();
+	$result = query("SELECT SUM(remainingAmount) AS sum FROM billingInvoice WHERE customerID='" . dbAddSlashes($customerID) . "'")->fetchArray();
 	return -$result["sum"];
 }
 

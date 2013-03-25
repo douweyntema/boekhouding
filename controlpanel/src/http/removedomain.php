@@ -23,7 +23,7 @@ function main()
 		$error .= "<ul>";
 		foreach($aliases as $alias) {
 			$name = httpPathName($alias);
-			$target = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$alias), "mirrorTargetPathID");
+			$target = stdGet("httpPath", array("pathID"=>$alias), "mirrorTargetPathID");
 			$targetName = httpPathName($target);
 			$error .= "<li><a href=\"{$GLOBALS["root"]}http/path.php?id=$alias\">$name</a>: alias for <a href=\"{$GLOBALS["root"]}http/path.php?id=$target\">$targetName</a></li>";
 		}
@@ -34,12 +34,12 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	$parentDomainID = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID");
+	$parentDomainID = stdGet("httpDomain", array("domainID"=>$domainID), "parentDomainID");
 	$isRootDomain = isRootDomain($domainID);
 	
-	$GLOBALS["database"]->startTransaction();
+	startTransaction();
 	httpRemoveDomain($domainID, $keepsubs);
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 	
 	// Distribute the accounts database
 	updateHttp(customerID());
@@ -47,8 +47,8 @@ function main()
 	if($isRootDomain) {
 		redirect("http/");
 	} else {
-		while(!$GLOBALS["database"]->stdExists("httpPath", array("domainID"=>$parentDomainID, "parentPathID"=>null))) {
-			$parentDomainID = $GLOBALS["database"]->stdGet("httpDomain", array("domainID"=>$parentDomainID), "parentDomainID");
+		while(!stdExists("httpPath", array("domainID"=>$parentDomainID, "parentPathID"=>null))) {
+			$parentDomainID = stdGet("httpDomain", array("domainID"=>$parentDomainID), "parentDomainID");
 		}
 		redirect("http/domain.php?id=$parentDomainID");
 	}

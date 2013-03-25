@@ -14,7 +14,7 @@ function main()
 	$check(post("invoiceStatus") == "DISABLED" || post("invoiceStatus") == "PREVIEW" || post("invoiceStatus") == "ENABLED", "");
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("invoiceStatus"=>post("invoiceStatus")));
+	stdSet("adminCustomer", array("customerID"=>$customerID), array("invoiceStatus"=>post("invoiceStatus")));
 	
 	redirect("billing/customer.php?id=$customerID");
 }

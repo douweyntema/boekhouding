@@ -13,13 +13,13 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->startTransaction();
-	foreach($GLOBALS["database"]->stdList("mailListMember", array("listID"=>$listID), "memberID") as $memberID) {
+	startTransaction();
+	foreach(stdList("mailListMember", array("listID"=>$listID), "memberID") as $memberID) {
 		if(post("member-$memberID") !== null) {
-			$GLOBALS["database"]->stdDel("mailListMember", array("memberID"=>$memberID));
+			stdDel("mailListMember", array("memberID"=>$memberID));
 		}
 	}
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 	
 	updateMail(customerID());
 	

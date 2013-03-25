@@ -32,15 +32,15 @@ function main()
 	$check(count($messages) == 0, implode("<br />", $messages));
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->startTransaction();
-	$GLOBALS["database"]->stdDel("mailListMember", array("listID"=>$listID));
+	startTransaction();
+	stdDel("mailListMember", array("listID"=>$listID));
 	foreach($realMembers as $member) {
-		if($GLOBALS["database"]->stdExists("mailListMember", array("listID"=>$listID, "targetAddress"=>$member))) {
+		if(stdExists("mailListMember", array("listID"=>$listID, "targetAddress"=>$member))) {
 			continue;
 		}
-		$GLOBALS["database"]->stdNew("mailListMember", array("listID"=>$listID, "targetAddress"=>$member));
+		stdNew("mailListMember", array("listID"=>$listID, "targetAddress"=>$member));
 	}
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 	
 	updateMail(customerID());
 	

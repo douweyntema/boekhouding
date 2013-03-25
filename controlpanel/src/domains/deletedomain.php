@@ -17,11 +17,11 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	$parentDomainID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID");
+	$parentDomainID = stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID");
 	
-	$GLOBALS["database"]->startTransaction();
+	startTransaction();
 	domainsRemoveDomain($domainID);
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 	
 	updateDomains(customerID());
 	

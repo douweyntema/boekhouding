@@ -31,7 +31,7 @@ function main()
 	
 	$check(validAccountName($username), "Invalid account name.");
 	$check(!reservedAccountName($username), "An account with the chosen name already exists.");
-	$check($GLOBALS["database"]->stdGetTry("adminUser", array("username"=>$username), "customerID", false) === false, "An account with the chosen name already exists.");
+	$check(stdGetTry("adminUser", array("username"=>$username), "customerID", false) === false, "An account with the chosen name already exists.");
 	
 	$password = checkPassword($check, "password");
 	$check(post("confirm") !== null, null);

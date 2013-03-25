@@ -14,19 +14,19 @@ class trevadnsapi
 		
 		$parentDomainID = $this->tldParentDomainID($tldID);
 		
-		$parentCustomerID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$parentDomainID), "customerID");
-		$nameSystemID = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "nameSystemID");
+		$parentCustomerID = stdGet("dnsDomain", array("domainID"=>$parentDomainID), "customerID");
+		$nameSystemID = stdGet("adminCustomer", array("customerID"=>$customerID), "nameSystemID");
 		
-		$GLOBALS["database"]->stdNew("dnsDomain", array("customerID"=>$parentCustomerID, "parentDomainID"=>$parentDomainID, "name"=>$domainName, "addressType"=>"TREVA-DELEGATION", "trevaDelegationNameSystemID"=>$nameSystemID, "mailType"=>"NONE"));
+		stdNew("dnsDomain", array("customerID"=>$parentCustomerID, "parentDomainID"=>$parentDomainID, "name"=>$domainName, "addressType"=>"TREVA-DELEGATION", "trevaDelegationNameSystemID"=>$nameSystemID, "mailType"=>"NONE"));
 		
 		return true;
 	}
 	
 	public function disableAutoRenew($domainID)
 	{
-		$tldID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID");
+		$tldID = stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID");
 		$tldParentDomainID = $this->tldParentDomainID($tldID);
-		$GLOBALS["database"]->stdDel("dnsDomain", array("parentDomainID"=>$tldParentDomainID, "name"=>$this->domainsFormatDomainName($domainID)));
+		stdDel("dnsDomain", array("parentDomainID"=>$tldParentDomainID, "name"=>$this->domainsFormatDomainName($domainID)));
 	}
 	
 	public function enableAutoRenew($domainID)
@@ -36,7 +36,7 @@ class trevadnsapi
 	
 	public function domainStatus($domainID)
 	{
-		$tldID = $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID");
+		$tldID = stdGet("dnsDomain", array("domainID"=>$domainID), "domainTldID");
 		if($this->domainAvailable($this->domainsFormatDomainName($domainID), $tldID)) {
 			return "expired";
 		} else {
@@ -56,12 +56,12 @@ class trevadnsapi
 	
 	public function domainAvailable($domainName, $tldID)
 	{
-		return !$GLOBALS["database"]->stdExists("dnsDomain", array("parentDomainID"=>$this->tldParentDomainID($tldID), "name"=>$domainName));
+		return !stdExists("dnsDomain", array("parentDomainID"=>$this->tldParentDomainID($tldID), "name"=>$domainName));
 	}
 	
 	private function tldParentDomainID($tldID)
 	{
-		$tld = $GLOBALS["database"]->stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "name");
+		$tld = stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), "name");
 		$tldParts = explode(".", $tld);
 		$tldParts = array_reverse($tldParts);
 		$tld = "";
@@ -72,12 +72,12 @@ class trevadnsapi
 			} else {
 				$tld = $tldParts[$i] . "." . $tld;
 			}
-			$domainTldID = $GLOBALS["database"]->stdGetTry("infrastructureDomainTld", array("name"=>$tld), "domainTldID", null);
+			$domainTldID = stdGetTry("infrastructureDomainTld", array("name"=>$tld), "domainTldID", null);
 			if($domainTldID === null) {
 				continue;
 			}
 			for($j = $i + 1; $j < count($tldParts); $j++) {
-				$parentDomainID = $GLOBALS["database"]->stdGetTry("dnsDomain", array("name"=>$tldParts[$j], "parentDomainID"=>$parentDomainID, "domainTldID"=>$domainTldID), "domainID", null);
+				$parentDomainID = stdGetTry("dnsDomain", array("name"=>$tldParts[$j], "parentDomainID"=>$parentDomainID, "domainTldID"=>$domainTldID), "domainID", null);
 				$domainTldID = null;
 				if($parentDomainID == null) {
 					continue 2;
@@ -95,7 +95,7 @@ class trevadnsapi
 	
 	private function domainsFormatDomainName($domainID)
 	{
-		return $GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "name");
+		return stdGet("dnsDomain", array("domainID"=>$domainID), "name");
 	}
 }
 

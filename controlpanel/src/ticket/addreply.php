@@ -12,7 +12,7 @@ function main()
 	};
 	
 	$text = post("text");
-	$closed = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "status") == "CLOSED";
+	$closed = stdGet("ticketThread", array("threadID"=>$threadID), "status") == "CLOSED";
 	$doReopen = post("reopen") !== null;
 	$doClose = post("close") !== null;
 	

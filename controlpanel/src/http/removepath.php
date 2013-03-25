@@ -7,7 +7,7 @@ function main()
 	$pathID = get("id");
 	doHttpPath($pathID);
 	
-	if($GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "parentPathID") === null) {
+	if(stdGet("httpPath", array("pathID"=>$pathID), "parentPathID") === null) {
 		error404();
 	}
 	
@@ -23,7 +23,7 @@ function main()
 		$error .= "<ul>";
 		foreach($aliases as $alias) {
 			$name = httpPathName($alias);
-			$target = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$alias), "mirrorTargetPathID");
+			$target = stdGet("httpPath", array("pathID"=>$alias), "mirrorTargetPathID");
 			$targetName = httpPathName($target);
 			$error .= "<li><a href=\"{$GLOBALS["root"]}http/path.php?id=$alias\">$name</a>: alias for <a href=\"{$GLOBALS["root"]}http/path.php?id=$target\">$targetName</a></li>";
 		}
@@ -34,25 +34,25 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	$parentPathID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "parentPathID");
-	$domainID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), "domainID");
+	$parentPathID = stdGet("httpPath", array("pathID"=>$pathID), "parentPathID");
+	$domainID = stdGet("httpPath", array("pathID"=>$pathID), "domainID");
 	
-	$GLOBALS["database"]->startTransaction();
+	startTransaction();
 	httpRemovePath($pathID, $keepsubs);
 	while($parentPathID !== null &&
-		$GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$parentPathID), "type") == "NONE" &&
-		!$GLOBALS["database"]->stdExists("httpPath", array("parentPathID"=>$parentPathID)))
+		stdGet("httpPath", array("pathID"=>$parentPathID), "type") == "NONE" &&
+		!stdExists("httpPath", array("parentPathID"=>$parentPathID)))
 	{
-		$grandparentPathID = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$parentPathID), "parentPathID");
-		$GLOBALS["database"]->stdDel("httpPath", array("pathID"=>$parentPathID));
+		$grandparentPathID = stdGet("httpPath", array("pathID"=>$parentPathID), "parentPathID");
+		stdDel("httpPath", array("pathID"=>$parentPathID));
 		$parentPathID = $grandparentPathID;
 	}
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 	
 	// Distribute the accounts database
 	updateHttp(customerID());
 	
-	if($GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$parentPathID), "parentPathID") === null) {
+	if(stdGet("httpPath", array("pathID"=>$parentPathID), "parentPathID") === null) {
 		redirect("http/domain.php?id=$domainID");
 	} else {
 		redirect("http/path.php?id=$parentPathID");

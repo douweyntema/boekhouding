@@ -13,7 +13,7 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	$GLOBALS["database"]->stdSet("adminCustomer", array("customerID"=>$customerID), array("webmail"=>post("webmail") == "" ? null : post("webmail")));
+	stdSet("adminCustomer", array("customerID"=>$customerID), array("webmail"=>post("webmail") == "" ? null : post("webmail")));
 	
 	redirect("customers/customer.php?id=$customerID");
 }

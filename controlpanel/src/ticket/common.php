@@ -13,7 +13,7 @@ function doTicketThread($threadID)
 {
 	doTicket();
 	if(!isRoot()) {
-		useCustomer($GLOBALS["database"]->stdGetTry("ticketThread", array("threadID"=>$threadID), "customerID", false));
+		useCustomer(stdGetTry("ticketThread", array("threadID"=>$threadID), "customerID", false));
 	}
 }
 
@@ -40,9 +40,9 @@ function ticketBreadcrumbs($threadID)
 function adminThreadList($status)
 {
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("ticketThread", array("status"=>$status), array("threadID", "customerID", "userID", "title", "date")) as $thread) {
-		$customerName = $thread["customerID"] === null ? "-" : $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$thread["customerID"]), "name");
-		$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$thread["userID"]), "username");
+	foreach(stdList("ticketThread", array("status"=>$status), array("threadID", "customerID", "userID", "title", "date")) as $thread) {
+		$customerName = $thread["customerID"] === null ? "-" : stdGet("adminCustomer", array("customerID"=>$thread["customerID"]), "name");
+		$username = stdGet("adminUser", array("userID"=>$thread["userID"]), "username");
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}ticket/thread.php?id={$thread["threadID"]}", "text"=>"#{$thread["threadID"]}"),
 			$customerName,
@@ -58,8 +58,8 @@ function adminThreadList($status)
 function threadList($status)
 {
 	$rows = array();
-	foreach($GLOBALS["database"]->stdList("ticketThread", array("customerID"=>customerID(), "status"=>$status), array("threadID", "userID", "title", "date")) as $thread) {
-		$username = $GLOBALS["database"]->stdGet("adminUser", array("userID"=>$thread["userID"]), "username");
+	foreach(stdList("ticketThread", array("customerID"=>customerID(), "status"=>$status), array("threadID", "userID", "title", "date")) as $thread) {
+		$username = stdGet("adminUser", array("userID"=>$thread["userID"]), "username");
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}ticket/thread.php?id={$thread["threadID"]}", "text"=>"#{$thread["threadID"]}"),
 			$username,
@@ -75,19 +75,19 @@ function showThread($threadID)
 {
 	$output = "";
 	
-	$thread = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), array("threadID", "customerID", "userID", "status", "title", "text", "date"));
+	$thread = stdGet("ticketThread", array("threadID"=>$threadID), array("threadID", "customerID", "userID", "status", "title", "text", "date"));
 	
-	$replies = $GLOBALS["database"]->stdList("ticketReply", array("threadID"=>$threadID), array("replyID", "userID", "text", "date"), array("date"=>"asc"));
+	$replies = stdList("ticketReply", array("threadID"=>$threadID), array("replyID", "userID", "text", "date"), array("date"=>"asc"));
 	
 	$customerHtml = "";
 	if(isRoot()) {
 		if($thread["customerID"] === null) {
 			$customerHtml = "<tr><th>Customer:</th><td> - </td></tr>\n";
 		} else {
-			$customerHtml = "<tr><th>Customer:</th><td>" . htmlentities($GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$thread["customerID"]), "name")) . "</td></tr>\n";
+			$customerHtml = "<tr><th>Customer:</th><td>" . htmlentities(stdGet("adminCustomer", array("customerID"=>$thread["customerID"]), "name")) . "</td></tr>\n";
 		}
 	}
-	$userName = htmlentities($GLOBALS["database"]->stdGet("adminUser", array("userID"=>$thread["userID"]), "username"));
+	$userName = htmlentities(stdGet("adminUser", array("userID"=>$thread["userID"]), "username"));
 	$status = htmlentities(strtolower($thread["status"]));
 	$title = htmlentities($thread["title"]);
 	$date = date("d-m-Y H:i", $thread["date"]);
@@ -107,7 +107,7 @@ $customerHtml
 HTML;
 	
 	foreach($replies as $reply) {
-		$userName = htmlentities($GLOBALS["database"]->stdGet("adminUser", array("userID"=>$reply["userID"]), "username"));
+		$userName = htmlentities(stdGet("adminUser", array("userID"=>$reply["userID"]), "username"));
 		$date = date("d-m-Y H:i", $reply["date"]);
 		$text = nl2br(htmlentities($reply["text"]));
 		
@@ -141,7 +141,7 @@ function newThreadForm($error = "", $values = null)
 
 function newReplyForm($threadID, $error = "", $values = null)
 {
-	$closed = $GLOBALS["database"]->stdGet("ticketThread", array("threadID"=>$threadID), "status") == "CLOSED";
+	$closed = stdGet("ticketThread", array("threadID"=>$threadID), "status") == "CLOSED";
 	return operationForm("addreply.php?id=$threadID", $error, "New reply", "Reply",
 		array(
 			array("title"=>null, "type"=>"textarea", "name"=>"text"),

@@ -13,10 +13,10 @@ function main()
 	
 	$check(($domainName = post("name")) !== null, "");
 	$check(validDomainPart($domainName), "Invalid domain name.");
-	$check(!$GLOBALS["database"]->stdExists("dnsDomain", array("parentDomainID"=>$domainID, "name"=>$domainName)), "The chosen subdomain already exists.");
+	$check(!stdExists("dnsDomain", array("parentDomainID"=>$domainID, "name"=>$domainName)), "The chosen subdomain already exists.");
 	$check(post("confirm") !== null, null);
 	
-	$subdomainID = $GLOBALS["database"]->stdNew("dnsDomain", array("customerID"=>customerID(), "parentDomainID"=>$domainID, "name"=>$domainName));
+	$subdomainID = stdNew("dnsDomain", array("customerID"=>customerID(), "parentDomainID"=>$domainID, "name"=>$domainName));
 	
 	updateDomains(customerID());
 	

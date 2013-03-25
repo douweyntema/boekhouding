@@ -12,7 +12,7 @@ function sendMain()
 	};
 	
 	$invoiceLines = array();
-	foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), "invoiceLineID") as $invoiceLineID) {
+	foreach(stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), "invoiceLineID") as $invoiceLineID) {
 		if(post("invoiceline-" . $invoiceLineID) !== null) {
 			$invoiceLines[] = $invoiceLineID;
 		}
@@ -35,7 +35,7 @@ function deleteMain()
 	};
 	
 	$invoiceLines = array();
-	foreach($GLOBALS["database"]->stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), "invoiceLineID") as $invoiceLineID) {
+	foreach(stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), "invoiceLineID") as $invoiceLineID) {
 		if(post("invoiceline-" . $invoiceLineID) !== null) {
 			$invoiceLines[] = $invoiceLineID;
 		}
@@ -44,7 +44,7 @@ function deleteMain()
 	$check(post("confirm") !== null, null);
 	
 	foreach($invoiceLines as $invoiceLineID) {
-		$GLOBALS["database"]->stdDel("billingInvoiceLine", array("invoiceLineID"=>$invoiceLineID));
+		stdDel("billingInvoiceLine", array("invoiceLineID"=>$invoiceLineID));
 	}
 	
 	redirect("billing/customer.php?id=$customerID");

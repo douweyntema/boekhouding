@@ -7,7 +7,7 @@ function main()
 	$userID = get("id");
 	doAccount($userID);
 	
-	$username = htmlentities($GLOBALS["database"]->stdGet("adminUser", array("userID"=>$userID), "username"));
+	$username = htmlentities(stdGet("adminUser", array("userID"=>$userID), "username"));
 	
 	$check = function($condition, $error) use($userID, $username) {
 		if(!$condition) die(page(makeHeader("Accounts - $username", accountBreadcrumbs($userID), crumbs("Edit rights", "editrights.php?id=$userID")) . changeAccountRightsForm($userID, $error, $_POST)));
@@ -39,19 +39,19 @@ function main()
 		}
 	}
 	
-	$GLOBALS["database"]->startTransaction();
+	startTransaction();
 	if($rights === true) {
-		$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID));
-		$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "customerRightID"=>null));
+		stdDel("adminUserRight", array("userID"=>$userID));
+		stdNew("adminUserRight", array("userID"=>$userID, "customerRightID"=>null));
 	} else {
-		$GLOBALS["database"]->stdDel("adminUserRight", array("userID"=>$userID));
-		foreach($GLOBALS["database"]->stdList("adminCustomerRight", array("customerID"=>customerID()), array("customerRightID", "right")) as $right) {
+		stdDel("adminUserRight", array("userID"=>$userID));
+		foreach(stdList("adminCustomerRight", array("customerID"=>customerID()), array("customerRightID", "right")) as $right) {
 			if($rights[$right["right"]]) { // right...
-				$GLOBALS["database"]->stdNew("adminUserRight", array("userID"=>$userID, "customerRightID"=>$right["customerRightID"]));
+				stdNew("adminUserRight", array("userID"=>$userID, "customerRightID"=>$right["customerRightID"]));
 			}
 		}
 	}
-	$GLOBALS["database"]->commitTransaction();
+	commitTransaction();
 	
 	updateAccounts(customerID());
 	

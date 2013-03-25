@@ -14,14 +14,14 @@ function main()
 	
 	$check(validDomain($domainName), "Invalid domain name.");
 	
-	$tld = $GLOBALS["database"]->stdGetTry("infrastructureDomainTld", array("domainTldID"=>post("domainTldID")), "name", false);
+	$tld = stdGetTry("infrastructureDomainTld", array("domainTldID"=>post("domainTldID")), "name", false);
 	$check($tld !== false, "");
-	$fullDomainNameSql = $GLOBALS["database"]->addSlashes("$domainName.$tld");
-	$check($GLOBALS["database"]->query("SELECT `mailDomain`.`domainID` FROM `mailDomain` INNER JOIN `infrastructureDomainTld` USING(`domainTldID`) WHERE CONCAT_WS('.', `mailDomain`.`name`, `infrastructureDomainTld`.`name`) = '$fullDomainNameSql'")->numRows() == 0, "A domain with the chosen name already exists.");
+	$fullDomainNameSql = dbAddSlashes("$domainName.$tld");
+	$check(query("SELECT `mailDomain`.`domainID` FROM `mailDomain` INNER JOIN `infrastructureDomainTld` USING(`domainTldID`) WHERE CONCAT_WS('.', `mailDomain`.`name`, `infrastructureDomainTld`.`name`) = '$fullDomainNameSql'")->numRows() == 0, "A domain with the chosen name already exists.");
 	
 	$check(post("confirm") !== null, null);
 	
-	$domainID = $GLOBALS["database"]->stdNew("mailDomain", array("customerID"=>customerID(), "domainTldID"=>post("domainTldID"), "name"=>$domainName));
+	$domainID = stdNew("mailDomain", array("customerID"=>customerID(), "domainTldID"=>post("domainTldID"), "name"=>$domainName));
 	
 	updateMail(customerID());
 	

@@ -12,7 +12,7 @@ $username = $_REQUEST["username"];
 $oldpassword = $_REQUEST["oldpassword"];
 $newpassword = $_REQUEST["newpassword"];
 
-$user = $GLOBALS["database"]->stdGetTry("adminUser", array("username"=>$username), array("userID", "customerID", "username", "password"), false);
+$user = stdGetTry("adminUser", array("username"=>$username), array("userID", "customerID", "username", "password"), false);
 if($user === false) {
 	echo "wrongpassword";
 	die();
@@ -27,10 +27,10 @@ $newPasswordHash = crypt($newpassword, '$6$');
 ignore_user_abort(true);
 
 // Update the password
-$GLOBALS["database"]->stdSet("adminUser", array("username"=>$username), array("password"=>$newPasswordHash));
+stdSet("adminUser", array("username"=>$username), array("password"=>$newPasswordHash));
 
 // Distribute the accounts database
-$customerID = $GLOBALS["database"]->stdGet("adminUser", array("username"=>$username), "customerID");
+$customerID = stdGet("adminUser", array("username"=>$username), "customerID");
 updateAccounts($customerID);
 
 echo "success";

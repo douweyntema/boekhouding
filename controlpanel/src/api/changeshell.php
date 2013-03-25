@@ -27,7 +27,7 @@ $username = $_REQUEST["username"];
 $password = $_REQUEST["password"];
 $shell = $_REQUEST["shell"];
 
-$user = $GLOBALS["database"]->stdGetTry("adminUser", array("username"=>$username), array("userID", "customerID", "username", "password"), false);
+$user = stdGetTry("adminUser", array("username"=>$username), array("userID", "customerID", "username", "password"), false);
 if($user === false) {
 	echo "wrongpassword";
 	die();
@@ -44,10 +44,10 @@ if(!in_array($shell, $available_shells)) {
 ignore_user_abort(true);
 
 // Update the shell
-$GLOBALS["database"]->stdSet("adminUser", array("username"=>$username), array("shell"=>$shell));
+stdSet("adminUser", array("username"=>$username), array("shell"=>$shell));
 
 // Distribute the accounts database
-$customerID = $GLOBALS["database"]->stdGet("adminUser", array("username"=>$username), "customerID");
+$customerID = stdGet("adminUser", array("username"=>$username), "customerID");
 updateAccounts($customerID);
 
 echo "success";

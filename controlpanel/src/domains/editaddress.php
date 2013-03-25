@@ -16,10 +16,10 @@ function main()
 	$remove = function() use($domainID, $check) {
 		$check(post("confirm") !== null, null);
 		
-		$GLOBALS["database"]->startTransaction();
-		$GLOBALS["database"]->stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
-		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"A"));
-		$GLOBALS["database"]->stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA"));
+		startTransaction();
+		stdDel("dnsDelegatedNameServer", array("domainID"=>$domainID));
+		stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"A"));
+		stdDel("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA"));
 	};
 	
 	if($type == "none") {
@@ -45,10 +45,10 @@ function main()
 		
 		$remove();
 		if($ipv4 != "") {
-			$GLOBALS["database"]->stdNew("dnsRecord", array("domainID"=>$domainID, "type"=>"A", "value"=>$ipv4));
+			stdNew("dnsRecord", array("domainID"=>$domainID, "type"=>"A", "value"=>$ipv4));
 		}
 		if($ipv6 != "") {
-			$GLOBALS["database"]->stdNew("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA", "value"=>$ipv6));
+			stdNew("dnsRecord", array("domainID"=>$domainID, "type"=>"AAAA", "value"=>$ipv6));
 		}
 		$function = array("addressType"=>"IP");
 	} else if($type == "cname") {
@@ -59,7 +59,7 @@ function main()
 			$target = post("cnameTarget");
 		} else if(strpos($target, ".") === false) {
 			if(domainsIsSubDomain($domainID)) {
-				$_POST["cnameTarget"] .= "." . domainsFormatDomainName($GLOBALS["database"]->stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID"));
+				$_POST["cnameTarget"] .= "." . domainsFormatDomainName(stdGet("dnsDomain", array("domainID"=>$domainID), "parentDomainID"));
 			} else {
 				$_POST["cnameTarget"] .= "." . domainsFormatDomainName($domainID);
 			}
@@ -91,15 +91,15 @@ function main()
 		
 		$remove();
 		foreach($delegations as $server) {
-			$GLOBALS["database"]->stdNew("dnsDelegatedNameServer", array("domainID"=>$domainID, "hostname"=>trim($server["hostname"]), "ipv4Address"=>trim($server["ipv4Address"]), "ipv6Address"=>trim($server["ipv6Address"]) == "" ? null : trim($server["ipv6Address"])));
+			stdNew("dnsDelegatedNameServer", array("domainID"=>$domainID, "hostname"=>trim($server["hostname"]), "ipv4Address"=>trim($server["ipv4Address"]), "ipv6Address"=>trim($server["ipv6Address"]) == "" ? null : trim($server["ipv6Address"])));
 		}
 		$function = array("addressType"=>"DELEGATION");
 	} else {
 		die("Internal error");
 	}
 	
-	$GLOBALS["database"]->stdSet("dnsDomain", array("domainID"=>$domainID), array_merge(array("cnameTarget"=>null), $function));
-	$GLOBALS["database"]->commitTransaction();
+	stdSet("dnsDomain", array("domainID"=>$domainID), array_merge(array("cnameTarget"=>null), $function));
+	commitTransaction();
 	
 	updateDomains(customerID());
 	

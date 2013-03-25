@@ -7,7 +7,7 @@ function main()
 	$customerID = get("id");
 	doCustomer($customerID);
 	
-	$customerName = $GLOBALS["database"]->stdGet("adminCustomer", array("customerID"=>$customerID), "name");
+	$customerName = stdGet("adminCustomer", array("customerID"=>$customerID), "name");
 	
 	$content = makeHeader("Customers - $customerName", customerBreadcrumbs($customerID));
 	$content .= customerLogin($customerID);
