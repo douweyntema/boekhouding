@@ -95,6 +95,32 @@ function accountingDeleteTransaction($transactionID)
 	$GLOBALS["database"]->commitTransaction();
 }
 
+function accountingTransactionBalance($lines)
+{
+	$valutaTotal = array();
+	$currencies = array();
+	foreach($lines as $line) {
+		$currencyID = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$line["accountID"]), "currencyID");
+		if(!isset($valutaTotal[$currencyID])) {
+			$valutaTotal[$currencyID] = 0;
+			$currencies[] = $currencyID;
+		}
+		$valutaTotal[$currencyID] += $line["amount"];
+	}
+	if(count($valutaTotal) == 0) {
+		return false;
+	} else if(count($valutaTotal) == 1) {
+		return array("type"=>"single", "status"=>($valutaTotal[$currencies[0]] == 0));
+	} else if(count($valutaTotal) == 2) {
+		return array("type"=>"double", "rates"=>array(
+			array("from"=>$currencies[0], "to"=>$currencies[1], "rate"=>$valutaTotal[$currencies[1]] / $valutaTotal[$currencies[0]] * -100),
+			array("from"=>$currencies[1], "to"=>$currencies[0], "rate"=>$valutaTotal[$currencies[0]] / $valutaTotal[$currencies[1]] * -100),
+		));
+	} else {
+		return array("type"=>"multiple");
+	}
+}
+
 function accountingFsck()
 {
 	$accounts = $GLOBALS["database"]->query("SELECT account.accountID AS accountID, account.balance AS balance, SUM(transactionLine.amount) AS sum FROM accountingAccount AS account LEFT JOIN accountingTransactionLine AS transactionLine USING(accountID) WHERE account.isDirectory = 0 GROUP BY account.accountID, account.balance")->fetchList();
