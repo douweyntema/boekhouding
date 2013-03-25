@@ -6,7 +6,7 @@ function main()
 {
 	$accountID = get("id");
 	doAccountingAccount($accountID);
-	if($accountID != 0 && !$GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory")) {
+	if($accountID != 0 && !stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory")) {
 		error404();
 	}
 	
@@ -21,7 +21,7 @@ function main()
 	$check(($currencyID = post("currencyID")) != null, "");
 	
 	$check($name != "", "Missing account name.");
-	$check($GLOBALS["database"]->stdExists("accountingCurrency", array("currencyID"=>$currencyID)), "Invalid currency.");
+	$check(stdExists("accountingCurrency", array("currencyID"=>$currencyID)), "Invalid currency.");
 	$check(post("confirm") !== null, null);
 	
 	$newAccountID = accountingAddAccount($accountID == 0 ? null : $accountID, $currencyID, $name, $description, $isDirectory);

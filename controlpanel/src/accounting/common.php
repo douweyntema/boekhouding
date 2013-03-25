@@ -12,7 +12,7 @@ function doAccounting()
 function doAccountingAccount($accountID)
 {
 	doAccounting();
-	if($accountID != 0 && !$GLOBALS["database"]->stdExists("accountingAccount", array("accountID"=>$accountID))) {
+	if($accountID != 0 && !stdExists("accountingAccount", array("accountID"=>$accountID))) {
 		error404();
 	}
 }
@@ -37,14 +37,14 @@ function accountBreadcrumbs($accountID)
 	if($accountID == 0) {
 		return accountingBreadcrumbs();
 	}
-	$name = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "name");
+	$name = stdGet("accountingAccount", array("accountID"=>$accountID), "name");
 	return array_merge(accountingBreadcrumbs(), crumbs("Account " . $name, "account.php?id=$accountID"));
 }
 
 
 function accountList()
 {
-	$rootNodes = $GLOBALS["database"]->stdList("accountingAccount", array("parentAccountID"=>null), "accountID");
+	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID");
 	$accountList = array();
 	foreach($rootNodes as $rootNode) {
 		$accountTree = accountTree($rootNode);
@@ -68,10 +68,10 @@ function accountList()
 
 function accountTree($accountID, $excludedAccountID = null)
 {
-	$accountIDSql = $GLOBALS["database"]->addSlashes($accountID);
-	$output = $GLOBALS["database"]->query("SELECT accountID, parentAccountID, accountingAccount.name AS name, description, isDirectory, balance, accountingCurrency.symbol AS currencySymbol, accountingCurrency.name AS currencyName FROM accountingAccount INNER JOIN accountingCurrency USING(currencyID) WHERE accountID = '$accountIDSql'")->fetchArray();
+	$accountIDSql = dbAddSlashes($accountID);
+	$output = query("SELECT accountID, parentAccountID, accountingAccount.name AS name, description, isDirectory, balance, accountingCurrency.symbol AS currencySymbol, accountingCurrency.name AS currencyName FROM accountingAccount INNER JOIN accountingCurrency USING(currencyID) WHERE accountID = '$accountIDSql'")->fetchArray();
 	$output["subaccounts"] = array();
-	foreach($GLOBALS["database"]->stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID") as $subAccountID) {
+	foreach(stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID") as $subAccountID) {
 		if($excludedAccountID !== null && $subAccountID["accountID"] == $excludedAccountID) {
 			continue;
 		}
@@ -105,11 +105,11 @@ function transactionList($accountID)
 	$balance = 0;
 	$subAccounts = subAccountList($accountID);
 	
-	$currencyID = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
-	$currencySymbol = $GLOBALS["database"]->stdGet("accountingCurrency", array("currencyID"=>$currencyID), "symbol");
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
+	$currencySymbol = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "symbol");
 	
 	foreach($transactions as $transaction) {
-		$lines = $GLOBALS["database"]->stdList("accountingTransactionLine", array("transactionID"=>$transaction["transactionID"]), array("transactionLineID", "accountID", "amount"));
+		$lines = stdList("accountingTransactionLine", array("transactionID"=>$transaction["transactionID"]), array("transactionLineID", "accountID", "amount"));
 		
 		$currentLineAmount = 0;
 		foreach($lines as $line) {
@@ -128,8 +128,8 @@ function transactionList($accountID)
 		));
 		
 		foreach($lines as $line) {
-			$account = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$line["accountID"]), array("name", "currencyID"));
-			$lineCurrencySymbol = $GLOBALS["database"]->stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "symbol");
+			$account = stdGet("accountingAccount", array("accountID"=>$line["accountID"]), array("name", "currencyID"));
+			$lineCurrencySymbol = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "symbol");
 			$rows[] = array("id"=>"transactionline-" . $line["transactionLineID"], "class"=>"child-of-transaction-{$transaction["transactionID"]} transactionline", "cells"=>array(
 				array("text"=>""),
 				array("url"=>"account.php?id={$line["accountID"]}", "text"=>$account["name"]),
@@ -143,11 +143,11 @@ function transactionList($accountID)
 
 function transactions($accountID)
 {
-	if($GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory") == 0) {
-		return $GLOBALS["database"]->query("SELECT transactionID, date, description FROM accountingTransaction INNER JOIN accountingTransactionLine USING(transactionID) WHERE accountID = '" . $GLOBALS["database"]->addSlashes($accountID) . "'")->fetchMap("transactionID");
+	if(stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory") == 0) {
+		return query("SELECT transactionID, date, description FROM accountingTransaction INNER JOIN accountingTransactionLine USING(transactionID) WHERE accountID = '" . dbAddSlashes($accountID) . "'")->fetchMap("transactionID");
 	} else {
 		$output = array();
-		$subAccounts = $GLOBALS["database"]->stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID");
+		$subAccounts = stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID");
 		foreach($subAccounts as $subAccountID) {
 			$transactions = transactions($subAccountID);
 			foreach($transactions as $transactionID=>$transaction) {
@@ -162,9 +162,9 @@ function subAccountList($accountID, $currencyID = null)
 {
 	$output = array($accountID);
 	if($currencyID === null) {
-		$currencyID = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
+		$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
 	}
-	$subAccounts = $GLOBALS["database"]->stdList("accountingAccount", array("parentAccountID"=>$accountID, "currencyID"=>$currencyID), "accountID");
+	$subAccounts = stdList("accountingAccount", array("parentAccountID"=>$accountID, "currencyID"=>$currencyID), "accountID");
 	foreach($subAccounts as $subAccount) {
 		$output = array_merge($output, subAccountList($subAccount, $currencyID));
 	}
@@ -186,10 +186,10 @@ function addTransactionForm($accountID, $error = "", $values = null, $balance = 
 		}
 	}
 	
-	$accounts = $GLOBALS["database"]->stdList("accountingAccount", array("isDirectory"=>0), array("accountID", "name", "currencyID"));
+	$accounts = stdList("accountingAccount", array("isDirectory"=>0), array("accountID", "name", "currencyID"));
 	$accountOptions = array(array("label"=>"", "value"=>""));
 	foreach($accounts as $account) {
-		$currency = $GLOBALS["database"]->stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "name");
+		$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "name");
 		$accountOptions[] = array("label"=>$account["name"] . " ("  . $currency . ")", "value"=>$account["accountID"]);
 	}
 	
@@ -198,8 +198,8 @@ function addTransactionForm($accountID, $error = "", $values = null, $balance = 
 	$rates2 = null;
 	if($error === null && $balance !== null) {
 		if($balance["type"] == "double") {
-			$currency1 = $GLOBALS["database"]->stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));
-			$currency2 = $GLOBALS["database"]->stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["to"]), array("name", "symbol"));
+			$currency1 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));
+			$currency2 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["to"]), array("name", "symbol"));
 			
 			$rates1 = array("title"=>"Exchange rate", "type"=>"colspan", "columns"=>array(
 				array("type"=>"html", "html"=>formatPrice(100, $currency1["symbol"]) . " (" . $currency1["name"] . ")"),
@@ -231,7 +231,7 @@ function addTransactionForm($accountID, $error = "", $values = null, $balance = 
 function currencyOptions()
 {
 	$output = array();
-	foreach($GLOBALS["database"]->stdList("accountingCurrency", array(), array("currencyID", "name")) as $currency) {
+	foreach(stdList("accountingCurrency", array(), array("currencyID", "name")) as $currency) {
 		$output[] = array("label"=>$currency["name"], "value"=>$currency["currencyID"]);
 	}
 	return $output;
@@ -263,7 +263,7 @@ function editAccountForm($accountID, $error = "", $values = null)
 	}
 	
 	if($values === null || $error === "") {
-		$values = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), array("name", "description"));
+		$values = stdGet("accountingAccount", array("accountID"=>$accountID), array("name", "description"));
 	}
 	
 	return operationForm("editaccount.php?id=$accountID", $error, "Edit account", "Save",
@@ -280,7 +280,7 @@ function moveAccountForm($accountID, $error = "", $values = null)
 		return operationForm("moveaccount.php?id=$accountID", "", "Move account", "Move Account", array(), array());
 	}
 	
-	$rootNodes = $GLOBALS["database"]->stdList("accountingAccount", array("parentAccountID"=>null), "accountID");
+	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID");
 	$accountList = array();
 	foreach($rootNodes as $rootNode) {
 		if($rootNode == $accountID) {
@@ -299,7 +299,7 @@ function moveAccountForm($accountID, $error = "", $values = null)
 	}
 	
 	if($values === null || $error === "") {
-		$values = array("parentAccountID"=>$GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "parentAccountID"));
+		$values = array("parentAccountID"=>stdGet("accountingAccount", array("accountID"=>$accountID), "parentAccountID"));
 	}
 	
 	return operationForm("moveaccount.php?id=$accountID", $error, "Move account", "Save", 

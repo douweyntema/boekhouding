@@ -17,11 +17,11 @@ function main()
 		$parentAccountID = null;
 	}
 	
-	$check($parentAccountID === null || $GLOBALS["database"]->stdExists("accountingAccount", array("accountID"=>$parentAccountID)), "Invalid target account");
+	$check($parentAccountID === null || stdExists("accountingAccount", array("accountID"=>$parentAccountID)), "Invalid target account");
 	$target = $parentAccountID;
 	while($target !== null) {
 		$check($target != $accountID, "Invalid target account");
-		$target = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$target), "parentAccountID");
+		$target = stdGet("accountingAccount", array("accountID"=>$target), "parentAccountID");
 	}
 	
 	$check(post("confirm") !== null, null);
