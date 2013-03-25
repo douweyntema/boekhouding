@@ -59,25 +59,28 @@ function accountList()
 	return listTable(array("Rekening", "Saldo"), $rows, null, true, "list tree");
 }
 
-function accountTree($accountID)
+function accountTree($accountID, $excludedAccountID = null)
 {
 	$accountIDSql = $GLOBALS["database"]->addSlashes($accountID);
 	$output = $GLOBALS["database"]->query("SELECT accountID, parentAccountID, accountingAccount.name AS name, description, isDirectory, balance, accountingCurrency.symbol AS currency FROM accountingAccount INNER JOIN accountingCurrency USING(currencyID) WHERE accountID = '$accountIDSql'")->fetchArray();
 	$output["subaccounts"] = array();
 	foreach($GLOBALS["database"]->stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID") as $subAccountID) {
+		if($excludedAccountID !== null && $subAccountID["accountID"] == $excludedAccountID) {
+			continue;
+		}
 		$output["subaccounts"][] = accountTree($subAccountID);
 	}
 	return $output;
 }
 
-function flattenAccountTree($tree, $parentID = null)
+function flattenAccountTree($tree, $parentID = null, $depth = 0)
 {
 	$id = "account-" . $tree["accountID"];
 	$output = array();
 	
-	$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID));
+	$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID, "depth"=>$depth));
 	foreach($tree["subaccounts"] as $account) {
-		$output = array_merge($output, flattenAccountTree($account, $id));
+		$output = array_merge($output, flattenAccountTree($account, $id, $depth + 1));
 	}
 	return $output;
 }
@@ -196,6 +199,44 @@ function editAccountForm($accountID, $error = "", $values = null)
 		$values);
 }
 
+function moveAccountForm($accountID, $error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("moveaccount.php?id=$accountID", "", "Move account", "Move Account", array(), array());
+	}
+	
+	$rootNodes = $GLOBALS["database"]->stdList("accountingAccount", array("parentAccountID"=>null), "accountID");
+	$accountList = array();
+	foreach($rootNodes as $rootNode) {
+		if($rootNode == $accountID) {
+			continue;
+		}
+		$accountTree = accountTree($rootNode, $accountID);
+		$accountList = array_merge($accountList, flattenAccountTree($accountTree));
+	}
+	
+	$options = array();
+	$options[] = array("label"=>"Top-level Account", "value"=>"0");
+	foreach($accountList as $account) {
+		if($account["isDirectory"]) {
+			$options[] = array("label"=>str_repeat("&nbsp;&nbsp;&nbsp;", $account["depth"] + 1) . $account["name"], "value"=>$account["accountID"]);
+		}
+	}
+	
+	if($values === null || $error === "") {
+		$values = array("parentAccountID"=>$GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "parentAccountID"));
+	}
+	
+	return operationForm("moveaccount.php?id=$accountID", $error, "Move account", "Save", 
+		array(
+			array("title"=>"Move To", "type"=>"dropdown", "name"=>"parentAccountID", "options"=>$options)
+		),
+		$values);
+}
 
+function deleteAccountForm($accountID, $error = "", $values = null)
+{
+	return operationForm("deleteaccount.php?id=$accountID", $error, "Delete account", "Delete", array(), $values);
+}
 
 ?>

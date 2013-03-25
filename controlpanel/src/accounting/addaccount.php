@@ -15,10 +15,10 @@ function main()
 	};
 	
 	$isDirectory = post("type") == "directory";
+	$description = post("description");
 	
 	$check(($name = post("name")) !== null, "");
 	$check(($currencyID = post("currencyID")) != null, "");
-	$check(($description = post("description")) != null, "");
 	
 	$check($name != "", "Missing account name.");
 	$check($GLOBALS["database"]->stdExists("accountingCurrency", array("currencyID"=>$currencyID)), "Invalid currency.");

@@ -13,6 +13,13 @@ function main()
 		$content .= addAccountForm($accountID, "STUB");
 	}
 	$content .= editAccountForm($accountID, "STUB");
+	$content .= moveAccountForm($accountID, "STUB");
+	if(
+		!$GLOBALS["database"]->stdExists("accountingTransactionLine", array("accountID"=>$accountID))
+		&& !$GLOBALS["database"]->stdExists("accountingAccount", array("parentAccountID"=>$accountID)))
+	{
+		$content .= deleteAccountForm($accountID);
+	}
 	echo page($content);
 }
 
