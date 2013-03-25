@@ -8,10 +8,10 @@ function main()
 	
 	$content = makeHeader("Boekhouding", accountingBreadcrumbs());
 	$content .= accountList();
+	$content .= addAccountForm(0, "STUB");
 	echo page($content);
 }
 
-accountingFsck();
 main();
 
 ?>

@@ -4,14 +4,23 @@ require_once("common.php");
 
 function main()
 {
-	doAccounting();
-	
 	$accountID = get("id");
-	$content = makeHeader("Boekhouding", accountBreadcrumbs($accountID));
+	doAccountingAccount($accountID);
 	
+	$content = makeHeader("Boekhouding", accountBreadcrumbs($accountID));
 	$content .= transactionList($accountID);
-	if($GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory") == 0) {
+	if($GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory")) {
+		$content .= addAccountForm($accountID, "STUB");
+	} else {
 		$content .= addTransactionForm($accountID);
+	}
+	$content .= editAccountForm($accountID, "STUB");
+	$content .= moveAccountForm($accountID, "STUB");
+	if(
+		!$GLOBALS["database"]->stdExists("accountingTransactionLine", array("accountID"=>$accountID))
+		&& !$GLOBALS["database"]->stdExists("accountingAccount", array("parentAccountID"=>$accountID)))
+	{
+		$content .= deleteAccountForm($accountID);
 	}
 	echo page($content);
 }

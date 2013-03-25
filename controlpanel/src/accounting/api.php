@@ -5,7 +5,7 @@ $accountingTarget = "admin";
 
 function accountingAddAccount($parentAccountID, $currencyID, $name, $description, $isDirectory)
 {
-	if($parentAccountID !== null && $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$parentAccountID)) != 1) {
+	if($parentAccountID !== null && !$GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$parentAccountID), "isDirectory") != 1) {
 		throw new AssertionError();
 	}
 	
@@ -19,26 +19,29 @@ function accountingEditAccount($accountID, $name, $description)
 
 function accountingMoveAccount($accountID, $parentAccountID)
 {
-	if($parentAccountID !== null && $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$parentAccountID)) != 1) {
+	if($parentAccountID !== null && $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$parentAccountID), "isDirectory") != 1) {
 		throw new AssertionError();
 	}
 	
 	$GLOBALS["database"]->startTransaction();
-	$balance = $GLOBALS["database"]->stdGet("accountingAccount", array("account"=>$accountID), "balance");
-	$oldParentAccountID = $GLOBALS["database"]->stdGet("accountingAccount", array("account"=>$accountID), "parentAccountID");
+	$balance = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "balance");
+	$oldParentAccountID = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "parentAccountID");
 	accountingAddBalance($oldParentAccountID, -$balance);
-	$GLOBALS["database"]->stdSet("accountingAccount", array("account"=>$accountID), array("parentAccountID"=>$parentAccountID));
+	$GLOBALS["database"]->stdSet("accountingAccount", array("accountID"=>$accountID), array("parentAccountID"=>$parentAccountID));
 	accountingAddBalance($parentAccountID, $balance);
 	$GLOBALS["database"]->commitTransaction();
 }
 
 function accountingDeleteAccount($accountID)
 {
-	$GLOBALS["database"]->stdDelete("accountingAccount", array("accountID"=>$accountID));
+	$GLOBALS["database"]->stdDel("accountingAccount", array("accountID"=>$accountID));
 }
 
 function accountingAddBalance($accountID, $amount)
 {
+	if($accountID === null) {
+		return;
+	}
 	$GLOBALS["database"]->startTransaction();
 	$currencyID = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
 	while($accountID !== null) {
