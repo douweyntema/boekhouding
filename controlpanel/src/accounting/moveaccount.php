@@ -9,7 +9,7 @@ function main()
 	if($accountID == 0) error404();
 	
 	$check = function($condition, $error) use($accountID) {
-		if(!$condition) die(page(makeHeader("Move account", accountingBreadcrumbs(), crumbs("Move account", "moveaccount.php?id=$accountID")) . moveAccountForm($accountID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("Move account", accountBreadcrumbs($accountID), crumbs("Move account", "moveaccount.php?id=$accountID")) . moveAccountForm($accountID, $error, $_POST)));
 	};
 	
 	$check(($parentAccountID = post("parentAccountID")) !== null, "");

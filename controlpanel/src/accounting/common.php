@@ -29,13 +29,16 @@ function crumbs($name, $filename)
 
 function accountingBreadcrumbs()
 {
-	return crumbs("Boekhouding", "");
+	return crumbs("Accounting", "");
 }
 
 function accountBreadcrumbs($accountID)
 {
+	if($accountID == 0) {
+		return accountingBreadcrumbs();
+	}
 	$name = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "name");
-	return array_merge(accountingBreadcrumbs(), crumbs("Rekening " . $name, "account.php?id=$accountID"));
+	return array_merge(accountingBreadcrumbs(), crumbs("Account " . $name, "account.php?id=$accountID"));
 }
 
 
@@ -60,7 +63,7 @@ function accountList()
 			array("html"=>formatPrice($account["balance"], $account["currencySymbol"])),
 		));
 	}
-	return listTable(array("Rekening", "Saldo"), $rows, null, true, "list tree");
+	return listTable(array("Account", "Balance"), $rows, null, true, "list tree");
 }
 
 function accountTree($accountID, $excludedAccountID = null)

@@ -6,8 +6,8 @@ function main()
 {
 	$accountID = get("id");
 	doAccountingAccount($accountID);
-	
-	$content = makeHeader("Boekhouding", accountBreadcrumbs($accountID));
+	$accountName = $GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "name");
+	$content = makeHeader("Account $accountName", accountBreadcrumbs($accountID));
 	$content .= transactionList($accountID);
 	if($GLOBALS["database"]->stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory")) {
 		$content .= addAccountForm($accountID, "STUB");

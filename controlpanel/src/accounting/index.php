@@ -6,7 +6,7 @@ function main()
 {
 	doAccounting();
 	
-	$content = makeHeader("Boekhouding", accountingBreadcrumbs());
+	$content = makeHeader("Accounting", accountingBreadcrumbs());
 	$content .= accountList();
 	$content .= addAccountForm(0, "STUB");
 	echo page($content);

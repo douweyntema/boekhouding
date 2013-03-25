@@ -11,7 +11,7 @@ function main()
 	}
 	
 	$check = function($condition, $error) use($accountID) {
-		if(!$condition) die(page(makeHeader("Add account", accountingBreadcrumbs(), crumbs("Add account", "addaccount.php?id=$accountID")) . addAccountForm($accountID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("Add account", accountBreadcrumbs($accountID), crumbs("Add account", "addaccount.php?id=$accountID")) . addAccountForm($accountID, $error, $_POST)));
 	};
 	
 	$isDirectory = post("type") == "directory";

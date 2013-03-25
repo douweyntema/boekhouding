@@ -1,6 +1,6 @@
 <?php
 
-$accountingTitle = "Boekhouding";
+$accountingTitle = "Accounting";
 $accountingTarget = "admin";
 
 function accountingAddAccount($parentAccountID, $currencyID, $name, $description, $isDirectory)

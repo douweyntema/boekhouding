@@ -9,7 +9,7 @@ function main()
 	if($accountID == 0) error404();
 	
 	$check = function($condition, $error) use($accountID) {
-		if(!$condition) die(page(makeHeader("Delete account", accountingBreadcrumbs(), crumbs("Delete account", "deleteaccount.php?id=$accountID")) . deleteAccountForm($accountID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("Delete account", accountBreadcrumbs($accountID), crumbs("Delete account", "deleteaccount.php?id=$accountID")) . deleteAccountForm($accountID, $error, $_POST)));
 	};
 	
 	$check(!$GLOBALS["database"]->stdExists("accountingTransactionLine", array("accountID"=>$accountID)), "Account is still in use.");
