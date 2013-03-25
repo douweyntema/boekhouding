@@ -283,11 +283,16 @@ function transactionForm($error = "", $values = null, $balance = null)
 		}
 	}
 	
-	$accounts = stdList("accountingAccount", array("isDirectory"=>0), array("accountID", "name", "currencyID"));
-	$accountOptions = array(array("label"=>"", "value"=>""));
-	foreach($accounts as $account) {
-		$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "name");
-		$accountOptions[] = array("label"=>$account["name"] . " ("  . $currency . ")", "value"=>$account["accountID"]);
+	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID");
+	$accountList = array();
+	foreach($rootNodes as $rootNode) {
+		$accountTree = accountTree($rootNode);
+		$accountList = array_merge($accountList, flattenAccountTree($accountTree));
+	}
+	
+	$accountOptions = array();
+	foreach($accountList as $account) {
+		$accountOptions[] = array("label"=>str_repeat("&nbsp;&nbsp;&nbsp;", $account["depth"]) . $account["name"], "value"=>$account["accountID"], "disabled"=>$account["isDirectory"] ? true : false);
 	}
 	
 	$message = array();

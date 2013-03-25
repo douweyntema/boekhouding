@@ -256,6 +256,9 @@ function renderCell($cell, $values, $readOnly)
 			if($option["value"] == $value) {
 				$output["content"] .= " selected=\"selected\"";
 			}
+			if(isset($option["disabled"]) && $option["disabled"]) {
+				$output["content"] .= " disabled=\"disabled\"";
+			}
 			$output["content"] .= ">{$option["label"]}</option>\n";
 		}
 		$output["content"] .= "</select>";
