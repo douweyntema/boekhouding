@@ -557,10 +557,19 @@ function renderTable($fields, $values, $readOnly, $submitCaption = null, $submit
 	}
 	
 	$output = "<table>\n";
-	if($maxLeftFields == 1) {
+	if($leftMergeUsed && $maxLeftFields > 2) {
 		$output .= "<col />";
-	} else if($maxLeftFields > 0) {
-		$output .= "<col span=\"$maxLeftFields\" />";
+		$output .= "<col style=\"width: 0.0001%\"/>";
+		$output .= "<col style=\"width: 0.1%\" />";
+		if($maxLeftFields > 3) {
+			$output .= "<col span=\"" . ($maxLeftFields - 3) . "\" />";
+		}
+	} else {
+		if($maxLeftFields == 1) {
+			$output .= "<col />";
+		} else if($maxLeftFields > 0) {
+			$output .= "<col span=\"$maxLeftFields\" />";
+		}
 	}
 	$output .= "<col style=\"width: 100%;\" />";
 	if($maxRightFields == 1) {
