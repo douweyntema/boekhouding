@@ -283,18 +283,6 @@ function transactionForm($error = "", $values = null, $balance = null)
 		}
 	}
 	
-	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID");
-	$accountList = array();
-	foreach($rootNodes as $rootNode) {
-		$accountTree = accountTree($rootNode);
-		$accountList = array_merge($accountList, flattenAccountTree($accountTree));
-	}
-	
-	$accountOptions = array();
-	foreach($accountList as $account) {
-		$accountOptions[] = array("label"=>str_repeat("&nbsp;&nbsp;&nbsp;", $account["depth"]) . $account["name"], "value"=>$account["accountID"], "disabled"=>$account["isDirectory"] ? true : false);
-	}
-	
 	$message = array();
 	$rates1 = null;
 	$rates2 = null;
@@ -323,7 +311,7 @@ function transactionForm($error = "", $values = null, $balance = null)
 		$rates1,
 		$rates2,
 		array("type"=>"array", "field"=>array("title"=>"Account", "type"=>"colspan", "columns"=>array(
-			array("type"=>"dropdown", "name"=>"accountID", "options"=>$accountOptions),
+			array("type"=>"dropdown", "name"=>"accountID", "options"=>accountOptions()),
 			array("type"=>"text", "name"=>"amount", "fill"=>true),
 		))),
 	);
@@ -364,6 +352,42 @@ function editTransactionForm($transactionID, $accountID, $error = "", $values = 
 function deleteTransactionForm($transactionID, $accountID, $error = "", $values = null)
 {
 	return operationForm("deletetransaction.php?id=$transactionID&accountID=$accountID", $error, "Delete transaction", "Delete", array(), $values);
+}
+
+function addSupplierForm($error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("addsupplier.php", $error, "Add supplier", "Add Supplier", array(), array());
+	}
+	
+	return operationForm("addsupplier.php", $error, "Add supplier", "Add Supplier",
+		array(
+			array("title"=>"Name", "type"=>"text", "name"=>"name"),
+			array("title"=>"Currency", "type"=>"dropdown", "name"=>"currencyID", "options"=>currencyOptions()),
+			array("title"=>"Default expense account", "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountOptions()),
+			array("title"=>"Description", "type"=>"textarea", "name"=>"description")
+		),
+		$values);
+}
+
+function accountOptions($allowEmpty = false)
+{
+	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID");
+	$accountList = array();
+	foreach($rootNodes as $rootNode) {
+		$accountTree = accountTree($rootNode);
+		$accountList = array_merge($accountList, flattenAccountTree($accountTree));
+	}
+	
+	$accountOptions = array();
+	if($allowEmpty) {
+		$accountOptions[] = array("label"=>"", "value"=>0);
+	}
+	foreach($accountList as $account) {
+		$accountOptions[] = array("label"=>str_repeat("&nbsp;&nbsp;&nbsp;", $account["depth"]) . $account["name"], "value"=>$account["accountID"], "disabled"=>$account["isDirectory"] ? true : false);
+	}
+	
+	return $accountOptions;
 }
 
 ?>
