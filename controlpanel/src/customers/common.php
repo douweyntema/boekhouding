@@ -74,16 +74,6 @@ function customerMijnDomeinReseller($customerID, $error = "", $values = null)
 	), $values);
 }
 
-function editCustomerWebmail($customerID, $error = "", $values = null)
-{
-	if($values === null) {
-		$values["webmail"] = stdGet("adminCustomer", array("customerID"=>$customerID), "webmail");
-	}
-	return operationForm("updatewebmail.php?id=$customerID", $error, "Update webmail", "Edit", array(
-			array("title"=>"Webmail", "type"=>"text", "name"=>"webmail")
-	), $values);
-}
-
 function customerLogin($customerID)
 {
 	$customerName = stdGet("adminCustomer", array("customerID"=>$customerID), "name");
@@ -142,13 +132,14 @@ function addCustomerForm($error = "", $values = null)
 			array("type"=>"text", "name"=>"invoiceFrequencyMultiplier", "fill"=>true),
 			array("type"=>"dropdown", "name"=>"invoiceFrequencyBase", "options"=>dropdown(array("DAY"=>"days", "MONTH"=>"months", "YEAR"=>"years")))
 		)),
+		array("title"=>"Webmail", "type"=>"text", "name"=>"webmail"),
 		array("title"=>"Rights", "type"=>"rowspan", "rows"=>$rights)
 	), $values);
 }
 
 function editCustomerForm($customerID, $error = "", $values = null)
 {
-	$customer = stdGet("adminCustomer", array("customerID"=>$customerID), array("fileSystemID", "mailSystemID", "nameSystemID", "name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber", "groupname", "diskQuota", "mailQuota", "invoiceFrequencyBase", "invoiceFrequencyMultiplier"));
+	$customer = stdGet("adminCustomer", array("customerID"=>$customerID), array("fileSystemID", "mailSystemID", "nameSystemID", "name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber", "groupname", "diskQuota", "mailQuota", "invoiceFrequencyBase", "invoiceFrequencyMultiplier", "webmail"));
 	
 	$fileSystemNameHtml = htmlentities(stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), "name"));
 	$mailSystemNameHtml = htmlentities(stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), "name"));
@@ -184,7 +175,8 @@ function editCustomerForm($customerID, $error = "", $values = null)
 			array("type"=>"html", "html"=>"per"),
 			array("type"=>"text", "name"=>"invoiceFrequencyMultiplier", "fill"=>true),
 			array("type"=>"dropdown", "name"=>"invoiceFrequencyBase", "options"=>dropdown(array("DAY"=>"days", "MONTH"=>"months", "YEAR"=>"years")))
-		))
+		)),
+		array("title"=>"Webmail", "type"=>"text", "name"=>"webmail")
 	), $values);
 }
 

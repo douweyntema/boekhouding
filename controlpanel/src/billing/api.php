@@ -347,11 +347,6 @@ function billingCreateInvoiceResend($invoiceID)
 	}
 }
 
-function billingCustomerBalance($customerID)
-{
-	return stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
-}
-
 function billingAddPayment($customerID, $amount, $date, $desciption)
 {
 	startTransaction();
@@ -364,36 +359,10 @@ function billingAddPayment($customerID, $amount, $date, $desciption)
 	billingDistributeFunds($customerID);
 }
 
-function billingDistributeFunds($customerID)
-{
-	startTransaction();
-	stdLock("adminCustomer", array("customerID"=>$customerID));
-	stdLock("billingInvoice", array("customerID"=>$customerID));
-	
-	$balance = stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
-	
-	foreach(query("SELECT invoiceID, remainingAmount FROM billingInvoice WHERE customerID='" . dbAddSlashes($customerID) . "' AND remainingAmount > 0 ORDER BY date")->fetchMap("invoiceID", "remainingAmount") as $invoiceID=>$remainingAmount) {
-		$change = min($balance, $remainingAmount);
-		if($change > 0) {
-			$remainingAmount -= $change;
-			$balance -= $change;
-			stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("remainingAmount"=>$remainingAmount));
-		}
-	}
-	stdSet("adminCustomer", array("customerID"=>$customerID), array("balance"=>$balance));
-	
-	commitTransaction();
-}
-
 function billingBalance($customerID)
 {
-	billingDistributeFunds($customerID);
-	$balance = stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
-	if($balance > 0) {
-		return $balance;
-	}
-	$result = query("SELECT SUM(remainingAmount) AS sum FROM billingInvoice WHERE customerID='" . dbAddSlashes($customerID) . "'")->fetchArray();
-	return -$result["sum"];
+	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
+	return stdGet("accountingAccount", array("accountID"=>$accountID), "balance");
 }
 
 function billingCalculateNextDate($oldDate, $frequencyBase, $frequencyMultiplier)
