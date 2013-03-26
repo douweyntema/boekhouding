@@ -11,8 +11,8 @@ function main()
 	
 	doAccountingSupplier($supplierID);
 	
-	$check = function($condition, $error, $balance = null) use($supplierID, $paymentID) {
-		if(!$condition) die(page(makeHeader("Delete payment", supplierBreadcrumbs($supplierID), crumbs("Delete payment", "deletesupplierpayment.php?id=$paymentID")) . deleteSupplierPaymentForm($paymentID, $error, $_POST, $balance)));
+	$check = function($condition, $error) use($supplierID, $paymentID) {
+		if(!$condition) die(page(makeHeader("Delete payment", supplierBreadcrumbs($supplierID), crumbs("Delete payment", "deletesupplierpayment.php?id=$paymentID")) . deleteSupplierPaymentForm($paymentID, $error, $_POST)));
 	};
 	
 	$check(post("confirm") !== null, null);
