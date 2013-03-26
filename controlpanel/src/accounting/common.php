@@ -399,11 +399,9 @@ function transactionForm($error = "", $values = null, $balance = null)
 	if(isset($values["date"])) {
 		$values["date"] = date("d-m-Y", parseDate($values["date"]));
 	}
-	$lines = parseArrayField($_POST, array("accountID", "amount"));
+	$lines = parseArrayField($values, array("accountID", "amount"));
 	foreach($lines as $line) {
-		if(isset($values["amount-" . $line[""]])) {
-			$values["amount-" . $line[""]] = formatPriceRaw(parsePrice($values["amount-" . $line[""]]));
-		}
+		normalizePrice($values, "amount-" . $line[""]);
 	}
 	
 	$fields = array();
@@ -472,7 +470,7 @@ function addSupplierForm($error = "", $values = null)
 		array(
 			array("title"=>"Name", "type"=>"text", "name"=>"name"),
 			array("title"=>"Currency", "type"=>"dropdown", "name"=>"currencyID", "options"=>currencyOptions()),
-			array("title"=>"Default expense account", "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountOptions()),
+			array("title"=>"Default expense account", "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
 			array("title"=>"Description", "type"=>"textarea", "name"=>"description")
 		),
 		$values);
@@ -491,10 +489,66 @@ function editSupplierForm($supplierID, $error = "", $values = null)
 	return operationForm("editsupplier.php?id=$supplierID", $error, "Edit supplier", "Save",
 		array(
 			array("title"=>"Name", "type"=>"text", "name"=>"name"),
-			array("title"=>"Default expense account", "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountOptions()),
+			array("title"=>"Default expense account", "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
 			array("title"=>"Description", "type"=>"textarea", "name"=>"description")
 		),
 		$values);
+}
+
+function deleteSupplierForm($supplierID, $error = "", $values = null)
+{
+	return operationForm("deletesupplier.php?id=$supplierID", $error, "Delete supplier", "Delete", array(), $values);
+}
+
+function addSupplierInvoiceForm($supplierID, $error = "", $values = null, $total = null, $balance = null)
+{
+	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID");
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
+	$currency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), array("name", "symbol"));
+	$defaultCurrency = stdGet("accountingCurrency", array("currencyID"=>$GLOBALS["defaultCurrencyID"]), array("name", "symbol"));
+	
+	if($values === null) {
+		$values = array();
+		$defaultExpenseAccountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "defaultExpenseAccountID");
+		if($defaultExpenseAccountID !== null) {
+			$values["accountID-0"] = $defaultExpenseAccountID;
+		}
+	}
+	
+	$lines = parseArrayField($values, array("accountID", "amount"));
+	foreach($lines as $line) {
+		normalizePrice($values, "amount-" . $line[""]);
+	}
+	normalizePrice($values, "foreignAmount");
+	normalizePrice($values, "taxAmount");
+	
+	$fields = array();
+	$fields[] = array("title"=>"Invoice number", "type"=>"text", "name"=>"invoiceNumber");
+	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
+	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
+	$fields[] = array("title"=>"File", "type"=>"file", "name"=>"file", "accept"=>"application/pdf");
+	if($currencyID != $GLOBALS["defaultCurrencyID"]) {
+		$fields[] = array("title"=>"Total in {$currency["name"]}", "type"=>"text", "name"=>"foreignAmount");
+	}
+	if($error === null && $total !== null) {
+		$totalHtml = formatPriceRaw($total, $defaultCurrency["symbol"]);
+		$fields[] = array("title"=>"Total in {$defaultCurrency["name"]}", "type"=>"html", "html"=>"<input type=\"text\" value=\"$totalHtml\" readonly=\"readonly\" />");
+		if($currencyID != $GLOBALS["defaultCurrencyID"]) {
+			$fields = array_merge($fields, transactionExchangeRates($balance));
+		}
+	}
+	$fields[] = array("title"=>"Tax", "type"=>"colspan", "columns"=>array(
+		array("type"=>"html", "html"=>""),
+		array("type"=>"html", "html"=>htmlentities($defaultCurrency["name"])),
+		array("type"=>"text", "name"=>"taxAmount", "fill"=>true)
+	));
+	$fields[] = array("type"=>"array", "field"=>array("title"=>"Line", "type"=>"colspan", "columns"=>array(
+		array("type"=>"dropdown", "name"=>"accountID", "options"=>accountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
+		array("type"=>"html", "html"=>htmlentities($defaultCurrency["name"])),
+		array("type"=>"text", "name"=>"amount", "fill"=>true)
+	)));
+	
+	return operationForm("addsupplierinvoice.php?id=$supplierID", $error, "Add invoice", "Add Invoice", $fields, $values);
 }
 
 function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balance = null)
@@ -539,31 +593,6 @@ function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balan
 	
 	return operationForm("addsupplierpayment.php?id=$supplierID", $error, "Add payment", "Save", $fields, $values);
 }
-
-function deleteSupplierForm($supplierID, $error = "", $values = null)
-{
-	return operationForm("deletesupplier.php?id=$supplierID", $error, "Delete supplier", "Delete", array(), $values);
-}
-
-/*
-function addSupplierInvoiceForm($supplierID, $error = "", $values = null)
-{
-	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$suppierID), "accountID");
-	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
-	$currency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), array("name", "symbol"));
-	
-	return operationForm("addinvoice.php?id=$supplierID", $error, "Add invoice", "Add Invoice",
-		array(
-			array("title"=>"Invoice number", "type"=>"text", "name"=>"invoiceNumber"),
-			array("title"=>"Description", "type"=>"text", "name"=>"description"),
-			array("title"=>"Date", "type"=>"text", "name"=>"date"),
-			array("title"=>"File", "type"=>"file", "name"=>"file", "accept"=>"application/pdf"),
-			($currencyID == $GLOBALS["defaultCurrencyID"] ? array("title"=>"Total in {$currency["name"]}", "type"=>"text", "name"=>"total") : null),
-			array("title"=>""
-		),
-		$values);
-}
-*/
 
 function transactionExchangeRates($balance)
 {
@@ -657,7 +686,7 @@ function accountOptions($rootNode = null, $allowEmpty = false)
 	
 	$accountOptions = array();
 	if($allowEmpty) {
-		$accountOptions[] = array("label"=>"", "value"=>0);
+		$accountOptions[] = array("label"=>"", "value"=>"");
 	}
 	foreach($accountList as $account) {
 		$accountOptions[] = array("label"=>str_repeat("&nbsp;&nbsp;&nbsp;", $account["depth"]) . $account["name"], "value"=>$account["accountID"], "disabled"=>$account["isDirectory"] ? true : false);

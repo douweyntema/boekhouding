@@ -27,6 +27,7 @@ function main()
 		if($amount == 0) {
 			continue;
 		}
+		$check(stdExists("accountingAccount", array("accountID"=>$line["accountID"])), "Invalid account.");
 		$parsedLines[] = array("accountID"=>$line["accountID"], "amount"=>$amount);
 	}
 	$balance = accountingTransactionBalance($parsedLines);

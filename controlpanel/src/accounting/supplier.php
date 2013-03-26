@@ -16,7 +16,7 @@ function main()
 	$content .= supplierInvoiceList($supplierID);
 	$content .= supplierPaymentList($supplierID);
 
-// 	$content .= addSupplierInvoiceForm($supplierID);
+	$content .= addSupplierInvoiceForm($supplierID);
 	$content .= addSupplierPaymentForm($supplierID);
 
 	$content .= editSupplierForm($supplierID, "STUB");

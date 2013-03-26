@@ -43,6 +43,13 @@ function parsePrice($string)
 	}
 }
 
+function normalizePrice(&$values, $name)
+{
+	if(isset($values[$name])) {
+		$values[$name] = formatPriceRaw(parsePrice($values[$name]));
+	}
+}
+
 function parseDate($string)
 {
 	$date = strtotime($string);

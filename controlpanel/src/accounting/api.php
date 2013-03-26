@@ -113,14 +113,14 @@ function accountingTransactionBalance($lines)
 	if(count($valutaTotal) == 0) {
 		return false;
 	} else if(count($valutaTotal) == 1) {
-		return array("type"=>"single", "status"=>($valutaTotal[$currencies[0]] == 0));
+		return array("totals"=>$valutaTotal, "type"=>"single", "status"=>($valutaTotal[$currencies[0]] == 0));
 	} else if(count($valutaTotal) == 2) {
-		return array("type"=>"double", "rates"=>array(
+		return array("totals"=>$valutaTotal, "type"=>"double", "rates"=>array(
 			array("from"=>$currencies[0], "to"=>$currencies[1], "rate"=>$valutaTotal[$currencies[1]] / $valutaTotal[$currencies[0]] * -100),
 			array("from"=>$currencies[1], "to"=>$currencies[0], "rate"=>$valutaTotal[$currencies[0]] / $valutaTotal[$currencies[1]] * -100),
 		));
 	} else {
-		return array("type"=>"multiple");
+		return array("totals"=>$valutaTotal, "type"=>"multiple");
 	}
 }
 

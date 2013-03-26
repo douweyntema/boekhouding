@@ -16,12 +16,12 @@ function main()
 	
 	$check($name != "", "Missing supplier name.");
 	$check(stdExists("accountingCurrency", array("currencyID"=>$currencyID)), "Invalid currency.");
-	$check($defaultExpenseAccountID == "0" || stdGetTry("accountingAccount", array("accountID"=>$defaultExpenseAccountID), "isDirectory", "1") == "0", "Invalid expense account.");
+	$check($defaultExpenseAccountID == "" || stdGetTry("accountingAccount", array("accountID"=>$defaultExpenseAccountID), "isDirectory", "1") == "0", "Invalid expense account.");
 	$check(post("confirm") !== null, null);
 	
 	startTransaction();
-	$accountID = accountingAddAccount($GLOBALS["suppliersAccountID"], $currencyID, $name, supplierAccountDescription($name), false);
-	$supplierID = stdNew("suppliersSupplier", array("accountID"=>$accountID, "defaultExpenseAccountID"=>($defaultExpenseAccountID == "0" ? null : $defaultExpenseAccountID), "name"=>$name, "description"=>post("description")));
+	$accountID = accountingAddAccount($GLOBALS["suppliersDirectoryAccountID"], $currencyID, $name, supplierAccountDescription($name), false);
+	$supplierID = stdNew("suppliersSupplier", array("accountID"=>$accountID, "defaultExpenseAccountID"=>($defaultExpenseAccountID == "" ? null : $defaultExpenseAccountID), "name"=>$name, "description"=>post("description")));
 	commitTransaction();
 	
 	redirect("accounting/supplier.php?id=$supplierID");

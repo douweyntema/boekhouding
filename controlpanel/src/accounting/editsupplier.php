@@ -15,11 +15,11 @@ function main()
 	$check(($defaultExpenseAccountID = post("defaultExpenseAccountID")) !== null, "");
 	
 	$check($name != "", "Missing supplier name.");
-	$check($defaultExpenseAccountID == "0" || stdGetTry("accountingAccount", array("accountID"=>$defaultExpenseAccountID), "isDirectory", "1") == "0", "Invalid expense account.");
+	$check($defaultExpenseAccountID == "" || stdGetTry("accountingAccount", array("accountID"=>$defaultExpenseAccountID), "isDirectory", "1") == "0", "Invalid expense account.");
 	$check(post("confirm") !== null, null);
 	
 	startTransaction();
-	stdSet("suppliersSupplier", array("supplierID"=>$supplierID), array("name"=>$name, "defaultExpenseAccountID"=>$defaultExpenseAccountID, "description"=>post("description")));
+	stdSet("suppliersSupplier", array("supplierID"=>$supplierID), array("name"=>$name, "defaultExpenseAccountID"=>($defaultExpenseAccountID == "" ? null : $defaultExpenseAccountID), "description"=>post("description")));
 	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID");
 	stdSet("accountingAccount", array("accountID"=>$accountID), array("name"=>$name, "description"=>supplierAccountDescription($name)));
 	commitTransaction();
