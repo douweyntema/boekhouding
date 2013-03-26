@@ -705,6 +705,46 @@ function fieldNames($field)
 	return $names;
 }
 
+function addPostUrl($field, $postUrl)
+{
+	$found = false;
+	if($field["type"] == "rowspan") {
+		$rows = array();
+		foreach($field["rows"] as $row) {
+			list($rowField, $rowFound) = addPostUrl($row, $postUrl);
+			$rows[] = $rowField;
+			$found = $found || $rowField;
+		}
+		$field["rows"] = $rows;
+	} else if($field["type"] == "colspan") {
+		$columns = array();
+		foreach($field["columns"] as $column) {
+			list($columnField, $columnFound) = addPostUrl($column, $postUrl);
+			$columns[] = $columnField;
+			$found = $found || $columnField;
+		}
+		$field["columns"] = $columns;
+	} else if($field["type"] == "subformchooser") {
+		$subforms = array();
+		foreach($field["subforms"] as $subform) {
+			$fields = array();
+			foreach($subform["subform"] as $subField) {
+				list($fieldField, $fieldFound) = addPostUrl($subField, $postUrl);
+				$fields[] = $fieldField;
+				$found = $found || $fieldFound;
+				
+			}
+			$subform["subform"] = $fields;
+			$subforms[] = $subform;
+		}
+		$field["subforms"] = $subforms;
+	} else if($field["type"] == "file") {
+		$field["postUrl"] = $postUrl;
+		$found = true;
+	}
+	return array($field, $found);
+}
+
 function operationForm($postUrl, $error, $title, $submitCaption, $fields, $values, $messages = null)
 {
 	if($values === null) {
@@ -778,10 +818,8 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 				continue;
 			}
 			
-			if($field["type"] == "file") {
-				$hasFiles = true;
-				$field["postUrl"] = $postUrl;
-			}
+			list($field, $filesFound) = addPostUrl($field, $postUrl);
+			$hasFiles = $hasFiles || $filesFound;
 			
 			if($field["type"] == "array") {
 				$names = fieldNames($field["field"]);

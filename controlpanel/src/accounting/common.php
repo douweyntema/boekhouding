@@ -543,20 +543,12 @@ function deleteSupplierForm($supplierID, $error = "", $values = null)
 	return operationForm("deletesupplier.php?id=$supplierID", $error, "Delete supplier", "Delete", array(), $values);
 }
 
-function addSupplierInvoiceForm($supplierID, $error = "", $values = null, $total = null, $balance = null)
+function supplierInvoiceForm($supplierID, $fileLink, $error = "", $values = null, $total = null, $balance = null)
 {
 	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID");
 	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
 	$currency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), array("name", "symbol"));
 	$defaultCurrency = stdGet("accountingCurrency", array("currencyID"=>$GLOBALS["defaultCurrencyID"]), array("name", "symbol"));
-	
-	if($values === null) {
-		$values = array();
-		$defaultExpenseAccountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "defaultExpenseAccountID");
-		if($defaultExpenseAccountID !== null) {
-			$values["accountID-0"] = $defaultExpenseAccountID;
-		}
-	}
 	
 	$lines = parseArrayField($values, array("accountID", "amount"));
 	foreach($lines as $line) {
@@ -569,7 +561,18 @@ function addSupplierInvoiceForm($supplierID, $error = "", $values = null, $total
 	$fields[] = array("title"=>"Invoice number", "type"=>"text", "name"=>"invoiceNumber");
 	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
 	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
-	$fields[] = array("title"=>"File", "type"=>"file", "name"=>"file", "accept"=>"application/pdf");
+	
+	$subforms = array();
+	if($fileLink !== null) {
+		$fileLinkHtml = htmlentities($fileLink);
+		$subforms[] = array("value"=>"current", "label"=>"Keep <a href=\"$fileLinkHtml\">current file</a>", "subform"=>array());
+	}
+	$subforms[] = array("value"=>"none", "label"=>"None", "subform"=>array());
+	$subforms[] = array("value"=>"new", "label"=>"Upload new file", "subform"=>array(
+		array("title"=>"File", "type"=>"file", "name"=>"file", "accept"=>"application/pdf")
+	));
+	$fields[] = array("title"=>"Pdf", "type"=>"subformchooser", "name"=>"pdfType", "subforms"=>$subforms);
+	
 	if($currencyID != $GLOBALS["defaultCurrencyID"]) {
 		$fields[] = array("title"=>"Total in {$currency["name"]}", "type"=>"text", "name"=>"foreignAmount");
 	}
@@ -591,7 +594,37 @@ function addSupplierInvoiceForm($supplierID, $error = "", $values = null, $total
 		array("type"=>"text", "name"=>"amount", "fill"=>true)
 	)));
 	
-	return operationForm("addsupplierinvoice.php?id=$supplierID", $error, "Add invoice", "Add Invoice", $fields, $values);
+	return array("fields"=>$fields, "values"=>$values);
+}
+
+function addSupplierInvoiceForm($supplierID, $error = "", $values = null, $total = null, $balance = null)
+{
+	if($values === null) {
+		$values = array();
+		$values["pdfType"] = "none";
+		
+		$defaultExpenseAccountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "defaultExpenseAccountID");
+		if($defaultExpenseAccountID !== null) {
+			$values["accountID-0"] = $defaultExpenseAccountID;
+		}
+	}
+	
+	$formContent = supplierInvoiceForm($supplierID, null, $error, $values, $total, $balance);
+	
+	return operationForm("addsupplierinvoice.php?id=$supplierID", $error, "Add invoice", "Add Invoice", $formContent["fields"], $formContent["values"]);
+}
+
+function editSupplierInvoiceForm($invoiceID, $error = "", $values = null, $total = null, $balance = null)
+{
+	$supplierID = stdGet("suppliersInvoice", array("invoiceID"=>$invoiceID), "supplierID");
+	
+	if($values === null) {
+		
+	}
+	
+	$formContent = supplierInvoiceForm($supplierID, "supplierinvoicepdf.php?id=$invoiceID", $error, $values, $total, $balance);
+	
+	return operationForm("editsupplierinvoice.php?id=$invoiceID", $error, "Edit invoice", "Save", $formContent["fields"], $formContent["values"]);
 }
 
 function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balance = null)

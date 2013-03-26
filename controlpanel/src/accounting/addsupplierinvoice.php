@@ -18,6 +18,7 @@ function main()
 	$description = post("description");
 	$check(($taxAmount = parsePrice(post("taxAmount"))) !== null, "Invalid tax amount.");
 	$check($taxAmount >= 0, "Invalid tax amount.");
+	$pdfType = post("pdfType");
 	
 	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID");
 	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
@@ -55,7 +56,11 @@ function main()
 	
 	$check(post("confirm") !== null, null, $total, $balance);
 	
-	$file = parseFile($_POST, "file");
+	if($pdfType == "new") {
+		$file = parseFile($_POST, "file");
+	} else {
+		$file = null;
+	}
 	
 	startTransaction();
 	$transactionID = accountingAddTransaction($date, $description, $parsedLines);
