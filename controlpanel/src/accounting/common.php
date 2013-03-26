@@ -196,7 +196,24 @@ function supplierInvoiceList($supplierID)
 		));
 	}
 	return listTable(array("Invoice number", "Date", "Amount", "Description"), $rows, "Invoices", true, "list sortable");
+}
 
+function supplierPaymentList($supplierID)
+{
+	$payments = stdList("suppliersPayment", array("supplierID"=>$supplierID), array("paymentID", "transactionID"));
+	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID");
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
+	$currencySymbol = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "symbol");
+	$rows = array();
+	foreach($payments as $payment) {
+		$date = stdGet("accountingTransaction", array("transactionID"=>$payment["transactionID"]), "date");
+		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$payment["transactionID"], "accountID"=>$accountID), "amount");
+		$rows[] = array("cells"=>array(
+			array("text"=>date("d-m-Y", $date)),
+			array("url"=>"transaction.php?id={$payment["transactionID"]}", "html"=>formatPrice($amount)),
+		));
+	}
+	return listTable(array("Date", "Amount"), $rows, "Payments", true, "list sortable");
 }
 
 function addAccountForm($accountID, $error = "", $values = null)
