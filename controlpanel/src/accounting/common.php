@@ -150,10 +150,22 @@ function supplierList()
 	foreach($suppliers as $supplier) {
 		$rows[] = array("cells"=>array(
 			array("url"=>"supplier.php?id={$supplier["supplierID"]}", "text"=>$supplier["name"]),
+			array("text"=>$supplier["description"]),
 			array("url"=>"account.php?id={$supplier["accountID"]}", "html"=>formatAccountPrice($supplier["accountID"])),
 		));
 	}
-	return listTable(array("Name", "Balance"), $rows, "Suppliers", true, "list");
+	return listTable(array("Name", "Description", "Balance"), $rows, "Suppliers", true, "list sortable");
+}
+
+function supplierSummary($supplierID)
+{
+	$supplier = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), array("accountID", "defaultExpenseAccountID", "name", "description"));
+	$defaultExpenseAccountName = stdGet("accountingAccount", array("accountID"=>$supplier["defaultExpenseAccountID"]), "name");
+	return summaryTable("Supplier {$supplier["name"]}", array(
+		"Balance"=>array("url"=>"account.php?id={$supplier["accountID"]}", "html"=>formatAccountPrice($supplier["accountID"])),
+		"Default expences account"=>array("url"=>"account.php?id={$supplier["defaultExpenseAccountID"]}", "text"=>$defaultExpenseAccountName),
+		"Description"=>$supplier["description"],
+		));
 }
 
 function addAccountForm($accountID, $error = "", $values = null)

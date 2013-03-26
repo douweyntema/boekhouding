@@ -11,7 +11,7 @@ function main()
 	$name = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "name");
 	$content = makeHeader("Supplier " . $name, supplierBreadcrumbs($supplierID));
 	
-// 	$content .= supplierOverview($supplierID);
+	$content .= supplierSummary($supplierID);
 	
 // 	$content .= supplierInvoiceList($supplierID);
 // 	$content .= supplierPaymentList($supplierID);
