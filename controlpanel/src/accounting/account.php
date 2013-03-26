@@ -18,10 +18,7 @@ function main()
 	}
 	$content .= editAccountForm($accountID, "STUB");
 	$content .= moveAccountForm($accountID, "STUB");
-	if(
-		!stdExists("accountingTransactionLine", array("accountID"=>$accountID))
-		&& !stdExists("accountingAccount", array("parentAccountID"=>$accountID)))
-	{
+	if(accountEmpty($accountID)) {
 		$content .= deleteAccountForm($accountID);
 	}
 	echo page($content);
