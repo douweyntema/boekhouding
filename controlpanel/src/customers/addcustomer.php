@@ -60,15 +60,15 @@ function main()
 	$check(post("confirm") !== null, null);
 	
 	startTransaction();
-	$customerID = stdNew("adminCustomer", array("name"=>post("name"), "initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("countryCode"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "groupname"=>post("groupname"), "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "fileSystemID"=>post("fileSystemID"), "mailSystemID"=>post("mailSystemID"), "nameSystemID"=>post("nameSystemID"), "invoiceFrequencyBase"=>post("invoiceFrequencyBase"), "invoiceFrequencyMultiplier"=>post("invoiceFrequencyMultiplier"), "webmail"=>post("webmail") == "" ? null : post("webmail")));
+	$accountID = accountingAddAccount($GLOBALS["customersDirectoryAccountID"], $GLOBALS["defaultCurrencyID"], post("name"), customerAccountDescription(post("name"), post("initials"), post("lastName")), false);
+	$customerID = stdNew("adminCustomer", array("accountID"=>$accountID, "name"=>post("name"), "initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("countryCode"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "groupname"=>post("groupname"), "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "fileSystemID"=>post("fileSystemID"), "mailSystemID"=>post("mailSystemID"), "nameSystemID"=>post("nameSystemID"), "invoiceFrequencyBase"=>post("invoiceFrequencyBase"), "invoiceFrequencyMultiplier"=>post("invoiceFrequencyMultiplier"), "webmail"=>post("webmail") == "" ? null : post("webmail")));
 	foreach(rights() as $right) {
 		if(post("right-" . $right["name"]) !== null) {
 			stdNew("adminCustomerRight", array("customerID"=>$customerID, "right"=>$right["name"]));
 		}
 	}
-	commitTransaction();
-	
 	$userID = accountsAddAccount($customerID, post("name"), $password, true);
+	commitTransaction();
 	
 	domainsUpdateContactInfo($customerID);
 	

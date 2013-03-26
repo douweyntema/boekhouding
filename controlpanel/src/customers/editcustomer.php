@@ -49,7 +49,11 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
+	startTransaction();
+	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
+	accountingEditAccount($accountID, $customerName, customerAccountDescription(post("name"), post("initials"), post("lastName")));
 	stdSet("adminCustomer", array("customerID"=>$customerID), array("initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("countryCode"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "diskQuota"=>$diskQuota, "mailQuota"=>$mailQuota, "invoiceFrequencyBase"=>post("invoiceFrequencyBase"), "invoiceFrequencyMultiplier"=>post("invoiceFrequencyMultiplier"), "mijnDomeinResellerContactID"=>null, "webmail"=>post("webmail") == "" ? null : post("webmail")));
+	commitTransaction();
 	
 	updateMail($customerID);
 	updateDomains($customerID);

@@ -15,7 +15,6 @@ function main()
 	$content .= customerMijnDomeinReseller($customerID);
 	$content .= editCustomerForm($customerID);
 	$content .= editCustomerRightsForm($customerID);
-	$content .= editCustomerWebmail($customerID);
 	echo page($content);
 }
 

@@ -89,7 +89,7 @@ function addCustomerForm($error = "", $values = null)
 {
 	if($values === null) {
 		$values = array(
-			"country"=>"NL",
+			"countryCode"=>"NL",
 			"invoiceFrequencyBase"=>"MONTH",
 		);
 	}
@@ -205,6 +205,11 @@ function editCustomerRightsForm($customerID, $error = "", $values = null)
 		));
 	}
 	return operationForm("editcustomerrights.php?id=$customerID", $error, "Edit customer rights", "Edit", $fields, $values);
+}
+
+function customerAccountDescription($name, $initials, $lastName)
+{
+	return "Customer account for customer $name ($initials $lastName)";
 }
 
 ?>
