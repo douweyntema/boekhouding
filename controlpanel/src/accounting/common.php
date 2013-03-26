@@ -575,6 +575,32 @@ function deleteSupplierInvoiceForm($invoiceID, $error = "", $values = null)
 	return operationForm("deletesupplierinvoice.php?id=$invoiceID", $error, "Delete invoice", "Delete", array(), $values);
 }
 
+function supplierPaymentForm($supplierID, $error = "", $values = null, $balance = null)
+{
+	$supplier = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), array("accountID", "name"));
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$supplier["accountID"]), "currencyID");
+	
+	$paymentAccounts = accountOptions($GLOBALS["paymentDirectoryAccountID"]);
+	
+	$fields = array();
+	if($GLOBALS["defaultCurrencyID"] != $currencyID) {
+		$defaultCurrency = stdGet("accountingCurrency", array("currencyID"=>$GLOBALS["defaultCurrencyID"]), "name");
+		$strangeCurrency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "name");
+		$fields[] = array("title"=>"Amount ($defaultCurrency)", "type"=>"text", "name"=>"amount");
+		$fields[] = array("title"=>"Amount ($strangeCurrency)", "type"=>"text", "name"=>"foreignAmount");
+		
+		if($error === null && $balance !== null) {
+			$fields = array_merge($fields, transactionExchangeRates($balance));
+		}
+	} else {
+		$fields[] = array("title"=>"Amount", "type"=>"text", "name"=>"amount");
+	}
+	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
+	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
+	$fields[] = array("title"=>"Payment account", "type"=>"dropdown", "name"=>"paymentAccount", "options"=>$paymentAccounts);
+	return $fields;
+}
+
 function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balance = null)
 {
 	$supplier = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), array("accountID", "name"));
@@ -596,24 +622,7 @@ function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balan
 		}
 	}
 	
-	$paymentAccounts = accountOptions($GLOBALS["paymentDirectoryAccountID"]);
-	
-	$fields = array();
-	if($GLOBALS["defaultCurrencyID"] != $currencyID) {
-		$defaultCurrency = stdGet("accountingCurrency", array("currencyID"=>$GLOBALS["defaultCurrencyID"]), "name");
-		$strangeCurrency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "name");
-		$fields[] = array("title"=>"Amount ($defaultCurrency)", "type"=>"text", "name"=>"amount");
-		$fields[] = array("title"=>"Amount ($strangeCurrency)", "type"=>"text", "name"=>"foreignAmount");
-		
-		if($error === null && $balance !== null) {
-			$fields = array_merge($fields, transactionExchangeRates($balance));
-		}
-	} else {
-		$fields[] = array("title"=>"Amount", "type"=>"text", "name"=>"amount");
-	}
-	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
-	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
-	$fields[] = array("title"=>"Payment account", "type"=>"dropdown", "name"=>"paymentAccount", "options"=>$paymentAccounts);
+	$fields = supplierPaymentForm($supplierID, $error, $values);
 	
 	return operationForm("addsupplierpayment.php?id=$supplierID", $error, "Add payment", "Save", $fields, $values);
 }
@@ -644,24 +653,7 @@ function editSupplierPaymentForm($paymentID, $error = "", $values = null, $balan
 		);
 	}
 	
-	$paymentAccounts = accountOptions($GLOBALS["paymentDirectoryAccountID"]);
-	
-	$fields = array();
-	if($GLOBALS["defaultCurrencyID"] != $currencyID) {
-		$defaultCurrency = stdGet("accountingCurrency", array("currencyID"=>$GLOBALS["defaultCurrencyID"]), "name");
-		$strangeCurrency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "name");
-		$fields[] = array("title"=>"Amount ($defaultCurrency)", "type"=>"text", "name"=>"amount");
-		$fields[] = array("title"=>"Amount ($strangeCurrency)", "type"=>"text", "name"=>"foreignAmount");
-		
-		if($error === null && $balance !== null) {
-			$fields = array_merge($fields, transactionExchangeRates($balance));
-		}
-	} else {
-		$fields[] = array("title"=>"Amount", "type"=>"text", "name"=>"amount");
-	}
-	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
-	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
-	$fields[] = array("title"=>"Payment account", "type"=>"dropdown", "name"=>"paymentAccount", "options"=>$paymentAccounts);
+	$fields = supplierPaymentForm($payment["supplierID"], $error, $values);
 	
 	return operationForm("editsupplierpayment.php?id=$paymentID", $error, "Edit payment", "Save", $fields, $values);
 }
