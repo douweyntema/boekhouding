@@ -260,14 +260,16 @@ function supplierInvoiceSummary($invoiceID)
 	
 	$dateHtml = date("d-m-Y", $transaction["date"]);
 	$hasPdf = !stdExists("suppliersInvoice", array("invoiceID"=>$invoiceID, "pdf"=>null));
-	$amount = -1 * stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$supplier["accountID"]), "amount");
+	
+	$amountHtml = calculateTransactionAmount($invoice["transactionID"], $supplier["accountID"], true);
 	
 	$fields = array(
 		"Supplier"=>array("url"=>"supplier.php?id={$invoice["supplierID"]}", "text"=>$supplier["name"]),
-		"Invoice number"=>array("url"=>$hasPdf ? "supplierinvoicepdf.php?id={$invoiceID}" : null, "text"=>$invoice["invoiceNumber"]),
+		"Invoice number"=>array("text"=>$invoice["invoiceNumber"]),
+		"Pdf"=>array("url"=>$hasPdf ? "supplierinvoicepdf.php?id={$invoiceID}" : null, "text"=>$hasPdf ? "Yes" : "No"),
 		"Date"=>array("text"=>$dateHtml),
 		"Description"=>array("text"=>$transaction["description"]),
-		"Amount"=>array("url"=>"transaction.php?id={$invoice["transactionID"]}", "html"=>formatPrice($amount)),
+		"Amount"=>array("url"=>"transaction.php?id={$invoice["transactionID"]}", "html"=>$amountHtml),
 	);
 	
 	return summaryTable("Invoice {$invoice["invoiceNumber"]}", $fields);
@@ -283,10 +285,10 @@ function supplierInvoiceList($supplierID)
 	foreach($invoices as $invoice) {
 		$transaction = stdGet("accountingTransaction", array("transactionID"=>$invoice["transactionID"]), array("date", "description"));
 		$hasPdf = !stdExists("suppliersInvoice", array("invoiceID"=>$invoice["invoiceID"], "pdf"=>null));
-		$amount = -1 * stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
+		$amountHtml = calculateTransactionAmount($invoice["transactionID"], $accountID, true);
 		$rows[] = array("cells"=>array(
 			array("url"=>"supplierinvoice.php?id=" . $invoice["invoiceID"], "text"=>date("d-m-Y", $transaction["date"])),
-			array("url"=>"transaction.php?id={$invoice["transactionID"]}", "html"=>formatPrice($amount)),
+			array("url"=>"transaction.php?id={$invoice["transactionID"]}", "html"=>$amountHtml),
 			array("url"=>$hasPdf ? "supplierinvoicepdf.php?id={$invoice["invoiceID"]}" : null, "text"=>$invoice["invoiceNumber"]),
 			array("text"=>$transaction["description"]),
 		));
@@ -303,20 +305,7 @@ function supplierPaymentSummary($paymentID)
 	$currencySymbol = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "symbol");
 	
 	$dateHtml = date("d-m-Y", $transaction["date"]);
-	if($currencyID !== $GLOBALS["defaultCurrencyID"]) {
-		$lines = stdList("accountingTransactionLine", array("transactionID"=>$payment["transactionID"]), array("accountID", "amount"));
-		foreach($lines as $line) {
-			if($line["accountID"] == $supplier["accountID"]) {
-				$foreignAmount = $line["amount"];
-			} else {
-				$amount = -1 * $line["amount"];
-			}
-		}
-		$amountHtml = formatPrice($amount) . " / " . formatPrice($foreignAmount, $currencySymbol);
-	} else {
-		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$payment["transactionID"], "accountID"=>$supplier["accountID"]), "amount");
-		$amountHtml = formatPrice($amount);
-	}
+	$amountHtml = calculateTransactionAmount($payment["transactionID"], $supplier["accountID"]);
 	
 	$fields = array(
 		"Supplier"=>array("url"=>"supplier.php?id={$payment["supplierID"]}", "text"=>$supplier["name"]),
@@ -337,20 +326,7 @@ function supplierPaymentList($supplierID)
 	$rows = array();
 	foreach($payments as $payment) {
 		$transaction = stdGet("accountingTransaction", array("transactionID"=>$payment["transactionID"]), array("date", "description"));
-		if($currencyID !== $GLOBALS["defaultCurrencyID"]) {
-			$lines = stdList("accountingTransactionLine", array("transactionID"=>$payment["transactionID"]), array("accountID", "amount"));
-			foreach($lines as $line) {
-				if($line["accountID"] == $accountID) {
-					$foreignAmount = $line["amount"];
-				} else {
-					$amount = -1 * $line["amount"];
-				}
-			}
-			$amountHtml = formatPrice($amount) . " / " . formatPrice($foreignAmount, $currencySymbol);
-		} else {
-			$amount = stdGet("accountingTransactionLine", array("transactionID"=>$payment["transactionID"], "accountID"=>$accountID), "amount");
-			$amountHtml = formatPrice($amount);
-		}
+		$amountHtml = calculateTransactionAmount($payment["transactionID"], $accountID);
 		$rows[] = array("cells"=>array(
 			array("url"=>"supplierpayment.php?id=" . $payment["paymentID"], "text"=>date("d-m-Y", $transaction["date"])),
 			array("url"=>"transaction.php?id={$payment["transactionID"]}", "html"=>$amountHtml),
@@ -627,6 +603,37 @@ function editSupplierInvoiceForm($invoiceID, $error = "", $values = null, $total
 	return operationForm("editsupplierinvoice.php?id=$invoiceID", $error, "Edit invoice", "Save", $formContent["fields"], $formContent["values"]);
 }
 
+function deleteSupplierInvoiceForm($invoiceID, $error = "", $values = null)
+{
+	return operationForm("deletesupplierinvoice.php?id=$invoiceID", $error, "Delete invoice", "Delete", array(), $values);
+}
+
+function supplierPaymentForm($supplierID, $error = "", $values = null, $balance = null)
+{
+	$supplier = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), array("accountID", "name"));
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$supplier["accountID"]), "currencyID");
+	
+	$paymentAccounts = accountOptions($GLOBALS["paymentDirectoryAccountID"]);
+	
+	$fields = array();
+	if($GLOBALS["defaultCurrencyID"] != $currencyID) {
+		$defaultCurrency = stdGet("accountingCurrency", array("currencyID"=>$GLOBALS["defaultCurrencyID"]), "name");
+		$strangeCurrency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "name");
+		$fields[] = array("title"=>"Amount ($defaultCurrency)", "type"=>"text", "name"=>"amount");
+		$fields[] = array("title"=>"Amount ($strangeCurrency)", "type"=>"text", "name"=>"foreignAmount");
+		
+		if($error === null && $balance !== null) {
+			$fields = array_merge($fields, transactionExchangeRates($balance));
+		}
+	} else {
+		$fields[] = array("title"=>"Amount", "type"=>"text", "name"=>"amount");
+	}
+	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
+	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
+	$fields[] = array("title"=>"Payment account", "type"=>"dropdown", "name"=>"paymentAccount", "options"=>$paymentAccounts);
+	return $fields;
+}
+
 function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balance = null)
 {
 	$supplier = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), array("accountID", "name"));
@@ -648,24 +655,7 @@ function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balan
 		}
 	}
 	
-	$paymentAccounts = accountOptions($GLOBALS["paymentDirectoryAccountID"]);
-	
-	$fields = array();
-	if($GLOBALS["defaultCurrencyID"] != $currencyID) {
-		$defaultCurrency = stdGet("accountingCurrency", array("currencyID"=>$GLOBALS["defaultCurrencyID"]), "name");
-		$strangeCurrency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "name");
-		$fields[] = array("title"=>"Amount ($defaultCurrency)", "type"=>"text", "name"=>"amount");
-		$fields[] = array("title"=>"Amount ($strangeCurrency)", "type"=>"text", "name"=>"foreignAmount");
-		
-		if($error === null && $balance !== null) {
-			$fields = array_merge($fields, transactionExchangeRates($balance));
-		}
-	} else {
-		$fields[] = array("title"=>"Amount", "type"=>"text", "name"=>"amount");
-	}
-	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
-	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
-	$fields[] = array("title"=>"Payment account", "type"=>"dropdown", "name"=>"paymentAccount", "options"=>$paymentAccounts);
+	$fields = supplierPaymentForm($supplierID, $error, $values);
 	
 	return operationForm("addsupplierpayment.php?id=$supplierID", $error, "Add payment", "Save", $fields, $values);
 }
@@ -696,24 +686,7 @@ function editSupplierPaymentForm($paymentID, $error = "", $values = null, $balan
 		);
 	}
 	
-	$paymentAccounts = accountOptions($GLOBALS["paymentDirectoryAccountID"]);
-	
-	$fields = array();
-	if($GLOBALS["defaultCurrencyID"] != $currencyID) {
-		$defaultCurrency = stdGet("accountingCurrency", array("currencyID"=>$GLOBALS["defaultCurrencyID"]), "name");
-		$strangeCurrency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "name");
-		$fields[] = array("title"=>"Amount ($defaultCurrency)", "type"=>"text", "name"=>"amount");
-		$fields[] = array("title"=>"Amount ($strangeCurrency)", "type"=>"text", "name"=>"foreignAmount");
-		
-		if($error === null && $balance !== null) {
-			$fields = array_merge($fields, transactionExchangeRates($balance));
-		}
-	} else {
-		$fields[] = array("title"=>"Amount", "type"=>"text", "name"=>"amount");
-	}
-	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
-	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
-	$fields[] = array("title"=>"Payment account", "type"=>"dropdown", "name"=>"paymentAccount", "options"=>$paymentAccounts);
+	$fields = supplierPaymentForm($payment["supplierID"], $error, $values);
 	
 	return operationForm("editsupplierpayment.php?id=$paymentID", $error, "Edit payment", "Save", $fields, $values);
 }
@@ -824,6 +797,35 @@ function accountOptions($rootNode = null, $allowEmpty = false)
 	return $accountOptions;
 }
 
+function calculateTransactionAmount($transactionID, $accountID, $negate = false)
+{
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
+	$currencySymbol = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "symbol");
+	if($currencyID != $GLOBALS["defaultCurrencyID"]) {
+		$lines = stdList("accountingTransactionLine", array("transactionID"=>$transactionID), array("accountID", "amount"));
+		$amount = 0;
+		foreach($lines as $line) {
+			if($line["accountID"] == $accountID) {
+				$foreignAmount = $line["amount"];
+			} else {
+				$amount += -1 * $line["amount"];
+			}
+		}
+		if($negate) {
+			$foreignAmount = -1 * $foreignAmount;
+			$amount = -1 * $amount;
+		}
+		$amountHtml = formatPrice($amount) . " / " . formatPrice($foreignAmount, $currencySymbol);
+	} else {
+		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$transactionID, "accountID"=>$accountID), "amount");
+		if($negate) {
+			$amount = -1 * $amount;
+		}
+		$amountHtml = formatPrice($amount);
+	}
+	return $amountHtml;
+}
+
 function formatAccountPrice($accountID)
 {
 	$account = stdGet("accountingAccount", array("accountID"=>$accountID), array("balance", "currencyID"));
@@ -851,6 +853,7 @@ function supplierEmpty($supplierID)
 		!stdExists("suppliersPayment", array("supplierID"=>$supplierID)) &&
 		accountEmpty(stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID"));
 }
+
 
 
 
