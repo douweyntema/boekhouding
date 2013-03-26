@@ -13,7 +13,7 @@ function main()
 	
 	$content .= supplierSummary($supplierID);
 	
-// 	$content .= supplierInvoiceList($supplierID);
+	$content .= supplierInvoiceList($supplierID);
 // 	$content .= supplierPaymentList($supplierID);
 
 // 	$content .= addSupplierInvoiceForm($supplierID);

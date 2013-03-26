@@ -33,6 +33,15 @@ function doAccountingSupplier($supplierID)
 	doAccounting();
 }
 
+function doAccountingInvoice($invoiceID)
+{
+	if(!stdExists("suppliersInvoice", array("invoiceID"=>$invoiceID))) {
+		error404();
+	}
+	doAccounting();
+}
+
+
 function crumb($name, $filename)
 {
 	return array("name"=>$name, "url"=>"{$GLOBALS["root"]}accounting/$filename");
@@ -166,6 +175,28 @@ function supplierSummary($supplierID)
 		"Default expences account"=>array("url"=>"account.php?id={$supplier["defaultExpenseAccountID"]}", "text"=>$defaultExpenseAccountName),
 		"Description"=>$supplier["description"],
 		));
+}
+
+function supplierInvoiceList($supplierID)
+{
+	$invoices = stdList("suppliersInvoice", array("supplierID"=>$supplierID), array("invoiceID", "transactionID", "invoiceNumber", "description"));
+	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID");
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
+	$currencySymbol = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "symbol");
+	$rows = array();
+	foreach($invoices as $invoice) {
+		$date = stdGet("accountingTransaction", array("transactionID"=>$invoice["transactionID"]), "date");
+		$hasPdf = !stdExists("suppliersInvoice", array("invoiceID"=>$invoice["invoiceID"], "pdf"=>null));
+		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
+		$rows[] = array("cells"=>array(
+			array("url"=>$hasPdf ? "invoicepdf.php?id={$invoice["invoiceID"]}" : null, "text"=>$invoice["invoiceNumber"]),
+			array("text"=>date("d-m-Y", $date)),
+			array("url"=>"transaction.php?id={$invoice["transactionID"]}", "html"=>formatPrice($amount)),
+			array("text"=>$invoice["description"]),
+		));
+	}
+	return listTable(array("Invoice number", "Date", "Amount", "Description"), $rows, "Invoices", true, "list sortable");
+
 }
 
 function addAccountForm($accountID, $error = "", $values = null)
