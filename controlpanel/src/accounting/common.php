@@ -41,6 +41,14 @@ function doAccountingInvoice($invoiceID)
 	doAccounting();
 }
 
+function doAccountingPayment($paymentID)
+{
+	if(!stdExists("suppliersPayment", array("paymentID"=>$paymentID))) {
+		error404();
+	}
+	doAccounting();
+}
+
 
 function crumb($name, $filename)
 {
@@ -76,6 +84,36 @@ function supplierBreadcrumbs($supplierID)
 {
 	$name = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "name");
 	return array_merge(accountingBreadcrumbs(), crumbs("Supplier " . $name, "supplier.php?id=$supplierID"));
+}
+
+function suppliersInvoiceBreadcrumbs($invoiceID)
+{
+	$invoice = stdGet("suppliersInvoice", array("invoiceID"=>$invoiceID), array("supplierID", "invoiceNumber"));
+	return array_merge(supplierBreadcrumbs($invoice["supplierID"]), crumbs("Invoice " . $invoice["invoiceNumber"], "supplierinvoice.php?id=$invoiceID"));
+}
+
+function suppliersPaymentBreadcrumbs($paymentID)
+{
+	$payment = stdGet("suppliersPayment", array("paymentID"=>$paymentID), array("supplierID", "transactionID"));
+	$date = stdGet("accountingTransaction", array("transactionID"=>$payment["transactionID"]), "date");
+	return array_merge(supplierBreadcrumbs($payment["supplierID"]), crumbs("Payment on " . date("d-m-Y", $date), "supplierpayment.php?id=$paymentID"));
+}
+
+function accountSummary($accountID)
+{
+	$account = stdGet("accountingAccount", array("accountID"=>$accountID), array("parentAccountID", "currencyID", "name", "description", "isDirectory"));
+	$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), array("name", "symbol"));
+	
+	$rows = array();
+	if($account["parentAccountID"] !== null) {
+		$parentAccountName = stdGet("accountingAccount", array("accountID"=>$account["parentAccountID"]), "name");
+		$rows["Parent account"] = array("url"=>"account.php?id=" . $account["parentAccountID"], "text"=>$parentAccountName);
+	}
+	$rows["Currency"] = array("html"=>$currency["name"] . " (" . $currency["symbol"] . ")");
+	$rows["Balance"] = array("html"=>formatAccountPrice($accountID));
+	$rows["Description"] = $account["description"];
+	
+	return summaryTable("Account {$account["name"]}", $rows);
 }
 
 function accountList()
@@ -151,6 +189,29 @@ function transactionList($accountID)
 	return listTable(array("Date", "Description", "Amount", "Balance"), $rows, null, true, "list tree");
 }
 
+function transactionSummary($transactionID)
+{
+	$transaction = stdGet("accountingTransaction", array("transactionID"=>$transactionID), array("date", "description"));
+	$lines = stdList("accountingTransactionLine", array("transactionID"=>$transactionID), array("transactionLineID", "accountID", "amount"));
+	
+	$rows[] = array("id"=>"transaction-{$transactionID}", "class"=>"transaction", "cells"=>array(
+		array("text"=>date("d-m-Y", $transaction["date"])),
+		array("text"=>$transaction["description"], "url"=>"transaction.php?id={$transactionID}"),
+		array("text"=>""),
+	));
+	
+	foreach($lines as $line) {
+		$account = stdGet("accountingAccount", array("accountID"=>$line["accountID"]), array("name", "currencyID"));
+		$lineCurrencySymbol = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "symbol");
+		$rows[] = array("class"=>"transactionline", "cells"=>array(
+			array("text"=>""),
+			array("url"=>"account.php?id={$line["accountID"]}", "text"=>$account["name"]),
+			array("html"=>formatPrice($line["amount"], $lineCurrencySymbol)),
+		));
+	}
+	return listTable(array("Date", "Description", "Amount"), $rows, null, true, "list");
+}
+
 function supplierList()
 {
 	$suppliers = stdList("suppliersSupplier", array(), array("supplierID", "accountID", "name", "description"));
@@ -177,25 +238,65 @@ function supplierSummary($supplierID)
 		));
 }
 
+function supplierInvoiceSummary($invoiceID)
+{
+	$invoice = stdGet("suppliersInvoice", array("invoiceID"=>$invoiceID), array("supplierID", "transactionID", "invoiceNumber"));
+	$supplier = stdGet("suppliersSupplier", array("supplierID"=>$invoice["supplierID"]), array("accountID", "name"));
+	$transaction = stdGet("accountingTransaction", array("transactionID"=>$invoice["transactionID"]), array("date", "description"));
+	
+	$dateHtml = date("d-m-Y", $transaction["date"]);
+	$hasPdf = !stdExists("suppliersInvoice", array("invoiceID"=>$invoiceID, "pdf"=>null));
+	$amount = -1 * stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$supplier["accountID"]), "amount");
+	
+	$fields = array(
+		"Supplier"=>array("url"=>"supplier.php?id={$invoice["supplierID"]}", "text"=>$supplier["name"]),
+		"Invoice number"=>array("url"=>$hasPdf ? "supplierinvoicepdf.php?id={$invoiceID}" : null, "text"=>$invoice["invoiceNumber"]),
+		"Date"=>array("text"=>$dateHtml),
+		"Description"=>array("text"=>$transaction["description"]),
+		"Amount"=>array("url"=>"transaction.php?id={$invoice["transactionID"]}", "html"=>formatPrice($amount)),
+	);
+	
+	return summaryTable("Invoice {$invoice["invoiceNumber"]}", $fields);
+}
+
 function supplierInvoiceList($supplierID)
 {
-	$invoices = stdList("suppliersInvoice", array("supplierID"=>$supplierID), array("invoiceID", "transactionID", "invoiceNumber", "description"));
+	$invoices = stdList("suppliersInvoice", array("supplierID"=>$supplierID), array("invoiceID", "transactionID", "invoiceNumber"));
 	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID");
 	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
 	$currencySymbol = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "symbol");
 	$rows = array();
 	foreach($invoices as $invoice) {
-		$date = stdGet("accountingTransaction", array("transactionID"=>$invoice["transactionID"]), "date");
+		$transaction = stdGet("accountingTransaction", array("transactionID"=>$invoice["transactionID"]), array("date", "description"));
 		$hasPdf = !stdExists("suppliersInvoice", array("invoiceID"=>$invoice["invoiceID"], "pdf"=>null));
-		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
+		$amount = -1 * stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
 		$rows[] = array("cells"=>array(
-			array("url"=>$hasPdf ? "invoicepdf.php?id={$invoice["invoiceID"]}" : null, "text"=>$invoice["invoiceNumber"]),
-			array("text"=>date("d-m-Y", $date)),
+			array("url"=>"supplierinvoice.php?id=" . $invoice["invoiceID"], "text"=>date("d-m-Y", $transaction["date"])),
 			array("url"=>"transaction.php?id={$invoice["transactionID"]}", "html"=>formatPrice($amount)),
-			array("text"=>$invoice["description"]),
+			array("url"=>$hasPdf ? "supplierinvoicepdf.php?id={$invoice["invoiceID"]}" : null, "text"=>$invoice["invoiceNumber"]),
+			array("text"=>$transaction["description"]),
 		));
 	}
-	return listTable(array("Invoice number", "Date", "Amount", "Description"), $rows, "Invoices", true, "list sortable");
+	return listTable(array("Date", "Amount", "Invoice number", "Description"), $rows, "Invoices", true, "list sortable");
+}
+
+function supplierPaymentSummary($paymentID)
+{
+	$payment = stdGet("suppliersPayment", array("paymentID"=>$paymentID), array("supplierID", "transactionID"));
+	$supplier = stdGet("suppliersSupplier", array("supplierID"=>$payment["supplierID"]), array("accountID", "name", "description"));
+	$transaction = stdGet("accountingTransaction", array("transactionID"=>$payment["transactionID"]), array("date", "description"));
+	
+	$dateHtml = date("d-m-Y", $transaction["date"]);
+	$amount = stdGet("accountingTransactionLine", array("transactionID"=>$payment["transactionID"], "accountID"=>$supplier["accountID"]), "amount");
+	
+	$fields = array(
+		"Supplier"=>array("url"=>"supplier.php?id={$payment["supplierID"]}", "text"=>$supplier["name"]),
+		"Amount"=>array("url"=>"transaction.php?id={$payment["transactionID"]}", "html"=>formatPrice($amount)),
+		"Date"=>array("text"=>$dateHtml),
+		"Description"=>array("text"=>$transaction["description"]),
+	);
+	
+	return summaryTable("Payment on " . $dateHtml, $fields);
 }
 
 function supplierPaymentList($supplierID)
@@ -209,7 +310,7 @@ function supplierPaymentList($supplierID)
 		$date = stdGet("accountingTransaction", array("transactionID"=>$payment["transactionID"]), "date");
 		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$payment["transactionID"], "accountID"=>$accountID), "amount");
 		$rows[] = array("cells"=>array(
-			array("text"=>date("d-m-Y", $date)),
+			array("url"=>"supplierpayment.php?id=" . $payment["paymentID"], "text"=>date("d-m-Y", $date)),
 			array("url"=>"transaction.php?id={$payment["transactionID"]}", "html"=>formatPrice($amount)),
 		));
 	}

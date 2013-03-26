@@ -8,6 +8,8 @@ function main()
 	doAccountingAccount($accountID);
 	$accountName = stdGet("accountingAccount", array("accountID"=>$accountID), "name");
 	$content = makeHeader("Account $accountName", accountBreadcrumbs($accountID));
+	
+	$content .= accountSummary($accountID);
 	$content .= transactionList($accountID);
 	if(stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory")) {
 		$content .= addAccountForm($accountID, "STUB");

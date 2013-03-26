@@ -783,7 +783,10 @@ function listTableCell($cell, $type)
 		$output .= " class=\"{$cell["class"]}\"";
 	}
 	if(isset($cell["id"]) && $cell["id"] !== null) {
-		$output .= " ud=\"{$cell["id"]}\"";
+		$output .= " id=\"{$cell["id"]}\"";
+	}
+	if(isset($cell["colspan"]) && $cell["colspan"] !== null) {
+		$output .= " colspan=\"{$cell["colspan"]}\"";
 	}
 	$output .= ">";
 	

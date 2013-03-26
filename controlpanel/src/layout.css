@@ -410,3 +410,8 @@ table.inline, table.inline tr, table.inline td, table.inline th {
 .list table tbody tr.transactionline td {
 	background-color: #FFFFFF;
 }
+
+.list table .transaction-description {
+	border-bottom: 2px solid #153e7e;
+	border-top: 2px solid #153e7e;
+}

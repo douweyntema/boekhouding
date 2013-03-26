@@ -12,6 +12,8 @@ function main()
 	$date = stdGet("accountingTransaction", array("transactionID"=>$transactionID), "date");
 	$content = makeHeader("Transaction on " . date("d-m-Y", $date), transactionBreadcrumbs($transactionID, $accountID));
 	
+	$content .= transactionSummary($transactionID);
+	
 	$content .= editTransactionForm($transactionID, $accountID);
 	$content .= deleteTransactionForm($transactionID, $accountID);
 	
