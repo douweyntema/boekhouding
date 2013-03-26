@@ -35,6 +35,76 @@ function parseArrayField($values, $keys)
 	}
 }
 
+function acceptFile($name)
+{
+	$scriptFilename = substr(realpath($_SERVER["SCRIPT_FILENAME"]), strlen(dirname(realpath(__FILE__))));
+	
+	if(!isset($_SESSION["files"])) {
+		$_SESSION["files"] = array();
+	}
+	if(!isset($_SESSION["files"][$scriptFilename])) {
+		$_SESSION["files"][$scriptFilename] = array();
+	}
+	
+	$id = post("$name-id");
+	if($id !== null && !isset($_SESSION["files"][$scriptFilename][$id])) {
+		$id = null;
+	}
+	if(isset($_FILES[$name]) && $_FILES[$name]["error"] == UPLOAD_ERR_OK) {
+		if($id !== null) {
+			unset($_SESSION["files"][$scriptFilename][$id]);
+		}
+		$id = 1;
+		foreach($_SESSION["files"][$scriptFilename] as $key=>$value) {
+			$id = $key + 1;
+		}
+		$data = file_get_contents($_FILES[$name]["tmp_name"]);
+		$_SESSION["files"][$scriptFilename][$id] = array(
+			"id"=>$id,
+			"name"=>$_FILES[$name]["name"],
+			"type"=>$_FILES[$name]["type"],
+			"size"=>$_FILES[$name]["size"],
+			"data"=>$data
+		);
+		$_POST["$name-id"] = $id;
+	}
+	
+	if(get("download") == $name) {
+		$id = get("download-id");
+		if(!isset($_SESSION["files"][$scriptFilename][$id])) {
+			error404();
+		}
+		
+		$type = $_SESSION["files"][$scriptFilename][$id]["type"];
+		$size = $_SESSION["files"][$scriptFilename][$id]["size"];
+		$name = addslashes($_SESSION["files"][$scriptFilename][$id]["name"]);
+		
+		header("Content-Type: $type");
+		header("Content-Length: $size");
+		header("Content-Disposition: attachment; filename=\"$name\"");
+		echo $_SESSION["files"][$scriptFilename][$id]["data"];
+		die();
+	}
+}
+
+function parseFile($values, $name)
+{
+	$scriptFilename = substr(realpath($_SERVER["SCRIPT_FILENAME"]), strlen(dirname(realpath(__FILE__))));
+	
+	if(!isset($_SESSION["files"])) {
+		$_SESSION["files"] = array();
+	}
+	if(!isset($_SESSION["files"][$scriptFilename])) {
+		$_SESSION["files"][$scriptFilename] = array();
+	}
+	
+	$id = post("$name-id");
+	if(isset($_SESSION["files"][$scriptFilename][$id])) {
+		return $_SESSION["files"][$scriptFilename][$id];
+	}
+	return null;
+}
+
 function dropdown($list)
 {
 	$result = array();
@@ -262,6 +332,41 @@ function renderCell($cell, $values, $readOnly)
 			$output["content"] .= ">{$option["label"]}</option>\n";
 		}
 		$output["content"] .= "</select>";
+	} else if($cell["type"] == "file") {
+		$file = parseFile($values, $name);
+		if($file !== null) {
+			$postUrl = $cell["postUrl"];
+			if(strpos($postUrl, "?") === false) {
+				$postUrl .= "?";
+			} else {
+				$postUrl .= "&";
+			}
+			$postUrl .= "download=$name&download-id={$file["id"]}";
+			$postUrlHtml = htmlentities($postUrl);
+			
+			$filenameHtml = htmlentities($file["name"]);
+			$readVersion = "<a href=\"$postUrlHtml\">$filenameHtml</a>";
+			$readVersion .= "<input type=\"hidden\" name=\"$name-id\" value=\"{$file["id"]}\" />";
+		} else {
+			$readVersion = "No file selected.";
+		}
+		
+		if($readOnly) {
+			$output["content"] = $readVersion;
+		} else {
+			$output["content"] = "";
+			if($file !== null) {
+				$output["content"] .= $readVersion . "<br />";
+			}
+			$output["content"] .= "<input type=\"file\" name=\"$name\"";
+			if(isset($cell["accept"]) && $cell["accept"] !== null) {
+				$output["content"] .= " accept=\"{$cell["accept"]}\"";
+			}
+			if($fieldclass !== null) {
+				$output["content"] .= " class=\"$fieldclass\"";
+			}
+			$output["content"] .= " />";
+		}
 	} else if($cell["type"] == "submit") {
 		$output["content"] = "<input type=\"submit\" name=\"$name\" value=\"{$cell["label"]}\" />";
 	} else {
@@ -652,6 +757,7 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 		$tables[] = $table;
 	}
 	
+	$hasFiles = false;
 	$filteredTables = array();
 	foreach($tables as $table) {
 		$fields = array();
@@ -670,6 +776,11 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 				$valueHtml = htmlentities($field["value"]);
 				$hiddenFields .= "<input type=\"hidden\" name=\"{$field["name"]}\" value=\"$valueHtml\" />\n";
 				continue;
+			}
+			
+			if($field["type"] == "file") {
+				$hasFiles = true;
+				$field["postUrl"] = $postUrl;
 			}
 			
 			if($field["type"] == "array") {
@@ -732,7 +843,11 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	}
 	
 	if($postUrl !== null) {
-		$output .= "<form action=\"$postUrl\" method=\"post\">\n";
+		$output .= "<form action=\"$postUrl\" method=\"post\"";
+		if($hasFiles) {
+			$output .= " enctype=\"multipart/form-data\"";
+		}
+		$output .= ">\n";
 	}
 	$output .= $hiddenFields;
 	

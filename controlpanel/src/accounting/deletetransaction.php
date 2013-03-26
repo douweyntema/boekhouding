@@ -15,6 +15,8 @@ function main()
 		if(!$condition) die(page(makeHeader("Transaction on " . date("d-m-Y", $date), transactionBreadcrumbs($transactionID, $accountID), crumbs("Delete transaction", "deletetransaction.php?id=$transactionID&accountID=$accountID")) . deleteTransactionForm($transactionID, $accountID, $error, $_POST)));
 	};
 	
+	/// TODO: weigeren als een transactie ergens aan gekoppeld is
+	
 	$check(post("confirm") !== null, null);
 	
 	accountingDeleteTransaction($transactionID);

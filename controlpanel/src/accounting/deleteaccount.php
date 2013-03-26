@@ -12,8 +12,7 @@ function main()
 		if(!$condition) die(page(makeHeader("Delete account", accountBreadcrumbs($accountID), crumbs("Delete account", "deleteaccount.php?id=$accountID")) . deleteAccountForm($accountID, $error, $_POST)));
 	};
 	
-	$check(!stdExists("accountingTransactionLine", array("accountID"=>$accountID)), "Account is still in use.");
-	$check(!stdExists("accountingAccount", array("parentAccountID"=>$accountID)), "Account is still in use.");
+	$check(accountEmpty($accountID), "Account is still in use.");
 	$check(post("confirm") !== null, null);
 	
 	accountingDeleteAccount($accountID);

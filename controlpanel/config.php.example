@@ -23,11 +23,12 @@ $crypto_key = "aiulfdsfhkasdfouglasdfasjd,fgksdfj";
 
 $ssh_private_key_file = "~/.ssh/id_rsa";
 
-$defaultCurrency = "EUR";
+$defaultCurrencyID = ;
 $suppliersAccountID = ;
 $paymentDirectoryAccountID = ;
 $paymentDefaultAccountID = ;
-
+$taxPayableAccountID = ;
+$taxReceivableAccountID = ;
 
 $componentsEnabled = array();
 $componentsEnabled[] = "infrastructure";

@@ -36,6 +36,9 @@ function main()
 	if($balance["type"] == "single") {
 		$check($balance["status"], "Transaction not in balance");
 	}
+	
+	/// TODO: extra warning als een transactie ergens aan gekoppeld is
+	
 	$check(post("confirm") !== null, null, $balance);
 	
 	accountingEditTransaction($transactionID, $date, $description, $parsedLines);

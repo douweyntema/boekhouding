@@ -129,7 +129,7 @@ function accountList()
 	$rows = array();
 	foreach($accountList as $account) {
 		$text = $account["name"];
-		if($account["currencyName"] != $GLOBALS["defaultCurrency"]) {
+		if($account["currencyID"] != $GLOBALS["defaultCurrencyID"]) {
 			$text .= " (" . $account["currencyName"] . ")";
 		}
 		$rows[] = array("id"=>$account["id"], "class"=>($account["parentID"] === null ? null : "child-of-account-{$account["parentAccountID"]}"), "cells"=>array(
@@ -540,6 +540,31 @@ function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balan
 	return operationForm("addsupplierpayment.php?id=$supplierID", $error, "Add payment", "Save", $fields, $values);
 }
 
+function deleteSupplierForm($supplierID, $error = "", $values = null)
+{
+	return operationForm("deletesupplier.php?id=$supplierID", $error, "Delete supplier", "Delete", array(), $values);
+}
+
+/*
+function addSupplierInvoiceForm($supplierID, $error = "", $values = null)
+{
+	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$suppierID), "accountID");
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
+	$currency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), array("name", "symbol"));
+	
+	return operationForm("addinvoice.php?id=$supplierID", $error, "Add invoice", "Add Invoice",
+		array(
+			array("title"=>"Invoice number", "type"=>"text", "name"=>"invoiceNumber"),
+			array("title"=>"Description", "type"=>"text", "name"=>"description"),
+			array("title"=>"Date", "type"=>"text", "name"=>"date"),
+			array("title"=>"File", "type"=>"file", "name"=>"file", "accept"=>"application/pdf"),
+			($currencyID == $GLOBALS["defaultCurrencyID"] ? array("title"=>"Total in {$currency["name"]}", "type"=>"text", "name"=>"total") : null),
+			array("title"=>""
+		),
+		$values);
+}
+*/
+
 function transactionExchangeRates($balance)
 {
 	$currency1 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));
@@ -559,7 +584,7 @@ function transactionExchangeRates($balance)
 function accountTree($accountID, $excludedAccountID = null)
 {
 	$accountIDSql = dbAddSlashes($accountID);
-	$output = query("SELECT accountID, parentAccountID, accountingAccount.name AS name, description, isDirectory, balance, accountingCurrency.symbol AS currencySymbol, accountingCurrency.name AS currencyName FROM accountingAccount INNER JOIN accountingCurrency USING(currencyID) WHERE accountID = '$accountIDSql'")->fetchArray();
+	$output = query("SELECT accountID, parentAccountID, accountingAccount.name AS name, description, isDirectory, balance, currencyID, accountingCurrency.symbol AS currencySymbol, accountingCurrency.name AS currencyName FROM accountingAccount INNER JOIN accountingCurrency USING(currencyID) WHERE accountID = '$accountIDSql'")->fetchArray();
 	$output["subaccounts"] = array();
 	foreach(stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID") as $subAccountID) {
 		if($excludedAccountID !== null && $subAccountID["accountID"] == $excludedAccountID) {
@@ -652,5 +677,23 @@ function supplierAccountDescription($name)
 {
 	return "Supplier account for supplier $name";
 }
+
+function accountEmpty($accountID)
+{
+	return
+		!stdExists("accountingTransactionLine", array("accountID"=>$accountID)) &&
+		!stdExists("accountingAccount", array("parentAccountID"=>$accountID));
+
+}
+
+function supplierEmpty($supplierID)
+{
+	return
+		!stdExists("suppliersInvoice", array("supplierID"=>$supplierID)) &&
+		!stdExists("suppliersPayment", array("supplierID"=>$supplierID)) &&
+		accountEmpty(stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID"));
+}
+
+
 
 ?>
