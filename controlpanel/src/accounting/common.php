@@ -592,13 +592,37 @@ function addSupplierInvoiceForm($supplierID, $error = "", $values = null, $total
 
 function editSupplierInvoiceForm($invoiceID, $error = "", $values = null, $total = null, $balance = null)
 {
-	$supplierID = stdGet("suppliersInvoice", array("invoiceID"=>$invoiceID), "supplierID");
+	$invoice = stdGet("suppliersInvoice", array("invoiceID"=>$invoiceID), array("supplierID", "transactionID", "invoiceNumber"));
+	$supplier = stdGet("suppliersSupplier", array("supplierID"=>$invoice["supplierID"]), array("accountID", "name"));
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$supplier["accountID"]), "currencyID");
+	$hasPdf = !stdExists("suppliersInvoice", array("invoiceID"=>$invoiceID, "pdf"=>null));
 	
 	if($values === null) {
+		$transaction = stdGet("accountingTransaction", array("transactionID"=>$invoice["transactionID"]), array("date", "description"));
+		$lines = stdList("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"]), array("accountID", "amount"));
 		
+		$values = array(
+			"invoiceNumber"=>$invoice["invoiceNumber"],
+			"description"=>$transaction["description"],
+			"date"=>date("d-m-Y", $transaction["date"]),
+			"pdfType"=>$hasPdf ? "current" : "none",
+		);
+		
+		$index = 0;
+		foreach($lines as $line) {
+			if($line["accountID"] == $supplier["accountID"]) {
+				$values["foreignAmount"] = formatPriceRaw(-1 * $line["amount"]);
+			} else if($line["accountID"] == $GLOBALS["taxReceivableAccountID"]) {
+				$values["taxAmount"] = formatPriceRaw($line["amount"]);
+			} else {
+				$values["accountID-$index"] = $line["accountID"];
+				$values["amount-$index"] = formatPriceRaw($line["amount"]);
+				$index++;
+			}
+		}
 	}
 	
-	$formContent = supplierInvoiceForm($supplierID, "supplierinvoicepdf.php?id=$invoiceID", $error, $values, $total, $balance);
+	$formContent = supplierInvoiceForm($invoice["supplierID"], $hasPdf ? "supplierinvoicepdf.php?id=$invoiceID" : null, $error, $values, $total, $balance);
 	
 	return operationForm("editsupplierinvoice.php?id=$invoiceID", $error, "Edit invoice", "Save", $formContent["fields"], $formContent["values"]);
 }

@@ -13,7 +13,7 @@ function main()
 	
 	$content .= supplierInvoiceSummary($invoiceID);
 	
-// 	$content .= editSupplierInvoiceForm($invoiceID);
+	$content .= editSupplierInvoiceForm($invoiceID);
 	$content .= deleteSupplierInvoiceForm($invoiceID);
 	
 	echo page($content);
