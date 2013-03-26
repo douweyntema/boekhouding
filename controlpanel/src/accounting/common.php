@@ -656,6 +656,11 @@ function editSupplierPaymentForm($paymentID, $error = "", $values = null, $balan
 	return operationForm("editsupplierpayment.php?id=$paymentID", $error, "Edit payment", "Save", $fields, $values);
 }
 
+function deleteSupplierPaymentForm($paymentID, $error = "", $values = null)
+{
+	return operationForm("deletesupplierpayment.php?id=$paymentID", $error, "Delete payment", "Delete", array(), $values);
+}
+
 function transactionExchangeRates($balance)
 {
 	$currency1 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));
