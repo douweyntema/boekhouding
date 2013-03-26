@@ -25,6 +25,14 @@ function doAccountingTransaction($transactionID)
 	doAccounting();
 }
 
+function doAccountingSupplier($supplierID)
+{
+	if(!stdExists("suppliersSupplier", array("supplierID"=>$supplierID))) {
+		error404();
+	}
+	doAccounting();
+}
+
 function crumb($name, $filename)
 {
 	return array("name"=>$name, "url"=>"{$GLOBALS["root"]}accounting/$filename");
@@ -55,6 +63,11 @@ function transactionBreadcrumbs($transactionID, $accountID)
 	return array_merge(accountBreadcrumbs($accountID), crumbs("Transaction on " . date("d-m-Y", $date), "transaction.php?id=$transactionID&accountID=$accountID"));
 }
 
+function supplierBreadcrumbs($supplierID)
+{
+	$name = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "name");
+	return array_merge(accountingBreadcrumbs(), crumbs("Supplier " . $name, "supplier.php?id=$supplierID"));
+}
 
 function accountList()
 {
@@ -74,36 +87,10 @@ function accountList()
 		}
 		$rows[] = array("id"=>$account["id"], "class"=>($account["parentID"] === null ? null : "child-of-account-{$account["parentAccountID"]}"), "cells"=>array(
 			array("url"=>"account.php?id={$account["accountID"]}", "text"=>$text),
-			array("html"=>formatPrice($account["balance"], $account["currencySymbol"])),
+			array("html"=>formatAccountPrice($account["accountID"])),
 		));
 	}
-	return listTable(array("Account", "Balance"), $rows, null, true, "list tree");
-}
-
-function accountTree($accountID, $excludedAccountID = null)
-{
-	$accountIDSql = dbAddSlashes($accountID);
-	$output = query("SELECT accountID, parentAccountID, accountingAccount.name AS name, description, isDirectory, balance, accountingCurrency.symbol AS currencySymbol, accountingCurrency.name AS currencyName FROM accountingAccount INNER JOIN accountingCurrency USING(currencyID) WHERE accountID = '$accountIDSql'")->fetchArray();
-	$output["subaccounts"] = array();
-	foreach(stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID") as $subAccountID) {
-		if($excludedAccountID !== null && $subAccountID["accountID"] == $excludedAccountID) {
-			continue;
-		}
-		$output["subaccounts"][] = accountTree($subAccountID);
-	}
-	return $output;
-}
-
-function flattenAccountTree($tree, $parentID = null, $depth = 0)
-{
-	$id = "account-" . $tree["accountID"];
-	$output = array();
-	
-	$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID, "depth"=>$depth));
-	foreach($tree["subaccounts"] as $account) {
-		$output = array_merge($output, flattenAccountTree($account, $id, $depth + 1));
-	}
-	return $output;
+	return listTable(array("Account", "Balance"), $rows, "Accounts", true, "list tree");
 }
 
 function transactionList($accountID)
@@ -155,43 +142,18 @@ function transactionList($accountID)
 	return listTable(array("Date", "Description", "Amount", "Balance"), $rows, null, true, "list tree");
 }
 
-function transactions($accountID)
+function supplierList()
 {
-	if(stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory") == 0) {
-		return query("SELECT transactionID, date, description FROM accountingTransaction INNER JOIN accountingTransactionLine USING(transactionID) WHERE accountID = '" . dbAddSlashes($accountID) . "'")->fetchMap("transactionID");
-	} else {
-		$output = array();
-		$subAccounts = stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID");
-		foreach($subAccounts as $subAccountID) {
-			$transactions = transactions($subAccountID);
-			foreach($transactions as $transactionID=>$transaction) {
-				$output[$transactionID] = $transaction;
-			}
-		}
-		return $output;
+	$suppliers = stdList("suppliersSupplier", array(), array("supplierID", "accountID", "name", "description"));
+	
+	$rows = array();
+	foreach($suppliers as $supplier) {
+		$rows[] = array("cells"=>array(
+			array("url"=>"supplier.php?id={$supplier["supplierID"]}", "text"=>$supplier["name"]),
+			array("url"=>"account.php?id={$supplier["accountID"]}", "html"=>formatAccountPrice($supplier["accountID"])),
+		));
 	}
-}
-
-function subAccountList($accountID, $currencyID = null)
-{
-	$output = array($accountID);
-	if($currencyID === null) {
-		$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
-	}
-	$subAccounts = stdList("accountingAccount", array("parentAccountID"=>$accountID, "currencyID"=>$currencyID), "accountID");
-	foreach($subAccounts as $subAccount) {
-		$output = array_merge($output, subAccountList($subAccount, $currencyID));
-	}
-	return $output;
-}
-
-function currencyOptions()
-{
-	$output = array();
-	foreach(stdList("accountingCurrency", array(), array("currencyID", "name")) as $currency) {
-		$output[] = array("label"=>$currency["name"], "value"=>$currency["currencyID"]);
-	}
-	return $output;
+	return listTable(array("Name", "Balance"), $rows, "Suppliers", true, "list");
 }
 
 function addAccountForm($accountID, $error = "", $values = null)
@@ -366,4 +328,75 @@ function deleteTransactionForm($transactionID, $accountID, $error = "", $values 
 	return operationForm("deletetransaction.php?id=$transactionID&accountID=$accountID", $error, "Delete transaction", "Delete", array(), $values);
 }
 
+function accountTree($accountID, $excludedAccountID = null)
+{
+	$accountIDSql = dbAddSlashes($accountID);
+	$output = query("SELECT accountID, parentAccountID, accountingAccount.name AS name, description, isDirectory, balance, accountingCurrency.symbol AS currencySymbol, accountingCurrency.name AS currencyName FROM accountingAccount INNER JOIN accountingCurrency USING(currencyID) WHERE accountID = '$accountIDSql'")->fetchArray();
+	$output["subaccounts"] = array();
+	foreach(stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID") as $subAccountID) {
+		if($excludedAccountID !== null && $subAccountID["accountID"] == $excludedAccountID) {
+			continue;
+		}
+		$output["subaccounts"][] = accountTree($subAccountID);
+	}
+	return $output;
+}
+
+function transactions($accountID)
+{
+	if(stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory") == 0) {
+		return query("SELECT transactionID, date, description FROM accountingTransaction INNER JOIN accountingTransactionLine USING(transactionID) WHERE accountID = '" . dbAddSlashes($accountID) . "'")->fetchMap("transactionID");
+	} else {
+		$output = array();
+		$subAccounts = stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID");
+		foreach($subAccounts as $subAccountID) {
+			$transactions = transactions($subAccountID);
+			foreach($transactions as $transactionID=>$transaction) {
+				$output[$transactionID] = $transaction;
+			}
+		}
+		return $output;
+	}
+}
+
+function subAccountList($accountID, $currencyID = null)
+{
+	$output = array($accountID);
+	if($currencyID === null) {
+		$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
+	}
+	$subAccounts = stdList("accountingAccount", array("parentAccountID"=>$accountID, "currencyID"=>$currencyID), "accountID");
+	foreach($subAccounts as $subAccount) {
+		$output = array_merge($output, subAccountList($subAccount, $currencyID));
+	}
+	return $output;
+}
+
+function flattenAccountTree($tree, $parentID = null, $depth = 0)
+{
+	$id = "account-" . $tree["accountID"];
+	$output = array();
+	
+	$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID, "depth"=>$depth));
+	foreach($tree["subaccounts"] as $account) {
+		$output = array_merge($output, flattenAccountTree($account, $id, $depth + 1));
+	}
+	return $output;
+}
+
+function currencyOptions()
+{
+	$output = array();
+	foreach(stdList("accountingCurrency", array(), array("currencyID", "name")) as $currency) {
+		$output[] = array("label"=>$currency["name"], "value"=>$currency["currencyID"]);
+	}
+	return $output;
+}
+
+function formatAccountPrice($accountID)
+{
+	$account = stdGet("accountingAccount", array("accountID"=>$accountID), array("balance", "currencyID"));
+	$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "symbol");
+	return formatPrice($account["balance"], $currency);
+}
 ?>
