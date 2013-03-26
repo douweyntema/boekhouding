@@ -25,6 +25,8 @@ $ssh_private_key_file = "~/.ssh/id_rsa";
 
 $defaultCurrency = "EUR";
 $suppliersAccountID = ;
+$paymentDirectoryAccountID = ;
+$paymentDefaultAccountID = ;
 
 
 $componentsEnabled = array();

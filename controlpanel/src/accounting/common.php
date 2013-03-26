@@ -406,38 +406,23 @@ function transactionForm($error = "", $values = null, $balance = null)
 		}
 	}
 	
+	$fields = array();
+	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
+	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
+	
 	$message = array();
-	$rates1 = null;
-	$rates2 = null;
 	if($error === null && $balance !== null) {
 		if($balance["type"] == "double") {
-			$currency1 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));
-			$currency2 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["to"]), array("name", "symbol"));
-			
-			$rates1 = array("title"=>"Exchange rate", "type"=>"colspan", "columns"=>array(
-				array("type"=>"html", "html"=>formatPrice(100, $currency1["symbol"]) . " (" . $currency1["name"] . ")"),
-				array("type"=>"html", "fill"=>true, "html"=>"<input type=\"text\" readonly=\"readonly\" value=\"" . formatPrice($balance["rates"][0]["rate"], $currency2["symbol"]) . " (" . $currency2["name"] . ")\" />")
-			));
-			$rates2 = array("title"=>"Exchange rate", "type"=>"colspan", "columns"=>array(
-				array("type"=>"html", "html"=>formatPrice(100, $currency2["symbol"]) . " (" . $currency2["name"] . ")"),
-				array("type"=>"html", "fill"=>true, "html"=>"<input type=\"text\" readonly=\"readonly\" value=\"" . formatPrice($balance["rates"][1]["rate"], $currency1["symbol"]) . " (" . $currency1["name"] . ")\" />")
-			));
+			$fields = array_merge($fields, transactionExchangeRates($balance));
 		} else if($balance["type"] == "multiple") {
 			$message["custom"] = "<p class=\"warning\">Warning, the correctness of this transaction cannot be checked because there are 3 or more currencies involved!</p>";
 		}
 	}
 	
-	
-	$fields = array(
-		array("title"=>"Description", "type"=>"text", "name"=>"description"),
-		array("title"=>"Date", "type"=>"text", "name"=>"date"),
-		$rates1,
-		$rates2,
-		array("type"=>"array", "field"=>array("title"=>"Account", "type"=>"colspan", "columns"=>array(
-			array("type"=>"dropdown", "name"=>"accountID", "options"=>accountOptions()),
+	$fields[] = array("type"=>"array", "field"=>array("title"=>"Account", "type"=>"colspan", "columns"=>array(
+			array("type"=>"dropdown", "name"=>"accountID", "options"=>accountOptions(null, true)),
 			array("type"=>"text", "name"=>"amount", "fill"=>true),
-		))),
-	);
+		)));
 	return array("fields"=>$fields, "values"=>$values, "message"=>$message);
 }
 
@@ -512,6 +497,65 @@ function editSupplierForm($supplierID, $error = "", $values = null)
 		$values);
 }
 
+function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balance = null)
+{
+	$supplier = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), array("accountID", "name"));
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$supplier["accountID"]), "currencyID");
+	
+	if($values === null) {
+		$values = array("date"=>date("d-m-Y"), "description"=>"Payment for {$supplier["name"]}");
+		if(isset($GLOBALS["paymentDefaultAccountID"])) {
+			$values["paymentAccount"] = $GLOBALS["paymentDefaultAccountID"];
+		}
+		$balance = stdGet("accountingAccount", array("accountID"=>$supplier["accountID"]), "balance");
+		if($balance < 0) {
+			$amount = formatPriceRaw(-1 * $balance);
+			if($GLOBALS["defaultCurrencyID"] != $currencyID) {
+				$values["foreignAmount"] = $amount;
+			} else {
+				$values["amount"] = $amount;
+			}
+		}
+	}
+	
+	$paymentAccounts = accountOptions($GLOBALS["paymentDirectoryAccountID"]);
+	
+	$fields = array();
+	if($GLOBALS["defaultCurrencyID"] != $currencyID) {
+		$defaultCurrency = stdGet("accountingCurrency", array("currencyID"=>$GLOBALS["defaultCurrencyID"]), "name");
+		$strangeCurrency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "name");
+		$fields[] = array("title"=>"Amount ($defaultCurrency)", "type"=>"text", "name"=>"amount");
+		$fields[] = array("title"=>"Amount ($strangeCurrency)", "type"=>"text", "name"=>"foreignAmount");
+		
+		if($error === null && $balance !== null) {
+			$fields = array_merge($fields, transactionExchangeRates($balance));
+		}
+	} else {
+		$fields[] = array("title"=>"Amount", "type"=>"text", "name"=>"amount");
+	}
+	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
+	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
+	$fields[] = array("title"=>"Payment account", "type"=>"dropdown", "name"=>"paymentAccount", "options"=>$paymentAccounts);
+	
+	return operationForm("addsupplierpayment.php?id=$supplierID", $error, "Add payment", "Save", $fields, $values);
+}
+
+function transactionExchangeRates($balance)
+{
+	$currency1 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));
+	$currency2 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["to"]), array("name", "symbol"));
+	
+	$rates1 = array("title"=>"Exchange rate", "type"=>"colspan", "columns"=>array(
+		array("type"=>"html", "cellclass"=>"nowrap", "html"=>formatPrice(100, $currency1["symbol"]) . " (" . $currency1["name"] . ")"),
+		array("type"=>"html", "fill"=>true, "html"=>"<input type=\"text\" readonly=\"readonly\" value=\"" . formatPrice($balance["rates"][0]["rate"], $currency2["symbol"]) . " (" . $currency2["name"] . ")\" />")
+	));
+	$rates2 = array("title"=>"Exchange rate", "type"=>"colspan", "columns"=>array(
+		array("type"=>"html", "cellclass"=>"nowrap", "html"=>formatPrice(100, $currency2["symbol"]) . " (" . $currency2["name"] . ")"),
+		array("type"=>"html", "fill"=>true, "html"=>"<input type=\"text\" readonly=\"readonly\" value=\"" . formatPrice($balance["rates"][1]["rate"], $currency1["symbol"]) . " (" . $currency1["name"] . ")\" />")
+	));
+	return array($rates1, $rates2);
+}
+
 function accountTree($accountID, $excludedAccountID = null)
 {
 	$accountIDSql = dbAddSlashes($accountID);
@@ -577,9 +621,9 @@ function currencyOptions()
 	return $output;
 }
 
-function accountOptions($allowEmpty = false)
+function accountOptions($rootNode = null, $allowEmpty = false)
 {
-	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID");
+	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>$rootNode), "accountID");
 	$accountList = array();
 	foreach($rootNodes as $rootNode) {
 		$accountTree = accountTree($rootNode);

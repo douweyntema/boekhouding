@@ -40,7 +40,11 @@ function main()
 	
 	accountingEditTransaction($transactionID, $date, $description, $parsedLines);
 	
-	redirect("accounting/account.php?id=$accountID");
+	if($accountID !== null) {
+		redirect("accounting/account.php?id=$accountID");
+	} else {
+		redirect("accounting/index.php");
+	}
 }
 
 main();
