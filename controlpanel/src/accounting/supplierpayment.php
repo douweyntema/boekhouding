@@ -14,7 +14,7 @@ function main()
 	
 	$content .= supplierPaymentSummary($paymentID);
 	
-// 	$content .= editSupplierPaymentForm($paymentID);
+	$content .= editSupplierPaymentForm($paymentID);
 // 	$content .= deleteSupplierPaymentForm($paymentID);
 	
 	echo page($content);
