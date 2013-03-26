@@ -20,7 +20,7 @@ function main()
 	$check(post("confirm") !== null, null);
 	
 	startTransaction();
-	$accountID = accountingAddAccount($GLOBALS["suppliersAccountID"], $currencyID, $name, "Supplier account for supplier $name", false);
+	$accountID = accountingAddAccount($GLOBALS["suppliersAccountID"], $currencyID, $name, supplierAccountDescription($name), false);
 	$supplierID = stdNew("suppliersSupplier", array("accountID"=>$accountID, "defaultExpenseAccountID"=>($defaultExpenseAccountID == "0" ? null : $defaultExpenseAccountID), "name"=>$name, "description"=>post("description")));
 	commitTransaction();
 	

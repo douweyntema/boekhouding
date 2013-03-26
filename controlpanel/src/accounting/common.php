@@ -332,6 +332,25 @@ function addSupplierForm($error = "", $values = null)
 		$values);
 }
 
+function editSupplierForm($supplierID, $error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("editsupplier.php?id=$supplierID", $error, "Edit supplier", "Edit Supplier", array(), array());
+	}
+	
+	if($values === null || $error === "") {
+		$values = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), array("name", "defaultExpenseAccountID", "description"));
+	}
+	
+	return operationForm("editsupplier.php?id=$supplierID", $error, "Edit supplier", "Save",
+		array(
+			array("title"=>"Name", "type"=>"text", "name"=>"name"),
+			array("title"=>"Default expense account", "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountOptions()),
+			array("title"=>"Description", "type"=>"textarea", "name"=>"description")
+		),
+		$values);
+}
+
 function accountTree($accountID, $excludedAccountID = null)
 {
 	$accountIDSql = dbAddSlashes($accountID);
@@ -422,6 +441,11 @@ function formatAccountPrice($accountID)
 	$account = stdGet("accountingAccount", array("accountID"=>$accountID), array("balance", "currencyID"));
 	$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "symbol");
 	return formatPrice($account["balance"], $currency);
+}
+
+function supplierAccountDescription($name)
+{
+	return "Supplier account for supplier $name";
 }
 
 ?>
