@@ -24,10 +24,10 @@ $crypto_key = "aiulfdsfhkasdfouglasdfasjd,fgksdfj";
 $ssh_private_key_file = "~/.ssh/id_rsa";
 
 $defaultCurrencyID = ;
-$customersDirectoryAccountID = 
+$customersDirectoryAccountID = ;
 $suppliersDirectoryAccountID = ;
-$incomeDirectoryAccountID = 
-$expensesDirectoryAccountID = 
+$incomeDirectoryAccountID = ;
+$expensesDirectoryAccountID = ;
 $paymentDirectoryAccountID = ;
 $paymentDefaultAccountID = ;
 $taxPayableAccountID = ;
