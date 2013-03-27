@@ -173,55 +173,64 @@ function subscriptionDetail($subscriptionID)
 
 function invoiceList($customerID)
 {
+	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
+	$balance = billingBalance($customerID);
+	
 	$rows = array();
-	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "date", "remainingAmount", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
-		$amount = 0;
-		foreach(stdList("billingInvoiceLine", array("invoiceID"=>$invoice["invoiceID"]), array("price", "discount")) as $line) {
-			$amount += $line["price"] - $line["discount"];
-		}
+	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
+		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
 		
 		$rows[] = array(
-			array("url"=>"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}", "text"=>$invoice["invoiceNumber"]),
 			date("d-m-Y", $invoice["date"]),
+			array("url"=>"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}", "text"=>$invoice["invoiceNumber"]),
 			array("html"=>formatPrice($amount)),
-			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"]))),
-			$invoice["remainingAmount"] == 0 ? array("html"=>"") : array("url"=>"reminder.php?id={$invoice["invoiceID"]}", "text"=>"Send reminder"),
+			array("html"=>($balance <= 0 ? "Paid" : formatPrice($balance))),
+			$balance <= 0 ? array("html"=>"") : array("url"=>"reminder.php?id={$invoice["invoiceID"]}", "text"=>"Send reminder"),
 			array("url"=>"resend.php?id={$invoice["invoiceID"]}", "text"=>"Resend")
 		);
+		
+		$balance -= $amount;
 	}
-	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount", "Reminder", "Resend"), $rows, "Invoices", "No invoices have been sent so far.", "sortable list");
+	return listTable(array("Date", "Invoice number", "Amount", "Remaining amount", "Reminder", "Resend"), $rows, "Invoices", "No invoices have been sent so far.", "sortable list");
 }
 
 function customerInvoiceList($customerID)
 {
+	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
+	$balance = billingBalance($customerID);
+	
 	$rows = array();
-	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "date", "remainingAmount", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
-		$amount = 0;
-		foreach(stdList("billingInvoiceLine", array("invoiceID"=>$invoice["invoiceID"]), array("price", "discount")) as $line) {
-			$amount += $line["price"] - $line["discount"];
-		}
+	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
+		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
 		
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}", "text"=>$invoice["invoiceNumber"]),
 			date("d-m-Y", $invoice["date"]),
 			array("html"=>formatPrice($amount)),
-			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"])))
+			array("html"=>($balance <= 0 ? "Paid" : formatPrice($balance))),
 		);
+		
+		$balance -= $amount;
 	}
 	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount"), $rows, "Invoices", "No invoices have been sent so far.", "sortable list");
 }
 
 function paymentList($customerID)
 {
+	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
+	$customerIDSql = dbAddSlashes($customerID);
+	
 	$rows = array();
-	foreach(stdList("billingPayment", array("customerID"=>$customerID), array("amount", "date", "description"), array("date"=>"DESC", "paymentID"=>"DESC")) as $payment) {
+	foreach(query("SELECT transactionID, description, date FROM billingPayment INNER JOIN accountingTransaction USING(transactionID) WHERE customerID='$customerIDSql' ORDER BY date DESC")->fetchList() as $payment) {
+		$amount = -stdGet("accountingTransactionLine", array("transactionID"=>$payment["transactionID"], "accountID"=>$accountID), "amount");
+		
 		$rows[] = array(
 			date("d-m-Y", $payment["date"]),
-			array("html"=>formatPrice($payment["amount"])),
+			array("html"=>formatPrice($amount)),
 			$payment["description"]
 		);
 	}
-	return listTable(array("Date", "Amount", "Description"), $rows, "Payments", true, "sortable list");
+	return listTable(array("Date", "Amount", "Description"), $rows, "Payments", "No payments have been made so far.", "sortable list");
 }
 
 function addPaymentForm($customerID, $error = "", $values = null)
