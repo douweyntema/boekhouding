@@ -198,7 +198,10 @@ function domainsCustomerUnpaidDomainsPrice($customerID)
 			}
 		}
 	}
-	return $price;
+	foreach(stdList("billingSubscriptionLine", array("customerID"=>$customerID, "revenueAccountID"=>$GLOBALS["domainsRevenueAccountID"]), array("price", "discount")) as $line) {
+		$total += round(($line["price"] - $line["discount"]) / (1 + $GLOBALS["taxRate"]));
+	}
+	return $total;
 }
 
 function domainsRemoveDomain($domainID)

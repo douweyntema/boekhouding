@@ -66,6 +66,8 @@ function customerSummary($customerID)
 	return summaryTable("Customer {$customer["name"]}", array(
 		"Balance"=>array("url"=>"{$GLOBALS["rootHtml"]}accounting/account.php?id={$customer["accountID"]}", "html"=>accountingFormatAccountPrice($customer["accountID"], true)),
 		"Invoice status"=>ucfirst(strtolower($customer["invoiceStatus"])),
+		"Domain registration limit"=>array("html"=>formatPrice(domainsCustomerUnpaidDomainsPrice($customerID)) . " / " . formatPrice(domainsCustomerUnpaidDomainsLimit($customerID))),
+		
 	));
 }
 
