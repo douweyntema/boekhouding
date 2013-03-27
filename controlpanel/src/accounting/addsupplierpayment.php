@@ -16,8 +16,8 @@ function main()
 	$check(($date = parseDate(post("date"))) !== null, "Invalid date.");
 	$check(($amount = parsePrice(post("amount"))) !== null, "Invalid amount.");
 	$check($amount > 0, "Invalid amount.");
-	$check(($paymentAccount = post("paymentAccount")) !== null, "Invalid payment account.");
-	$check(stdExists("accountingAccount", array("accountID"=>$paymentAccount)), "Invalid payment account.");
+	$check(($bankAccount = post("bankAccount")) !== null, "Invalid bank account.");
+	$check(stdExists("accountingAccount", array("accountID"=>$bankAccount)), "Invalid bank account.");
 	
 	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID");
 	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
@@ -30,7 +30,7 @@ function main()
 	}
 	
 	$lines = array(
-		array("accountID"=>$paymentAccount, "amount"=>$amount * -1),
+		array("accountID"=>$bankAccount, "amount"=>$amount * -1),
 		array("accountID"=>$accountID, "amount"=>$supplierAmount),
 	);
 	
