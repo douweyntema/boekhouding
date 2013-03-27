@@ -125,15 +125,25 @@ function accountList()
 		$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
 	}
 	
-	
 	$rows = array();
 	foreach($accountList as $account) {
 		$text = $account["name"];
 		if($account["currencyID"] != $GLOBALS["defaultCurrencyID"]) {
 			$text .= " (" . $account["currencyName"] . ")";
 		}
+		$type = accountingAccountType($account["accountID"]);
+		$typeUrl = null;
+		if($type["type"] == "CUSTOMER") {
+			$typeUrl = "{$GLOBALS["rootHtml"]}billing/customer.php?id={$type["customerID"]}";
+		}
+		if($type["type"] == "SUPPLIER") {
+			$typeUrl = "supplier.php?id={$type["supplierID"]}";
+		}
+		if($type["type"] == "FIXEDASSETVALUE" || $type["type"] == "FIXEDASSETDEPRICIATION" || $type["type"] == "FIXEDASSETEXPENSE") {
+			$typeUrl = "fixedasset.php?id={$type["fixedAssetID"]}";
+		}
 		$rows[] = array("id"=>$account["id"], "class"=>($account["parentID"] === null ? null : "child-of-account-{$account["parentAccountID"]}"), "cells"=>array(
-			array("url"=>"account.php?id={$account["accountID"]}", "text"=>$text),
+			array("html"=>"<a href=\"account.php?id={$account["accountID"]}\">$text</a>" . ($typeUrl === null ? "" : "<a href=\"$typeUrl\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}img/external.png\" alt=\"Direct link\" /></a>")),
 			array("html"=>accountingFormatAccountPrice($account["accountID"])),
 		));
 	}

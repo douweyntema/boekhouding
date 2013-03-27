@@ -130,7 +130,7 @@ function accountingAccountType($accountID)
 	if(($customerID = stdGetTry("adminCustomer", array("accountID"=>$accountID), "customerID")) !== null) {
 		return array("type"=>"CUSTOMER", "customerID"=>$customerID);
 	}
-	if(($supplierID = stdGetTry("accountingSupplier", array("accountID"=>$accountID), "supplierID")) !== null) {
+	if(($supplierID = stdGetTry("suppliersSupplier", array("accountID"=>$accountID), "supplierID")) !== null) {
 		return array("type"=>"SUPPLIER", "supplierID"=>$supplierID);
 	}
 	if(($fixedAssetID = stdGetTry("accountingFixedAsset", array("accountID"=>$accountID), "fixedAssetID")) !== null) {
