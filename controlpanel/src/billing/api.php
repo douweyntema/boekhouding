@@ -409,25 +409,34 @@ function billingCalculateNextDate($oldDate, $frequencyBase, $frequencyMultiplier
 	return $nextInvoiceTime;
 }
 
-function billingInvoiceRemainingAmount($invoiceID)
+function billingInvoiceStatusList($customerID)
 {
-	$customerID = stdGet("billingInvoice", $invoiceID);
 	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
 	$balance = -billingBalance($customerID);
 	
-	$rows = array();
-	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
+	$output = array();
+	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "customerID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
 		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
-		if($invoice["invoiceID"] == $invoiceID) {
-			if($balance <= 0) {
-				return 0;
-			} else if($balance >= $amount) {
-				return $amount;
-			} else {
-				return $balance;
-			}
+		$invoice["amount"] = $amount;
+		if($balance <= 0) {
+			$invoice["remainingAmount"] = 0;
+		} else if($balance >= $amount) {
+			$invoice["remainingAmount"] = $amount;
 		} else {
-			$balance -= $amount;
+			$invoice["remainingAmount"] = $balance;
+		}
+		$balance -= $amount;
+		$output[] = $invoice;
+	}
+	return $output;
+}
+
+function billingInvoiceRemainingAmount($invoiceID)
+{
+	$customerID = stdGet("billingInvoice", $invoiceID);
+	foreach(billingInvoiceStatusList($customerID) as $invoice) {
+		if($invoice["invoiceID"] == $invoiceID) {
+			return $invoice["remainingAmount"];
 		}
 	}
 	return null;

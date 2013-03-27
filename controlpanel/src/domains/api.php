@@ -170,24 +170,36 @@ class DomainsNoApiException extends Exception
 {
 }
 
-/// TODO: accounting
-/*
 function domainsCustomerUnpaidDomainsLimit($customerID)
 {
-	billingUpdateInvoiceLines($customerID);
+	billingUpdateSubscriptionLines($customerID);
 	$date = time() - (86400 * 366);
-	$price = query("SELECT (sum(billingInvoiceLine.price) - sum(billingInvoiceLine.discount)) AS total FROM billingInvoiceLine INNER JOIN billingInvoice USING(invoiceID) WHERE billingInvoiceLine.domain = 1 AND billingInvoice.customerID = $customerID AND billingInvoice.remainingAmount = 0 AND billingInvoice.date > $date")->fetchArray();
+	$total = 0;
+	foreach(billingInvoiceStatusList($customerID) as $invoice) {
+		if($invoice["date"] > $date && $invoice["remainingAmount"] == 0) {
+			foreach(stdList("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$GLOBALS["domainsRevenueAccountID"]), "amount") as $price) {
+				$total -= $price;
+			}
+		}
+	}
+	
 	$customer = stdGet("adminCustomer", array("customerID"=>$customerID), array("unpaidDomainPriceBase", "unpaidDomainPriceHistoryPercentage"));
-	return (int)(($price["total"] === null ? 0 : $price["total"]) * $customer["unpaidDomainPriceHistoryPercentage"] / 100) + $customer["unpaidDomainPriceBase"];
+	return (int)($total * $customer["unpaidDomainPriceHistoryPercentage"] / 100) + $customer["unpaidDomainPriceBase"];
 }
 
 function domainsCustomerUnpaidDomainsPrice($customerID)
 {
-	billingUpdateInvoiceLines($customerID);
-	$price = query("SELECT (sum(billingInvoiceLine.price) - sum(billingInvoiceLine.discount)) AS total FROM billingInvoiceLine LEFT JOIN billingInvoice USING(invoiceID) WHERE billingInvoiceLine.domain = 1 AND billingInvoiceLine.customerID = $customerID AND (billingInvoice.remainingAmount IS NULL OR billingInvoice.remainingAmount > 0)")->fetchArray();
-	return ($price["total"] === null ? 0 : $price["total"]);
+	billingUpdateSubscriptionLines($customerID);
+	$total = 0;
+	foreach(billingInvoiceStatusList($customerID) as $invoice) {
+		if($invoice["remainingAmount"] > 0) {
+			foreach(stdList("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$GLOBALS["domainsRevenueAccountID"]), "amount") as $price) {
+				$total -= $price;
+			}
+		}
+	}
+	return $price;
 }
-*/
 
 function domainsRemoveDomain($domainID)
 {

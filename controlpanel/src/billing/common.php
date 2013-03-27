@@ -177,27 +177,15 @@ function invoiceList($customerID)
 	$balance = -billingBalance($customerID);
 	
 	$rows = array();
-	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
-		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
-		
-		if($balance <= 0) {
-			$remaining = 0;
-		} else if($balance >= $amount) {
-			$remaining = $amount;
-		} else {
-			$remaining = $balance;
-		}
-		
+	foreach(billingInvoiceStatusList($customerID) as $invoice) {
 		$rows[] = array(
 			date("d-m-Y", $invoice["date"]),
 			array("url"=>"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}", "text"=>$invoice["invoiceNumber"]),
-			array("html"=>formatPrice($amount)),
-			array("html"=>($remaining == 0 ? "Paid" : formatPrice($remaining))),
-			$remaining == 0 ? array("html"=>"") : array("url"=>"reminder.php?id={$invoice["invoiceID"]}", "text"=>"Send reminder"),
+			array("html"=>formatPrice($invoice["amount"])),
+			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"]))),
+			$invoice["remainingAmount"] == 0 ? array("html"=>"") : array("url"=>"reminder.php?id={$invoice["invoiceID"]}", "text"=>"Send reminder"),
 			array("url"=>"resend.php?id={$invoice["invoiceID"]}", "text"=>"Resend")
 		);
-		
-		$balance -= $amount;
 	}
 	return listTable(array("Date", "Invoice number", "Amount", "Remaining amount", "Reminder", "Resend"), $rows, "Invoices", "No invoices have been sent so far.", "sortable list");
 }
@@ -208,25 +196,13 @@ function customerInvoiceList($customerID)
 	$balance = -billingBalance($customerID);
 	
 	$rows = array();
-	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
-		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
-		
-		if($balance <= 0) {
-			$remaining = 0;
-		} else if($balance >= $amount) {
-			$remaining = $amount;
-		} else {
-			$remaining = $balance;
-		}
-		
+	foreach(billingInvoiceStatusList($customerID) as $invoice) {
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}", "text"=>$invoice["invoiceNumber"]),
 			date("d-m-Y", $invoice["date"]),
-			array("html"=>formatPrice($amount)),
-			array("html"=>($remaining == 0 ? "Paid" : formatPrice($remaining))),
+			array("html"=>formatPrice($invoice["amount"])),
+			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"]))),
 		);
-		
-		$balance -= $amount;
 	}
 	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount"), $rows, "Invoices", "No invoices have been sent so far.", "sortable list");
 }
