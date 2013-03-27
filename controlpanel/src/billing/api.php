@@ -409,6 +409,30 @@ function billingCalculateNextDate($oldDate, $frequencyBase, $frequencyMultiplier
 	return $nextInvoiceTime;
 }
 
+function billingInvoiceRemainingAmount($invoiceID)
+{
+	$customerID = stdGet("billingInvoice", $invoiceID);
+	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
+	$balance = billingBalance($customerID);
+	
+	$rows = array();
+	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
+		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
+		if($invoice["invoiceID"] == $invoiceID) {
+			if($balance <= 0) {
+				return 0;
+			} else if($balance >= $amount) {
+				return $amount;
+			} else {
+				return $balance;
+			}
+		} else {
+			$balance -= $amount;
+		}
+	}
+	return null;
+}
+
 class BillingInvoiceException extends Exception {}
 class BillingCalculateNextDateException extends Exception {}
 

@@ -180,12 +180,20 @@ function invoiceList($customerID)
 	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
 		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
 		
+		if($balance <= 0) {
+			$remaining = 0;
+		} else if($balance >= $amount) {
+			$remaining = $amount;
+		} else {
+			$remaining = $balance;
+		}
+		
 		$rows[] = array(
 			date("d-m-Y", $invoice["date"]),
 			array("url"=>"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}", "text"=>$invoice["invoiceNumber"]),
 			array("html"=>formatPrice($amount)),
-			array("html"=>($balance <= 0 ? "Paid" : formatPrice($balance))),
-			$balance <= 0 ? array("html"=>"") : array("url"=>"reminder.php?id={$invoice["invoiceID"]}", "text"=>"Send reminder"),
+			array("html"=>($remaining == 0 ? "Paid" : formatPrice($remaining))),
+			$remaining == 0 ? array("html"=>"") : array("url"=>"reminder.php?id={$invoice["invoiceID"]}", "text"=>"Send reminder"),
 			array("url"=>"resend.php?id={$invoice["invoiceID"]}", "text"=>"Resend")
 		);
 		
@@ -203,11 +211,19 @@ function customerInvoiceList($customerID)
 	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
 		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
 		
+		if($balance <= 0) {
+			$remaining = 0;
+		} else if($balance >= $amount) {
+			$remaining = $amount;
+		} else {
+			$remaining = $balance;
+		}
+		
 		$rows[] = array(
 			array("url"=>"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}", "text"=>$invoice["invoiceNumber"]),
 			date("d-m-Y", $invoice["date"]),
 			array("html"=>formatPrice($amount)),
-			array("html"=>($balance <= 0 ? "Paid" : formatPrice($balance))),
+			array("html"=>($remaining == 0 ? "Paid" : formatPrice($remaining))),
 		);
 		
 		$balance -= $amount;
