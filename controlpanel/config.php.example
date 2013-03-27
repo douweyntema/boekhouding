@@ -23,15 +23,19 @@ $crypto_key = "aiulfdsfhkasdfouglasdfasjd,fgksdfj";
 
 $ssh_private_key_file = "~/.ssh/id_rsa";
 
+$taxRate = 0.21;
 $defaultCurrencyID = ;
+
 $customersDirectoryAccountID = ;
 $suppliersDirectoryAccountID = ;
 $revenueDirectoryAccountID = ;
 $expensesDirectoryAccountID = ;
 $bankDirectoryAccountID = ;
+
 $bankDefaultAccountID = ;
 $taxPayableAccountID = ;
 $taxReceivableAccountID = ;
+$domainsRevenueAccountID = ;
 
 $componentsEnabled = array();
 $componentsEnabled[] = "infrastructure";

@@ -255,7 +255,7 @@ function main()
 		}
 	}
 	if(stdGet("infrastructureDomainTld", array("domainTldID"=>$tldID), array("price")) > 0) {
-		$subscriptionID = billingNewSubscription(customerID(), "Registratie domein $domainName.$tld", null, null, null, $tldID, "YEAR", 1, 0, null);
+		$subscriptionID = billingNewSubscription(customerID(), $GLOBALS["domainsRevenueAccountID"], "Registratie domein $domainName.$tld", null, null, null, $tldID, "YEAR", 1, 0, null);
 		stdSet("dnsDomain", array("domainID"=>$domainID), array("subscriptionID"=>$subscriptionID));
 	}
 	
