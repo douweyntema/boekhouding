@@ -383,7 +383,7 @@ function billingAddPayment($customerID, $bankAccountID, $amount, $date, $descipt
 function billingBalance($customerID)
 {
 	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
-	return stdGet("accountingAccount", array("accountID"=>$accountID), "balance");
+	return -stdGet("accountingAccount", array("accountID"=>$accountID), "balance");
 }
 
 function billingCalculateNextDate($oldDate, $frequencyBase, $frequencyMultiplier)
@@ -413,7 +413,7 @@ function billingInvoiceRemainingAmount($invoiceID)
 {
 	$customerID = stdGet("billingInvoice", $invoiceID);
 	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
-	$balance = billingBalance($customerID);
+	$balance = -billingBalance($customerID);
 	
 	$rows = array();
 	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
