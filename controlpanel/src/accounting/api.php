@@ -154,6 +154,35 @@ function accountingFsck()
 	}
 }
 
+function accountingCalculateTransactionAmount($transactionID, $accountID, $negate = false)
+{
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
+	$currencySymbol = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "symbol");
+	if($currencyID != $GLOBALS["defaultCurrencyID"]) {
+		$lines = stdList("accountingTransactionLine", array("transactionID"=>$transactionID), array("accountID", "amount"));
+		$amount = 0;
+		foreach($lines as $line) {
+			if($line["accountID"] == $accountID) {
+				$foreignAmount = $line["amount"];
+			} else {
+				$amount += -1 * $line["amount"];
+			}
+		}
+		if($negate) {
+			$foreignAmount = -1 * $foreignAmount;
+			$amount = -1 * $amount;
+		}
+		$amountHtml = formatPrice($amount) . " / " . formatPrice($foreignAmount, $currencySymbol);
+	} else {
+		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$transactionID, "accountID"=>$accountID), "amount");
+		if($negate) {
+			$amount = -1 * $amount;
+		}
+		$amountHtml = formatPrice($amount);
+	}
+	return $amountHtml;
+}
+
 function accountingAccountTree($accountID, $excludedAccountID = null)
 {
 	$accountIDSql = dbAddSlashes($accountID);
@@ -200,5 +229,11 @@ function accountingAccountOptions($rootNode = null, $allowEmpty = false)
 	return $accountOptions;
 }
 
-/// TODO: weggooien!
-accountingFsck();
+function accountingFormatAccountPrice($accountID, $negate = false)
+{
+	$account = stdGet("accountingAccount", array("accountID"=>$accountID), array("balance", "currencyID"));
+	$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "symbol");
+	return formatPrice(($negate ? -1 : 1) * $account["balance"], $currency);
+}
+
+?>

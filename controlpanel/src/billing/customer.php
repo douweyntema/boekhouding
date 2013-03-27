@@ -9,11 +9,12 @@ function main()
 	billingUpdateSubscriptionLines($customerID);
 	
 	$content = makeHeader("Billing", adminCustomerBreadcrumbs($customerID));
-	$content .= invoiceStatusForm($customerID);
+	$content .= customerSummary($customerID);
 	$content .= subscriptionList($customerID);
 	$content .= invoiceList($customerID);
 	$content .= paymentList($customerID);
 	$content .= addPaymentForm($customerID);
+	$content .= invoiceStatusForm($customerID);
 	$content .= addSubscriptionForm($customerID);
 	$content .= addInvoiceLineForm($customerID);
 	$content .= sendInvoiceForm($customerID);

@@ -35,9 +35,11 @@ function main()
 	$check(ctype_digit(post("frequencyMultiplier")), "Invalid frequency multiplier");
 	$check((post("frequencyBase") == "YEAR" || post("frequencyBase") == "MONTH" || post("frequencyBase") == "DAY"), "Invalid frequency base");
 	$check(is_int($invoiceDelay), "Invalid invoice delay");
+	$check(($revenueAccountID = post("revenueAccountID")) !== "", "Invalid revenue account");
+	$check(stdExists("accountingAccount", array("accountID"=>$revenueAccountID)), "Invalid revenue account");
 	$check(post("confirm") !== null, null);
 	
-	billingEditSubscription($subscriptionID, post("description"), $price, $discountPercentage, $discountAmount, post("frequencyBase"), post("frequencyMultiplier"), $invoiceDelay);
+	billingEditSubscription($subscriptionID, $revenueAccountID, post("description"), $price, $discountPercentage, $discountAmount, post("frequencyBase"), post("frequencyMultiplier"), $invoiceDelay);
 	
 	redirect("billing/customer.php?id=$customerID");
 }
