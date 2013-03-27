@@ -15,7 +15,11 @@ function main()
 	$content .= transactionSummary($transactionID);
 	
 	$content .= editTransactionForm($transactionID, $accountID);
-	$content .= deleteTransactionForm($transactionID, $accountID);
+	
+	$type = accountingTransactionType($transactionID);
+	if($type["type"] == "NONE") {
+		$content .= deleteTransactionForm($transactionID, $accountID);
+	}
 	
 	echo page($content);
 }

@@ -170,7 +170,7 @@ function transactionList($accountID)
 		
 		$rows[] = array("id"=>"transaction-{$transaction["transactionID"]}", "class"=>"transaction", "cells"=>array(
 			array("text"=>date("d-m-Y", $transaction["date"])),
-			array("text"=>$transaction["description"], "url"=>"transaction.php?id={$transaction["transactionID"]}&accountID={$accountID}"),
+			array("html"=>($transaction["description"] == "" ? "<i>None</i>" : htmlentities($transaction["description"])), "url"=>"transaction.php?id={$transaction["transactionID"]}&accountID={$accountID}"),
 			array("html"=>formatPrice($currentLineAmount, $currencySymbol)),
 			array("html"=>formatPrice($balance, $currencySymbol)),
 		));
@@ -196,7 +196,7 @@ function transactionSummary($transactionID)
 	
 	$rows[] = array("id"=>"transaction-{$transactionID}", "class"=>"transaction", "cells"=>array(
 		array("text"=>date("d-m-Y", $transaction["date"])),
-		array("text"=>$transaction["description"], "url"=>"transaction.php?id={$transactionID}"),
+		array("html"=>($transaction["description"] == "" ? "<i>None</i>" : htmlentities($transaction["description"]))),
 		array("text"=>""),
 	));
 	
@@ -470,6 +470,28 @@ function editTransactionForm($transactionID, $accountID, $error = "", $values = 
 	}
 	
 	$formContent = transactionForm($error, $values, $balance);
+	
+	$type = accountingTransactionType($transactionID);
+	if($type["type"] != "NONE") {
+		if(!isset($formContent["message"]["custom"])) {
+			$formContent["message"]["custom"] = "";
+		}
+		$formContent["message"]["custom"] .= "<p class=\"warning\">Warning, this transaction is part of a ";
+		if($type["type"] == "CUSTOMERINVOICE") {
+			$customerID = stdGet("billingInvoice", array("invoiceID"=>$type["invoiceID"]), "customerID");
+			$formContent["message"]["custom"] .= "<a href=\"{$GLOBALS["rootHtml"]}billing/customer.php?id={$customerID}\">customer invoice</a>";
+		}
+		if($type["type"] == "CUSTOMERPAYMENT") {
+			$formContent["message"]["custom"] .= "<a href=\"{$GLOBALS["rootHtml"]}billing/payment.php?id={$type["paymentID"]}\">customer payment</a>";
+		}
+		if($type["type"] == "SUPPLIERINVOICE") {
+			$formContent["message"]["custom"] .= "<a href=\"supplierinvoice.php?id={$type["invoiceID"]}\">supplier invoice</a>";
+		}
+		if($type["type"] == "SUPPLIERPAYMENT") {
+			$formContent["message"]["custom"] .= "<a href=\"supplierpayment.php?id={$type["paymentID"]}\">supplier payment</a>";
+		}
+		$formContent["message"]["custom"] .= ".</p>";
+	}
 	
 	return operationForm("edittransaction.php?id=$transactionID&accountID=$accountID", $error, "Edit transaction", "Save", $formContent["fields"], $formContent["values"], $formContent["message"]);
 }
