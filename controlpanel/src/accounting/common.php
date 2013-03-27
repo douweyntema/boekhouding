@@ -637,7 +637,7 @@ function supplierPaymentForm($supplierID, $error = "", $values = null, $balance 
 	$supplier = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), array("accountID", "name"));
 	$currencyID = stdGet("accountingAccount", array("accountID"=>$supplier["accountID"]), "currencyID");
 	
-	$paymentAccounts = accountingAccountOptions($GLOBALS["bankDirectoryAccountID"]);
+	$bankAccounts = accountingAccountOptions($GLOBALS["bankDirectoryAccountID"]);
 	
 	$fields = array();
 	if($GLOBALS["defaultCurrencyID"] != $currencyID) {
@@ -654,7 +654,7 @@ function supplierPaymentForm($supplierID, $error = "", $values = null, $balance 
 	}
 	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
 	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
-	$fields[] = array("title"=>"Payment account", "type"=>"dropdown", "name"=>"paymentAccount", "options"=>$paymentAccounts);
+	$fields[] = array("title"=>"Bank account", "type"=>"dropdown", "name"=>"bankAccount", "options"=>$bankAccounts);
 	return $fields;
 }
 
@@ -666,7 +666,7 @@ function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balan
 	if($values === null) {
 		$values = array("date"=>date("d-m-Y"), "description"=>"Payment for {$supplier["name"]}");
 		if(isset($GLOBALS["bankDefaultAccountID"])) {
-			$values["paymentAccount"] = $GLOBALS["bankDefaultAccountID"];
+			$values["bankAccount"] = $GLOBALS["bankDefaultAccountID"];
 		}
 		$balance = stdGet("accountingAccount", array("accountID"=>$supplier["accountID"]), "balance");
 		if($balance < 0) {
@@ -697,14 +697,14 @@ function editSupplierPaymentForm($paymentID, $error = "", $values = null, $balan
 			if($line["accountID"] == $supplier["accountID"]) {
 				$foreignAmount = $line["amount"];
 			} else {
-				$paymentAccountID = $line["accountID"];
+				$bankAccountID = $line["accountID"];
 				$amount = -1 * $line["amount"];
 			}
 		}
 		$values = array(
 			"amount"=>formatPriceRaw($amount),
 			"foreignAmount"=>formatPriceRaw($foreignAmount),
-			"paymentAccount"=>$paymentAccountID,
+			"bankAccount"=>$bankAccountID,
 			"date"=>date("d-m-Y", $transaction["date"]),
 			"description"=>$transaction["description"],
 		);
