@@ -600,6 +600,7 @@ function addSupplierInvoiceForm($supplierID, $error = "", $values = null, $total
 	if($values === null) {
 		$values = array();
 		$values["pdfType"] = "none";
+		$values["date"] = date("d-m-Y");
 		
 		$defaultExpenseAccountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "defaultExpenseAccountID");
 		if($defaultExpenseAccountID !== null) {
@@ -686,7 +687,7 @@ function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balan
 	$currencyID = stdGet("accountingAccount", array("accountID"=>$supplier["accountID"]), "currencyID");
 	
 	if($values === null) {
-		$values = array("date"=>date("d-m-Y"), "description"=>"Payment for {$supplier["name"]}");
+		$values = array("date"=>date("d-m-Y"), "description"=>"Payment for supplier {$supplier["name"]}");
 		if(isset($GLOBALS["bankDefaultAccountID"])) {
 			$values["bankAccount"] = $GLOBALS["bankDefaultAccountID"];
 		}

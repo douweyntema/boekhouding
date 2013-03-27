@@ -12,10 +12,14 @@ function main()
 	$check = function($condition, $error, $total = null, $balance = null) use($supplierID) {
 		if(!$condition) die(page(makeHeader("Add invoice", supplierBreadcrumbs($supplierID), crumbs("Add invoice", "addsupplierinvoice.php?id=$supplierID")) . addSupplierInvoiceForm($supplierID, $error, $_POST, $total, $balance)));
 	};
-	
 	$check(($invoiceNumber = post("invoiceNumber")) !== null, "Missing invoice number.");
-	$check(($date = parseDate(post("date"))) !== null, "Missing date.");
+	$check($invoiceNumber != "", "Missing invoice number.");
 	$description = post("description");
+	if($description == "") {
+		$description = "Invoice " . $invoiceNumber . " from supplier " . stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "name");
+		$_POST["description"] = $description;
+	}
+	$check(($date = parseDate(post("date"))) !== null, "Missing date.");
 	$check(($taxAmount = parsePrice(post("taxAmount"))) !== null, "Invalid tax amount.");
 	$check($taxAmount >= 0, "Invalid tax amount.");
 	$pdfType = post("pdfType");

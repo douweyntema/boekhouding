@@ -271,7 +271,7 @@ function paymentSummary($paymentID)
 function addPaymentForm($customerID, $error = "", $values = null)
 {
 	if($values === null) {
-		$values = array("date"=>date("d-m-Y"), "bankAccountID"=>$GLOBALS["bankDefaultAccountID"]);
+		$values = array("date"=>date("d-m-Y"), "bankAccountID"=>$GLOBALS["bankDefaultAccountID"], "description"=>"Payment from " . stdGet("adminCustomer", array("customerID"=>$customerID), "name"));
 	}
 	if(isset($values["date"])) {
 		$values["date"] = date("d-m-Y", parseDate($values["date"]));
