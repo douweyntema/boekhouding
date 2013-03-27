@@ -152,29 +152,44 @@ function billingCreateInvoice($customerID, $subscriptionLines, $sendEmail = true
 	$factuurnrCount = query("SELECT invoiceID FROM billingInvoice WHERE invoiceNumber LIKE '" . dbAddSlashes($factuurnrDatum) . "-%'")->numRows();
 	$factuurnr = $factuurnrDatum . "-" . ($factuurnrCount + 1);
 	
-	$customerName = stdGet("adminCustomer", array("customerID"=>$customerID), "name");
+	$customer = stdGet("adminCustomer", array("customerID"=>$customerID), array("accountID", "name"));
 	
 	$transactionLines = array();
 	$invoiceLines = array();
+	$total = 0;
+	$taxTotal = 0;
 	foreach($subscriptionLines as $subscriptionlineID) {
 		$line = stdGet("billingSubscriptionLine", array("subscriptionLineID"=>$subscriptionlineID), array("customerID", "revenueAccountID", "description", "periodStart", "periodEnd", "price", "discount"));
 		if($line["customerID"] != $customerID) {
 			rollbackTransaction();
 			throw new BillingInvoiceException();
 		}
-		$transactionLines[] = array("accountID"=>$line["revenueAccountID"], "amount"=>$line["price"] - $line["discount"]);
-		$invoiceLines[] = array("description"=>$line["desciption"], "periodStart"=>$line["periodStart"], "periodEnd"=>$line["periodEnd"], "price"=>$line["price"], "discount"=>$line["discount"]);
+		$priceWithoutTax = round($line["price"] / (1 + $GLOBALS["taxRate"]));
+		$discountWithoutTax = round($line["discount"] / (1 + $GLOBALS["taxRate"]));
+
+		$amount = $line["price"] - $line["discount"];
+		$amountWithoutTax = $priceWithoutTax - $discountWithoutTax;
+		
+		$tax = $amount - $amountWithoutTax;
+		$taxTotal += $tax;
+		$total += $amount;
+		
+		$transactionLines[] = array("accountID"=>$line["revenueAccountID"], "amount"=>-1 * $amountWithoutTax);
+		
+		$invoiceLines[] = array("description"=>$line["description"], "periodStart"=>$line["periodStart"], "periodEnd"=>$line["periodEnd"], "price"=>$priceWithoutTax, "discount"=>$discountWithoutTax, "tax"=>$tax, "taxRate"=>("" . $GLOBALS["taxRate"] * 100));
 		
 		stdDel("billingSubscriptionLine", array("subscriptionLineID"=>$subscriptionlineID));
 	}
+	$transactionLines[] = array("accountID"=>$GLOBALS["taxPayableAccountID"], "amount"=>-1 * $taxTotal);
+	$transactionLines[] = array("accountID"=>$customer["accountID"], "amount"=>$total);
 	
-	$transactionID = accountingAddTransaction($now, "Invoice $factuurnr for customer $customerName", $transactionLines);
+	$transactionID = accountingAddTransaction($now, "Invoice $factuurnr for customer {$customer["name"]}", $transactionLines);
 	
 	$invoiceID = stdNew("billingInvoice", array("customerID"=>$customerID, "transactionID"=>$transactionID, "date"=>$now, "invoiceNumber"=>$factuurnr));
 	
 	foreach($invoiceLines as $invoiceLine) {
 		$invoiceLine["invoiceID"] = $invoiceID;
-		stdNew("invoiceLine", $invoiceLine);
+		stdNew("billingInvoiceLine", $invoiceLine);
 	}
 	
 	commitTransaction();
@@ -211,7 +226,7 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 	$discounts = "";
 	$btw = 0;
 	$creditatie = true;
-	foreach(stdList("billingInvoiceLine", array("invoiceID"=>$invoiceID), array("description", "periodStart", "periodEnd", "price", "discount")) as $line) {
+	foreach(stdList("billingInvoiceLine", array("invoiceID"=>$invoiceID), array("description", "periodStart", "periodEnd", "price", "discount", "tax", "taxRate")) as $line) {
 		if($line["periodStart"] != null && $line["periodEnd"] != null) {
 			$startdate = texdate($line["periodStart"]);
 			$enddate = texdate($line["periodEnd"] - 86400);
@@ -223,22 +238,19 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 			$creditatie = false;
 		}
 		if($line["price"] != 0) {
-			$price = (int)($line["price"] / 1.21);
-			$btw += $line["price"] - $price;
-			$priceFormat = formatPriceRaw($price);
+			$priceFormat = formatPriceRaw($line["price"]);
 			$desciptionTex = latexEscapeString($line["description"]);
 			$posts .= "\\post{{$desciptionTex}}{{$startdate}}{{$enddate}}{{$priceFormat}}\n";
 		}
 		if($line["discount"] != 0) {
 			$discountDescription = "Korting " . strtolower(substr($line["description"], 0, 1)) . substr($line["description"], 1);
 			$discountDescriptionTex = latexEscapeString($discountDescription);
-			$discountAmount = (int)($line["discount"] / 1.21);
-			$btw -= $line["discount"] - $discountAmount;
-			$discountamountFormat = formatPriceRaw($discountAmount);
+			$discountamountFormat = formatPriceRaw($line["discount"]);
 			$discounts .= "\\korting{{$discountDescriptionTex}}{{$discountamountFormat}}\n";
 		}
+		$btw += $line["tax"];
 	}
-	$btw = formatPriceRaw($btw);
+	$btwTex = formatPriceRaw($btw);
 	$brieftype = $creditatie ? "creditatiebrief" : "factuurbrief";
 	$tex = <<<TEX
 \documentclass{trevabrief}
@@ -251,7 +263,7 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 \gebruikersnaam{{$usernameTex}}
 
 \begin{factuur}
-{$posts}{$discounts}\btw{{$btw}}
+{$posts}{$discounts}\btw{{$btwTex}}
 \end{factuur}
 
 \end{{$brieftype}}
@@ -283,15 +295,21 @@ function billingCreateInvoiceEmail($invoiceID, $reminder=false)
 	if(!isset($GLOBALS["controlpanelEnableCustomerEmail"]) || !$GLOBALS["controlpanelEnableCustomerEmail"]) {
 		return;
 	}
-	$invoice = stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "remainingAmount", "invoiceNumber", "pdf"));
+	$invoice = stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "transactionID", "invoiceNumber", "pdf"));
 	if($invoice["pdf"] === null) {
 		return;
 	}
-	$customer = stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("name", "companyName", "initials", "lastName", "email"));
+	$customer = stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("accountID", "name", "companyName", "initials", "lastName", "email"));
 	
-	if($invoice["remainingAmount"] > 0) {
-		$bedrag = formatPriceRaw($invoice["remainingAmount"]);
-		$betalen = "Wij verzoeken u dit bedrag (€ $bedrag) binnen 30 dagen over te maken op rekeningnummer 3962370 t.n.v. Treva Technologies, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}) en uw accountnaam ({$customer["name"]}).";
+	$remainingAmount = billingInvoiceRemainingAmount($invoiceID);
+	if($remainingAmount > 0) {
+		$bedrag = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$customer["accountID"]), "amount");
+		$bedragText = formatPriceRaw($remainingAmount);
+		if($bedrag == $remainingAmount) {
+			$betalen = "Wij verzoeken u dit bedrag (€ $bedragText) binnen 30 dagen over te maken op rekeningnummer 3962370 t.n.v. Treva Technologies, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}) en uw accountnaam ({$customer["name"]}).";
+		} else {
+			$betalen = "Deze factuur is nog niet volledig betaald. Wij verzoeken u het resterende bedrag (€ $bedragText) binnen 30 dagen over te maken op rekeningnummer 3962370 t.n.v. Treva Technologies, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}) en uw accountnaam ({$customer["name"]}).";
+		}
 	} else {
 		$betalen = "Deze factuur is reeds verrekend met eerdere betalingen.";
 	}
