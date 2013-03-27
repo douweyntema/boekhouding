@@ -52,6 +52,25 @@ function adminSubscriptionBreadcrumbs($subscriptionID)
 	return array_merge(adminCustomerBreadcrumbs($subscription["customerID"]), crumbs($subscription["description"], "subscription.php?id=$subscriptionID"));
 }
 
+function adminPaymentBreadcrumbs($paymentID)
+{
+	$payment = stdGet("billingPayment", array("paymentID"=>$paymentID), array("customerID", "transactionID"));
+	$date = stdGet("accountingTransaction", array("transactionID"=>$payment["transactionID"]), "date");
+	$name = "Payment on " . date("d-m-Y", $date);
+	return array_merge(adminCustomerBreadcrumbs($payment["customerID"]), crumbs($name, "payment.php?id=$payment"));
+}
+
+function customerSummary($customerID)
+{
+	$customer = stdGet("adminCustomer", array("customerID"=>$customerID), array("accountID", "name", "invoiceStatus"));
+	return summaryTable("Customer {$customer["name"]}", array(
+		"Balance"=>array("url"=>"{$GLOBALS["rootHtml"]}accounting/account.php?id={$customer["accountID"]}", "html"=>accountingFormatAccountPrice($customer["accountID"], true)),
+		"Invoice status"=>ucfirst(strtolower($customer["invoiceStatus"])),
+		"Domain registration limit"=>array("html"=>formatPrice(domainsCustomerUnpaidDomainsPrice($customerID)) . " / " . formatPrice(domainsCustomerUnpaidDomainsLimit($customerID))),
+		
+	));
+}
+
 function invoiceStatusForm($customerID, $error = "", $values = null)
 {
 	if($values === null) {
@@ -123,7 +142,7 @@ function customerSubscriptionList()
 
 function subscriptionDetail($subscriptionID)
 {
-	$subscription = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
+	$subscription = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("revenueAccountID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
 	
 	if($subscription["discountPercentage"] !== null) {
 		$discountPercentage = $subscription["discountPercentage"] . "% (" . formatPrice(billingBasePrice($subscription) * $subscription["discountPercentage"] / 100) . ")";
@@ -157,6 +176,8 @@ function subscriptionDetail($subscriptionID)
 		$domainName = "-";
 	}
 	
+	$revenueAccountName = stdGet("accountingAccount", array("accountID"=>$subscription["revenueAccountID"]), "name");
+	
 	return summaryTable("Subscription", array(
 		"Description"=>$subscription["description"],
 		"Price"=>array("html"=>formatSubscriptionPrice($subscription)),
@@ -167,6 +188,7 @@ function subscriptionDetail($subscriptionID)
 		"Invoice delay"=>$delay,
 		"Renew date"=>date("d-m-Y", $subscription["nextPeriodStart"]),
 		"End date"=>($subscription["endDate"] === null ? "-" : date("d-m-Y", $subscription["endDate"])),
+		"Revenue account"=>array("url"=>"{$GLOBALS["rootHtml"]}accounting/account.php?id={$subscription["revenueAccountID"]}", "text"=>$revenueAccountName),
 		"Related domain"=>$domainName
 	));
 }
@@ -181,7 +203,7 @@ function invoiceList($customerID)
 		$rows[] = array(
 			date("d-m-Y", $invoice["date"]),
 			array("url"=>"{$GLOBALS["rootHtml"]}billing/invoicepdf.php?id={$invoice["invoiceID"]}", "text"=>$invoice["invoiceNumber"]),
-			array("html"=>formatPrice($invoice["amount"])),
+			array("url"=>"{$GLOBALS["rootHtml"]}accounting/transaction.php?id={$invoice["transactionID"]}", "html"=>formatPrice($invoice["amount"])),
 			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"]))),
 			$invoice["remainingAmount"] == 0 ? array("html"=>"") : array("url"=>"reminder.php?id={$invoice["invoiceID"]}", "text"=>"Send reminder"),
 			array("url"=>"resend.php?id={$invoice["invoiceID"]}", "text"=>"Resend")
@@ -213,22 +235,43 @@ function paymentList($customerID)
 	$customerIDSql = dbAddSlashes($customerID);
 	
 	$rows = array();
-	foreach(query("SELECT transactionID, description, date FROM billingPayment INNER JOIN accountingTransaction USING(transactionID) WHERE customerID='$customerIDSql' ORDER BY date DESC")->fetchList() as $payment) {
+	foreach(query("SELECT paymentID, transactionID, description, date FROM billingPayment INNER JOIN accountingTransaction USING(transactionID) WHERE customerID='$customerIDSql' ORDER BY date DESC")->fetchList() as $payment) {
 		$amount = -stdGet("accountingTransactionLine", array("transactionID"=>$payment["transactionID"], "accountID"=>$accountID), "amount");
 		
 		$rows[] = array(
-			date("d-m-Y", $payment["date"]),
-			array("html"=>formatPrice($amount)),
+			array("url"=>"payment.php?id={$payment["paymentID"]}", "text"=>date("d-m-Y", $payment["date"])),
+			array("url"=>"{$GLOBALS["rootHtml"]}accounting/transaction.php?id={$payment["transactionID"]}", "html"=>formatPrice($amount)),
 			$payment["description"]
 		);
 	}
 	return listTable(array("Date", "Amount", "Description"), $rows, "Payments", "No payments have been made so far.", "sortable list");
 }
 
+function paymentSummary($paymentID)
+{
+	$payment = stdGet("billingPayment", array("paymentID"=>$paymentID), array("customerID", "transactionID"));
+	$customer = stdGet("adminCustomer", array("customerID"=>$payment["customerID"]), array("accountID", "name"));
+	$transaction = stdGet("accountingTransaction", array("transactionID"=>$payment["transactionID"]), array("date", "description"));
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$customer["accountID"]), "currencyID");
+	$currencySymbol = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "symbol");
+	
+	$dateHtml = date("d-m-Y", $transaction["date"]);
+	$amountHtml = accountingCalculateTransactionAmount($payment["transactionID"], $customer["accountID"], true);
+	
+	$fields = array(
+		"Customer"=>array("url"=>"customer.php?id={$payment["customerID"]}", "text"=>$customer["name"]),
+		"Amount"=>array("url"=>"{$GLOBALS["rootHtml"]}accounting/transaction.php?id={$payment["transactionID"]}", "html"=>$amountHtml),
+		"Date"=>array("text"=>$dateHtml),
+		"Description"=>array("text"=>$transaction["description"]),
+	);
+	
+	return summaryTable("Payment on " . $dateHtml, $fields);
+}
+
 function addPaymentForm($customerID, $error = "", $values = null)
 {
 	if($values === null) {
-		$values = array("date"=>date("d-m-Y"));
+		$values = array("date"=>date("d-m-Y"), "bankAccountID"=>$GLOBALS["bankDefaultAccountID"], "description"=>"Payment from " . stdGet("adminCustomer", array("customerID"=>$customerID), "name"));
 	}
 	if(isset($values["date"])) {
 		$values["date"] = date("d-m-Y", parseDate($values["date"]));
@@ -240,9 +283,47 @@ function addPaymentForm($customerID, $error = "", $values = null)
 		array(
 			array("title"=>"Amount", "type"=>"text", "name"=>"amount"),
 			array("title"=>"Description", "type"=>"text", "name"=>"description"),
-			array("title"=>"Date", "type"=>"text", "name"=>"date")
+			array("title"=>"Date", "type"=>"text", "name"=>"date"),
+			array("title"=>"Bank account", "type"=>"dropdown", "name"=>"bankAccountID", "options"=>accountingAccountOptions($GLOBALS["bankDirectoryAccountID"], true)),
 		),
 		$values);
+}
+
+function editPaymentForm($paymentID, $error = "", $values = null)
+{
+	$payment = stdGet("billingPayment", array("paymentID"=>$paymentID), array("customerID", "transactionID"));
+	$customer = stdGet("adminCustomer", array("customerID"=>$payment["customerID"]), array("accountID", "name"));
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$customer["accountID"]), "currencyID");
+	
+	if($values === null) {
+		$transaction = stdGet("accountingTransaction", array("transactionID"=>$payment["transactionID"]), array("date", "description"));
+		$lines = stdList("accountingTransactionLine", array("transactionID"=>$payment["transactionID"]), array("accountID", "amount"));
+		foreach($lines as $line) {
+			if($line["accountID"] == $customer["accountID"]) {
+				$amount = -1 * $line["amount"];
+			} else {
+				$bankAccountID = $line["accountID"];
+			}
+		}
+		$values = array(
+			"amount"=>formatPriceRaw($amount),
+			"bankAccountID"=>$bankAccountID,
+			"date"=>date("d-m-Y", $transaction["date"]),
+			"description"=>$transaction["description"],
+		);
+	}
+	
+	return operationForm("editpayment.php?id=$paymentID", $error, "Edit payment", "Save", array(
+			array("title"=>"Amount", "type"=>"text", "name"=>"amount"),
+			array("title"=>"Description", "type"=>"text", "name"=>"description"),
+			array("title"=>"Date", "type"=>"text", "name"=>"date"),
+			array("title"=>"Bank account", "type"=>"dropdown", "name"=>"bankAccountID", "options"=>accountingAccountOptions($GLOBALS["bankDirectoryAccountID"], true)),
+		), $values);
+}
+
+function deletePaymentForm($paymentID, $error = "", $values = null)
+{
+	return operationForm("deletepayment.php?id=$paymentID", $error, "Delete payment", "Delete", array(), $values);
 }
 
 function addSubscriptionForm($customerID, $error = "", $values = null)
@@ -272,7 +353,8 @@ function addSubscriptionForm($customerID, $error = "", $values = null)
 			array("title"=>"Invoice delay", "type"=>"colspan", "columns"=>array(
 				array("type"=>"text", "name"=>"invoiceDelay", "fill"=>true),
 				array("type"=>"html", "html"=>"days")
-			))
+			)),
+			array("title"=>"Revenue account", "type"=>"dropdown", "name"=>"revenueAccountID", "options"=>accountingAccountOptions($GLOBALS["revenueDirectoryAccountID"], true)),
 		),
 		$values);
 }
@@ -280,7 +362,7 @@ function addSubscriptionForm($customerID, $error = "", $values = null)
 function editSubscriptionForm($subscriptionID, $error = "", $values = null)
 {
 	if($values === null) {
-		$values = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
+		$values = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("revenueAccountID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
 		$values["priceType"] = $values["price"] === null ? "domain" : "custom";
 		$values["price"] = formatPriceRaw($values["price"]);
 		$values["discountAmount"] = formatPriceRaw($values["discountAmount"]);
@@ -317,7 +399,8 @@ function editSubscriptionForm($subscriptionID, $error = "", $values = null)
 			array("title"=>"Invoice delay", "type"=>"colspan", "columns"=>array(
 				array("type"=>"text", "name"=>"invoiceDelay", "fill"=>true),
 				array("type"=>"html", "html"=>"days")
-			))
+			)),
+			array("title"=>"Revenue account", "type"=>"dropdown", "name"=>"revenueAccountID", "options"=>accountingAccountOptions($GLOBALS["revenueDirectoryAccountID"])),
 		),
 		$values);
 }
@@ -340,31 +423,6 @@ function addInvoiceLineForm($customerID, $error = "", $values = null)
 			array("title"=>"Revenue account", "type"=>"dropdown", "name"=>"revenueAccountID", "options"=>accountingAccountOptions($GLOBALS["revenueDirectoryAccountID"], true)),
 		),
 		$values);
-}
-
-function editInvoiceLineForm($invoiceLineID, $error = "", $values = null)
-{
-	if($values === null) {
-		$values = stdGet("billingInvoiceLine", array("invoiceLineID"=>$invoiceLineID), array("description", "price", "discount", "periodStart", "periodEnd"));
-		$values["price"] = floor($values["price"] / 100) . "," . str_pad($values["price"] % 100, 2, "0");
-		$values["discount"] = floor($values["discount"] / 100) . "," . str_pad($values["discount"] % 100, 2, "0");
-		$values["periodStart"] = date("d-m-Y", $values["periodStart"]);
-		$values["periodEnd"] = date("d-m-Y", $values["periodEnd"]);
-	}
-	return operationForm("editinvoiceline.php?id=$invoiceLineID", $error, "Edit invoice line", "Save", 
-		array(
-			array("title"=>"Description", "type"=>"text", "name"=>"description"),
-			array("title"=>"Price", "type"=>"text", "name"=>"price"),
-			array("title"=>"Discount", "type"=>"text", "name"=>"discount"),
-			array("title"=>"Period start", "type"=>"text", "name"=>"periodStart"),
-			array("title"=>"Period end", "type"=>"text", "name"=>"periodEnd")
-		),
-		$values);
-}
-
-function removeInvoiceLineForm($invoiceLineID, $error = "", $values = null)
-{
-	return operationForm("removeinvoiceline.php?id=$invoiceLineID", $error, "Remove invoice", "Remove", array(), $values);
 }
 
 function sendInvoiceForm($customerID, $error = "", $values = null)

@@ -124,6 +124,44 @@ function accountingTransactionBalance($lines)
 	}
 }
 
+
+function accountingAccountType($accountID)
+{
+	if(($customerID = stdGetTry("adminCustomer", array("accountID"=>$accountID), "customerID")) !== null) {
+		return array("type"=>"CUSTOMER", "customerID"=>$customerID);
+	}
+	if(($supplierID = stdGetTry("suppliersSupplier", array("accountID"=>$accountID), "supplierID")) !== null) {
+		return array("type"=>"SUPPLIER", "supplierID"=>$supplierID);
+	}
+	if(($fixedAssetID = stdGetTry("accountingFixedAsset", array("accountID"=>$accountID), "fixedAssetID")) !== null) {
+		return array("type"=>"FIXEDASSETVALUE", "fixedAssetID"=>$fixedAssetID);
+	}
+	if(($fixedAssetID = stdGetTry("accountingFixedAsset", array("depreciationAccountID"=>$accountID), "fixedAssetID")) !== null) {
+		return array("type"=>"FIXEDASSETDEPRICIATION", "fixedAssetID"=>$fixedAssetID);
+	}
+	if(($fixedAssetID = stdGetTry("accountingFixedAsset", array("expenseAccountID"=>$accountID), "fixedAssetID")) !== null) {
+		return array("type"=>"FIXEDASSETEXPENSE", "fixedAssetID"=>$fixedAssetID);
+	}
+	return array("type"=>"NONE");
+}
+
+function accountingTransactionType($transactionID)
+{
+	if(($invoiceID = stdGetTry("billingInvoice", array("transactionID"=>$transactionID), "invoiceID")) !== null) {
+		return array("type"=>"CUSTOMERINVOICE", "invoiceID"=>$invoiceID);
+	}
+	if(($paymentID = stdGetTry("billingPayment", array("transactionID"=>$transactionID), "paymentID")) !== null) {
+		return array("type"=>"CUSTOMERPAYMENT", "paymentID"=>$paymentID);
+	}
+	if(($invoiceID = stdGetTry("suppliersInvoice", array("transactionID"=>$transactionID), "invoiceID")) !== null) {
+		return array("type"=>"SUPPLIERINVOICE", "invoiceID"=>$invoiceID);
+	}
+	if(($paymentID = stdGetTry("suppliersPayment", array("transactionID"=>$transactionID), "paymentID")) !== null) {
+		return array("type"=>"SUPPLIERPAYMENT", "paymentID"=>$paymentID);
+	}
+	return array("type"=>"NONE");
+}
+
 function accountingFsck()
 {
 	$accounts = query("SELECT account.accountID AS accountID, account.balance AS balance, SUM(transactionLine.amount) AS sum FROM accountingAccount AS account LEFT JOIN accountingTransactionLine AS transactionLine USING(accountID) WHERE account.isDirectory = 0 GROUP BY account.accountID, account.balance")->fetchList();
@@ -152,6 +190,35 @@ function accountingFsck()
 			throw new AssertionError();
 		}
 	}
+}
+
+function accountingCalculateTransactionAmount($transactionID, $accountID, $negate = false)
+{
+	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
+	$currencySymbol = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "symbol");
+	if($currencyID != $GLOBALS["defaultCurrencyID"]) {
+		$lines = stdList("accountingTransactionLine", array("transactionID"=>$transactionID), array("accountID", "amount"));
+		$amount = 0;
+		foreach($lines as $line) {
+			if($line["accountID"] == $accountID) {
+				$foreignAmount = $line["amount"];
+			} else {
+				$amount += -1 * $line["amount"];
+			}
+		}
+		if($negate) {
+			$foreignAmount = -1 * $foreignAmount;
+			$amount = -1 * $amount;
+		}
+		$amountHtml = formatPrice($amount) . " / " . formatPrice($foreignAmount, $currencySymbol);
+	} else {
+		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$transactionID, "accountID"=>$accountID), "amount");
+		if($negate) {
+			$amount = -1 * $amount;
+		}
+		$amountHtml = formatPrice($amount);
+	}
+	return $amountHtml;
 }
 
 function accountingAccountTree($accountID, $excludedAccountID = null)
@@ -254,5 +321,11 @@ function accountingAutoDepreciate()
 	}
 }
 
-/// TODO: weggooien!
-accountingFsck();
+function accountingFormatAccountPrice($accountID, $negate = false)
+{
+	$account = stdGet("accountingAccount", array("accountID"=>$accountID), array("balance", "currencyID"));
+	$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "symbol");
+	return formatPrice(($negate ? -1 : 1) * $account["balance"], $currency);
+}
+
+?>

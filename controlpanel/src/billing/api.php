@@ -380,6 +380,28 @@ function billingAddPayment($customerID, $bankAccountID, $amount, $date, $descipt
 	commitTransaction();
 }
 
+function billingEditPayment($paymentID, $bankAccountID, $amount, $date, $desciption)
+{
+	$payment = stdGet("billingPayment", array("paymentID"=>$paymentID), array("customerID", "transactionID"));
+	$accountID = stdGet("adminCustomer", array("customerID"=>$payment["customerID"]), "accountID");
+	$lines = array(
+		array("accountID"=>$bankAccountID, "amount"=>$amount),
+		array("accountID"=>$accountID, "amount"=>$amount * -1),
+	);
+	
+	accountingEditTransaction($payment["transactionID"], $date, $desciption, $lines);
+}
+
+function billingDeletePayment($paymentID)
+{
+	$payment = stdGet("billingPayment", array("paymentID"=>$paymentID), array("customerID", "transactionID"));
+	
+	startTransaction();
+	stdDel("billingPayment", array("paymentID"=>$paymentID));
+	accountingDeleteTransaction($payment["transactionID"]);
+	commitTransaction();
+}
+
 function billingBalance($customerID)
 {
 	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");

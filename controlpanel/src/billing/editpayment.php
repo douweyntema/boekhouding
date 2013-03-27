@@ -4,11 +4,12 @@ require_once("common.php");
 
 function main()
 {
-	$customerID = get("id");
+	$paymentID = get("id");
+	$customerID = stdGet("billingPayment", array("paymentID"=>$paymentID), "customerID");
 	doBillingAdmin($customerID);
 	
-	$check = function($condition, $error) use($customerID) {
-		if(!$condition) die(page(makeHeader("Add payment", adminCustomerBreadcrumbs($customerID), crumbs("Add payment", "addpayment.php?id=" . $customerID)) . addPaymentForm($customerID, $error, $_POST)));
+	$check = function($condition, $error) use($paymentID) {
+		if(!$condition) die(page(makeHeader("Edit payment", adminPaymentBreadcrumbs($paymentID), crumbs("Edit payment", "editpayment.php?id=" . $paymentID)) . editPaymentForm($paymentID, $error, $_POST)));
 	};
 	
 	$check(post("amount") !== null, "");
@@ -21,7 +22,7 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	billingAddPayment($customerID, $bankAccountID, $amount, $date, post("description"));
+	billingEditPayment($paymentID, $bankAccountID, $amount, $date, post("description"));
 	
 	redirect("billing/customer.php?id=$customerID");
 }
