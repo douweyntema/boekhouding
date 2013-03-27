@@ -637,7 +637,7 @@ function supplierPaymentForm($supplierID, $error = "", $values = null, $balance 
 	$supplier = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), array("accountID", "name"));
 	$currencyID = stdGet("accountingAccount", array("accountID"=>$supplier["accountID"]), "currencyID");
 	
-	$paymentAccounts = accountingAccountOptions($GLOBALS["paymentDirectoryAccountID"]);
+	$paymentAccounts = accountingAccountOptions($GLOBALS["bankDirectoryAccountID"]);
 	
 	$fields = array();
 	if($GLOBALS["defaultCurrencyID"] != $currencyID) {
@@ -665,8 +665,8 @@ function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balan
 	
 	if($values === null) {
 		$values = array("date"=>date("d-m-Y"), "description"=>"Payment for {$supplier["name"]}");
-		if(isset($GLOBALS["paymentDefaultAccountID"])) {
-			$values["paymentAccount"] = $GLOBALS["paymentDefaultAccountID"];
+		if(isset($GLOBALS["bankDefaultAccountID"])) {
+			$values["paymentAccount"] = $GLOBALS["bankDefaultAccountID"];
 		}
 		$balance = stdGet("accountingAccount", array("accountID"=>$supplier["accountID"]), "balance");
 		if($balance < 0) {

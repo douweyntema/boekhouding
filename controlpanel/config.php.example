@@ -28,8 +28,8 @@ $customersDirectoryAccountID = ;
 $suppliersDirectoryAccountID = ;
 $revenueDirectoryAccountID = ;
 $expensesDirectoryAccountID = ;
-$paymentDirectoryAccountID = ;
-$paymentDefaultAccountID = ;
+$bankDirectoryAccountID = ;
+$bankDefaultAccountID = ;
 $taxPayableAccountID = ;
 $taxReceivableAccountID = ;
 
