@@ -376,34 +376,6 @@ function mailAdmin($subject, $body)
 	$mail->send();
 }
 
-function pdfLatex($tex)
-{
-	$dir = tempnam("/tmp", "controlpanel-");
-	unlink($dir);
-	mkdir($dir);
-	chdir($dir);
-	
-	$h = fopen($dir . "/file.tex", "w");
-	fwrite($h, $tex);
-	fclose($h);
-	
-	$md5 = "";
-	$count = 10;
-	do {
-		`pdflatex $dir/file.tex`;
-		if(!file_exists("$dir/file.pdf")) {
-			return null;
-		}
-		$oldmd5 = $md5;
-		$md5 = md5(file_get_contents("$dir/file.pdf"));
-		$count--;
-	} while($md5 != $oldmd5 && $count > 0);
-	
-	$pdf = file_get_contents($dir . "/file.pdf");
-	`rm -r $dir`;
-	return $pdf;
-}
-
 function error404()
 {
 	header("HTTP/1.1 404 Not Found");

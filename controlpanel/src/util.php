@@ -323,4 +323,33 @@ function validDatabaseName($name)
 	return true;
 }
 
+function pdfLatex($tex)
+{
+	$dir = tempnam("/tmp", "controlpanel-");
+	unlink($dir);
+	mkdir($dir);
+	chdir($dir);
+	
+	$h = fopen($dir . "/file.tex", "w");
+	fwrite($h, $tex);
+	fclose($h);
+	
+	$md5 = "";
+	$count = 10;
+	do {
+		`/usr/bin/pdflatex $dir/file.tex`;
+		if(!file_exists("$dir/file.pdf")) {
+			`rm -r $dir`;
+			return null;
+		}
+		$oldmd5 = $md5;
+		$md5 = md5(file_get_contents("$dir/file.pdf"));
+		$count--;
+	} while($md5 != $oldmd5 && $count > 0);
+	
+	$pdf = file_get_contents($dir . "/file.pdf");
+	`rm -r $dir`;
+	return $pdf;
+}
+
 ?>
