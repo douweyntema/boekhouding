@@ -163,7 +163,7 @@ function accountingAccountTree($accountID, $excludedAccountID = null)
 		if($excludedAccountID !== null && $subAccountID["accountID"] == $excludedAccountID) {
 			continue;
 		}
-		$output["subaccounts"][] = accountTree($subAccountID);
+		$output["subaccounts"][] = accountingAccountTree($subAccountID);
 	}
 	return $output;
 }
