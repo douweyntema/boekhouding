@@ -170,6 +170,8 @@ class DomainsNoApiException extends Exception
 {
 }
 
+/// TODO: accounting
+/*
 function domainsCustomerUnpaidDomainsLimit($customerID)
 {
 	billingUpdateInvoiceLines($customerID);
@@ -185,6 +187,7 @@ function domainsCustomerUnpaidDomainsPrice($customerID)
 	$price = query("SELECT (sum(billingInvoiceLine.price) - sum(billingInvoiceLine.discount)) AS total FROM billingInvoiceLine LEFT JOIN billingInvoice USING(invoiceID) WHERE billingInvoiceLine.domain = 1 AND billingInvoiceLine.customerID = $customerID AND (billingInvoice.remainingAmount IS NULL OR billingInvoice.remainingAmount > 0)")->fetchArray();
 	return ($price["total"] === null ? 0 : $price["total"]);
 }
+*/
 
 function domainsRemoveDomain($domainID)
 {
