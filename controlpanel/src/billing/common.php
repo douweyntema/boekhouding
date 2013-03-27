@@ -162,7 +162,7 @@ function subscriptionDetail($subscriptionID)
 		"Price"=>array("html"=>formatSubscriptionPrice($subscription)),
 		"Base price"=>array("html"=>formatPrice(billingBasePrice($subscription))),
 		"Discount percentage"=>array("html"=>$discountPercentage),
-		"Discount amoung"=>array("html"=>$discountAmount),
+		"Discount amount"=>array("html"=>$discountAmount),
 		"Frequency"=>frequency($subscription),
 		"Invoice delay"=>$delay,
 		"Renew date"=>date("d-m-Y", $subscription["nextPeriodStart"]),
@@ -174,7 +174,7 @@ function subscriptionDetail($subscriptionID)
 function invoiceList($customerID)
 {
 	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
-	$balance = billingBalance($customerID);
+	$balance = -billingBalance($customerID);
 	
 	$rows = array();
 	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
@@ -205,7 +205,7 @@ function invoiceList($customerID)
 function customerInvoiceList($customerID)
 {
 	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
-	$balance = billingBalance($customerID);
+	$balance = -billingBalance($customerID);
 	
 	$rows = array();
 	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
