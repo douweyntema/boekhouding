@@ -18,17 +18,17 @@ function billingBasePrice($subscription)
 	}
 }
 
-function billingNewSubscription($customerID, $description, $price, $discountPercentage, $discountAmount, $domainTldID, $frequencyBase, $frequencyMultiplier, $invoiceDelay, $startDate)
+function billingNewSubscription($customerID, $revenueAccountID, $description, $price, $discountPercentage, $discountAmount, $domainTldID, $frequencyBase, $frequencyMultiplier, $invoiceDelay, $startDate)
 {
 	if($startDate == null) {
 		$startDate = time();
 	}
-	return stdNew("billingSubscription", array("customerID"=>$customerID, "domainTldID"=>$domainTldID, "description"=>$description, "price"=>$price, "discountPercentage"=>$discountPercentage, "discountAmount"=>$discountAmount, "frequencyBase"=>$frequencyBase, "frequencyMultiplier"=>$frequencyMultiplier, "invoiceDelay"=>$invoiceDelay, "nextPeriodStart"=>$startDate));
+	return stdNew("billingSubscription", array("customerID"=>$customerID, "revenueAccountID"=>$revenueAccountID, "domainTldID"=>$domainTldID, "description"=>$description, "price"=>$price, "discountPercentage"=>$discountPercentage, "discountAmount"=>$discountAmount, "frequencyBase"=>$frequencyBase, "frequencyMultiplier"=>$frequencyMultiplier, "invoiceDelay"=>$invoiceDelay, "nextPeriodStart"=>$startDate));
 }
 
-function billingEditSubscription($subscriptionID, $description, $price, $discountPercentage, $discountAmount, $frequencyBase, $frequencyMultiplier, $invoiceDelay)
+function billingEditSubscription($subscriptionID, $revenueAccountID, $description, $price, $discountPercentage, $discountAmount, $frequencyBase, $frequencyMultiplier, $invoiceDelay)
 {
-	return stdSet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("description"=>$description, "price"=>$price, "discountPercentage"=>$discountPercentage, "discountAmount"=>$discountAmount, "frequencyBase"=>$frequencyBase, "frequencyMultiplier"=>$frequencyMultiplier, "invoiceDelay"=>$invoiceDelay));
+	return stdSet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("revenueAccountID"=>$revenueAccountID, "description"=>$description, "price"=>$price, "discountPercentage"=>$discountPercentage, "discountAmount"=>$discountAmount, "frequencyBase"=>$frequencyBase, "frequencyMultiplier"=>$frequencyMultiplier, "invoiceDelay"=>$invoiceDelay));
 }
 
 function billingEndSubscription($subscriptionID, $endDate)
@@ -36,21 +36,19 @@ function billingEndSubscription($subscriptionID, $endDate)
 	stdSet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("endDate"=>$endDate));
 }
 
-function billingAddInvoiceLine($customerID, $description, $price, $discount)
+function billingAddSubscriptionLine($customerID, $revenueAccountID, $description, $price, $discount)
 {
-	return stdNew("billingInvoiceLine", array("customerID"=>$customerID, "description"=>$description, "price"=>$price, "discount"=>$discount, "domain"=>0));
+	return stdNew("billingSubscriptionLine", array("customerID"=>$customerID, "revenueAccountID"=>$revenueAccountID, "description"=>$description, "price"=>$price, "discount"=>$discount));
 }
 
-function billingUpdateInvoiceLines($customerID)
+function billingUpdateSubscriptionLines($customerID)
 {
 	if(stdGet("adminCustomer", array("customerID"=>$customerID), "invoiceStatus") == "DISABLED") {
 		return;
 	}
 	$now = time();
 	startTransaction();
-	foreach(stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
-		$isDomain = $subscription["domainTldID"] !== null;
-		
+	foreach(stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "revenueAccountID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
 		while($subscription["nextPeriodStart"] < $now + $subscription["invoiceDelay"] &&
 			!($subscription["endDate"] !== null && $subscription["nextPeriodStart"] >= $subscription["endDate"]))
 		{
@@ -76,13 +74,13 @@ function billingUpdateInvoiceLines($customerID)
 				$periodEnd = $subscription["endDate"];
 			}
 			
-			stdNew("billingInvoiceLine", array("customerID"=>$customerID, "description"=>$subscription["description"], "periodStart"=>$subscription["nextPeriodStart"], "periodEnd"=>$periodEnd, "price"=>$price, "discount"=>$discount, "domain"=>$isDomain));
+			stdNew("billingSubscriptionLine", array("customerID"=>$customerID, "revenueAccountID"=>$subscription["revenueAccountID"], "description"=>$subscription["description"], "periodStart"=>$subscription["nextPeriodStart"], "periodEnd"=>$periodEnd, "price"=>$price, "discount"=>$discount));
 			
 			stdSet("billingSubscription", array("subscriptionID"=>$subscription["subscriptionID"]), array("nextPeriodStart"=>$periodEnd));
 			$subscription["nextPeriodStart"] = $periodEnd;
 		}
 		if($subscription["endDate"] !== null && $subscription["nextPeriodStart"] >= $subscription["endDate"]) {
-			if($isDomain) {
+			if($subscription["domainTldID"] !== null) {
 				$domainID = stdGet("dnsDomain", array("subscriptionID"=>$subscription["subscriptionID"]), "domainID");
 				if(domainsDomainStatus($domainID) == "expired" || domainsDomainStatus($domainID) == "quarantaine") {
 					domainsRemoveDomain($domainID);
@@ -96,10 +94,10 @@ function billingUpdateInvoiceLines($customerID)
 	commitTransaction();
 }
 
-function billingUpdateAllInvoiceLines()
+function billingUpdateAllSubscriptionLines()
 {
 	foreach(stdList("adminCustomer", array(), "customerID") as $customerID) {
-		billingUpdateInvoiceLines($customerID);
+		billingUpdateSubscriptionLines($customerID);
 	}
 }
 
@@ -111,7 +109,7 @@ function billingCreateInvoiceBatch($customerID)
 	if(stdGet("adminCustomer", array("customerID"=>$customerID), "invoiceStatus") !== 'ENABLED') {
 		return;
 	}
-	billingUpdateInvoiceLines($customerID);
+	billingUpdateSubscriptionLines($customerID);
 	
 	$now = time();
 	$invoiceTime = stdGet("adminCustomer", array("customerID"=>$customerID), array("invoiceFrequencyBase", "invoiceFrequencyMultiplier", "nextInvoiceDate"));
@@ -124,14 +122,14 @@ function billingCreateInvoiceBatch($customerID)
 		$nextInvoiceTime = billingCalculateNextDate($nextInvoiceTime, $invoiceTime["invoiceFrequencyBase"], $invoiceTime["invoiceFrequencyMultiplier"]);
 	}
 	
-	$invoiceLines = stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), "invoiceLineID");
-	if(count($invoiceLines) == 0) {
+	$subscriptionLines = stdList("billingSubscriptionLine", array("customerID"=>$customerID), "subscriptionLineID");
+	if(count($subscriptionLines) == 0) {
 		return;
 	}
 	
 	stdSet("adminCustomer", array("customerID"=>$customerID), array("nextInvoiceDate"=>$nextInvoiceTime));
 	
-	billingCreateInvoice($customerID, $invoiceLines);
+	billingCreateInvoice($customerID, $subscriptionLines);
 }
 
 function billingCreateAllInvoices()
@@ -141,9 +139,9 @@ function billingCreateAllInvoices()
 	}
 }
 
-function billingCreateInvoice($customerID, $invoiceLines, $sendEmail = true)
+function billingCreateInvoice($customerID, $subscriptionLines, $sendEmail = true)
 {
-	if(count($invoiceLines) == 0) {
+	if(count($subscriptionLines) == 0) {
 		throw new BillingInvoiceException();
 	}
 	$now = time();
@@ -154,29 +152,32 @@ function billingCreateInvoice($customerID, $invoiceLines, $sendEmail = true)
 	$factuurnrCount = query("SELECT invoiceID FROM billingInvoice WHERE invoiceNumber LIKE '" . dbAddSlashes($factuurnrDatum) . "-%'")->numRows();
 	$factuurnr = $factuurnrDatum . "-" . ($factuurnrCount + 1);
 	
-	$amount = 0;
-	foreach($invoiceLines as $lineID) {
-		$line = stdGet("billingInvoiceLine", array("invoiceLineID"=>$lineID), array("customerID", "invoiceID", "price", "discount"));
+	$customerName = stdGet("adminCustomer", array("customerID"=>$customerID), "name");
+	
+	$transactionLines = array();
+	$invoiceLines = array();
+	foreach($subscriptionLines as $subscriptionlineID) {
+		$line = stdGet("billingSubscriptionLine", array("subscriptionLineID"=>$subscriptionlineID), array("customerID", "revenueAccountID", "description", "periodStart", "periodEnd", "price", "discount"));
 		if($line["customerID"] != $customerID) {
 			rollbackTransaction();
 			throw new BillingInvoiceException();
 		}
-		if($line["invoiceID"] !== null) {
-			rollbackTransaction();
-			throw new BillingInvoiceException();
-		}
-		$amount += $line["price"];
-		$amount -= $line["discount"];
+		$transactionLines[] = array("accountID"=>$line["revenueAccountID"], "amount"=>$line["price"] - $line["discount"]);
+		$invoiceLines[] = array("description"=>$line["desciption"], "periodStart"=>$line["periodStart"], "periodEnd"=>$line["periodEnd"], "price"=>$line["price"], "discount"=>$line["discount"]);
+		
+		stdDel("billingSubscriptionLine", array("subscriptionLineID"=>$subscriptionlineID));
 	}
 	
-	$invoiceID = stdNew("billingInvoice", array("customerID"=>$customerID, "date"=>$now, "remainingAmount"=>$amount, "invoiceNumber"=>$factuurnr));
+	$transactionID = accountingAddTransaction($now, "Invoice $factuurnr for customer $customerName", $transactionLines);
 	
-	foreach($invoiceLines as $lineID) {
-		stdSet("billingInvoiceLine", array("invoiceLineID"=>$lineID), array("invoiceID"=>$invoiceID));
+	$invoiceID = stdNew("billingInvoice", array("customerID"=>$customerID, "transactionID"=>$transactionID, "date"=>$now, "invoiceNumber"=>$factuurnr));
+	
+	foreach($invoiceLines as $invoiceLine) {
+		$invoiceLine["invoiceID"] = $invoiceID;
+		stdNew("invoiceLine", $invoiceLine);
 	}
+	
 	commitTransaction();
-	
-	billingDistributeFunds($customerID);
 	
 	billingCreateInvoiceTex($invoiceID, $sendEmail);
 }
@@ -347,16 +348,18 @@ function billingCreateInvoiceResend($invoiceID)
 	}
 }
 
-function billingAddPayment($customerID, $amount, $date, $desciption)
+function billingAddPayment($customerID, $bankAccountID, $amount, $date, $desciption)
 {
-	startTransaction();
-	stdLock("adminCustomer", array("customerID"=>$customerID));
-	stdNew("billingPayment", array("customerID"=>$customerID, "amount"=>$amount, "date"=>$date, "description"=>$desciption));
-	$balance = stdGet("adminCustomer", array("customerID"=>$customerID), "balance");
-	stdSet("adminCustomer", array("customerID"=>$customerID), array("balance"=>$balance + $amount));
-	commitTransaction();
+	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
+	$lines = array(
+		array("accountID"=>$bankAccountID, "amount"=>$amount),
+		array("accountID"=>$accountID, "amount"=>$amount * -1),
+	);
 	
-	billingDistributeFunds($customerID);
+	startTransaction();
+	$transactionID = accountingAddTransaction($date, $desciption, $lines);
+	stdNew("billingPayment", array("customerID"=>$customerID, "transactionID"=>$transactionID));
+	commitTransaction();
 }
 
 function billingBalance($customerID)

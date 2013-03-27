@@ -11,16 +11,16 @@ function sendMain()
 		if(!$condition) die(page(makeHeader("Send invoice", adminCustomerBreadcrumbs($customerID), crumbs("Send invoice", "sendinvoice.php?id=" . $customerID)) . sendInvoiceForm($customerID, $error, $_POST)));
 	};
 	
-	$invoiceLines = array();
-	foreach(stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), "invoiceLineID") as $invoiceLineID) {
-		if(post("invoiceline-" . $invoiceLineID) !== null) {
-			$invoiceLines[] = $invoiceLineID;
+	$subscriptionLines = array();
+	foreach(stdList("billingSubscriptionLine", array("customerID"=>$customerID), "subscriptionLineID") as $subscriptionLineID) {
+		if(post("subscriptionline-" . $subscriptionLineID) !== null) {
+			$subscriptionLines[] = $subscriptionLineID;
 		}
 	}
-	$check(count($invoiceLines) > 0, "");
+	$check(count($subscriptionLines) > 0, "");
 	$check(post("confirm") !== null, null);
 	
-	billingCreateInvoice($customerID, $invoiceLines, post("sendmail") !== null);
+	billingCreateInvoice($customerID, $subscriptionLines, post("sendmail") !== null);
 	
 	redirect("billing/customer.php?id=$customerID");
 }
@@ -34,17 +34,17 @@ function deleteMain()
 		if(!$condition) die(page(makeHeader("Send invoice", adminCustomerBreadcrumbs($customerID), crumbs("Send invoice", "sendinvoice.php?id=" . $customerID)) . sendInvoiceForm($customerID, $error, $_POST)));
 	};
 	
-	$invoiceLines = array();
-	foreach(stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), "invoiceLineID") as $invoiceLineID) {
-		if(post("invoiceline-" . $invoiceLineID) !== null) {
-			$invoiceLines[] = $invoiceLineID;
+	$subscriptionLines = array();
+	foreach(stdList("billingSubscriptionLine", array("customerID"=>$customerID), "subscriptionLineID") as $subscriptionLineID) {
+		if(post("subscriptionline-" . $subscriptionLineID) !== null) {
+			$subscriptionLines[] = $subscriptionLineID;
 		}
 	}
-	$check(count($invoiceLines) > 0, "");
+	$check(count($subscriptionLines) > 0, "");
 	$check(post("confirm") !== null, null);
 	
-	foreach($invoiceLines as $invoiceLineID) {
-		stdDel("billingInvoiceLine", array("invoiceLineID"=>$invoiceLineID));
+	foreach($subscriptionLines as $subscriptionLineID) {
+		stdDel("billingSubscriptionLine", array("subscriptionLineID"=>$subscriptionLineID));
 	}
 	
 	redirect("billing/customer.php?id=$customerID");

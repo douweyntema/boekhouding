@@ -335,7 +335,8 @@ function addInvoiceLineForm($customerID, $error = "", $values = null)
 		array(
 			array("title"=>"Description", "type"=>"text", "name"=>"description"),
 			array("title"=>"Price", "type"=>"text", "name"=>"price"),
-			array("title"=>"Discount", "type"=>"text", "name"=>"discount")
+			array("title"=>"Discount", "type"=>"text", "name"=>"discount"),
+			array("title"=>"Revenue account", "type"=>"dropdown", "name"=>"revenueAccountID", "options"=>accountingAccountOptions($GLOBALS["revenueDirectoryAccountID"], true)),
 		),
 		$values);
 }
@@ -379,27 +380,27 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 		array("type"=>"html", "html"=>"Start date", "celltype"=>"th"),
 		array("type"=>"html", "html"=>"End date", "celltype"=>"th")
 	));
-	foreach(stdList("billingInvoiceLine", array("customerID"=>$customerID, "invoiceID"=>null), array("invoiceLineID", "description", "price", "discount", "periodStart", "periodEnd")) as $invoiceLine) {
-		if($error === null && !isset($values["invoiceline-{$invoiceLine["invoiceLineID"]}"])) {
+	foreach(stdList("billingSubscriptionLine", array("customerID"=>$customerID), array("subscriptionLineID", "revenueAccountID", "description", "price", "discount", "periodStart", "periodEnd")) as $subscriptionLine) {
+		if($error === null && !isset($values["subscriptionline-{$subscriptionLine["subscriptionLineID"]}"])) {
 			continue;
 		}
 		$lines[] = array("type"=>"colspan", "columns"=>array(
-			array("type"=>"checkbox", "name"=>"invoiceline-{$invoiceLine["invoiceLineID"]}", "label"=>""),
-			array("type"=>"html", "fill"=>true, "html"=>$invoiceLine["description"]),
-			array("type"=>"html", "cellclass"=>"nowrap", "html"=>formatPrice($invoiceLine["price"])),
-			array("type"=>"html", "cellclass"=>"nowrap", "html"=>formatPrice($invoiceLine["discount"])),
-			array("type"=>"html", "cellclass"=>"nowrap", "html"=>$invoiceLine["periodStart"] == null ? "-" : date("d-m-Y", $invoiceLine["periodStart"])),
-			array("type"=>"html", "cellclass"=>"nowrap", "html"=>$invoiceLine["periodEnd"] == null ? "-" : date("d-m-Y", $invoiceLine["periodEnd"]))
+			array("type"=>"checkbox", "name"=>"subscriptionline-{$subscriptionLine["subscriptionLineID"]}", "label"=>""),
+			array("type"=>"html", "fill"=>true, "html"=>$subscriptionLine["description"]),
+			array("type"=>"html", "cellclass"=>"nowrap", "html"=>formatPrice($subscriptionLine["price"])),
+			array("type"=>"html", "cellclass"=>"nowrap", "html"=>formatPrice($subscriptionLine["discount"])),
+			array("type"=>"html", "cellclass"=>"nowrap", "html"=>$subscriptionLine["periodStart"] == null ? "-" : date("d-m-Y", $subscriptionLine["periodStart"])),
+			array("type"=>"html", "cellclass"=>"nowrap", "html"=>$subscriptionLine["periodEnd"] == null ? "-" : date("d-m-Y", $subscriptionLine["periodEnd"]))
 		));
 	}
 	$lines[] = array("type"=>"typechooser", "options"=>array(
-		array("title"=>"Delete", "submitcaption"=>"Delete", "name"=>"delete", "summary"=>"Delete selected invoice lines", "subform"=>array()),
-		array("title"=>"Create invoice", "submitcaption"=>"Create Invoice", "name"=>"create", "summary"=>"Create and send an invoice with the selected invoice lines", "subform"=>array(
+		array("title"=>"Delete", "submitcaption"=>"Delete", "name"=>"delete", "summary"=>"Delete selected subscription lines", "subform"=>array()),
+		array("title"=>"Create invoice", "submitcaption"=>"Create Invoice", "name"=>"create", "summary"=>"Create and send an invoice with the selected subscription lines", "subform"=>array(
 			array("title"=>"Send email", "type"=>"checkbox", "name"=>"sendmail", "label"=>"Send an email to the customer")
 		)),
 	));
 
-	return operationForm("sendinvoice.php?id=$customerID", $error, "Invoice lines", "Create Invoice", $lines, $values);
+	return operationForm("sendinvoice.php?id=$customerID", $error, "Subscription lines", "Create Invoice", $lines, $values);
 }
 
 function frequency($subscription)

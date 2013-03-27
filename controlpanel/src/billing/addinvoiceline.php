@@ -15,9 +15,11 @@ function main()
 	$check(($price = parsePrice(post("price"))) !== null, "Invalid price");
 	$check($price != 0, "Amount is zero");
 	$check(($discount = parsePrice(post("discount"))) !== null, "Invalid discount");
+	$check(($revenueAccountID = post("revenueAccountID")) !== "", "Invalid revenue account");
+	$check(stdExists("accountingAccount", array("accountID"=>$revenueAccountID)), "Invalid revenue account");
 	$check(post("confirm") !== null, null);
 	
-	billingAddInvoiceLine($customerID, post("description"), $price, $discount);
+	billingAddSubscriptionLine($customerID, $revenueAccountID, post("description"), $price, $discount);
 	
 	redirect("billing/customer.php?id=$customerID");
 }

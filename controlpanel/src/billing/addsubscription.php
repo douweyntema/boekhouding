@@ -31,9 +31,11 @@ function main()
 	$check((post("frequencyBase") == "YEAR" || post("frequencyBase") == "MONTH" || post("frequencyBase") == "DAY"), "Invalid frequency base");
 	$check(($nextPeriodStart = parseDate(post("nextPeriodStart"))) !== null, "Invalid start date");
 	$check(is_int($invoiceDelay), "Invalid invoice delay");
+	$check(($revenueAccountID = post("revenueAccountID")) !== "", "Invalid revenue account");
+	$check(stdExists("accountingAccount", array("accountID"=>$revenueAccountID)), "Invalid revenue account");
 	$check(post("confirm") !== null, null);
 	
-	billingNewSubscription($customerID, post("description"), $price, $discountPercentage, $discountAmount, null, post("frequencyBase"), post("frequencyMultiplier"), $invoiceDelay, $nextPeriodStart);
+	billingNewSubscription($customerID, $revenueAccountID, post("description"), $price, $discountPercentage, $discountAmount, null, post("frequencyBase"), post("frequencyMultiplier"), $invoiceDelay, $nextPeriodStart);
 	
 	redirect("billing/customer.php?id=$customerID");
 }

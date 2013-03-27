@@ -437,7 +437,7 @@ function transactionForm($error = "", $values = null, $balance = null)
 	}
 	
 	$fields[] = array("type"=>"array", "field"=>array("title"=>"Account", "type"=>"colspan", "columns"=>array(
-			array("type"=>"dropdown", "name"=>"accountID", "options"=>accountOptions(null, true)),
+			array("type"=>"dropdown", "name"=>"accountID", "options"=>accountingAccountOptions(null, true)),
 			array("type"=>"text", "name"=>"amount", "fill"=>true),
 		)));
 	return array("fields"=>$fields, "values"=>$values, "message"=>$message);
@@ -489,7 +489,7 @@ function addSupplierForm($error = "", $values = null)
 		array(
 			array("title"=>"Name", "type"=>"text", "name"=>"name"),
 			array("title"=>"Currency", "type"=>"dropdown", "name"=>"currencyID", "options"=>currencyOptions()),
-			array("title"=>"Default expense account", "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
+			array("title"=>"Default expense account", "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountingAccountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
 			array("title"=>"Description", "type"=>"textarea", "name"=>"description")
 		),
 		$values);
@@ -508,7 +508,7 @@ function editSupplierForm($supplierID, $error = "", $values = null)
 	return operationForm("editsupplier.php?id=$supplierID", $error, "Edit supplier", "Save",
 		array(
 			array("title"=>"Name", "type"=>"text", "name"=>"name"),
-			array("title"=>"Default expense account", "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
+			array("title"=>"Default expense account", "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountingAccountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
 			array("title"=>"Description", "type"=>"textarea", "name"=>"description")
 		),
 		$values);
@@ -565,7 +565,7 @@ function supplierInvoiceForm($supplierID, $fileLink, $error = "", $values = null
 		array("type"=>"text", "name"=>"taxAmount", "fill"=>true)
 	));
 	$fields[] = array("type"=>"array", "field"=>array("title"=>"Line", "type"=>"colspan", "columns"=>array(
-		array("type"=>"dropdown", "name"=>"accountID", "options"=>accountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
+		array("type"=>"dropdown", "name"=>"accountID", "options"=>accountingAccountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
 		array("type"=>"html", "html"=>htmlentities($defaultCurrency["name"])),
 		array("type"=>"text", "name"=>"amount", "fill"=>true)
 	)));
@@ -637,7 +637,7 @@ function supplierPaymentForm($supplierID, $error = "", $values = null, $balance 
 	$supplier = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), array("accountID", "name"));
 	$currencyID = stdGet("accountingAccount", array("accountID"=>$supplier["accountID"]), "currencyID");
 	
-	$paymentAccounts = accountOptions($GLOBALS["paymentDirectoryAccountID"]);
+	$paymentAccounts = accountingAccountOptions($GLOBALS["paymentDirectoryAccountID"]);
 	
 	$fields = array();
 	if($GLOBALS["defaultCurrencyID"] != $currencyID) {
@@ -799,26 +799,6 @@ function currencyOptions()
 		$output[] = array("label"=>$currency["name"], "value"=>$currency["currencyID"]);
 	}
 	return $output;
-}
-
-function accountOptions($rootNode = null, $allowEmpty = false)
-{
-	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>$rootNode), "accountID");
-	$accountList = array();
-	foreach($rootNodes as $rootNode) {
-		$accountTree = accountTree($rootNode);
-		$accountList = array_merge($accountList, flattenAccountTree($accountTree));
-	}
-	
-	$accountOptions = array();
-	if($allowEmpty) {
-		$accountOptions[] = array("label"=>"", "value"=>"");
-	}
-	foreach($accountList as $account) {
-		$accountOptions[] = array("label"=>str_repeat("&nbsp;&nbsp;&nbsp;", $account["depth"]) . $account["name"], "value"=>$account["accountID"], "disabled"=>$account["isDirectory"] ? true : false);
-	}
-	
-	return $accountOptions;
 }
 
 function calculateTransactionAmount($transactionID, $accountID, $negate = false)

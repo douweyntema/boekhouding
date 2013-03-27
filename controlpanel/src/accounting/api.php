@@ -154,5 +154,25 @@ function accountingFsck()
 	}
 }
 
+function accountingAccountOptions($rootNode = null, $allowEmpty = false)
+{
+	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>$rootNode), "accountID");
+	$accountList = array();
+	foreach($rootNodes as $rootNode) {
+		$accountTree = accountTree($rootNode);
+		$accountList = array_merge($accountList, flattenAccountTree($accountTree));
+	}
+	
+	$accountOptions = array();
+	if($allowEmpty) {
+		$accountOptions[] = array("label"=>"", "value"=>"");
+	}
+	foreach($accountList as $account) {
+		$accountOptions[] = array("label"=>str_repeat("&nbsp;&nbsp;&nbsp;", $account["depth"]) . $account["name"], "value"=>$account["accountID"], "disabled"=>$account["isDirectory"] ? true : false);
+	}
+	
+	return $accountOptions;
+}
+
 /// TODO: weggooien!
 accountingFsck();
