@@ -6,7 +6,7 @@ function main()
 {
 	$customerID = get("id");
 	doBillingAdmin($customerID);
-	billingUpdateInvoiceLines($customerID);
+	billingUpdateSubscriptionLines($customerID);
 	
 	$content = makeHeader("Billing", adminCustomerBreadcrumbs($customerID));
 	$content .= invoiceStatusForm($customerID);

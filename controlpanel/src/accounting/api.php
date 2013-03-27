@@ -154,13 +154,39 @@ function accountingFsck()
 	}
 }
 
+function accountingAccountTree($accountID, $excludedAccountID = null)
+{
+	$accountIDSql = dbAddSlashes($accountID);
+	$output = query("SELECT accountID, parentAccountID, accountingAccount.name AS name, description, isDirectory, balance, currencyID, accountingCurrency.symbol AS currencySymbol, accountingCurrency.name AS currencyName FROM accountingAccount INNER JOIN accountingCurrency USING(currencyID) WHERE accountID = '$accountIDSql'")->fetchArray();
+	$output["subaccounts"] = array();
+	foreach(stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID") as $subAccountID) {
+		if($excludedAccountID !== null && $subAccountID["accountID"] == $excludedAccountID) {
+			continue;
+		}
+		$output["subaccounts"][] = accountTree($subAccountID);
+	}
+	return $output;
+}
+
+function accountingFlattenAccountTree($tree, $parentID = null, $depth = 0)
+{
+	$id = "account-" . $tree["accountID"];
+	$output = array();
+	
+	$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID, "depth"=>$depth));
+	foreach($tree["subaccounts"] as $account) {
+		$output = array_merge($output, accountingFlattenAccountTree($account, $id, $depth + 1));
+	}
+	return $output;
+}
+
 function accountingAccountOptions($rootNode = null, $allowEmpty = false)
 {
 	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>$rootNode), "accountID");
 	$accountList = array();
 	foreach($rootNodes as $rootNode) {
-		$accountTree = accountTree($rootNode);
-		$accountList = array_merge($accountList, flattenAccountTree($accountTree));
+		$accountTree = accountingAccountTree($rootNode);
+		$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
 	}
 	
 	$accountOptions = array();

@@ -121,8 +121,8 @@ function accountList()
 	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID");
 	$accountList = array();
 	foreach($rootNodes as $rootNode) {
-		$accountTree = accountTree($rootNode);
-		$accountList = array_merge($accountList, flattenAccountTree($accountTree));
+		$accountTree = accountingAccountTree($rootNode);
+		$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
 	}
 	
 	
@@ -385,8 +385,8 @@ function moveAccountForm($accountID, $error = "", $values = null)
 		if($rootNode == $accountID) {
 			continue;
 		}
-		$accountTree = accountTree($rootNode, $accountID);
-		$accountList = array_merge($accountList, flattenAccountTree($accountTree));
+		$accountTree = accountingAccountTree($rootNode, $accountID);
+		$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
 	}
 	
 	$options = array();
@@ -736,20 +736,6 @@ function transactionExchangeRates($balance)
 	return array($rates1, $rates2);
 }
 
-function accountTree($accountID, $excludedAccountID = null)
-{
-	$accountIDSql = dbAddSlashes($accountID);
-	$output = query("SELECT accountID, parentAccountID, accountingAccount.name AS name, description, isDirectory, balance, currencyID, accountingCurrency.symbol AS currencySymbol, accountingCurrency.name AS currencyName FROM accountingAccount INNER JOIN accountingCurrency USING(currencyID) WHERE accountID = '$accountIDSql'")->fetchArray();
-	$output["subaccounts"] = array();
-	foreach(stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID") as $subAccountID) {
-		if($excludedAccountID !== null && $subAccountID["accountID"] == $excludedAccountID) {
-			continue;
-		}
-		$output["subaccounts"][] = accountTree($subAccountID);
-	}
-	return $output;
-}
-
 function transactions($accountID)
 {
 	if(stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory") == 0) {
@@ -776,18 +762,6 @@ function subAccountList($accountID, $currencyID = null)
 	$subAccounts = stdList("accountingAccount", array("parentAccountID"=>$accountID, "currencyID"=>$currencyID), "accountID");
 	foreach($subAccounts as $subAccount) {
 		$output = array_merge($output, subAccountList($subAccount, $currencyID));
-	}
-	return $output;
-}
-
-function flattenAccountTree($tree, $parentID = null, $depth = 0)
-{
-	$id = "account-" . $tree["accountID"];
-	$output = array();
-	
-	$output[] = array_merge($tree, array("id"=>$id, "parentID"=>$parentID, "depth"=>$depth));
-	foreach($tree["subaccounts"] as $account) {
-		$output = array_merge($output, flattenAccountTree($account, $id, $depth + 1));
 	}
 	return $output;
 }
