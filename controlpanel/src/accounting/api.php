@@ -182,11 +182,18 @@ function accountingFlattenAccountTree($tree, $parentID = null, $depth = 0)
 
 function accountingAccountOptions($rootNode = null, $allowEmpty = false)
 {
-	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>$rootNode), "accountID");
 	$accountList = array();
-	foreach($rootNodes as $rootNode) {
-		$accountTree = accountingAccountTree($rootNode);
-		$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+	if(is_array($rootNode)) {
+		foreach($rootNode as $node) {
+			$accountTree = accountingAccountTree($node);
+			$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+		}
+	} else {
+		$rootNodes = stdList("accountingAccount", array("parentAccountID"=>$rootNode), "accountID");
+		foreach($rootNodes as $rootNode) {
+			$accountTree = accountingAccountTree($rootNode);
+			$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+		}
 	}
 	
 	$accountOptions = array();
@@ -198,6 +205,53 @@ function accountingAccountOptions($rootNode = null, $allowEmpty = false)
 	}
 	
 	return $accountOptions;
+}
+
+function accountingDepreciateFixedAsset($fixedAssetID, $until = null)
+{
+	if($until === null) {
+		$until = time();
+	}
+	
+	$fixedAsset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID", "name", "depreciationFrequencyBase", "depreciationFrequencyMultiplier", "nextDepreciationDate", "totalDepreciations", "performedDepreciations", "residualValuePercentage"));
+	
+	while(($fixedAsset["nextDepreciationDate"] < $until) && ($fixedAsset["performedDepreciations"] < $fixedAsset["totalDepreciations"])) {
+		$fixedAsset["performedDepreciations"]++;
+		$nextDate = billingCalculateNextDate($fixedAsset["nextDepreciationDate"], $fixedAsset["depreciationFrequencyBase"], $fixedAsset["depreciationFrequencyMultiplier"]);
+		
+		startTransaction();
+		$value = stdGet("accountingAccount", array("accountID"=>$fixedAsset["accountID"]), "balance");
+		$depreciatedValue = stdGet("accountingAccount", array("accountID"=>$fixedAsset["depreciationAccountID"]), "balance");
+		$purchaseValue = $value + $depreciatedValue;
+		$residualValue = round($purchaseValue * $fixedAsset["residualValuePercentage"] / 100);
+		$targetValue = round($purchaseValue - (($purchaseValue - $residualValue) * $fixedAsset["performedDepreciations"] / $fixedAsset["totalDepreciations"]));
+		
+		if($value > $targetValue) {
+			$startDate = date("d-m-Y", $fixedAsset["nextDepreciationDate"]);
+			$endDate = date("d-m-Y", $nextDate);
+			$amount = $value - $targetValue;
+			
+			accountingAddTransaction($fixedAsset["nextDepreciationDate"], "Depreciation of {$fixedAsset["name"]} for period $startDate - $endDate", array(
+				array("accountID"=>$fixedAsset["accountID"], "amount"=>-$amount),
+				array("accountID"=>$fixedAsset["depreciationAccountID"], "amount"=>$amount)
+				));
+		}
+		
+		$fixedAsset["nextDepreciationDate"] = $nextDate;
+		
+		stdSet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("nextDepreciationDate"=>$fixedAsset["nextDepreciationDate"], "performedDepreciations"=>$fixedAsset["performedDepreciations"]));
+		commitTransaction();
+	}
+}
+
+function accountingAutoDepreciate()
+{
+	if(!$GLOBALS["controlpanelEnableAssetDepreciation"]) {
+		return;
+	}
+	foreach(stdList("accountingFixedAsset", array("automaticDepreciation"=>1), "fixedAssetID") as $fixedAssetID) {
+		accountingDepreciateFixedAsset($fixedAssetID);
+	}
 }
 
 /// TODO: weggooien!

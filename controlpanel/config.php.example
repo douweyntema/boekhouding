@@ -7,6 +7,7 @@ $controlpanelDisabled = false;
 $controlpanelDisabledNotice = "<p>The Treva control panel is currently disabled for maintenance.</p>";
 
 $controlpanelEnableCustomerEmail = false;
+$controlpanelEnableAssetDepreciation = false;
 
 $controlpanelUrl = "http://controlpanel.treva.nl/";
 
@@ -26,11 +27,15 @@ $ssh_private_key_file = "~/.ssh/id_rsa";
 $taxRate = 0.21;
 $defaultCurrencyID = ;
 
+$assetsDirectoryAccountID = ;
 $customersDirectoryAccountID = ;
 $suppliersDirectoryAccountID = ;
 $revenueDirectoryAccountID = ;
 $expensesDirectoryAccountID = ;
 $bankDirectoryAccountID = ;
+$fixedAssetValueDirectoryAccountID = ;
+$fixedAssetDepreciationDirectoryAccountID = ;
+$fixedAssetExpenseDirectoryAccountID = ;
 
 $bankDefaultAccountID = ;
 $taxPayableAccountID = ;

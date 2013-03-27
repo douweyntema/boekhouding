@@ -49,6 +49,14 @@ function doAccountingPayment($paymentID)
 	doAccounting();
 }
 
+function doAccountingFixedAsset($fixedAssetID)
+{
+	if(!stdExists("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID))) {
+		error404();
+	}
+	doAccounting();
+}
+
 
 function crumb($name, $filename)
 {
@@ -98,6 +106,13 @@ function suppliersPaymentBreadcrumbs($paymentID)
 	$date = stdGet("accountingTransaction", array("transactionID"=>$payment["transactionID"]), "date");
 	return array_merge(supplierBreadcrumbs($payment["supplierID"]), crumbs("Payment on " . date("d-m-Y", $date), "supplierpayment.php?id=$paymentID"));
 }
+
+function fixedAssetBreadcrumbs($fixedAssetID)
+{
+	$name = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), "name");
+	return array_merge(accountingBreadcrumbs(), crumbs("Fixed asset " . $name, "fixedasset.php?id=$fixedAssetID"));
+}
+
 
 function accountSummary($accountID)
 {
@@ -336,6 +351,47 @@ function supplierPaymentList($supplierID)
 	return listTable(array("Date", "Amount", "Description"), $rows, "Payments", true, "list sortable");
 }
 
+function fixedAssetList()
+{
+	$rows = array();
+	foreach(stdList("accountingFixedAsset", array(), array("fixedAssetID", "accountID", "name", "description", "nextDepreciationDate")) as $asset) {
+		$rows[] = array("cells"=>array(
+			array("url"=>"fixedasset.php?id={$asset["fixedAssetID"]}", "text"=>$asset["name"]),
+			array("text"=>$asset["description"]),
+			array("url"=>"account.php?id={$asset["accountID"]}", "html"=>formatPrice(stdGet("accountingAccount", array("accountID"=>$asset["accountID"]), "balance"))),
+			array("text"=>date("d-m-Y", $asset["nextDepreciationDate"])),
+		));
+	}
+	
+	return listTable(array("Name", "Description", "Value", "Next depreciation date"), $rows, "Fixed assets", "No fixed assets.", "list sortable");
+}
+
+function fixedAssetSummary($fixedAssetID)
+{
+	$asset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID", "expenseAccountID", "name", "description", "purchaseDate", "depreciationFrequencyBase", "depreciationFrequencyMultiplier", "nextDepreciationDate", "totalDepreciations", "performedDepreciations", "residualValuePercentage", "automaticDepreciation"));
+	
+	$frequencyBase = strtolower($asset["depreciationFrequencyBase"]);
+	$nameHtml = htmlentities($asset["name"]);
+	
+	$currentValue = stdGet("accountingAccount", array("accountID"=>$asset["accountID"]), "balance");
+	$depreciatedValue = stdGet("accountingAccount", array("accountID"=>$asset["depreciationAccountID"]), "balance");
+	$expenseCost = stdGet("accountingAccount", array("accountID"=>$asset["expenseAccountID"]), "balance");
+	
+	return summaryTable("Fixed asset $nameHtml", array(
+		"Name"=>array("text"=>$asset["name"]),
+		"Description"=>array("text"=>$asset["description"]),
+		"Current value"=>array("html"=>formatPrice($currentValue), "url"=>"account.php?id={$asset["accountID"]}"),
+		"Depreciated value"=>array("html"=>formatPrice($depreciatedValue), "url"=>"account.php?id={$asset["depreciationAccountID"]}"),
+		"Expense cost"=>array("html"=>formatPrice($expenseCost), "url"=>"account.php?id={$asset["expenseAccountID"]}"),
+		"Purchase value"=>array("html"=>formatPrice($currentValue + $depreciatedValue)),
+		"Purchase date"=>array("text"=>date("d-m-Y", $asset["purchaseDate"])),
+		"Depreciation interval"=>array("text"=>"per {$asset["depreciationFrequencyMultiplier"]} {$frequencyBase}s"),
+		"Depreciations"=>array("text"=>"{$asset["performedDepreciations"]} / {$asset["totalDepreciations"]}"),
+		"Residual value"=>array("text"=>"{$asset["residualValuePercentage"]}%"),
+		"Automatic depreciation"=>array("text"=>$asset["automaticDepreciation"] ? "Yes" : "No")
+		));
+}
+
 function addAccountForm($accountID, $error = "", $values = null)
 {
 	if($error == "STUB") {
@@ -565,7 +621,7 @@ function supplierInvoiceForm($supplierID, $fileLink, $error = "", $values = null
 		array("type"=>"text", "name"=>"taxAmount", "fill"=>true)
 	));
 	$fields[] = array("type"=>"array", "field"=>array("title"=>"Line", "type"=>"colspan", "columns"=>array(
-		array("type"=>"dropdown", "name"=>"accountID", "options"=>accountingAccountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
+		array("type"=>"dropdown", "name"=>"accountID", "options"=>accountingAccountOptions(array($GLOBALS["expensesDirectoryAccountID"], $GLOBALS["assetsDirectoryAccountID"]), true)),
 		array("type"=>"html", "html"=>htmlentities($defaultCurrency["name"])),
 		array("type"=>"text", "name"=>"amount", "fill"=>true)
 	)));
@@ -720,6 +776,55 @@ function deleteSupplierPaymentForm($paymentID, $error = "", $values = null)
 	return operationForm("deletesupplierpayment.php?id=$paymentID", $error, "Delete payment", "Delete", array(), $values);
 }
 
+function addFixedAssetForm($error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("addfixedasset.php", $error, "Add fixed asset", "Add Fixed Asset", array(), array());
+	}
+	
+	return operationForm("addfixedasset.php", $error, "Add fixed asset", "Add", array(
+		array("title"=>"Name", "type"=>"text", "name"=>"name"),
+		array("title"=>"Description", "type"=>"text", "name"=>"description"),
+		array("title"=>"Purchase date", "type"=>"text", "name"=>"purchaseDate"),
+		array("title"=>"Depreciation interval", "type"=>"colspan", "columns"=>array(
+			array("type"=>"html", "html"=>"per"),
+			array("type"=>"text", "name"=>"depreciationFrequencyMultiplier", "fill"=>true),
+			array("type"=>"dropdown", "name"=>"depreciationFrequencyBase", "options"=>dropdown(array("DAY"=>"days", "MONTH"=>"months", "YEAR"=>"years")))
+		)),
+		array("title"=>"Depreciation terms", "type"=>"text", "name"=>"depreciationTerms"),
+		array("title"=>"Residual value percentage", "type"=>"text", "name"=>"residualValue"),
+	), $values);
+}
+
+function editFixedAssetForm($fixedAssetID, $error = "", $values = null)
+{
+	if($values === null) {
+		$values = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("name", "description", "automaticDepreciation"));
+	}
+	
+	return operationForm("editfixedasset.php?id=$fixedAssetID", $error, "Edit fixed asset", "Save", array(
+		array("title"=>"Name", "type"=>"text", "name"=>"name"),
+		array("title"=>"Description", "type"=>"text", "name"=>"description"),
+		array("title"=>"Automatic depreciation", "type"=>"checkbox", "name"=>"automaticDepreciation", "label"=>"Enable automatic depreciation"),
+	), $values);
+}
+
+function deleteFixedAssetForm($fixedAssetID, $error = "", $values = null)
+{
+	return operationForm("deletefixedasset.php?id=$fixedAssetID", $error, "Delete fixed asset", "Delete", array(), $values);
+}
+
+function depreciateFixedAssetForm($fixedAssetID, $error = "", $values = null)
+{
+	if($values === null) {
+		$values = array("until"=>date("d-m-Y"));
+	}
+	
+	return operationForm("depreciatefixedasset.php?id=$fixedAssetID", $error, "Depreciate fixed asset", "Depreciate", array(
+		array("title"=>"Until", "type"=>"text", "name"=>"until")
+	), $values);
+}
+
 function transactionExchangeRates($balance)
 {
 	$currency1 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));
@@ -816,12 +921,21 @@ function supplierAccountDescription($name)
 	return "Supplier account for supplier $name";
 }
 
+function depreciationAccountDescription($name)
+{
+	return "Depreciation account for fixed asset $name";
+}
+
+function expenseAccountDescription($name)
+{
+	return "Expense account for fixed asset $name";
+}
+
 function accountEmpty($accountID)
 {
 	return
 		!stdExists("accountingTransactionLine", array("accountID"=>$accountID)) &&
 		!stdExists("accountingAccount", array("parentAccountID"=>$accountID));
-
 }
 
 function supplierEmpty($supplierID)
@@ -832,7 +946,13 @@ function supplierEmpty($supplierID)
 		accountEmpty(stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID"));
 }
 
-
-
+function fixedAssetEmpty($fixedAssetID)
+{
+	$fixedAsset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID", "expenseAccountID"));
+	return
+		accountEmpty($fixedAsset["accountID"]) &&
+		accountEmpty($fixedAsset["depreciationAccountID"]) &&
+		accountEmpty($fixedAsset["expenseAccountID"]);
+}
 
 ?>
