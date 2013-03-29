@@ -185,7 +185,7 @@ function billingCreateInvoice($customerID, $subscriptionLines, $sendEmail = true
 	
 	$transactionID = accountingAddTransaction($now, "Invoice $factuurnr for customer {$customer["name"]}", $transactionLines);
 	
-	$invoiceID = stdNew("billingInvoice", array("customerID"=>$customerID, "transactionID"=>$transactionID, "date"=>$now, "invoiceNumber"=>$factuurnr));
+	$invoiceID = stdNew("billingInvoice", array("customerID"=>$customerID, "transactionID"=>$transactionID, "invoiceNumber"=>$factuurnr));
 	
 	foreach($invoiceLines as $invoiceLine) {
 		$invoiceLine["invoiceID"] = $invoiceID;
@@ -199,10 +199,10 @@ function billingCreateInvoice($customerID, $subscriptionLines, $sendEmail = true
 
 function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 {
-	$invoice = stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "date", "invoiceNumber"));
+	$invoice = stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "transactionID", "invoiceNumber"));
 	$customer = stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode"));
 	
-	$texdatum = date("d/m/Y", $invoice["date"]);
+	$texdatum = date("d/m/Y", stdGet("accountingTransaction", array("transactionID"=>$invoice["transactionID"]), "date"));
 	$invoiceNumber = $invoice["invoiceNumber"];
 	$to = "";
 	if($customer["companyName"] !== null && $customer["companyName"] !== "") {
@@ -437,7 +437,8 @@ function billingInvoiceStatusList($customerID)
 	$balance = -billingBalance($customerID);
 	
 	$output = array();
-	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "customerID", "transactionID", "date", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
+	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "customerID", "transactionID", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
+		$invoice["date"] = stdGet("accountingTransaction", array("transactionID"=>$invoice["transactionID"]), "date");
 		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
 		$invoice["amount"] = $amount;
 		if($balance <= 0) {
