@@ -366,7 +366,7 @@ $output .= "</VirtualHost>\n";
 
 function getPathConfig($pathID, $location, $ancestors)
 {
-	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("domainID", "name", "type", "hostedUserID", "hostedPath", "hostedIndexes", /*"svnPath",*/ "redirectTarget", "mirrorTargetPathID", /*"userDatabaseID", "userDatabaseRealm",*/ "customLocationConfigText", "customDirectoryConfigText"));
+	$path = $GLOBALS["database"]->stdGet("httpPath", array("pathID"=>$pathID), array("domainID", "name", "type", "hostedUserID", "hostedPath", "hostedIndexes", "hostedExecCGI", /*"svnPath",*/ "redirectTarget", "mirrorTargetPathID", /*"userDatabaseID", "userDatabaseRealm",*/ "customLocationConfigText", "customDirectoryConfigText"));
 	
 	$childAncestors = $ancestors;
 	$childAncestors[$pathID] = $location;
@@ -408,7 +408,11 @@ function getPathConfig($pathID, $location, $ancestors)
 		} else {
 			$directoryBlocks[] = "Options SymLinksIfOwnerMatch";
 		}
-		$directoryBlocks[] = "AllowOverride AuthConfig FileInfo Indexes Limit Options=Indexes,IncludesNOEXEC,SymLinksIfOwnerMatch,FollowSymLinks,MultiViews";
+		if($path["hostedExecCGI"] == 1) {
+			$directoryBlocks[] = "AllowOverride AuthConfig FileInfo Indexes Limit Options=Indexes,IncludesNOEXEC,SymLinksIfOwnerMatch,FollowSymLinks,MultiViews,ExecCGI";
+		} else {
+			$directoryBlocks[] = "AllowOverride AuthConfig FileInfo Indexes Limit Options=Indexes,IncludesNOEXEC,SymLinksIfOwnerMatch,FollowSymLinks,MultiViews";
+		}
 		if($location == "") {
 			$output .= "DocumentRoot $directoryPath\n";
 		} else {

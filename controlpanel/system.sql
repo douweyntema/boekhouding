@@ -449,6 +449,7 @@ CREATE TABLE `httpPath` (
   `hostedUserID` int(11) DEFAULT NULL,
   `hostedPath` varchar(255) DEFAULT NULL,
   `hostedIndexes` tinyint(1) DEFAULT NULL,
+  `hostedExecCGI` tinyint(1) DEFAULT NULL,
   `svnPath` varchar(255) DEFAULT NULL,
   `redirectTarget` varchar(255) DEFAULT NULL,
   `mirrorTargetPathID` int(11) DEFAULT NULL,
