@@ -833,6 +833,9 @@ function editFixedAssetForm($fixedAssetID, $error = "", $values = null)
 {
 	if($values === null) {
 		$values = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("name", "description", "automaticDepreciation"));
+		if(!$values["automaticDepreciation"]) {
+			unset($values["automaticDepreciation"]);
+		}
 	}
 	
 	return operationForm("editfixedasset.php?id=$fixedAssetID", $error, "Edit fixed asset", "Save", array(
