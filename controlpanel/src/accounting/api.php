@@ -226,7 +226,7 @@ function accountingAccountTree($accountID, $excludedAccountID = null)
 	$accountIDSql = dbAddSlashes($accountID);
 	$output = query("SELECT accountID, parentAccountID, accountingAccount.name AS name, description, isDirectory, balance, currencyID, accountingCurrency.symbol AS currencySymbol, accountingCurrency.name AS currencyName FROM accountingAccount INNER JOIN accountingCurrency USING(currencyID) WHERE accountID = '$accountIDSql'")->fetchArray();
 	$output["subaccounts"] = array();
-	foreach(stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID", array("name"=>"ASC")) as $subAccountID) {
+	foreach(stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID", array("isDirectory"=>"DESC", "name"=>"ASC")) as $subAccountID) {
 		if($excludedAccountID !== null && $subAccountID["accountID"] == $excludedAccountID) {
 			continue;
 		}
