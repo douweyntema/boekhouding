@@ -437,7 +437,7 @@ function billingInvoiceStatusList($customerID)
 	$balance = -billingBalance($customerID);
 	
 	$output = array();
-	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "customerID", "transactionID", "invoiceNumber"), array("date"=>"DESC")) as $invoice) {
+	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "customerID", "transactionID", "invoiceNumber")) as $invoice) {
 		$invoice["date"] = stdGet("accountingTransaction", array("transactionID"=>$invoice["transactionID"]), "date");
 		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
 		$invoice["amount"] = $amount;
@@ -451,6 +451,8 @@ function billingInvoiceStatusList($customerID)
 		$balance -= $amount;
 		$output[] = $invoice;
 	}
+	
+	usort($output, function($a, $b) { return $b["date"] - $a["date"]; });
 	return $output;
 }
 
