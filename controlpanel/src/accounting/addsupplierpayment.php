@@ -15,7 +15,6 @@ function main()
 	$check(($description = post("description")) != "", "No description given.");
 	$check(($date = parseDate(post("date"))) !== null, "Invalid date.");
 	$check(($amount = parsePrice(post("amount"))) !== null, "Invalid amount.");
-	$check($amount > 0, "Invalid amount.");
 	$check(($bankAccount = post("bankAccount")) !== null, "Invalid bank account.");
 	$check(stdExists("accountingAccount", array("accountID"=>$bankAccount)), "Invalid bank account.");
 	
