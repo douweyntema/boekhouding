@@ -133,7 +133,7 @@ function accountSummary($accountID)
 
 function accountList()
 {
-	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID");
+	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
 	$accountList = array();
 	foreach($rootNodes as $rootNode) {
 		$accountTree = accountingAccountTree($rootNode);
@@ -445,7 +445,7 @@ function moveAccountForm($accountID, $error = "", $values = null)
 		return operationForm("moveaccount.php?id=$accountID", "", "Move account", "Move Account", array(), array());
 	}
 	
-	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID");
+	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
 	$accountList = array();
 	foreach($rootNodes as $rootNode) {
 		if($rootNode == $accountID) {
