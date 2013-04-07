@@ -71,7 +71,7 @@ function main()
 	$invoiceID = stdNew("suppliersInvoice", array("supplierID"=>$supplierID, "transactionID"=>$transactionID, "invoiceNumber"=>$invoiceNumber, "pdf"=>($file === null ? null : $file["data"])));
 	commitTransaction();
 	
-	redirect("accounting/supplierinvoice.php?id=$invoiceID");
+	redirect("accounting/supplier.php?id=$supplierID");
 }
 
 main();
