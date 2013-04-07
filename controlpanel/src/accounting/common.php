@@ -239,7 +239,7 @@ function transactionSummary($transactionID)
 
 function supplierList()
 {
-	$suppliers = stdList("suppliersSupplier", array(), array("supplierID", "accountID", "name", "description"));
+	$suppliers = stdList("suppliersSupplier", array(), array("supplierID", "accountID", "name", "description"), array("name"=>"ASC"));
 	
 	$rows = array();
 	foreach($suppliers as $supplier) {
