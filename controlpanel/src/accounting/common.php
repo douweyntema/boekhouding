@@ -861,6 +861,11 @@ function depreciateFixedAssetForm($fixedAssetID, $error = "", $values = null)
 	), $values);
 }
 
+function recomputeBalancesForm($error = "", $values = null)
+{
+	return operationForm("recomputebalances.php", $error, "Recompute balances", "Recompute", array(), $values);
+}
+
 function transactionExchangeRates($balance)
 {
 	$currency1 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));

@@ -328,4 +328,31 @@ function accountingFormatAccountPrice($accountID, $negate = false)
 	return formatPrice(($negate ? -1 : 1) * $account["balance"], $currency);
 }
 
+function accountingRecomputeBalancesAccount($accountID)
+{
+	$accountIDSql = dbAddSlashes($accountID);
+	$account = stdGet("accountingAccount", array("accountID"=>$accountID), array("currencyID", "isDirectory"));
+	if($account["isDirectory"] == 1) {
+		foreach(stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID") as $subAccountID) {
+			accountingRecomputeBalancesAccount($subAccountID);
+		}
+		$record = query("SELECT SUM(balance) AS total FROM accountingAccount WHERE parentAccountID = '$accountIDSql' AND currencyID='{$account["currencyID"]}'")->fetchArray();
+		stdSet("accountingAccount", array("accountID"=>$accountID), array("balance"=>$record["total"]));
+	} else {
+		$record = query("SELECT SUM(amount) AS total FROM accountingTransactionLine WHERE accountID = '$accountIDSql'")->fetchArray();
+		stdSet("accountingAccount", array("accountID"=>$accountID), array("balance"=>$record["total"]));
+	}
+}
+
+function accountingRecomputeBalances()
+{
+	startTransaction();
+	setQuery("LOCK TABLES accountingAccount WRITE, accountingTransaction WRITE, accountingTransactionLine WRITE");
+	foreach(stdList("accountingAccount", array("parentAccountID"=>null), "accountID") as $accountID) {
+		accountingRecomputeBalancesAccount($accountID);
+	}
+	setQuery("UNLOCK TABLES");
+	commitTransaction();
+}
+
 ?>
