@@ -71,9 +71,9 @@ function setupRepeatField()
 				pos = name.lastIndexOf("-");
 				number = name.substr(pos + 1) * 1;
 				newname = name.substr(0, pos) + "-" + (number + extraRowID);
-				extraRowID++;
 				$(this).attr("name", newname);
 			});
+			extraRowID++;
 			$(".repeatFieldChild-" + id).last().change(addnewline);
 			
 			$(".CURRENTLASTLINE").removeClass("CURRENTLASTLINE");
