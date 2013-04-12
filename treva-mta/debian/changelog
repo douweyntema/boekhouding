@@ -1,3 +1,9 @@
+treva-mta (0.2) squeeze; urgency=medium
+
+  * Fixed a local SMTP bug.
+
+ -- Ruud Koolen <r.koolen@treva.nl>  Fri, 12 Apr 2013 01:59:42 +0200
+
 treva-mta (0.1) squeeze; urgency=medium
 
   * Start of the treva-mta package
