@@ -13,7 +13,7 @@ function main()
 	};
 	
 	$check(($name = post("name")) !== null, "");
-	$check(($description = post("description")) != null, "");
+	$check(($description = post("description")) !== null, "");
 	
 	$check($name != "", "Missing account name.");
 	$check(post("confirm") !== null, null);
