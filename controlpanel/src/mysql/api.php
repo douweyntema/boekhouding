@@ -83,7 +83,7 @@ function mysqlCreateUser($user, $password, $enabled = true, $db = null)
 	}
 
 	foreach($db->query("SELECT DISTINCT TABLE_SCHEMA AS name FROM SCHEMA_PRIVILEGES WHERE GRANTEE='\'$oldUser\'@\'$oldHost\'';")->fetchList("name") as $database) {
-		$db->setQuery("GRANT ALL ON `$database`.* TO '$user'@$host");
+		$db->setQuery("GRANT ALL ON `$database`.* TO '" . $db->addSlashes($user) . "'@$host");
 	}
 }
 
