@@ -176,8 +176,11 @@ function canAccessComponent($component)
 		return false;
 	}
 	
-	if(isRoot() || isImpersonating()) {
+	if(isImpersonating()) {
 		return true;
+	}
+	if(isRoot()) {
+		return !($components[$component]["target"] == "customer");
 	}
 	
 	return canAccessCustomerComponent($component);

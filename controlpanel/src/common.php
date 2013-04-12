@@ -113,9 +113,13 @@ foreach($componentsEnabled as $component) {
 	require_once(dirname(__FILE__) . "/$component/api.php");
 	$title = $GLOBALS[$component . "Title"];
 	$target = $GLOBALS[$component . "Target"];
-	$GLOBALS["components"][$component] = array("name"=>$component, "title"=>$title, "target"=>$target);
+	$menu = isset($GLOBALS[$component . "Menu"]) ? $GLOBALS[$component . "Menu"] : $target;
+	$GLOBALS["components"][$component] = array("name"=>$component, "title"=>$title, "target"=>$target, "menu"=>$menu);
 	if(!in_array($target, array("admin", "both", "customer"))) {
 		die("Internal error: undefined target '$target' in component '$component'");
+	}
+	if(!in_array($menu, array("admin", "both", "customer"))) {
+		die("Internal error: undefined menu '$menu' in component '$component'");
 	}
 	if($target == "customer" || $target == "both") {
 		$description = $GLOBALS[$component . "Description"];
@@ -211,7 +215,7 @@ function menu()
 		$output .= "<ul>\n";
 		$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}\">Welcome</a></li>\n";
 		foreach(components() as $component) {
-			if($component["target"] == "customer") {
+			if($component["menu"] == "customer") {
 				continue;
 			}
 			$titleHtml = htmlentities($component["title"]);
@@ -223,7 +227,7 @@ function menu()
 		$output .= "<ul>\n";
 		$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}\">Welcome</a></li>\n";
 		foreach(components() as $component) {
-			if($component["target"] == "admin") {
+			if($component["menu"] == "admin") {
 				continue;
 			}
 			if(!canAccessCustomerComponent($component["name"])) {

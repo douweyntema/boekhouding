@@ -2,7 +2,8 @@
 
 $billingTitle = "Billing";
 $billingDescription = "Finances";
-$billingTarget = "customer";
+$billingTarget = "both";
+$billingMenu = "customer";
 
 function billingDomainPrice($tldID)
 {
