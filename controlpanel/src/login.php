@@ -42,7 +42,7 @@ if((isset($_SESSION["username"]) && isset($_SESSION["password"])) ||
 	if($user["customerID"] !== null) {
 		$customerID = $user["customerID"];
 		$impersonate = false;
-	} else if(isset($GLOBALS["loginAllowed"]) && get("customerID") !== null && get("customerID") == 0) {
+	} else if((isset($GLOBALS["loginAllowed"]) && get("customerID") !== null && get("customerID") == 0) || (isset($GLOBALS["endImpersonate"]) && $GLOBALS["endImpersonate"])) {
 		$customerID = 0;
 		$impersonate = false;
 	} else if(isset($GLOBALS["loginAllowed"]) && get("customerID") !== null) {

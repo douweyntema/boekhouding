@@ -1,6 +1,7 @@
 <?php
 
 $GLOBALS["loginAllowed"] = true;
+$GLOBALS["endImpersonate"] = true;
 
 require_once("common.php");
 
