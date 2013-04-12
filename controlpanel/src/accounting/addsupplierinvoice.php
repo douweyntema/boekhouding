@@ -58,6 +58,26 @@ function main()
 		$balance = null;
 	}
 	
+	if(post("payment") == "yes") {
+		$payment = true;
+		$paymentDescription = "Payment for " . $invoiceNumber;
+		$check(($paymentDate = parseDate(post("paymentDate"))) !== null, "Invalid date.");
+		$check(($paymentBankAccount = post("paymentBankAccount")) !== null, "Invalid bank account.");
+		$check(stdExists("accountingAccount", array("accountID"=>$paymentBankAccount)), "Invalid bank account.");
+		if($currencyID != $GLOBALS["defaultCurrencyID"]) {
+			
+		}
+		$paymentLines = array();
+		$paymentLines[] = array("accountID"=>$paymentBankAccount, "amount"=>$total * -1);
+		if($currencyID != $GLOBALS["defaultCurrencyID"]) {
+			$paymentLines[] = array("accountID"=>$accountID, "amount"=>$foreignAmount);
+		} else {
+			$paymentLines[] = array("accountID"=>$accountID, "amount"=>$total);
+		}
+	} else {
+		$payment = false;
+	}
+	
 	$check(post("confirm") !== null, null, $total, $balance);
 	
 	if($pdfType == "new") {
@@ -70,6 +90,13 @@ function main()
 	$transactionID = accountingAddTransaction($date, $description, $parsedLines);
 	$invoiceID = stdNew("suppliersInvoice", array("supplierID"=>$supplierID, "transactionID"=>$transactionID, "invoiceNumber"=>$invoiceNumber, "pdf"=>($file === null ? null : $file["data"])));
 	commitTransaction();
+	
+	if($payment) {
+		startTransaction();
+		$transactionID = accountingAddTransaction($paymentDate, $paymentDescription, $paymentLines);
+		stdNew("suppliersPayment", array("supplierID"=>$supplierID, "transactionID"=>$transactionID));
+		commitTransaction();
+	}
 	
 	redirect("accounting/supplier.php?id=$supplierID");
 }
