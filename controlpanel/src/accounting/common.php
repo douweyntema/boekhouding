@@ -637,6 +637,15 @@ function supplierInvoiceForm($supplierID, $fileLink, $error = "", $values = null
 	));
 	$fields[] = array("title"=>"Pdf", "type"=>"subformchooser", "name"=>"pdfType", "subforms"=>$subforms);
 	
+	$bankAccounts = accountingAccountOptions($GLOBALS["bankDirectoryAccountID"]);
+	$subforms = array();
+	$subforms[] = array("value"=>"no", "label"=>"No payment", "subform"=>array());
+	$subforms[] = array("value"=>"yes", "label"=>"Direct payment", "subform"=>array(
+		array("title"=>"Bank account", "type"=>"dropdown", "name"=>"paymentBankAccount", "options"=>$bankAccounts),
+		array("title"=>"Payment date", "type"=>"text", "name"=>"paymentDate"),
+	));
+	$fields[] = array("title"=>"Payment", "type"=>"subformchooser", "name"=>"payment", "subforms"=>$subforms);
+	
 	if($currencyID != $GLOBALS["defaultCurrencyID"]) {
 		$fields[] = array("title"=>"Total in {$currency["name"]}", "type"=>"text", "name"=>"foreignAmount");
 	}
@@ -647,6 +656,8 @@ function supplierInvoiceForm($supplierID, $fileLink, $error = "", $values = null
 			$fields = array_merge($fields, transactionExchangeRates($balance));
 		}
 	}
+	
+	
 	$fields[] = array("title"=>"Tax", "type"=>"colspan", "columns"=>array(
 		array("type"=>"html", "html"=>""),
 		array("type"=>"html", "html"=>htmlentities($defaultCurrency["name"])),
@@ -666,7 +677,12 @@ function addSupplierInvoiceForm($supplierID, $error = "", $values = null, $total
 	if($values === null) {
 		$values = array();
 		$values["pdfType"] = "none";
+		$values["payment"] = "no";
 		$values["date"] = date("d-m-Y");
+		$values["paymentDate"] = date("d-m-Y");
+		if(isset($GLOBALS["bankDefaultAccountID"])) {
+			$values["paymentBankAccount"] = $GLOBALS["bankDefaultAccountID"];
+		}
 		
 		$defaultExpenseAccountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "defaultExpenseAccountID");
 		if($defaultExpenseAccountID !== null) {
