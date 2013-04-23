@@ -4,10 +4,20 @@ require_once("common.php");
 
 function main()
 {
-	doAccounting();
-	$check = function($condition, $error) {
-		if(!$condition) die(page(makeHeader("Add view", accountingBreadcrumbs(), crumbs("Add view", "addview.php")) . addViewForm($error, $_POST)));
-	};
+	$viewID = get("id");
+	if(get("type") == "balance") {
+		doAccountingBalanceView($viewID);
+		
+		$check = function($condition, $error) use($viewID) {
+			if(!$condition) die(page(makeHeader("Edit view", balanceViewBreadcrumbs($viewID), crumbs("Edit view", "editview.php?id=$viewID&type=balance")) . editBalanceViewForm($viewID, $error, $_POST)));
+		};
+	} else {
+		doAccountingIncomeExpenseView($viewID);
+		
+		$check = function($condition, $error) use($viewID) {
+			if(!$condition) die(page(makeHeader("Edit view", incomeExpenseViewBreadcrumbs($viewID), crumbs("Edit view", "editview.php?id=$viewID&type=incomeexpence")) . editIncomeExpenseViewForm($viewID, $error, $_POST)));
+		};
+	}
 	
 	$check(($name = post("name")) !== null, "");
 	$check(($description = post("description")) !== null, "");
@@ -34,6 +44,14 @@ function main()
 	$check(post("confirm") !== null, null);
 	
 	startTransaction();
+	if(get("type") == "balance") {
+		stdDel("accountingBalanceViewAccount", array("balanceViewID"=>$viewID));
+		stdDel("accountingBalanceView", array("balanceViewID"=>$viewID));
+	} else {
+		stdDel("accountingIncomeExpenseViewAccount", array("incomeExpenseViewID"=>$viewID));
+		stdDel("accountingIncomeExpenseView", array("incomeExpenseViewID"=>$viewID));
+	}
+	
 	if($type == "balance") {
 		$viewID = stdNew("accountingBalanceView", array(
 			"name"=>$name,

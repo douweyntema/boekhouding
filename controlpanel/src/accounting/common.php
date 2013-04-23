@@ -1199,7 +1199,7 @@ function relativeTimeChooser($title, $namePrefix)
 	));
 }
 
-function addViewForm($error = "", $values = null)
+function viewForm()
 {
 	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
 	$accountList = array();
@@ -1226,7 +1226,7 @@ function addViewForm($error = "", $values = null)
 		));
 	}
 
-	return operationForm("addview.php", $error, "Add view", "Save", array(
+	return array(
 		array("title"=>"Name", "type"=>"text", "name"=>"name"),
 		array("title"=>"Description", "type"=>"text", "name"=>"description"),
 		array("caption"=>"Accounts", "type"=>"table", "tableclass"=>"list tree", "subform"=>$rows),
@@ -1239,7 +1239,105 @@ function addViewForm($error = "", $values = null)
 				relativeTimeChooser("End date", "incomeExpencesEnd"),
 			)),
 		)),
-	), $values);
+	);
+}
+
+function addViewForm($error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("addview.php", "", "Add view", "Add view", array(), array());
+	}
+	if($values === null || count($values) == 0) {
+		$values = array();
+		$values["balanceOffsetAmount"] = 0;
+		$values["incomeExpencesStartOffsetAmount"] = 0;
+		$values["incomeExpencesEndOffsetAmount"] = 0;
+	}
+	$form = viewForm();
+	return operationForm("addview.php", $error, "Add view", "Save", $form, $values);
+}
+
+function editBalanceViewForm($balanceViewID, $error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("editview.php?id=$balanceViewID&type=balance", "", "Edit view", "Edit view", array(), array());
+	}
+	if($values === null || count($values) == 0) {
+		$values = array();
+		$view = stdGet("accountingBalanceView", array("balanceViewID"=>$balanceViewID), array("name", "description", "dateBase", "dateOffsetType", "dateOffsetAmount"));
+		$values["name"] = $view["name"];
+		$values["description"] = $view["description"];
+		if($view["dateBase"] == "ABSOLUTE") {
+			$values["balanceDateType"] = "ABSOLUTE";
+			$values["balanceAbsDate"] = date("d-m-Y", $view["dateOffsetAmount"]);
+			$values["balanceOffsetAmount"] = 0;
+		} else {
+			$values["balanceDateType"] = "RELATIVE";
+			$values["balanceBase"] = $view["dateBase"];
+			$values["balanceOffsetType"] = $view["dateOffsetType"];
+			$values["balanceOffsetAmount"] = $view["dateOffsetAmount"];
+		}
+		$values["incomeExpencesStartOffsetAmount"] = 0;
+		$values["incomeExpencesEndOffsetAmount"] = 0;
+		
+		$accounts = stdMap("accountingBalanceViewAccount", array("balanceViewID"=>$balanceViewID), "accountID", "visibility");
+		foreach($accounts as $accountID=>$visibility) {
+			$values["account-$accountID"] = $visibility;
+		}
+	}
+	$form = viewForm();
+	return operationForm("editview.php?id=$balanceViewID&type=balance", $error, "Edit view", "Save", $form, $values);
+}
+
+function editIncomeExpenseViewForm($incomeExpenseViewID, $error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("editview.php?id=$incomeExpenseViewID&type=incomeexpence", "", "Edit view", "Edit view", array(), array());
+	}
+	if($values === null || count($values) == 0) {
+		$values = array();
+		$view = stdGet("accountingIncomeExpenseView", array("incomeExpenseViewID"=>$incomeExpenseViewID), array("name", "description", "startDateBase", "startDateOffsetType", "startDateOffsetAmount", "endDateBase", "endDateOffsetType", "endDateOffsetAmount"));
+		$values["name"] = $view["name"];
+		$values["description"] = $view["description"];
+		if($view["startDateBase"] == "ABSOLUTE") {
+			$values["incomeExpencesStartDateType"] = "ABSOLUTE";
+			$values["incomeExpencesStartAbsDate"] = date("d-m-Y", $view["startDateOffsetAmount"]);
+			$values["incomeExpencesStartOffsetAmount"] = 0;
+		} else {
+			$values["incomeExpencesStartDateType"] = "RELATIVE";
+			$values["incomeExpencesStartBase"] = $view["startDateBase"];
+			$values["incomeExpencesStartOffsetType"] = $view["startDateOffsetType"];
+			$values["incomeExpencesStartOffsetAmount"] = $view["startDateOffsetAmount"];
+		}
+		if($view["endDateBase"] == "ABSOLUTE") {
+			$values["incomeExpencesEndDateType"] = "ABSOLUTE";
+			$values["incomeExpencesStartAbsDate"] = date("d-m-Y", $view["endDateOffsetAmount"]);
+			$values["incomeExpencesEndOffsetAmount"] = 0;
+		} else {
+			$values["incomeExpencesEndDateType"] = "RELATIVE";
+			$values["incomeExpencesEndBase"] = $view["endDateBase"];
+			$values["incomeExpencesEndOffsetType"] = $view["endDateOffsetType"];
+			$values["incomeExpencesEndOffsetAmount"] = $view["endDateOffsetAmount"];
+		}
+		$values["balanceOffsetAmount"] = 0;
+		
+		$accounts = stdMap("accountingIncomeExpenseViewAccount", array("incomeExpenseViewID"=>$incomeExpenseViewID), "accountID", "visibility");
+		foreach($accounts as $accountID=>$visibility) {
+			$values["account-$accountID"] = $visibility;
+		}
+	}
+	$form = viewForm();
+	return operationForm("editview.php?id=$incomeExpenseViewID&type=incomeexpence", $error, "Edit view", "Save", $form, $values);
+}
+
+function deleteBalanceViewForm($viewID, $error = "", $values = null)
+{
+	return operationForm("deletebalanceview.php?id=$viewID", $error, "Delete view", "Delete", array(), $values);
+}
+
+function deleteIncomeExpenceViewForm($viewID, $error = "", $values = null)
+{
+	return operationForm("deleteincomeexpenceview.php?id=$viewID", $error, "Delete view", "Delete", array(), $values);
 }
 
 function transactionExchangeRates($balance)
