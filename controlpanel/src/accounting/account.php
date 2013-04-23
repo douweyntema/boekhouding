@@ -10,6 +10,7 @@ function main()
 	$content = makeHeader("Account $accountName", accountBreadcrumbs($accountID));
 	
 	$content .= accountSummary($accountID);
+	$content .= accountList($accountID);
 	if(stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory")) {
 		$content .= addAccountForm($accountID, "STUB");
 	} else {
