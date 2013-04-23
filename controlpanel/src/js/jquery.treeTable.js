@@ -14,8 +14,9 @@
   
   $.fn.treeTable = function(opts) {
     options = $.extend({}, $.fn.treeTable.defaults, opts);
-    
+    initializing = true;
     return this.each(function() {
+      initializing = true;
       $(this).addClass("treeTable");
       $(this).find("tbody tr").each(function () {
 	 if(!(!options.expandable || $(this)[0].className.search(options.childPrefix) == -1)) {
@@ -37,6 +38,7 @@
 //           this.style.visibility = "collapse";
         }
       });
+      initializing = false;
       zebra(this);
     });
   };
@@ -145,7 +147,7 @@
   
   function zebra(table)
   {
-    if(!options.zebra) {
+    if(!options.zebra || initializing) {
       return;
     }
     counter = 1;
