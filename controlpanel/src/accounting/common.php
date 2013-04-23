@@ -89,13 +89,33 @@ function accountingBreadcrumbs()
 	return crumbs("Accounting", "");
 }
 
-function accountBreadcrumbs($accountID)
+function accountBreadcrumbs($accountID, $toDate = null, $fromDate = null, $balanceViewID = null, $incomeExpenseViewID = null)
 {
 	if($accountID == 0) {
 		return accountingBreadcrumbs();
 	}
 	$name = stdGet("accountingAccount", array("accountID"=>$accountID), "name");
-	return array_merge(accountingBreadcrumbs(), crumbs("Account " . $name, "account.php?id=$accountID"));
+	$url = "account.php?id=$accountID";
+	if($toDate !== null) {
+		$url .= "&toDate=$toDate";
+	}
+	if($fromDate !== null) {
+		$url .= "&fromDate=$fromDate";
+	}
+	if($balanceViewID !== null) {
+		$url .= "&balanceViewID=$balanceViewID";
+	}
+	if($incomeExpenseViewID !== null) {
+		$url .= "&incomeExpenseViewID=$incomeExpenseViewID";
+	}
+	
+	if($balanceViewID !== null) {
+		return array_merge(balanceViewBreadcrumbs($balanceViewID), crumbs("Account " . $name, $url));
+	} else if($incomeExpenseViewID !== null) {
+		return array_merge(incomeExpenseViewBreadcrumbs($incomeExpenseViewID), crumbs("Account " . $name, $url));
+	} else {
+		return array_merge(accountingBreadcrumbs(), crumbs("Account " . $name, $url));
+	}
 }
 
 function transactionBreadcrumbs($transactionID, $accountID)
@@ -142,24 +162,52 @@ function incomeExpenseViewBreadcrumbs($incomeExpenseViewID)
 }
 
 
-function accountSummary($accountID)
+function accountSummary($accountID, $toDate = null, $fromDate = null, $balanceViewID = null, $incomeExpenseViewID = null)
 {
 	$account = stdGet("accountingAccount", array("accountID"=>$accountID), array("parentAccountID", "currencyID", "name", "description", "isDirectory"));
 	$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), array("name", "symbol"));
 	
+	$extraFields = "";
+	if($fromDate !== null) {
+		$extraFields .= "&fromDate=$fromDate";
+	}
+	if($toDate !== null) {
+		$extraFields .= "&toDate=$toDate";
+	}
+	if($balanceViewID !== null) {
+		$extraFields .= "&balanceViewID=$balanceViewID";
+	}
+	if($incomeExpenseViewID !== null) {
+		$extraFields .= "&incomeExpenseViewID=$incomeExpenseViewID";
+	}
+	
 	$rows = array();
 	if($account["parentAccountID"] !== null) {
 		$parentAccountName = stdGet("accountingAccount", array("accountID"=>$account["parentAccountID"]), "name");
-		$rows["Parent account"] = array("url"=>"account.php?id=" . $account["parentAccountID"], "text"=>$parentAccountName);
+		$rows["Parent account"] = array("url"=>"account.php?id={$account["parentAccountID"]}{$extraFields}", "text"=>$parentAccountName);
 	}
 	$rows["Currency"] = array("html"=>$currency["name"] . " (" . $currency["symbol"] . ")");
-	$rows["Balance"] = array("html"=>accountingFormatAccountPrice($accountID));
+	if($fromDate === null) {
+		if($toDate !== null) {
+			$rows["Date"] = date("d-m-Y", $toDate);
+		}
+		$balance  = accountingBalance($toDate);
+		$rows["Balance"] = array("html"=>formatPrice($balance[$accountID], $currency["symbol"]));
+	} else {
+		$startBalance = accountingBalance($fromDate);
+		$endBalance = accountingBalance($toDate);
+		
+		$rows["Date"] = date("d-m-Y", $fromDate) . " to " . date("d-m-Y", $toDate);
+		$rows["Start Balance"] = array("html"=>formatPrice($startBalance[$accountID], $currency["symbol"]));
+		$rows["End Balance"] = array("html"=>formatPrice($endBalance[$accountID], $currency["symbol"]));
+		$rows["Difference"] = array("html"=>formatPrice($endBalance[$accountID] - $startBalance[$accountID], $currency["symbol"]));
+	}
 	$rows["Description"] = $account["description"];
 	
 	return summaryTable("Account {$account["name"]}", $rows);
 }
 
-function accountList($accountID = null, $toDate = null, $fromDate = null)
+function accountList($accountID = null, $toDate = null, $fromDate = null, $balanceViewID = null, $incomeExpenseViewID = null)
 {
 	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
 	$accountList = array();
@@ -201,7 +249,7 @@ function accountList($accountID = null, $toDate = null, $fromDate = null)
 		}
 	}
 	
-	return doAccountList($tree, $toDate, $fromDate);
+	return doAccountList($tree, $toDate, $fromDate, $balanceViewID, $incomeExpenseViewID);
 }
 
 function balanceViewSummary($balanceViewID, $now)
@@ -225,11 +273,19 @@ function balanceViewList($balanceViewID, $now)
 	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
 	$accountList = array();
 	foreach($rootNodes as $rootNode) {
-		$accountTree = accountingAccountTree($rootNode, $visibilityMap);
-		$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+		if(isset($visibilityMap[$rootNode]) && $visibilityMap[$rootNode] != "HIDDEN") {
+			$accountTree = accountingAccountTree($rootNode, $visibilityMap);
+			$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+		}
+	}
+	foreach($rootNodes as $rootNode) {
+		if(!isset($visibilityMap[$rootNode]) || $visibilityMap[$rootNode] == "HIDDEN") {
+			$accountTree = accountingAccountTree($rootNode, $visibilityMap);
+			$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+		}
 	}
 	
-	return doAccountList($accountList, $date, null);
+	return doAccountList($accountList, $date, null, $balanceViewID);
 }
 
 function incomeExpenseViewSummary($incomeExpenseViewID, $now)
@@ -256,14 +312,22 @@ function incomeExpenseViewList($incomeExpenseViewID, $now)
 	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
 	$accountList = array();
 	foreach($rootNodes as $rootNode) {
-		$accountTree = accountingAccountTree($rootNode, $visibilityMap);
-		$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+		if(isset($visibilityMap[$rootNode]) && $visibilityMap[$rootNode] != "HIDDEN") {
+			$accountTree = accountingAccountTree($rootNode, $visibilityMap);
+			$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+		}
+	}
+	foreach($rootNodes as $rootNode) {
+		if(!isset($visibilityMap[$rootNode]) || $visibilityMap[$rootNode] == "HIDDEN") {
+			$accountTree = accountingAccountTree($rootNode, $visibilityMap);
+			$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+		}
 	}
 	
-	return doAccountList($accountList, $startDate, $endDate);
+	return doAccountList($accountList, $endDate, $startDate, null, $incomeExpenseViewID);
 }
 
-function doAccountList($tree, $toDate, $fromDate)
+function doAccountList($tree, $toDate, $fromDate, $balanceViewID = null, $incomeExpenseViewID = null)
 {
 	$toBalance = accountingBalance($toDate);
 	if($fromDate !== null) {
@@ -292,9 +356,22 @@ function doAccountList($tree, $toDate, $fromDate)
 		
 		$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "symbol");
 		
+		$extraFields = "";
+		if($fromDate !== null) {
+			$extraFields .= "&fromDate=$fromDate";
+		}
+		if($toDate !== null) {
+			$extraFields .= "&toDate=$toDate";
+		}
+		if($balanceViewID !== null) {
+			$extraFields .= "&balanceViewID=$balanceViewID";
+		}
+		if($incomeExpenseViewID !== null) {
+			$extraFields .= "&incomeExpenseViewID=$incomeExpenseViewID";
+		}
 		
 		$row = array();
-		$row[] = array("html"=>"<a href=\"account.php?id={$account["accountID"]}\">$text</a>" . ($typeUrl === null ? "" : "<a href=\"$typeUrl\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}css/images/external.png\" alt=\"Direct link\" /></a>"));
+		$row[] = array("html"=>"<a href=\"account.php?id={$account["accountID"]}$extraFields\">$text</a>" . ($typeUrl === null ? "" : "<a href=\"$typeUrl\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}css/images/external.png\" alt=\"Direct link\" /></a>"));
 		if($fromBalance !== null) {
 			$row[] = array("html"=>formatPrice($fromBalance[$account["accountID"]], $currency), "class"=>"nowrap");
 		}
@@ -327,7 +404,7 @@ function doAccountList($tree, $toDate, $fromDate)
 	}
 }
 
-function transactionList($accountID)
+function transactionList($accountID, $toDate = null, $fromDate = null)
 {
 	$transactions = transactions($accountID);
 	uasort($transactions, function($a, $b) {
@@ -342,6 +419,7 @@ function transactionList($accountID)
 	
 	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
 	$currencySymbol = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "symbol");
+	$startBalance = $balance;
 	
 	foreach($transactions as $transaction) {
 		$lines = stdList("accountingTransactionLine", array("transactionID"=>$transaction["transactionID"]), array("transactionLineID", "accountID", "amount"));
@@ -354,6 +432,14 @@ function transactionList($accountID)
 		}
 		
 		$balance += $currentLineAmount;
+		
+		if($fromDate !== null && $transaction["date"] < $fromDate) {
+			$startBalance = $balance;
+			continue;
+		}
+		if($toDate !== null && $transaction["date"] >= $toDate) {
+			break;
+		}
 		
 		$rows[] = array("id"=>"transaction-{$transaction["transactionID"]}", "class"=>"transaction collapsed", "cells"=>array(
 			array("text"=>date("d-m-Y", $transaction["date"])),
@@ -372,6 +458,14 @@ function transactionList($accountID)
 				array("text"=>""),
 			));
 		}
+	}
+	if($fromDate !== null) {
+		$rows = array_merge(array(array("class"=>"transaction", "cells"=>array(
+			array("text"=>date("d-m-Y", $fromDate)),
+			array("text"=>"Value on " . date("d-m-Y", $fromDate)),
+			array("text"=>""),
+			array("html"=>formatPrice($startBalance, $currencySymbol)),
+		))), $rows);
 	}
 	return listTable(array("Date", "Description", "Amount", "Balance"), $rows, null, true, "list tree");
 }
