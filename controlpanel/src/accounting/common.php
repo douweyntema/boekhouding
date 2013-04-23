@@ -299,7 +299,7 @@ function transactionList($accountID)
 		
 		$balance += $currentLineAmount;
 		
-		$rows[] = array("id"=>"transaction-{$transaction["transactionID"]}", "class"=>"transaction", "cells"=>array(
+		$rows[] = array("id"=>"transaction-{$transaction["transactionID"]}", "class"=>"transaction collapsed", "cells"=>array(
 			array("text"=>date("d-m-Y", $transaction["date"])),
 			array("html"=>($transaction["description"] == "" ? "<i>None</i>" : htmlentities($transaction["description"])), "url"=>"transaction.php?id={$transaction["transactionID"]}&accountID={$accountID}"),
 			array("html"=>formatPrice($currentLineAmount, $currencySymbol)),
