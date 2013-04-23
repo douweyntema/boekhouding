@@ -173,7 +173,7 @@ h3 {
 	padding-left: 4px;
 	padding-right: 10px;
 }
-.operation table td.stretch {
+table .stretch {
 	width: 100%;
 }
 .operation table td input {
