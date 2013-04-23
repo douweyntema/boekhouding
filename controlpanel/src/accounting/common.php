@@ -508,6 +508,28 @@ function fixedAssetSummary($fixedAssetID)
 		));
 }
 
+function viewList()
+{
+	$now = time();
+	$rows = array();
+	foreach(stdList("accountingBalanceView", array(), array("balanceViewID", "name", "dateBase", "dateOffsetType", "dateOffsetAmount")) as $view) {
+		$date = renderRelativeTime($view["dateBase"], $view["dateOffsetType"], $view["dateOffsetAmount"], $now);
+		$rows[] = array("cells"=>array(
+			array("url"=>"balanceview.php?id={$view["balanceViewID"]}", "text"=>$view["name"]),
+			array("text"=>date("d-m-Y", $date)),
+		));
+	}
+	foreach(stdList("accountingIncomeExpenseView", array(), array("incomeExpenseViewID", "name", "startDateBase", "startDateOffsetType", "startDateOffsetAmount", "endDateBase", "endDateOffsetType", "endDateOffsetAmount")) as $view) {
+		$startDate = renderRelativeTime($view["startDateBase"], $view["startDateOffsetType"], $view["startDateOffsetAmount"], $now);
+		$endDate = renderRelativeTime($view["endDateBase"], $view["endDateOffsetType"], $view["endDateOffsetAmount"], $now);
+		$rows[] = array("cells"=>array(
+			array("url"=>"incomeexpenseview.php?id={$view["incomeExpenseViewID"]}", "text"=>$view["name"]),
+			array("text"=> date("d-m-Y", $startDate) . " to " . date("d-m-Y", $endDate)),
+		));
+	}
+	return listTable(array("Name", "Date"), $rows, "Views", null, "list sortable");
+}
+
 function addAccountForm($accountID, $error = "", $values = null)
 {
 	if($error == "STUB") {
