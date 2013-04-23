@@ -155,10 +155,19 @@ function accountList($accountID = null, $toDate = null, $fromDate = null)
 	}
 	
 	if($accountID === null) {
-		$tree = $accountList;
+		$tree = array();
+		foreach($accountList as $account) {
+			if($account["parentAccountID"] === null) {
+				$account["visibility"] = "VISIBLE";
+			} else {
+				$account["visibility"] = "COLLAPSED";
+			}
+			$tree[] = $account;
+		}
 	} else {
 		$parents = array();
 		$depth = null;
+		$tree = array();
 		foreach($accountList as $account) {
 			if($depth === null) {
 				$parents[$account["depth"]] = $account;
