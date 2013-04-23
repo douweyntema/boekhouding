@@ -70,6 +70,8 @@ function main()
 	}
 	
 	commitTransaction();
+	
+	redirect("accounting/" . ($type == "balance" ? "balanceview.php" : "incomeexpenseview.php") . "?id=" . $viewID);
 }
 
 main();

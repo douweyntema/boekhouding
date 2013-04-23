@@ -1107,6 +1107,9 @@ function relativeTimeChooser($title, $namePrefix)
 
 function addViewForm($error = "", $values = null)
 {
+	if($error == "STUB") {
+		return operationForm("addview.php", "", "Add view", "Add view", array(), array());
+	}
 	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
 	$accountList = array();
 	foreach($rootNodes as $rootNode) {
@@ -1146,6 +1149,16 @@ function addViewForm($error = "", $values = null)
 			)),
 		)),
 	), $values);
+}
+
+function deleteBalanceViewForm($viewID, $error = "", $values = null)
+{
+	return operationForm("deletebalanceview.php?id=$viewID", $error, "Delete view", "Delete", array(), $values);
+}
+
+function deleteIncomeExpenceViewForm($viewID, $error = "", $values = null)
+{
+	return operationForm("deleteincomeexpenceview.php?id=$viewID", $error, "Delete view", "Delete", array(), $values);
 }
 
 function transactionExchangeRates($balance)

@@ -13,6 +13,7 @@ function main()
 	
 	$content .= incomeExpenseViewSummary($incomeExpenseViewID, $now);
 	$content .= incomeExpenseViewList($incomeExpenseViewID, $now);
+	$content .= deleteIncomeExpenceViewForm($incomeExpenseViewID);
 	
 	echo page($content);
 }
