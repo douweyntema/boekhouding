@@ -13,6 +13,7 @@ function main()
 	
 	$content .= balanceViewSummary($balanceViewID, $now);
 	$content .= balanceViewList($balanceViewID, $now);
+	$content .= editBalanceViewForm($balanceViewID, "STUB");
 	$content .= deleteBalanceViewForm($balanceViewID);
 	
 	echo page($content);
