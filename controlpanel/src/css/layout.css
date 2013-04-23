@@ -375,6 +375,10 @@ table.inline, table.inline tr, table.inline td, table.inline th {
 	background-image: url(images/toggle-collapse-dark.png);
 }
 
+.tree .hidden {
+	color: #A0A0A0;
+}
+
 .breadcrumbs {
 	font-size: 9pt;
 	color: #808080;
