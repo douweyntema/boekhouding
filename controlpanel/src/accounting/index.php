@@ -16,6 +16,7 @@ function main()
 	$content .= addSupplierForm("STUB");
 	$content .= addFixedAssetForm("STUB");
 	$content .= recomputeBalancesForm();
+	$content .= addViewForm();
 	echo page($content);
 }
 

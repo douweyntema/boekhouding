@@ -158,7 +158,7 @@ function accountList()
 			$typeUrl = "fixedasset.php?id={$type["fixedAssetID"]}";
 		}
 		$rows[] = array("id"=>$account["id"], "class"=>($account["parentID"] === null ? null : "child-of-account-{$account["parentAccountID"]}"), "cells"=>array(
-			array("html"=>"<a href=\"account.php?id={$account["accountID"]}\">$text</a>" . ($typeUrl === null ? "" : "<a href=\"$typeUrl\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}img/external.png\" alt=\"Direct link\" /></a>")),
+			array("html"=>"<a href=\"account.php?id={$account["accountID"]}\">$text</a>" . ($typeUrl === null ? "" : "<a href=\"$typeUrl\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}css/images/external.png\" alt=\"Direct link\" /></a>")),
 			array("html"=>accountingFormatAccountPrice($account["accountID"])),
 		));
 	}
@@ -882,6 +882,75 @@ function recomputeBalancesForm($error = "", $values = null)
 	return operationForm("recomputebalances.php", $error, "Recompute balances", "Recompute", array(), $values);
 }
 
+function relativeTimeChooser($title, $namePrefix)
+{
+	return array("title"=>"$title", "type"=>"subformchooser", "name"=>"{$namePrefix}DateType", "subforms"=>array(
+		array("value"=>"ABSOLUTE", "label"=>"Absolute date", "subform"=>array(
+			array("title"=>"Absolute date", "type"=>"date", "name"=>"{$namePrefix}AbsDate"),
+		)),
+		array("value"=>"RELATIVE", "label"=>"Relative date", "subform"=>array(
+			array("title"=>"Relative date", "type"=>"colspan", "columns"=>array(
+				array("type"=>"dropdown", "name"=>"{$namePrefix}Base", "options"=>array(
+					array("label"=>"Now", "value"=>"NOW"),
+					array("label"=>"Start of month", "value"=>"STARTMONTH"),
+					array("label"=>"Start of year", "value"=>"STARTYEAR"),
+				)),
+				array("type"=>"html", "html"=>"+"),
+				array("type"=>"text", "name"=>"{$namePrefix}OffsetAmount", "fill"=>true),
+				array("type"=>"dropdown", "name"=>"{$namePrefix}OffsetType", "options"=>array(
+					array("label"=>"Seconds", "value"=>"SECONDS"),
+					array("label"=>"Days", "value"=>"DAYS"),
+					array("label"=>"Months", "value"=>"MONTHS"),
+					array("label"=>"Years", "value"=>"YEARS"),
+				)),
+			)),
+		)),
+	));
+}
+
+function addViewForm($error = "", $values = null)
+{
+	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
+	$accountList = array();
+	foreach($rootNodes as $rootNode) {
+		$accountTree = accountingAccountTree($rootNode);
+		$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+	}
+	
+	$rows = array();
+	foreach($accountList as $account) {
+		if(!$account["isDirectory"]) {
+			continue;
+		}
+		$options = array();
+		if($account["parentID"] !== null) {
+			$options[] = array("label"=>"", "value"=>"INHERIT");
+		}
+		$options[] = array("label"=>"Visible", "value"=>"VISIBLE");
+		$options[] = array("label"=>"Collapsed", "value"=>"COLLAPSED");
+		$options[] = array("label"=>"Hidden", "value"=>"HIDDEN");
+		$rows[] = array("type"=>"colspan", "rowid"=>"view-{$account["id"]}", "rowclass"=>($account["parentID"] === null ? null : "child-of-view-{$account["parentID"]} ") . (isset($values[$account["id"]]) && $values[$account["id"]] == "VISIBLE" ? "" : "collapsed"), "columns"=>array(
+			array("type"=>"html", "html"=>$account["name"], "fill"=>true),
+			array("type"=>"dropdown", "name"=>$account["id"], "options"=>$options),
+		));
+	}
+
+	return operationForm("addview.php", $error, "Add view", "Save", array(
+		array("title"=>"Name", "type"=>"text", "name"=>"name"),
+		array("title"=>"Description", "type"=>"text", "name"=>"description"),
+		array("caption"=>"Accounts", "type"=>"table", "tableclass"=>"list tree", "subform"=>$rows),
+		array("title"=>"Type", "type"=>"typechooser", "options"=>array(
+			array("title"=>"Balance view", "submitcaption"=>"Create balance view", "name"=>"balance", "subform"=>array(
+				relativeTimeChooser("Date", "balance")
+			)),
+			array("title"=>"Income / expences view", "submitcaption"=>"Create Income / expences view", "name"=>"incomeexpences", "subform"=>array(
+				relativeTimeChooser("Start date", "incomeExpencesStart"),
+				relativeTimeChooser("End date", "incomeExpencesEnd"),
+			)),
+		)),
+	), $values);
+}
+
 function transactionExchangeRates($balance)
 {
 	$currency1 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));
@@ -974,6 +1043,55 @@ function fixedAssetEmpty($fixedAssetID)
 		accountEmpty($fixedAsset["accountID"]) &&
 		accountEmpty($fixedAsset["depreciationAccountID"]) &&
 		accountEmpty($fixedAsset["expenseAccountID"]);
+}
+
+function parseRelativeTime($values, $namePrefix)
+{
+	if(!isset($values[$namePrefix . "DateType"])) {
+		return null;
+	}
+	if(!in_array($values[$namePrefix . "DateType"], array("ABSOLUTE", "RELATIVE"))) {
+		return null;
+	}
+	if($values[$namePrefix . "DateType"] == "ABSOLUTE") {
+		if(!isset($values[$namePrefix . "AbsDate"])) {
+			return null;
+		}
+		$date = parseDate($values[$namePrefix . "AbsDate"]);
+		if($date === null) {
+			return null;
+		}
+		return array(
+			"base"=>"ABSOLUTE",
+			"offsetType"=>"SECONDS",
+			"offsetAmount"=>$date,
+		);
+	} else {
+		if(!isset($values[$namePrefix . "Base"])) {
+			return null;
+		}
+		if(!in_array($values[$namePrefix . "Base"], array("NOW", "STARTMONTH", "STARTYEAR"))) {
+			return null;
+		}
+		if(!isset($values[$namePrefix . "OffsetAmount"])) {
+			return null;
+		}
+		$offsetAmount = parseInt($values[$namePrefix . "OffsetAmount"]);
+		if($offsetAmount === null) {
+			return null;
+		}
+		if(!isset($values[$namePrefix . "OffsetType"])) {
+			return null;
+		}
+		if(!in_array($values[$namePrefix . "OffsetType"], array("SECONDS", "DAYS", "MONTHS", "YEARS"))) {
+			return null;
+		}
+		return array(
+			"base"=>$values[$namePrefix . "Base"],
+			"offsetType"=>$values[$namePrefix . "OffsetType"],
+			"offsetAmount"=>$offsetAmount,
+		);
+	}
 }
 
 ?>
