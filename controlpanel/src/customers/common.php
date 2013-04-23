@@ -45,7 +45,7 @@ function customerList()
 		$nameSystemName = stdGet("infrastructureNameSystem", array("nameSystemID"=>$customer["nameSystemID"]), "name");
 		$balance = billingBalance($customer["customerID"]);
 		$rows[] = array(
-			array("html"=>"<a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a><a href=\"{$GLOBALS["rootHtml"]}index.php?customerID={$customer["customerID"]}\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}img/external.png\" alt=\"Impersonate\" /></a>"),
+			array("html"=>"<a href=\"{$GLOBALS["rootHtml"]}customers/customer.php?id={$customer["customerID"]}\">$nicknameHtml</a><a href=\"{$GLOBALS["rootHtml"]}index.php?customerID={$customer["customerID"]}\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}css/images/external.png\" alt=\"Impersonate\" /></a>"),
 			$customer["initials"] . " " . $customer["lastName"],
 			array("url"=>"mailto:{$customer["email"]}", "text"=>$customer["email"], "class"=>"nowrap"),
 			array("url"=>"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$customer["fileSystemID"]}", "text"=>$fileSystemName),

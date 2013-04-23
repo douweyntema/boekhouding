@@ -221,16 +221,29 @@ function accountingCalculateTransactionAmount($transactionID, $accountID, $negat
 	return $amountHtml;
 }
 
-function accountingAccountTree($accountID, $excludedAccountID = null)
+function accountingAccountTree($accountID, $visibilityMap = null, $visibility = "VISIBLE")
 {
 	$accountIDSql = dbAddSlashes($accountID);
 	$output = query("SELECT accountID, parentAccountID, accountingAccount.name AS name, description, isDirectory, balance, currencyID, accountingCurrency.symbol AS currencySymbol, accountingCurrency.name AS currencyName FROM accountingAccount INNER JOIN accountingCurrency USING(currencyID) WHERE accountID = '$accountIDSql'")->fetchArray();
-	$output["subaccounts"] = array();
+	if($visibilityMap !== null && isset($visibilityMap[$accountID])) {
+		$output["visibility"] = $visibilityMap[$accountID];
+	} else {
+		$output["visibility"] = $visibility;
+	}
+	$subaccounts = array();
 	foreach(stdList("accountingAccount", array("parentAccountID"=>$accountID), "accountID", array("isDirectory"=>"DESC", "name"=>"ASC")) as $subAccountID) {
-		if($excludedAccountID !== null && $subAccountID["accountID"] == $excludedAccountID) {
-			continue;
+		$subaccounts[] = accountingAccountTree($subAccountID, $visibilityMap, $output["visibility"]);
+	}
+	$output["subaccounts"] = array();
+	foreach($subaccounts as $account) {
+		if($account["visibility"] != "HIDDEN") {
+			$output["subaccounts"][] = $account;
 		}
-		$output["subaccounts"][] = accountingAccountTree($subAccountID);
+	}
+	foreach($subaccounts as $account) {
+		if($account["visibility"] == "HIDDEN") {
+			$output["subaccounts"][] = $account;
+		}
 	}
 	return $output;
 }
@@ -245,6 +258,52 @@ function accountingFlattenAccountTree($tree, $parentID = null, $depth = 0)
 		$output = array_merge($output, accountingFlattenAccountTree($account, $id, $depth + 1));
 	}
 	return $output;
+}
+
+function accountingBalance($date = null)
+{
+	if($date === null) {
+		$where = "";
+	} else {
+		$dateSql = dbAddSlashes($date);
+		$where = "WHERE `date` < '$dateSql'";
+	}
+	$accounts = query("SELECT accountID, parentAccountID, currencyID, SUM(amount) as balance FROM accountingAccount LEFT JOIN (SELECT * FROM accountingTransactionLine INNER JOIN accountingTransaction USING(transactionID) $where) AS transaction USING(accountID) GROUP BY accountID, parentAccountID")->fetchMap("accountID");
+	
+	$children = array();
+	foreach($accounts as $account) {
+		$parent = $account["parentAccountID"] === null ? 0 : $account["parentAccountID"];
+		if(!isset($children[$parent])) {
+			$children[$parent] = array();
+		}
+		$children[$parent][] = $account["accountID"];
+	}
+	
+	$queue = array(0);
+	reset($queue);
+	while(list($index, $accountID) = each($queue)) {
+		if(isset($children[$accountID])) {
+			foreach($children[$accountID] as $child) {
+				$queue[] = $child;
+			}
+		}
+	}
+	array_shift($queue);
+	$queue = array_reverse($queue);
+	
+	$balance = array();
+	foreach($queue as $accountID) {
+		$total = $accounts[$accountID]["balance"];
+		if(isset($children[$accountID])) {
+			foreach($children[$accountID] as $child) {
+				if($accounts[$child]["currencyID"] == $accounts[$accountID]["currencyID"]) {
+					$total += $balance[$child];
+				}
+			}
+		}
+		$balance[$accountID] = $total;
+	}
+	return $balance;
 }
 
 function accountingAccountOptions($rootNode = null, $allowEmpty = false)

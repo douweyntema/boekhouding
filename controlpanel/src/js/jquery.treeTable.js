@@ -16,7 +16,13 @@
     options = $.extend({}, $.fn.treeTable.defaults, opts);
     
     return this.each(function() {
-      $(this).addClass("treeTable").find("tbody tr").each(function() {
+      $(this).addClass("treeTable");
+      $(this).find("tbody tr").each(function () {
+	 if(!(!options.expandable || $(this)[0].className.search(options.childPrefix) == -1)) {
+	   this.style.visibility = "collapse";
+	 }
+      });
+      $(this).find("tbody tr").each(function() {
         // Initialize root nodes only if possible
         if(!options.expandable || $(this)[0].className.search(options.childPrefix) == -1) {
           // To optimize performance of indentation, I retrieve the padding-left
@@ -27,9 +33,8 @@
           }
           
           initialize($(this));
-        } else if(options.initialState == "collapsed") {
-//           this.style.display = "none"; // Performance! $(this).hide() is slow...
-          this.style.visibility = "collapse";
+//         } else if(options.initialState == "collapsed") {
+//           this.style.visibility = "collapse";
         }
       });
       zebra(this);

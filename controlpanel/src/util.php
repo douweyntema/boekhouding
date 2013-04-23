@@ -59,6 +59,15 @@ function parseDate($string)
 	return $date;
 }
 
+function parseInt($string)
+{
+	$int = 1 * $string;
+	if(!is_numeric($string) || !is_int($int)) {
+		return null;
+	}
+	return $int;
+}
+
 function texdate($date)
 {
 	$maanden = array("",
