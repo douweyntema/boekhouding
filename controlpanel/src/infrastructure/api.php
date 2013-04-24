@@ -79,7 +79,7 @@ function infrastructureRefreshMailSystemExim($mailSystemID)
 {
 	$hosts = stdList("infrastructureMailServer", array("mailSystemID"=>$mailSystemID), "hostID");
 	stdSet("infrastructureMailServer", array("mailSystemID"=>$mailSystemID), array("eximVersion"=>-1));
-	updateHosts($hosts, "update-treva-dovecot --force");
+	updateHosts($hosts, "update-treva-exim --force");
 }
 
 function infrastructureRefreshNameSystem($nameSystemID)
