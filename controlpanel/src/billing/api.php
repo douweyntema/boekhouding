@@ -459,7 +459,7 @@ function billingInvoiceStatusList($customerID)
 
 function billingInvoiceRemainingAmount($invoiceID)
 {
-	$customerID = stdGet("billingInvoice", $invoiceID);
+	$customerID = stdGet("billingInvoice", array("invoiceID"=>$invoiceID), "customerID");
 	foreach(billingInvoiceStatusList($customerID) as $invoice) {
 		if($invoice["invoiceID"] == $invoiceID) {
 			return $invoice["remainingAmount"];
