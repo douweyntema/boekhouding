@@ -152,7 +152,7 @@ h3 {
 .operation h2 {
 	margin: -6px -6px 10px -6px;
 }
-.operation h3 {
+.operation > h3 {
 	margin: -6px -6px 10px -6px;
 }
 
@@ -173,7 +173,7 @@ h3 {
 	padding-left: 4px;
 	padding-right: 10px;
 }
-.operation table td.stretch {
+table .stretch {
 	width: 100%;
 }
 .operation table td input {
@@ -209,6 +209,9 @@ h3 {
 	vertical-align: top;
 }
 
+.operation table caption {
+	font-size: 11pt;
+}
 
 /* News */
 .news {
@@ -251,7 +254,7 @@ h3 {
 }
 
 .confirm:before {
-/* 	content: url(img/apply.png); */
+/* 	content: url(images/apply.png); */
 }
 
 .confirmdelete {
@@ -305,7 +308,7 @@ h3 {
 	padding-bottom: 4px;
 }
 .list table thead tr .header {
-	background-image: url(img/bg.gif);
+	background-image: url(images/bg.gif);
 	background-repeat: no-repeat;
 	background-position: center right;
 	cursor: pointer;
@@ -342,10 +345,10 @@ table.inline, table.inline tr, table.inline td, table.inline th {
 
 /* table sorter layout */
 .sortable table thead tr .headerSortUp {
-	background-image: url(img/asc.gif);
+	background-image: url(images/asc.gif);
 }
 .sortable table thead tr .headerSortDown {
-	background-image: url(img/desc.gif);
+	background-image: url(images/desc.gif);
 }
 .sortable table thead tr .headerSortDown, .list table thead tr .headerSortUp {
 	background-color: #99c0ff;
@@ -365,11 +368,15 @@ table.inline, table.inline tr, table.inline td, table.inline th {
 }
 
 .tree table tr.collapsed td .expander {
-	background-image: url(img/toggle-expand-dark.png);
+	background-image: url(images/toggle-expand-dark.png);
 }
 
 .tree table tr.expanded td .expander {
-	background-image: url(img/toggle-collapse-dark.png);
+	background-image: url(images/toggle-collapse-dark.png);
+}
+
+.tree .hidden {
+	color: #A0A0A0;
 }
 
 .breadcrumbs {
@@ -404,11 +411,11 @@ table.inline, table.inline tr, table.inline td, table.inline th {
 
 /* accounting */
 .list table tbody tr.transaction td {
-	background-color: #F0F0F6;
+/* 	background-color: #F0F0F6; */
 }
 
 .list table tbody tr.transactionline td {
-	background-color: #FFFFFF;
+/* 	background-color: #FFFFFF; */
 }
 
 .list table .transaction-description {

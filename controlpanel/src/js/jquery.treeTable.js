@@ -14,9 +14,16 @@
   
   $.fn.treeTable = function(opts) {
     options = $.extend({}, $.fn.treeTable.defaults, opts);
-    
+    initializing = true;
     return this.each(function() {
-      $(this).addClass("treeTable").find("tbody tr").each(function() {
+      initializing = true;
+      $(this).addClass("treeTable");
+      $(this).find("tbody tr").each(function () {
+	 if(!(!options.expandable || $(this)[0].className.search(options.childPrefix) == -1)) {
+	   this.style.visibility = "collapse";
+	 }
+      });
+      $(this).find("tbody tr").each(function() {
         // Initialize root nodes only if possible
         if(!options.expandable || $(this)[0].className.search(options.childPrefix) == -1) {
           // To optimize performance of indentation, I retrieve the padding-left
@@ -27,11 +34,11 @@
           }
           
           initialize($(this));
-        } else if(options.initialState == "collapsed") {
-//           this.style.display = "none"; // Performance! $(this).hide() is slow...
-          this.style.visibility = "collapse";
+//         } else if(options.initialState == "collapsed") {
+//           this.style.visibility = "collapse";
         }
       });
+      initializing = false;
       zebra(this);
     });
   };
@@ -140,7 +147,7 @@
   
   function zebra(table)
   {
-    if(!options.zebra) {
+    if(!options.zebra || initializing) {
       return;
     }
     counter = 1;

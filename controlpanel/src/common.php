@@ -162,8 +162,10 @@ return <<<HTML
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" type="text/css" href="{$GLOBALS["rootHtml"]}layout.css" />
+<link rel="stylesheet" type="text/css" href="{$GLOBALS["rootHtml"]}css/layout.css" />
+<link rel="stylesheet" type="text/css" href="{$GLOBALS["rootHtml"]}css/jquery-ui.css" />
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery.js"></script>
+<script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery-ui.js"></script>
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery.tablesorter.js"></script>
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery.treeTable.js"></script>
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/script.js"></script>

@@ -19,42 +19,58 @@ function doAccountingAccount($accountID)
 
 function doAccountingTransaction($transactionID)
 {
+	doAccounting();
 	if(!stdExists("accountingTransaction", array("transactionID"=>$transactionID))) {
 		error404();
 	}
-	doAccounting();
 }
 
 function doAccountingSupplier($supplierID)
 {
+	doAccounting();
 	if(!stdExists("suppliersSupplier", array("supplierID"=>$supplierID))) {
 		error404();
 	}
-	doAccounting();
 }
 
 function doAccountingInvoice($invoiceID)
 {
+	doAccounting();
 	if(!stdExists("suppliersInvoice", array("invoiceID"=>$invoiceID))) {
 		error404();
 	}
-	doAccounting();
 }
 
 function doAccountingPayment($paymentID)
 {
+	doAccounting();
 	if(!stdExists("suppliersPayment", array("paymentID"=>$paymentID))) {
 		error404();
 	}
-	doAccounting();
 }
 
 function doAccountingFixedAsset($fixedAssetID)
 {
+	doAccounting();
 	if(!stdExists("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID))) {
 		error404();
 	}
+}
+
+function doAccountingBalanceView($balanceViewID)
+{
 	doAccounting();
+	if(!stdExists("accountingBalanceView", array("balanceViewID"=>$balanceViewID))) {
+		error404();
+	}
+}
+
+function doAccountingIncomeExpenseView($incomeExpenseViewID)
+{
+	doAccounting();
+	if(!stdExists("accountingIncomeExpenseView", array("incomeExpenseViewID"=>$incomeExpenseViewID))) {
+		error404();
+	}
 }
 
 
@@ -73,13 +89,33 @@ function accountingBreadcrumbs()
 	return crumbs("Accounting", "");
 }
 
-function accountBreadcrumbs($accountID)
+function accountBreadcrumbs($accountID, $toDate = null, $fromDate = null, $balanceViewID = null, $incomeExpenseViewID = null)
 {
 	if($accountID == 0) {
 		return accountingBreadcrumbs();
 	}
 	$name = stdGet("accountingAccount", array("accountID"=>$accountID), "name");
-	return array_merge(accountingBreadcrumbs(), crumbs("Account " . $name, "account.php?id=$accountID"));
+	$url = "account.php?id=$accountID";
+	if($toDate !== null) {
+		$url .= "&toDate=$toDate";
+	}
+	if($fromDate !== null) {
+		$url .= "&fromDate=$fromDate";
+	}
+	if($balanceViewID !== null) {
+		$url .= "&balanceViewID=$balanceViewID";
+	}
+	if($incomeExpenseViewID !== null) {
+		$url .= "&incomeExpenseViewID=$incomeExpenseViewID";
+	}
+	
+	if($balanceViewID !== null) {
+		return array_merge(balanceViewBreadcrumbs($balanceViewID), crumbs("Account " . $name, $url));
+	} else if($incomeExpenseViewID !== null) {
+		return array_merge(incomeExpenseViewBreadcrumbs($incomeExpenseViewID), crumbs("Account " . $name, $url));
+	} else {
+		return array_merge(accountingBreadcrumbs(), crumbs("Account " . $name, $url));
+	}
 }
 
 function transactionBreadcrumbs($transactionID, $accountID)
@@ -113,25 +149,65 @@ function fixedAssetBreadcrumbs($fixedAssetID)
 	return array_merge(accountingBreadcrumbs(), crumbs("Fixed asset " . $name, "fixedasset.php?id=$fixedAssetID"));
 }
 
+function balanceViewBreadcrumbs($balanceViewID)
+{
+	$name = stdGet("accountingBalanceView", array("balanceViewID"=>$balanceViewID), "name");
+	return array_merge(accountingBreadcrumbs(), crumbs("Balance $name", "balanceview.php?id=$balanceViewID"));
+}
 
-function accountSummary($accountID)
+function incomeExpenseViewBreadcrumbs($incomeExpenseViewID)
+{
+	$name = stdGet("accountingIncomeExpenseView", array("incomeExpenseViewID"=>$incomeExpenseViewID), "name");
+	return array_merge(accountingBreadcrumbs(), crumbs("Income / Expense view $name", "incomeexpenseview.php?id=$incomeExpenseViewID"));
+}
+
+
+function accountSummary($accountID, $toDate = null, $fromDate = null, $balanceViewID = null, $incomeExpenseViewID = null)
 {
 	$account = stdGet("accountingAccount", array("accountID"=>$accountID), array("parentAccountID", "currencyID", "name", "description", "isDirectory"));
 	$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), array("name", "symbol"));
 	
+	$extraFields = "";
+	if($fromDate !== null) {
+		$extraFields .= "&fromDate=$fromDate";
+	}
+	if($toDate !== null) {
+		$extraFields .= "&toDate=$toDate";
+	}
+	if($balanceViewID !== null) {
+		$extraFields .= "&balanceViewID=$balanceViewID";
+	}
+	if($incomeExpenseViewID !== null) {
+		$extraFields .= "&incomeExpenseViewID=$incomeExpenseViewID";
+	}
+	
 	$rows = array();
 	if($account["parentAccountID"] !== null) {
 		$parentAccountName = stdGet("accountingAccount", array("accountID"=>$account["parentAccountID"]), "name");
-		$rows["Parent account"] = array("url"=>"account.php?id=" . $account["parentAccountID"], "text"=>$parentAccountName);
+		$rows["Parent account"] = array("url"=>"account.php?id={$account["parentAccountID"]}{$extraFields}", "text"=>$parentAccountName);
 	}
 	$rows["Currency"] = array("html"=>$currency["name"] . " (" . $currency["symbol"] . ")");
-	$rows["Balance"] = array("html"=>accountingFormatAccountPrice($accountID));
+	if($fromDate === null) {
+		if($toDate !== null) {
+			$rows["Date"] = date("d-m-Y", $toDate);
+		}
+		$balance  = accountingBalance($toDate);
+		$rows["Balance"] = array("html"=>formatPrice($balance[$accountID], $currency["symbol"]));
+	} else {
+		$startBalance = accountingBalance($fromDate);
+		$endBalance = accountingBalance($toDate);
+		
+		$rows["Date"] = date("d-m-Y", $fromDate) . " to " . date("d-m-Y", $toDate);
+		$rows["Start Balance"] = array("html"=>formatPrice($startBalance[$accountID], $currency["symbol"]));
+		$rows["End Balance"] = array("html"=>formatPrice($endBalance[$accountID], $currency["symbol"]));
+		$rows["Difference"] = array("html"=>formatPrice($endBalance[$accountID] - $startBalance[$accountID], $currency["symbol"]));
+	}
 	$rows["Description"] = $account["description"];
 	
 	return summaryTable("Account {$account["name"]}", $rows);
 }
 
-function accountList()
+function accountList($accountID = null, $toDate = null, $fromDate = null, $balanceViewID = null, $incomeExpenseViewID = null)
 {
 	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
 	$accountList = array();
@@ -140,8 +216,128 @@ function accountList()
 		$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
 	}
 	
+	if($accountID === null) {
+		$tree = array();
+		foreach($accountList as $account) {
+			if($account["parentAccountID"] === null) {
+				$account["visibility"] = "VISIBLE";
+			} else {
+				$account["visibility"] = "COLLAPSED";
+			}
+			$tree[] = $account;
+		}
+	} else {
+		$parents = array();
+		$depth = null;
+		$tree = array();
+		foreach($accountList as $account) {
+			if($depth === null) {
+				$parents[$account["depth"]] = $account;
+				if($account["accountID"] == $accountID) {
+					for($i = 0; $i <= $account["depth"]; $i++) {
+						$tree[] = $parents[$i];
+					}
+					$depth = $account["depth"];
+				}
+			} else {
+				if($account["depth"] <= $depth) {
+					break;
+				}
+				$account["visibility"] = "COLLAPSED";
+				$tree[] = $account;
+			}
+		}
+	}
+	
+	return doAccountList($tree, $toDate, $fromDate, $balanceViewID, $incomeExpenseViewID);
+}
+
+function balanceViewSummary($balanceViewID, $now)
+{
+	$balanceView = stdGet("accountingBalanceView", array("balanceViewID"=>$balanceViewID), array("name", "description", "dateBase", "dateOffsetType", "dateOffsetAmount"));
+	$date = renderRelativeTime($balanceView["dateBase"], $balanceView["dateOffsetType"], $balanceView["dateOffsetAmount"], $now);
+	
+	return summaryTable("Balance {$balanceView["name"]}", array(
+		"Name"=>$balanceView["name"],
+		"Description"=>$balanceView["description"],
+		"Date"=>date("d-m-Y", $date)
+	));
+}
+
+function balanceViewList($balanceViewID, $now)
+{
+	$balanceView = stdGet("accountingBalanceView", array("balanceViewID"=>$balanceViewID), array("dateBase", "dateOffsetType", "dateOffsetAmount"));
+	$date = renderRelativeTime($balanceView["dateBase"], $balanceView["dateOffsetType"], $balanceView["dateOffsetAmount"], $now);
+	$visibilityMap = stdMap("accountingBalanceViewAccount", array("balanceViewID"=>$balanceViewID), "accountID", "visibility");
+	
+	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
+	$accountList = array();
+	foreach($rootNodes as $rootNode) {
+		if(isset($visibilityMap[$rootNode]) && $visibilityMap[$rootNode] != "HIDDEN") {
+			$accountTree = accountingAccountTree($rootNode, $visibilityMap);
+			$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+		}
+	}
+	foreach($rootNodes as $rootNode) {
+		if(!isset($visibilityMap[$rootNode]) || $visibilityMap[$rootNode] == "HIDDEN") {
+			$accountTree = accountingAccountTree($rootNode, $visibilityMap);
+			$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+		}
+	}
+	
+	return doAccountList($accountList, $date, null, $balanceViewID);
+}
+
+function incomeExpenseViewSummary($incomeExpenseViewID, $now)
+{
+	$incomeExpenseView = stdGet("accountingIncomeExpenseView", array("incomeExpenseViewID"=>$incomeExpenseViewID), array("name", "description", "startDateBase", "startDateOffsetType", "startDateOffsetAmount", "endDateBase", "endDateOffsetType", "endDateOffsetAmount"));
+	$startDate = renderRelativeTime($incomeExpenseView["startDateBase"], $incomeExpenseView["startDateOffsetType"], $incomeExpenseView["startDateOffsetAmount"], $now);
+	$endDate = renderRelativeTime($incomeExpenseView["endDateBase"], $incomeExpenseView["endDateOffsetType"], $incomeExpenseView["endDateOffsetAmount"], $now);
+	
+	return summaryTable("Balance {$incomeExpenseView["name"]}", array(
+		"Name"=>$incomeExpenseView["name"],
+		"Description"=>$incomeExpenseView["description"],
+		"Start date"=>date("d-m-Y", $startDate),
+		"End date"=>date("d-m-Y", $endDate),
+	));
+}
+
+function incomeExpenseViewList($incomeExpenseViewID, $now)
+{
+	$incomeExpenseView = stdGet("accountingIncomeExpenseView", array("incomeExpenseViewID"=>$incomeExpenseViewID), array("startDateBase", "startDateOffsetType", "startDateOffsetAmount", "endDateBase", "endDateOffsetType", "endDateOffsetAmount"));
+	$startDate = renderRelativeTime($incomeExpenseView["startDateBase"], $incomeExpenseView["startDateOffsetType"], $incomeExpenseView["startDateOffsetAmount"], $now);
+	$endDate = renderRelativeTime($incomeExpenseView["endDateBase"], $incomeExpenseView["endDateOffsetType"], $incomeExpenseView["endDateOffsetAmount"], $now);
+	$visibilityMap = stdMap("accountingIncomeExpenseViewAccount", array("incomeExpenseViewID"=>$incomeExpenseViewID), "accountID", "visibility");
+	
+	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
+	$accountList = array();
+	foreach($rootNodes as $rootNode) {
+		if(isset($visibilityMap[$rootNode]) && $visibilityMap[$rootNode] != "HIDDEN") {
+			$accountTree = accountingAccountTree($rootNode, $visibilityMap);
+			$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+		}
+	}
+	foreach($rootNodes as $rootNode) {
+		if(!isset($visibilityMap[$rootNode]) || $visibilityMap[$rootNode] == "HIDDEN") {
+			$accountTree = accountingAccountTree($rootNode, $visibilityMap);
+			$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+		}
+	}
+	
+	return doAccountList($accountList, $endDate, $startDate, null, $incomeExpenseViewID);
+}
+
+function doAccountList($tree, $toDate, $fromDate, $balanceViewID = null, $incomeExpenseViewID = null)
+{
+	$toBalance = accountingBalance($toDate);
+	if($fromDate !== null) {
+		$fromBalance = accountingBalance($fromDate);
+	} else {
+		$fromBalance = null;
+	}
+	
 	$rows = array();
-	foreach($accountList as $account) {
+	foreach($tree as $account) {
 		$text = $account["name"];
 		if($account["currencyID"] != $GLOBALS["defaultCurrencyID"]) {
 			$text .= " (" . $account["currencyName"] . ")";
@@ -157,15 +353,58 @@ function accountList()
 		if($type["type"] == "FIXEDASSETVALUE" || $type["type"] == "FIXEDASSETDEPRICIATION" || $type["type"] == "FIXEDASSETEXPENSE") {
 			$typeUrl = "fixedasset.php?id={$type["fixedAssetID"]}";
 		}
-		$rows[] = array("id"=>$account["id"], "class"=>($account["parentID"] === null ? null : "child-of-account-{$account["parentAccountID"]}"), "cells"=>array(
-			array("html"=>"<a href=\"account.php?id={$account["accountID"]}\">$text</a>" . ($typeUrl === null ? "" : "<a href=\"$typeUrl\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}img/external.png\" alt=\"Direct link\" /></a>")),
-			array("html"=>accountingFormatAccountPrice($account["accountID"])),
-		));
+		
+		$currency = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "symbol");
+		
+		$extraFields = "";
+		if($fromDate !== null) {
+			$extraFields .= "&fromDate=$fromDate";
+		}
+		if($toDate !== null) {
+			$extraFields .= "&toDate=$toDate";
+		}
+		if($balanceViewID !== null) {
+			$extraFields .= "&balanceViewID=$balanceViewID";
+		}
+		if($incomeExpenseViewID !== null) {
+			$extraFields .= "&incomeExpenseViewID=$incomeExpenseViewID";
+		}
+		
+		$row = array();
+		$row[] = array("html"=>"<a href=\"account.php?id={$account["accountID"]}$extraFields\">$text</a>" . ($typeUrl === null ? "" : "<a href=\"$typeUrl\" class=\"rightalign\"><img src=\"{$GLOBALS["rootHtml"]}css/images/external.png\" alt=\"Direct link\" /></a>"));
+		if($fromBalance !== null) {
+			$row[] = array("html"=>formatPrice($fromBalance[$account["accountID"]], $currency), "class"=>"nowrap");
+		}
+		$row[] = array("html"=>formatPrice($toBalance[$account["accountID"]], $currency), "class"=>"nowrap");
+		if($fromBalance !== null) {
+			$row[] = array("html"=>formatPrice($toBalance[$account["accountID"]] - $fromBalance[$account["accountID"]], $currency), "class"=>"nowrap");
+		}
+		
+		$class = null;
+		if($account["visibility"] == "HIDDEN") {
+			$class = "hidden collapsed";
+		} else if($account["visibility"] == "COLLAPSED") {
+			$class = "collapsed";
+		}
+		if($account["parentID"] !== null) {
+			$extraClass = "child-of-account-{$account["parentAccountID"]}";
+			if($class === null) {
+				$class = $extraClass;
+			} else {
+				$class .= " " . $extraClass;
+			}
+		}
+		
+		$rows[] = array("id"=>$account["id"], "class"=>$class, "cells"=>$row);
 	}
-	return listTable(array("Account", "Balance"), $rows, "Accounts", true, "list tree");
+	if($fromBalance !== null) {
+		return listTable(array(array("text"=>"Account", "class"=>"stretch"), array("text"=>"Start Balance", "class"=>"nowrap"), array("text"=>"End Balance", "class"=>"nowrap"), array("text"=>"Difference", "class"=>"nowrap")), $rows, "Accounts", true, "list tree");
+	} else {
+		return listTable(array("Account", "Balance"), $rows, "Accounts", true, "list tree");
+	}
 }
 
-function transactionList($accountID)
+function transactionList($accountID, $toDate = null, $fromDate = null)
 {
 	$transactions = transactions($accountID);
 	uasort($transactions, function($a, $b) {
@@ -180,6 +419,7 @@ function transactionList($accountID)
 	
 	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
 	$currencySymbol = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "symbol");
+	$startBalance = $balance;
 	
 	foreach($transactions as $transaction) {
 		$lines = stdList("accountingTransactionLine", array("transactionID"=>$transaction["transactionID"]), array("transactionLineID", "accountID", "amount"));
@@ -193,7 +433,15 @@ function transactionList($accountID)
 		
 		$balance += $currentLineAmount;
 		
-		$rows[] = array("id"=>"transaction-{$transaction["transactionID"]}", "class"=>"transaction", "cells"=>array(
+		if($fromDate !== null && $transaction["date"] < $fromDate) {
+			$startBalance = $balance;
+			continue;
+		}
+		if($toDate !== null && $transaction["date"] >= $toDate) {
+			break;
+		}
+		
+		$rows[] = array("id"=>"transaction-{$transaction["transactionID"]}", "class"=>"transaction collapsed", "cells"=>array(
 			array("text"=>date("d-m-Y", $transaction["date"])),
 			array("html"=>($transaction["description"] == "" ? "<i>None</i>" : htmlentities($transaction["description"])), "url"=>"transaction.php?id={$transaction["transactionID"]}&accountID={$accountID}"),
 			array("html"=>formatPrice($currentLineAmount, $currencySymbol)),
@@ -210,6 +458,14 @@ function transactionList($accountID)
 				array("text"=>""),
 			));
 		}
+	}
+	if($fromDate !== null) {
+		$rows = array_merge(array(array("class"=>"transaction", "cells"=>array(
+			array("text"=>date("d-m-Y", $fromDate)),
+			array("text"=>"Value on " . date("d-m-Y", $fromDate)),
+			array("text"=>""),
+			array("html"=>formatPrice($startBalance, $currencySymbol)),
+		))), $rows);
 	}
 	return listTable(array("Date", "Description", "Amount", "Balance"), $rows, null, true, "list tree");
 }
@@ -402,6 +658,28 @@ function fixedAssetSummary($fixedAssetID)
 		));
 }
 
+function viewList()
+{
+	$now = time();
+	$rows = array();
+	foreach(stdList("accountingBalanceView", array(), array("balanceViewID", "name", "dateBase", "dateOffsetType", "dateOffsetAmount")) as $view) {
+		$date = renderRelativeTime($view["dateBase"], $view["dateOffsetType"], $view["dateOffsetAmount"], $now);
+		$rows[] = array("cells"=>array(
+			array("url"=>"balanceview.php?id={$view["balanceViewID"]}", "text"=>$view["name"]),
+			array("text"=>date("d-m-Y", $date)),
+		));
+	}
+	foreach(stdList("accountingIncomeExpenseView", array(), array("incomeExpenseViewID", "name", "startDateBase", "startDateOffsetType", "startDateOffsetAmount", "endDateBase", "endDateOffsetType", "endDateOffsetAmount")) as $view) {
+		$startDate = renderRelativeTime($view["startDateBase"], $view["startDateOffsetType"], $view["startDateOffsetAmount"], $now);
+		$endDate = renderRelativeTime($view["endDateBase"], $view["endDateOffsetType"], $view["endDateOffsetAmount"], $now);
+		$rows[] = array("cells"=>array(
+			array("url"=>"incomeexpenseview.php?id={$view["incomeExpenseViewID"]}", "text"=>$view["name"]),
+			array("text"=> date("d-m-Y", $startDate) . " to " . date("d-m-Y", $endDate)),
+		));
+	}
+	return listTable(array("Name", "Date"), $rows, "Views", null, "list sortable");
+}
+
 function addAccountForm($accountID, $error = "", $values = null)
 {
 	if($error == "STUB") {
@@ -451,13 +729,26 @@ function moveAccountForm($accountID, $error = "", $values = null)
 		if($rootNode == $accountID) {
 			continue;
 		}
-		$accountTree = accountingAccountTree($rootNode, $accountID);
+		$accountTree = accountingAccountTree($rootNode);
 		$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
 	}
 	
+	$disabledDepth = null;
 	$options = array();
 	$options[] = array("label"=>"Top-level Account", "value"=>"0");
 	foreach($accountList as $account) {
+		if($disabledDepth !== null) {
+			if($account["depth"] <= $disabledDepth) {
+				$disabledDepth = null;
+			}
+		} else if($account["accountID"] == $accountID) {
+			$disabledDepth = $account["depth"];
+		}
+		
+		if($disabledDepth !== null) {
+			continue;
+		}
+		
 		if($account["isDirectory"]) {
 			$options[] = array("label"=>str_repeat("&nbsp;&nbsp;&nbsp;", $account["depth"] + 1) . $account["name"], "value"=>$account["accountID"]);
 		}
@@ -882,6 +1173,173 @@ function recomputeBalancesForm($error = "", $values = null)
 	return operationForm("recomputebalances.php", $error, "Recompute balances", "Recompute", array(), $values);
 }
 
+function relativeTimeChooser($title, $namePrefix)
+{
+	return array("title"=>"$title", "type"=>"subformchooser", "name"=>"{$namePrefix}DateType", "subforms"=>array(
+		array("value"=>"ABSOLUTE", "label"=>"Absolute date", "subform"=>array(
+			array("title"=>"Absolute date", "type"=>"date", "name"=>"{$namePrefix}AbsDate"),
+		)),
+		array("value"=>"RELATIVE", "label"=>"Relative date", "subform"=>array(
+			array("title"=>"Relative date", "type"=>"colspan", "columns"=>array(
+				array("type"=>"dropdown", "name"=>"{$namePrefix}Base", "options"=>array(
+					array("label"=>"Now", "value"=>"NOW"),
+					array("label"=>"Start of month", "value"=>"STARTMONTH"),
+					array("label"=>"Start of year", "value"=>"STARTYEAR"),
+				)),
+				array("type"=>"html", "html"=>"+"),
+				array("type"=>"text", "name"=>"{$namePrefix}OffsetAmount", "fill"=>true),
+				array("type"=>"dropdown", "name"=>"{$namePrefix}OffsetType", "options"=>array(
+					array("label"=>"Seconds", "value"=>"SECONDS"),
+					array("label"=>"Days", "value"=>"DAYS"),
+					array("label"=>"Months", "value"=>"MONTHS"),
+					array("label"=>"Years", "value"=>"YEARS"),
+				)),
+			)),
+		)),
+	));
+}
+
+function viewForm()
+{
+	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
+	$accountList = array();
+	foreach($rootNodes as $rootNode) {
+		$accountTree = accountingAccountTree($rootNode);
+		$accountList = array_merge($accountList, accountingFlattenAccountTree($accountTree));
+	}
+	
+	$rows = array();
+	foreach($accountList as $account) {
+		if(!$account["isDirectory"]) {
+			continue;
+		}
+		$options = array();
+		if($account["parentID"] !== null) {
+			$options[] = array("label"=>"", "value"=>"INHERIT");
+		}
+		$options[] = array("label"=>"Visible", "value"=>"VISIBLE");
+		$options[] = array("label"=>"Collapsed", "value"=>"COLLAPSED");
+		$options[] = array("label"=>"Hidden", "value"=>"HIDDEN");
+		$rows[] = array("type"=>"colspan", "rowid"=>"view-{$account["id"]}", "rowclass"=>($account["parentID"] === null ? null : "child-of-view-{$account["parentID"]} ") . (isset($values[$account["id"]]) && $values[$account["id"]] == "VISIBLE" ? "" : "collapsed"), "columns"=>array(
+			array("type"=>"html", "html"=>$account["name"], "fill"=>true),
+			array("type"=>"dropdown", "name"=>$account["id"], "options"=>$options),
+		));
+	}
+
+	return array(
+		array("title"=>"Name", "type"=>"text", "name"=>"name"),
+		array("title"=>"Description", "type"=>"text", "name"=>"description"),
+		array("caption"=>"Accounts", "type"=>"table", "tableclass"=>"list tree", "subform"=>$rows),
+		array("title"=>"Type", "type"=>"typechooser", "options"=>array(
+			array("title"=>"Balance view", "submitcaption"=>"Create balance view", "name"=>"balance", "subform"=>array(
+				relativeTimeChooser("Date", "balance")
+			)),
+			array("title"=>"Income / expences view", "submitcaption"=>"Create Income / expences view", "name"=>"incomeexpences", "subform"=>array(
+				relativeTimeChooser("Start date", "incomeExpencesStart"),
+				relativeTimeChooser("End date", "incomeExpencesEnd"),
+			)),
+		)),
+	);
+}
+
+function addViewForm($error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("addview.php", "", "Add view", "Add view", array(), array());
+	}
+	if($values === null || count($values) == 0) {
+		$values = array();
+		$values["balanceOffsetAmount"] = 0;
+		$values["incomeExpencesStartOffsetAmount"] = 0;
+		$values["incomeExpencesEndOffsetAmount"] = 0;
+	}
+	$form = viewForm();
+	return operationForm("addview.php", $error, "Add view", "Save", $form, $values);
+}
+
+function editBalanceViewForm($balanceViewID, $error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("editview.php?id=$balanceViewID&type=balance", "", "Edit view", "Edit view", array(), array());
+	}
+	if($values === null || count($values) == 0) {
+		$values = array();
+		$view = stdGet("accountingBalanceView", array("balanceViewID"=>$balanceViewID), array("name", "description", "dateBase", "dateOffsetType", "dateOffsetAmount"));
+		$values["name"] = $view["name"];
+		$values["description"] = $view["description"];
+		if($view["dateBase"] == "ABSOLUTE") {
+			$values["balanceDateType"] = "ABSOLUTE";
+			$values["balanceAbsDate"] = date("d-m-Y", $view["dateOffsetAmount"]);
+			$values["balanceOffsetAmount"] = 0;
+		} else {
+			$values["balanceDateType"] = "RELATIVE";
+			$values["balanceBase"] = $view["dateBase"];
+			$values["balanceOffsetType"] = $view["dateOffsetType"];
+			$values["balanceOffsetAmount"] = $view["dateOffsetAmount"];
+		}
+		$values["incomeExpencesStartOffsetAmount"] = 0;
+		$values["incomeExpencesEndOffsetAmount"] = 0;
+		
+		$accounts = stdMap("accountingBalanceViewAccount", array("balanceViewID"=>$balanceViewID), "accountID", "visibility");
+		foreach($accounts as $accountID=>$visibility) {
+			$values["account-$accountID"] = $visibility;
+		}
+	}
+	$form = viewForm();
+	return operationForm("editview.php?id=$balanceViewID&type=balance", $error, "Edit view", "Save", $form, $values);
+}
+
+function editIncomeExpenseViewForm($incomeExpenseViewID, $error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("editview.php?id=$incomeExpenseViewID&type=incomeexpence", "", "Edit view", "Edit view", array(), array());
+	}
+	if($values === null || count($values) == 0) {
+		$values = array();
+		$view = stdGet("accountingIncomeExpenseView", array("incomeExpenseViewID"=>$incomeExpenseViewID), array("name", "description", "startDateBase", "startDateOffsetType", "startDateOffsetAmount", "endDateBase", "endDateOffsetType", "endDateOffsetAmount"));
+		$values["name"] = $view["name"];
+		$values["description"] = $view["description"];
+		if($view["startDateBase"] == "ABSOLUTE") {
+			$values["incomeExpencesStartDateType"] = "ABSOLUTE";
+			$values["incomeExpencesStartAbsDate"] = date("d-m-Y", $view["startDateOffsetAmount"]);
+			$values["incomeExpencesStartOffsetAmount"] = 0;
+		} else {
+			$values["incomeExpencesStartDateType"] = "RELATIVE";
+			$values["incomeExpencesStartBase"] = $view["startDateBase"];
+			$values["incomeExpencesStartOffsetType"] = $view["startDateOffsetType"];
+			$values["incomeExpencesStartOffsetAmount"] = $view["startDateOffsetAmount"];
+		}
+		if($view["endDateBase"] == "ABSOLUTE") {
+			$values["incomeExpencesEndDateType"] = "ABSOLUTE";
+			$values["incomeExpencesStartAbsDate"] = date("d-m-Y", $view["endDateOffsetAmount"]);
+			$values["incomeExpencesEndOffsetAmount"] = 0;
+		} else {
+			$values["incomeExpencesEndDateType"] = "RELATIVE";
+			$values["incomeExpencesEndBase"] = $view["endDateBase"];
+			$values["incomeExpencesEndOffsetType"] = $view["endDateOffsetType"];
+			$values["incomeExpencesEndOffsetAmount"] = $view["endDateOffsetAmount"];
+		}
+		$values["balanceOffsetAmount"] = 0;
+		
+		$accounts = stdMap("accountingIncomeExpenseViewAccount", array("incomeExpenseViewID"=>$incomeExpenseViewID), "accountID", "visibility");
+		foreach($accounts as $accountID=>$visibility) {
+			$values["account-$accountID"] = $visibility;
+		}
+	}
+	$form = viewForm();
+	return operationForm("editview.php?id=$incomeExpenseViewID&type=incomeexpence", $error, "Edit view", "Save", $form, $values);
+}
+
+function deleteBalanceViewForm($viewID, $error = "", $values = null)
+{
+	return operationForm("deletebalanceview.php?id=$viewID", $error, "Delete view", "Delete", array(), $values);
+}
+
+function deleteIncomeExpenceViewForm($viewID, $error = "", $values = null)
+{
+	return operationForm("deleteincomeexpenceview.php?id=$viewID", $error, "Delete view", "Delete", array(), $values);
+}
+
 function transactionExchangeRates($balance)
 {
 	$currency1 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));
@@ -974,6 +1432,93 @@ function fixedAssetEmpty($fixedAssetID)
 		accountEmpty($fixedAsset["accountID"]) &&
 		accountEmpty($fixedAsset["depreciationAccountID"]) &&
 		accountEmpty($fixedAsset["expenseAccountID"]);
+}
+
+function parseRelativeTime($values, $namePrefix)
+{
+	if(!isset($values[$namePrefix . "DateType"])) {
+		return null;
+	}
+	if(!in_array($values[$namePrefix . "DateType"], array("ABSOLUTE", "RELATIVE"))) {
+		return null;
+	}
+	if($values[$namePrefix . "DateType"] == "ABSOLUTE") {
+		if(!isset($values[$namePrefix . "AbsDate"])) {
+			return null;
+		}
+		$date = parseDate($values[$namePrefix . "AbsDate"]);
+		if($date === null) {
+			return null;
+		}
+		return array(
+			"base"=>"ABSOLUTE",
+			"offsetType"=>"SECONDS",
+			"offsetAmount"=>$date,
+		);
+	} else {
+		if(!isset($values[$namePrefix . "Base"])) {
+			return null;
+		}
+		if(!in_array($values[$namePrefix . "Base"], array("NOW", "STARTMONTH", "STARTYEAR"))) {
+			return null;
+		}
+		if(!isset($values[$namePrefix . "OffsetAmount"])) {
+			return null;
+		}
+		$offsetAmount = parseInt($values[$namePrefix . "OffsetAmount"]);
+		if($offsetAmount === null) {
+			return null;
+		}
+		if(!isset($values[$namePrefix . "OffsetType"])) {
+			return null;
+		}
+		if(!in_array($values[$namePrefix . "OffsetType"], array("SECONDS", "DAYS", "MONTHS", "YEARS"))) {
+			return null;
+		}
+		return array(
+			"base"=>$values[$namePrefix . "Base"],
+			"offsetType"=>$values[$namePrefix . "OffsetType"],
+			"offsetAmount"=>$offsetAmount,
+		);
+	}
+}
+
+function renderRelativeTime($base, $offsetType, $offsetAmount, $now = null)
+{
+	if($now === null) {
+		$now = time();
+	}
+	if($base == "NOW") {
+		$baseTime = $now;
+	} else if($base == "STARTMONTH") {
+		$year = date("Y", $now);
+		$month = date("m", $now);
+		$baseTime = mktime(0, 0, 0, $month, 1, $year);
+	} else if($base == "STARTYEAR") {
+		$year = date("Y", $now);
+		$baseTime = mktime(0, 0, 0, 1, 1, $year);
+	} else if($base == "ABSOLUTE") {
+		$baseTime = 0;
+	}
+	
+	$year = date("Y", $baseTime);
+	$month = date("m", $baseTime);
+	$day = date("j", $baseTime);
+	$hour = date("H", $baseTime);
+	$minute = date("i", $baseTime);
+	$second = date("s", $baseTime);
+	
+	if($offsetType == "SECONDS") {
+		$second += $offsetAmount;
+	} else if($offsetType == "DAYS") {
+		$day += $offsetAmount;
+	} else if($offsetType == "MONTHS") {
+		$month += $offsetAmount;
+	} else if($offsetType == "YEARS") {
+		$year += $offsetAmount;
+	}
+	
+	return mktime($hour, $minute, $second, $month, $day, $year);
 }
 
 ?>

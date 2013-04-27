@@ -192,8 +192,15 @@ function renderCell($cell, $values, $readOnly)
 		}
 	} else if($cell["type"] == "label") {
 		$output["content"] .= "<label for=\"{$cell["id"]}\">{$cell["label"]}</label>";
-	} else if($cell["type"] == "text") {
+	} else if($cell["type"] == "text" || $cell["type"] == "date") {
 		$output["content"] = "<input type=\"text\" name=\"$name\"";
+		if($cell["type"] == "date") {
+			if($fieldclass !== null) {
+				$fieldclass .= " datepicker";
+			} else {
+				$fieldclass = "datepicker";
+			}
+		}
 		if($fieldclass !== null) {
 			$output["content"] .= " class=\"$fieldclass\"";
 		}
@@ -456,7 +463,7 @@ function renderRowspan($rowspan, $values, $readOnly)
 	}
 }
 
-function renderTable($fields, $values, $readOnly, $submitCaption = null, $submitName = null)
+function renderTable($fields, $values, $readOnly, $submitCaption = null, $submitName = null, $caption = null)
 {
 	foreach($fields as $key=>$value) {
 		if($value["type"] == "subformchooser") {
@@ -557,6 +564,9 @@ function renderTable($fields, $values, $readOnly, $submitCaption = null, $submit
 	}
 	
 	$output = "<table>\n";
+	if($caption !== null) {
+		$output .= "<caption>$caption</caption>\n";
+	}
 	if($leftMergeUsed && $maxLeftFields > 2) {
 		$output .= "<col />";
 		$output .= "<col style=\"width: 0.0001%\"/>";
@@ -769,6 +779,7 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	
 	$mainTable = array();
 	$extraTables = array();
+	$subformTables = array();
 	$hiddenFields = ($error === null ? "<input type=\"hidden\" name=\"confirm\" value=\"1\" />\n" : "");
 	foreach($fields as $value) {
 		if(!is_array($value)) {
@@ -777,14 +788,19 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 			if($stub && (!isset($value["nostub"]) || $value["nostub"] === null || $value["nostub"])) {
 				continue;
 			}
-			$extraTables = $value["options"];
+			$subformTables = $value["options"];
+		} else if($value["type"] == "table") {
+			if($stub && (!isset($value["nostub"]) || $value["nostub"] === null || $value["nostub"])) {
+				continue;
+			}
+			$extraTables[] = $value;
 		} else {
 			$mainTable[] = $value;
 		}
 	}
 	
 	$selectedTable = null;
-	foreach($extraTables as $table) {
+	foreach($subformTables as $table) {
 		if(isset($values[$table["name"]])) {
 			$selectedTable = $table["name"];
 			break;
@@ -793,13 +809,13 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	
 	$tables = array();
 	$tables[] = array("subform"=>$mainTable);
-	foreach($extraTables as $table) {
+	foreach($subformTables as $table) {
 		if($table["name"] !== $selectedTable) {
 			continue;
 		}
 		$tables[] = $table;
 	}
-	foreach($extraTables as $table) {
+	foreach($subformTables as $table) {
 		if($table["name"] === $selectedTable || $readOnly) {
 			continue;
 		}
@@ -869,7 +885,7 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	}
 	$mainTable_ = array_shift($filteredTables);
 	$mainTable = $mainTable_["subform"];
-	$extraTables = $filteredTables;
+	$subformTables = $filteredTables;
 	
 	$output = "<div class=\"operation\">\n";
 	$output .= "<h2>$title</h2>\n";
@@ -898,9 +914,25 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	}
 	$output .= $hiddenFields;
 	
-	$output .= renderTable($mainTable, $values, $readOnly, count($extraTables) == 0 ? $submitCaption : null);
+	$output .= renderTable($mainTable, $values, $readOnly, count($subformTables) == 0 ? $submitCaption : null);
 	
 	foreach($extraTables as $table) {
+		$output .= "<div";
+		if(isset($table["tableclass"]) && $table["tableclass"] !== null) {
+			$output .= " class=\"{$table["tableclass"]}\"";
+		}
+		$output .= ">\n";
+		if(isset($table["title"]) && $table["title"] !== null) {
+			$output .= "<h3>{$table["title"]}</h3>\n";
+		}
+		if(isset($table["summary"]) && $table["summary"] !== null) {
+			$output .= "<p>{$table["summary"]}</p>\n";
+		}
+		$output .= renderTable($table["subform"], $values, $readOnly, null, null, isset($table["caption"]) ? $table["caption"] : null);
+		$output .= "</div>\n";
+	}
+	
+	foreach($subformTables as $table) {
 		if($table["name"] === $selectedTable) {
 			$selectedClass = " selected";
 			$selectedTitle = "Currently selected: ";
