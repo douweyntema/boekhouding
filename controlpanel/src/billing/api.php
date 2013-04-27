@@ -437,24 +437,26 @@ function billingInvoiceStatusList($customerID)
 	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
 	$balance = -billingBalance($customerID);
 	
-	$output = array();
+	$invoices = array();
 	foreach(stdList("billingInvoice", array("customerID"=>$customerID), array("invoiceID", "customerID", "transactionID", "invoiceNumber")) as $invoice) {
 		$invoice["date"] = stdGet("accountingTransaction", array("transactionID"=>$invoice["transactionID"]), "date");
 		$amount = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$accountID), "amount");
 		$invoice["amount"] = $amount;
+		$invoices[] = $invoice;
+	}
+	usort($invoices, function($a, $b) { return $b["date"] - $a["date"]; });
+	for($i = 0; $i < count($invoices); $i++) {
 		if($balance <= 0) {
-			$invoice["remainingAmount"] = 0;
+			$invoices[$i]["remainingAmount"] = 0;
 		} else if($balance >= $amount) {
-			$invoice["remainingAmount"] = $amount;
+			$invoices[$i]["remainingAmount"] = $amount;
 		} else {
-			$invoice["remainingAmount"] = $balance;
+			$invoices[$i]["remainingAmount"] = $balance;
 		}
 		$balance -= $amount;
-		$output[] = $invoice;
 	}
 	
-	usort($output, function($a, $b) { return $b["date"] - $a["date"]; });
-	return $output;
+	return $invoices;
 }
 
 function billingInvoiceRemainingAmount($invoiceID)
