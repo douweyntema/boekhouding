@@ -1,4 +1,10 @@
-treva-exim (0.5.2.1) squeeze; urgency=medium
+treva-exim (0.5.3) squeeze; urgency=medium
+
+  * Added rdns field to infrastructureHost for mailname.
+
+ -- Stef Louwers <s.louwers@treva.nl>  Tue, 24 Sep 2013 04:42:42 +0200
+
+ treva-exim (0.5.2.1) squeeze; urgency=medium
 
   * Fixed syntax error in mailing list support for relay servers.
 
