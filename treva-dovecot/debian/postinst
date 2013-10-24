@@ -27,7 +27,7 @@ mkdir -p /var/backups/mail
 if [ "`dpkg-divert --truename /etc/dovecot/dovecot.conf`" != /etc/dovecot/dovecot.conf.old ]
 then
 	dpkg-divert --add --rename --divert /etc/dovecot/dovecot.conf.old /etc/dovecot/dovecot.conf
-	ln -s /usr/share/treva-dovecot/dovecot.conf /etc/dovecot/dovecot.conf
+	ln -s treva-dovecot.conf /etc/dovecot/dovecot.conf
 fi
 
 /etc/init.d/dovecot restart

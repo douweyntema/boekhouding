@@ -1,0 +1,21 @@
+# Authentication for passwd-file users. Included from auth.conf.
+#
+# passwd-like file with specified location.
+# <doc/wiki/AuthDatabase.PasswdFile.txt>
+
+userdb {
+  driver = passwd-file
+  args = /etc/dovecot/passwd
+}
+
+passdb {
+  driver = passwd-file
+  args = /etc/dovecot/passwd
+}
+
+passdb {
+  driver = passwd-file
+  args = /etc/dovecot/passwd-master
+  master = yes
+  pass = yes
+}
