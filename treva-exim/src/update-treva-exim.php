@@ -48,7 +48,8 @@ $date = date("r", $time);
 
 $GLOBALS["database"]->startTransaction(true);
 
-$hostID = $GLOBALS["database"]->stdGetTry("infrastructureHost", array("hostname"=>$hostname), "hostID");
+$host = $GLOBALS["database"]->stdGetTry("infrastructureHost", array("hostname"=>$hostname), array("hostID", "rdns"));
+$hostID = $host["hostID"];
 if($hostID === null) {
 	echo "Host not in database\n";
 	exit(1);
@@ -78,7 +79,11 @@ $hostIDSql = $GLOBALS["database"]->addSlashes($hostID);
 $databaseDirectory = "/etc/exim4/database";
 umask(077);
 
-file_put_contents("$databaseDirectory/mailname-$time", "primary_hostname = $hostname\n");
+$mailName = $hostname;
+if($host["rdns"] !== null) {
+	$mailName = $host["rdns"];
+}
+file_put_contents("$databaseDirectory/mailname-$time", "primary_hostname = $mailName\n");
 
 $localDomains = "";
 $relayDomains = "";
