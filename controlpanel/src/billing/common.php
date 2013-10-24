@@ -79,6 +79,7 @@ function invoiceStatusForm($customerID, $error = "", $values = null)
 	return operationForm("changestatus.php?id=$customerID", $error, "Change invoice status", "Save",
 		array(
 			array("title"=>"Status", "type"=>"dropdown", "name"=>"invoiceStatus", "options"=>array(
+				array("label"=>"Unset", "value"=>"UNSET"),
 				array("label"=>"Disabled", "value"=>"DISABLED"),
 				array("label"=>"Preview", "value"=>"PREVIEW"),
 				array("label"=>"Enabled", "value"=>"ENABLED")

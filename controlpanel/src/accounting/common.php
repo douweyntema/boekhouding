@@ -1184,6 +1184,7 @@ function relativeTimeChooser($title, $namePrefix)
 				array("type"=>"dropdown", "name"=>"{$namePrefix}Base", "options"=>array(
 					array("label"=>"Now", "value"=>"NOW"),
 					array("label"=>"Start of month", "value"=>"STARTMONTH"),
+					array("label"=>"Start of quarter", "value"=>"STARTQUARTER"),
 					array("label"=>"Start of year", "value"=>"STARTYEAR"),
 				)),
 				array("type"=>"html", "html"=>"+"),
@@ -1459,7 +1460,7 @@ function parseRelativeTime($values, $namePrefix)
 		if(!isset($values[$namePrefix . "Base"])) {
 			return null;
 		}
-		if(!in_array($values[$namePrefix . "Base"], array("NOW", "STARTMONTH", "STARTYEAR"))) {
+		if(!in_array($values[$namePrefix . "Base"], array("NOW", "STARTMONTH", "STARTQUARTER", "STARTYEAR"))) {
 			return null;
 		}
 		if(!isset($values[$namePrefix . "OffsetAmount"])) {
@@ -1494,6 +1495,10 @@ function renderRelativeTime($base, $offsetType, $offsetAmount, $now = null)
 		$year = date("Y", $now);
 		$month = date("m", $now);
 		$baseTime = mktime(0, 0, 0, $month, 1, $year);
+	} else if($base == "STARTQUARTER") {
+		$year = date("Y", $now);
+		$month = date("m", $now);
+		$baseTime = mktime(0, 0, 0, $month - (($month - 1) % 3), 1, $year);
 	} else if($base == "STARTYEAR") {
 		$year = date("Y", $now);
 		$baseTime = mktime(0, 0, 0, 1, 1, $year);

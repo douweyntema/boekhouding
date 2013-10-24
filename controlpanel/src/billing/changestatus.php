@@ -11,7 +11,7 @@ function main()
 		if(!$condition) die(page(makeHeader("Change invoice status", adminCustomerBreadcrumbs($customerID), crumbs("Change invoice status", "changestatus.php?id=" . $customerID)) . invoiceStatusForm($customerID, $error, $_POST)));
 	};
 	
-	$check(post("invoiceStatus") == "DISABLED" || post("invoiceStatus") == "PREVIEW" || post("invoiceStatus") == "ENABLED", "");
+	$check(post("invoiceStatus") == "UNSET" || post("invoiceStatus") == "DISABLED" || post("invoiceStatus") == "PREVIEW" || post("invoiceStatus") == "ENABLED", "");
 	$check(post("confirm") !== null, null);
 	
 	stdSet("adminCustomer", array("customerID"=>$customerID), array("invoiceStatus"=>post("invoiceStatus")));
