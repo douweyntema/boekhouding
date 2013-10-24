@@ -44,7 +44,9 @@ function billingAddSubscriptionLine($customerID, $revenueAccountID, $description
 
 function billingUpdateSubscriptionLines($customerID)
 {
-	if(stdGet("adminCustomer", array("customerID"=>$customerID), "invoiceStatus") == "DISABLED") {
+	$status = stdGet("adminCustomer", array("customerID"=>$customerID), "invoiceStatus");
+	
+	if($status == "DISABLED" || $status == "UNSET") {
 		return;
 	}
 	$now = time();
@@ -467,6 +469,17 @@ function billingInvoiceRemainingAmount($invoiceID)
 		}
 	}
 	return null;
+}
+
+function billingCreateStatusWarnings()
+{
+	$unsetList = stdList("adminCustomer", array("invoiceStatus"=>"UNSET"), "name");
+	$previewList = stdList("adminCustomer", array("invoiceStatus"=>"PREVIEW"), "name");
+	if(count($unsetList) == 0 && count($previewList) == 0) {
+		return;
+	}
+	
+	mailAdmin("There are customers with invalid invoice status!", "The following customers have an invalid invoice status:\n" . (count($unsetList) ? "\nunset:\n" . implode("\n", $unsetList) . "\n" : "") . (count($previewList) ? "\npreview:\n" . implode("\n", $previewList) . "\n" : ""));
 }
 
 class BillingInvoiceException extends Exception {}
