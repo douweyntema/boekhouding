@@ -256,22 +256,22 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 	$btwTex = formatPriceRaw($btw);
 	$brieftype = $creditatie ? "creditatiebrief" : "factuurbrief";
 	$tex = <<<TEX
-\documentclass{trevabrief}
-\usepackage{treva-factuur}
-\setDatum[{$texdatum}]
+\\documentclass{trevabrief}
+\\usepackage{treva-factuur}
+\\setDatum[{$texdatum}]
 
-\begin{document}
+\\begin{document}
 
-\begin{{$brieftype}}{{$to}}{{$invoiceNumber}}
-\gebruikersnaam{{$usernameTex}}
+\\begin{{$brieftype}}{{$to}}{{$invoiceNumber}}
+\\gebruikersnaam{{$usernameTex}}
 
-\begin{factuur}
-{$posts}{$discounts}\btw{{$btwTex}}
-\end{factuur}
+\\begin{factuur}
+{$posts}{$discounts}\\btw{{$btwTex}}
+\\end{factuur}
 
-\end{{$brieftype}}
+\\end{{$brieftype}}
 
-\end{document}
+\\end{document}
 
 TEX;
 	stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("tex"=>$tex));
