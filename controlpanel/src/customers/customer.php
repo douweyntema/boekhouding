@@ -1,5 +1,7 @@
 <?php
 
+$GLOBALS["endImpersonate"] = true;
+
 require_once("common.php");
 
 function main()
