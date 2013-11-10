@@ -28,9 +28,15 @@ foreach($newsItems as $item) {
 HTML;
 }
 
-$content .= customersOverview();
-$content .= trevaOverview();
-$content .= infrastructureOverview();
+if(function_exists("customersOverview")) {
+	$content .= customersOverview();
+}
+if(function_exists("trevaOverview")) {
+	$content .= trevaOverview();
+}
+if(function_exists("infrastructureOverview")) {
+	$content .= infrastructureOverview();
+}
 
 if(isRoot()) {
 	$content .= <<<HTML
