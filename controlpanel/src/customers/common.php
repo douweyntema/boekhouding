@@ -38,7 +38,7 @@ function customerBreadcrumbs($customerID)
 function customerList()
 {
 	$rows = array();
-	foreach(stdList("adminCustomer", array(), array("customerID", "fileSystemID", "mailSystemID", "nameSystemID", "name", "initials", "lastName", "email"), array("name"=>"ASC")) as $customer) {
+	foreach(stdList("adminCustomer", array(), array("customerID", "fileSystemID", "mailSystemID", "nameSystemID", "name", "initials", "lastName", "email", "invoiceStatus"), array("name"=>"ASC")) as $customer) {
 		$nicknameHtml = htmlentities($customer["name"]);
 		$fileSystemName = stdGet("infrastructureFileSystem", array("fileSystemID"=>$customer["fileSystemID"]), "name");
 		$mailSystemName = stdGet("infrastructureMailSystem", array("mailSystemID"=>$customer["mailSystemID"]), "name");
@@ -51,7 +51,7 @@ function customerList()
 			array("url"=>"{$GLOBALS["rootHtml"]}infrastructure/filesystem.php?id={$customer["fileSystemID"]}", "text"=>$fileSystemName),
 			array("url"=>"{$GLOBALS["rootHtml"]}infrastructure/mailsystem.php?id={$customer["mailSystemID"]}", "text"=>$mailSystemName),
 			array("url"=>"{$GLOBALS["rootHtml"]}infrastructure/namesystem.php?id={$customer["nameSystemID"]}", "text"=>$nameSystemName),
-			array("url"=>"{$GLOBALS["rootHtml"]}billing/customer.php?id={$customer["customerID"]}", "html"=>formatPrice($balance), "class"=>$balance < 0 ? "balance-negative" : null)
+			array("url"=>"{$GLOBALS["rootHtml"]}billing/customer.php?id={$customer["customerID"]}", "html"=>formatPrice($balance), "class"=>$balance < 0 ? "balance-negative" : ($customer["invoiceStatus"] == "DISABLED" ? "balance-disabled" : null))
 		);
 	}
 	return listTable(array("Nickname", "Name", "Email", "Filesystem", "Mailsystem", "Namesystem", "Balance"), $rows, "Customers", true, "sortable list");

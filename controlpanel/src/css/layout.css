@@ -409,6 +409,10 @@ table.inline, table.inline tr, table.inline td, table.inline th {
 	color: red;
 }
 
+.balance-disabled {
+	color: #A0A0A0;
+}
+
 /* accounting */
 .list table tbody tr.transaction td {
 /* 	background-color: #F0F0F6; */
