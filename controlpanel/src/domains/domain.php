@@ -26,6 +26,8 @@ function main()
 		$content .= withdrawDomainForm($domainID);
 	} else if($status == "active") {
 		$content .= restoreDomainForm($domainID);
+	} else if(isImpersonating()) {
+		$content .= deleteDomainForm($domainID);
 	}
 	$content .= addSubdomainForm($domainID);
 	echo page($content);

@@ -7,7 +7,7 @@ function main()
 	$domainID = get("id");
 	doDomains($domainID);
 	
-	if(!domainsIsSubDomain($domainID)) {
+	if(!domainsIsSubDomain($domainID) && !isImpersonating()) {
 		error404();
 	}
 	
@@ -24,8 +24,11 @@ function main()
 	commitTransaction();
 	
 	updateDomains(customerID());
-	
-	redirect("domains/domain.php?id=$parentDomainID");
+	if($parentDomainID === null) {
+		redirect("domains/index.php");
+	} else {
+		redirect("domains/domain.php?id=$parentDomainID");
+	}
 }
 
 main();

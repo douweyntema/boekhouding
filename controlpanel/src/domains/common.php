@@ -398,8 +398,9 @@ function unregisterDomainForm($domainID, $error = "", $values = null)
 
 function deleteDomainForm($domainID, $error = "", $values = null)
 {
-	$domainNameHtml = htmlentities(domainsFormatDomainName($domainID));;
-	return operationForm("deletedomain.php?id=$domainID", $error, "Delete subdomain", "Delete Subdomain", array(), $values, array("custom"=>"<p>This will remove <em>$domainNameHtml</em> and all of its subdomains.</p>"));
+	$domainNameHtml = htmlentities(domainsFormatDomainName($domainID));
+	$subdomain = domainsIsSubDomain($domainID);
+	return operationForm("deletedomain.php?id=$domainID", $error, $subdomain ? "Delete subdomain" : "Delete domain from database", $subdomain ? "Delete Subdomain" : "Delete domain", array(), $values, array("custom"=>"<p>This will remove <em>$domainNameHtml</em>" . ($subdomain ? " and all of its subdomains." : " from the database. There is no interaction with the registeries.") . "</p>"));
 }
 
 function subdomains($domainID) {
