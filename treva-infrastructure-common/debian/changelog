@@ -1,3 +1,9 @@
+treva-infrastructure-common (0.3) squeeze; urgency=high
+
+  * Created new ssl key to deal with the recent openssl key disclosure vulnerability.
+
+ -- Ruud Koolen <r.koolen@treva.nl>  Tue, 08 Apr 2014 17:05:42 +0200
+
 treva-infrastructure-common (0.2) squeeze; urgency=medium
 
   * Added a ssl key
