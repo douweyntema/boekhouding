@@ -84,11 +84,13 @@ function billingUpdateSubscriptionLines($customerID)
 		}
 		if($subscription["endDate"] !== null && $subscription["nextPeriodStart"] >= $subscription["endDate"]) {
 			if($subscription["domainTldID"] !== null) {
-				$domainID = stdGet("dnsDomain", array("subscriptionID"=>$subscription["subscriptionID"]), "domainID");
-				if(domainsDomainStatus($domainID) == "expired" || domainsDomainStatus($domainID) == "quarantaine") {
-					domainsRemoveDomain($domainID);
-				} else {
-					continue;
+				$domainID = stdGetTry("dnsDomain", array("subscriptionID"=>$subscription["subscriptionID"]), "domainID");
+				if($domainID !== null) {
+					if(domainsDomainStatus($domainID) == "expired" || domainsDomainStatus($domainID) == "quarantaine") {
+						domainsRemoveDomain($domainID);
+					} else {
+						continue;
+					}
 				}
 			}
 			stdDel("billingSubscription", array("subscriptionID"=>$subscription["subscriptionID"]));
