@@ -304,6 +304,7 @@ FROM
 	INNER JOIN infrastructureDomainTld USING(domainTldID)
 WHERE
 	infrastructureMailServer.hostID='$hostIDSql'
+	AND mailAddress.canUseSmtp='1'
 SQL
 )->fetchList() as $account) {
 	$encodedPassword = rfc2047_encode(base64_decode($account["password"]));
