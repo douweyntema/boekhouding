@@ -6,3 +6,5 @@ then
 fi
 
 ln -s -f /usr/share/treva-apache/suphp.conf /etc/suphp/suphp.conf
+
+update-treva-apache --force

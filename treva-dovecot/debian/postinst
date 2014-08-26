@@ -30,4 +30,6 @@ then
 	ln -s treva-dovecot.conf /etc/dovecot/dovecot.conf
 fi
 
+update-treva-dovecot --force
+
 /etc/init.d/dovecot restart

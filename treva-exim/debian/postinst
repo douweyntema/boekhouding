@@ -17,3 +17,5 @@ chown -R Debian-exim:Debian-exim /etc/exim4/database/
 echo "ENABLED=1" >> /etc/default/spamassassin
 echo "CRON=1" >> /etc/default/spamassassin
 /etc/init.d/spamassassin restart
+
+update-treva-exim --force

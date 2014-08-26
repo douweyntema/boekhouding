@@ -1,3 +1,9 @@
+treva-apache (0.7.2) squeeze; urgency=low
+
+  * Force update the treva database after every update.
+
+ -- Stef Louwers <s.louwers@treva.nl>  Tue, 26 Aug 2014 19:53:42 +0200
+
 treva-apache (0.7.1) squeeze; urgency=medium
 
   * created new field hostedExecCGI in the httpPath table, to control the ExecCGI flag.
