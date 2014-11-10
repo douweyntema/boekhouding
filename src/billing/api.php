@@ -256,8 +256,8 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 	$btwTex = formatPriceRaw($btw);
 	$brieftype = $creditatie ? "creditatiebrief" : "factuurbrief";
 	$tex = <<<TEX
-\\documentclass{nadiciabrief}
-\\usepackage{nadicia-factuur}
+\\documentclass{{$GLOBALS["invoiceLatexDocumentClass"]}}
+\\usepackage{{$GLOBALS["invoiceLatexPackage"]}}
 \\setDatum[{$texdatum}]
 
 \\begin{document}

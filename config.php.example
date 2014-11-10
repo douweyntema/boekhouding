@@ -1,44 +1,50 @@
 <?php
 
-$adminMail = "info@nadicia.nl";
-$adminMailName = "Valkerij Nadicia";
+$htmlTitle = "boekhouding";
+
+$adminMail = "boekhouding@example.com";
+$adminMailName = "boekhouding";
 
 $controlpanelDisabled = false;
 $controlpanelDisabledNotice = "<p>De boekhouding is tijdelijk buiten gebruik voor onderhoud.</p>";
 
-$controlpanelEnableAssetDepreciation = false;
+$controlpanelEnableAssetDepreciation = true;
 
-$controlpanelUrl = "http://boekhouding.nadicia.nl/";
+$controlpanelUrl = "http://boekhouding.example.com/";
 
 $database_hostname = "localhost";
 $database_username = "";
 $database_password = "";
-$database_name = "nadicia-boekhouding";
+$database_name = "boekhouding";
 
-$crypto_key = "khflabrtbejrhtwkergt,webrt";
+$crypto_key = "asdasdasd123123123";
 
 $taxRate = 0.21;
 $defaultCurrencyID = 0;
 
-$assetsDirectoryAccountID = 0;
 $customersDirectoryAccountID = 0;
 $suppliersDirectoryAccountID = 0;
 $revenueDirectoryAccountID = 0;
 $expensesDirectoryAccountID = 0;
+
 $bankDirectoryAccountID = 0;
+$bankDefaultAccountID = 0;
+
+$assetsDirectoryAccountID = 0;
 $fixedAssetValueDirectoryAccountID = 0;
 $fixedAssetDepreciationDirectoryAccountID = 0;
 $fixedAssetExpenseDirectoryAccountID = 0;
 
-$bankDefaultAccountID = 0;
 $taxPayableAccountID = 0;
 $taxReceivableAccountID = 0;
-$domainsRevenueAccountID = 0;
 
 $componentsEnabled = array();
 $componentsEnabled[] = "customers";
+$componentsEnabled[] = "accounting";
 $componentsEnabled[] = "accounts";
 $componentsEnabled[] = "billing";
-$componentsEnabled[] = "ticket";
+
+$invoiceLatexDocumentClass = "demobrief";
+$invoiceLatexPackage = "demo-factuur";
 
 ?>
