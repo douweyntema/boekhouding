@@ -8,7 +8,7 @@ function main()
 	
 	accountingAutoDepreciate();
 	
-	$content = makeHeader("Accounting", accountingBreadcrumbs());
+	$content = makeHeader(_("Accounting"), accountingBreadcrumbs());
 	$content .= accountList();
 	$content .= supplierList();
 	$content .= fixedAssetList();

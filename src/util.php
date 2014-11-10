@@ -71,18 +71,18 @@ function parseInt($string)
 function texdate($date)
 {
 	$maanden = array("",
-		"januari",
-		"februari",
-		"maart",
-		"april",
-		"mei",
-		"juni",
-		"juli",
-		"augustus",
-		"september",
-		"oktober",
-		"november",
-		"december");
+		_("January"),
+		_("February"),
+		_("March"),
+		_("April"),
+		_("May"),
+		_("June"),
+		_("July"),
+		_("August"),
+		_("September"),
+		_("October"),
+		_("November"),
+		_("December"));
 	$day = date("j", $date);
 	$month = date("n", $date);
 	$year = date("Y", $date);

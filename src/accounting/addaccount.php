@@ -11,7 +11,7 @@ function main()
 	}
 	
 	$check = function($condition, $error) use($accountID) {
-		if(!$condition) die(page(makeHeader("Add account", accountBreadcrumbs($accountID), crumbs("Add account", "addaccount.php?id=$accountID")) . addAccountForm($accountID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Add account"), accountBreadcrumbs($accountID), crumbs(_("Add account"), "addaccount.php?id=$accountID")) . addAccountForm($accountID, $error, $_POST)));
 	};
 	
 	$isDirectory = post("type") == "directory";
@@ -20,8 +20,8 @@ function main()
 	$check(($name = post("name")) !== null, "");
 	$check(($currencyID = post("currencyID")) != null, "");
 	
-	$check($name != "", "Missing account name.");
-	$check(stdExists("accountingCurrency", array("currencyID"=>$currencyID)), "Invalid currency.");
+	$check($name != "", _("Missing account name."));
+	$check(stdExists("accountingCurrency", array("currencyID"=>$currencyID)), _("Invalid currency."));
 	$check(post("confirm") !== null, null);
 	
 	$newAccountID = accountingAddAccount($accountID == 0 ? null : $accountID, $currencyID, $name, $description, $isDirectory);

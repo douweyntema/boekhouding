@@ -13,7 +13,7 @@ function main()
 	$incomeExpenseViewID = get("incomeExpenseViewID");
 	
 	$accountName = stdGet("accountingAccount", array("accountID"=>$accountID), "name");
-	$content = makeHeader("Account $accountName", accountBreadcrumbs($accountID, $toDate, $fromDate, $balanceViewID, $incomeExpenseViewID));
+	$content = makeHeader(sprintf(_("Account %s"), $accountName), accountBreadcrumbs($accountID, $toDate, $fromDate, $balanceViewID, $incomeExpenseViewID));
 	
 	$content .= accountSummary($accountID, $toDate, $fromDate, $balanceViewID, $incomeExpenseViewID);
 	$content .= accountList($accountID, $toDate, $fromDate, $balanceViewID, $incomeExpenseViewID);

@@ -6,7 +6,7 @@ function main()
 {
 	doAccounting();
 	$check = function($condition, $error) {
-		if(!$condition) die(page(makeHeader("Add view", accountingBreadcrumbs(), crumbs("Add view", "addview.php")) . addViewForm($error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Add view"), accountingBreadcrumbs(), crumbs(_("Add view"), "addview.php")) . addViewForm($error, $_POST)));
 	};
 	
 	$check(($name = post("name")) !== null, "");
@@ -25,10 +25,10 @@ function main()
 	}
 	
 	if($type == "balance") {
-		$check(($balanceDate = parseRelativeTime($_POST, "balance")) !== null, "Invalid date specified");
+		$check(($balanceDate = parseRelativeTime($_POST, "balance")) !== null, _("Invalid date specified"));
 	} else {
-		$check(($incomeExpencesStartDate = parseRelativeTime($_POST, "incomeExpencesStart")) !== null, "Invalid start date specified");
-		$check(($incomeExpencesEndDate = parseRelativeTime($_POST, "incomeExpencesEnd")) !== null, "Invalid end date specified");
+		$check(($incomeExpencesStartDate = parseRelativeTime($_POST, "incomeExpencesStart")) !== null, _("Invalid start date specified"));
+		$check(($incomeExpencesEndDate = parseRelativeTime($_POST, "incomeExpencesEnd")) !== null, _("Invalid end date specified"));
 	}
 	
 	$check(post("confirm") !== null, null);

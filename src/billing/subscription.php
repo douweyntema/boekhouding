@@ -8,7 +8,7 @@ function main()
 	$customerID = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), "customerID");
 	doBillingAdmin($customerID);
 	
-	$content = makeHeader("Subscription", adminSubscriptionBreadcrumbs($subscriptionID));
+	$content = makeHeader(_("Subscription"), adminSubscriptionBreadcrumbs($subscriptionID));
 	$content .= subscriptionDetail($subscriptionID);
 	$content .= editSubscriptionForm($subscriptionID);
 	$content .= endSubscriptionForm($subscriptionID);

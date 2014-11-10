@@ -10,24 +10,24 @@ function main()
 	acceptFile("file");
 	
 	$check = function($condition, $error, $total = null, $balance = null) use($supplierID) {
-		if(!$condition) die(page(makeHeader("Add invoice", supplierBreadcrumbs($supplierID), crumbs("Add invoice", "addsupplierinvoice.php?id=$supplierID")) . addSupplierInvoiceForm($supplierID, $error, $_POST, $total, $balance)));
+		if(!$condition) die(page(makeHeader(_("Add invoice"), supplierBreadcrumbs($supplierID), crumbs(_("Add invoice"), "addsupplierinvoice.php?id=$supplierID")) . addSupplierInvoiceForm($supplierID, $error, $_POST, $total, $balance)));
 	};
-	$check(($invoiceNumber = post("invoiceNumber")) !== null, "Missing invoice number.");
-	$check($invoiceNumber != "", "Missing invoice number.");
+	$check(($invoiceNumber = post("invoiceNumber")) !== null, _("Missing invoice number."));
+	$check($invoiceNumber != "", _("Missing invoice number."));
 	$description = post("description");
 	if($description == "") {
-		$description = "Invoice " . $invoiceNumber . " from supplier " . stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "name");
+		$description = sprintf(_('Invoice %1$s from supplier %2$s'), $invoiceNumber, stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "name"));
 		$_POST["description"] = $description;
 	}
-	$check(($date = parseDate(post("date"))) !== null, "Missing date.");
-	$check(($taxAmount = parsePrice(post("taxAmount"))) !== null, "Invalid tax amount.");
-	$check($taxAmount >= 0, "Invalid tax amount.");
+	$check(($date = parseDate(post("date"))) !== null, _("Missing date."));
+	$check(($taxAmount = parsePrice(post("taxAmount"))) !== null, _("Invalid tax amount."));
+	$check($taxAmount >= 0, _("Invalid tax amount."));
 	$pdfType = post("pdfType");
 	
 	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID");
 	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
 	if($currencyID != $GLOBALS["defaultCurrencyID"]) {
-		$check(($foreignAmount = parsePrice(post("foreignAmount"))) !== null, "Invalid total amount.");
+		$check(($foreignAmount = parsePrice(post("foreignAmount"))) !== null, _("Invalid total amount."));
 	}
 	
 	$lines = parseArrayField($_POST, array("accountID", "amount"));
@@ -35,15 +35,15 @@ function main()
 	foreach($lines as $line) {
 		$amount = parsePrice($line["amount"]);
 		if($line["accountID"] == "" && $amount != 0) {
-			$check(false, "No account selected.");
+			$check(false, _("No account selected."));
 		}
 		if($amount == 0) {
 			continue;
 		}
-		$check(stdExists("accountingAccount", array("accountID"=>$line["accountID"])), "Invalid account.");
+		$check(stdExists("accountingAccount", array("accountID"=>$line["accountID"])), _("Invalid account."));
 		$parsedLines[] = array("accountID"=>$line["accountID"], "amount"=>$amount);
 	}
-	$check(count($parsedLines) > 0, "No lines selected.");
+	$check(count($parsedLines) > 0, _("No lines selected."));
 	$parsedLines[] = array("accountID"=>$GLOBALS["taxReceivableAccountID"], "amount"=>$taxAmount);
 	
 	$total = 0;
@@ -60,10 +60,10 @@ function main()
 	
 	if(post("payment") == "yes") {
 		$payment = true;
-		$paymentDescription = "Payment for " . $invoiceNumber;
-		$check(($paymentDate = parseDate(post("paymentDate"))) !== null, "Invalid date.");
-		$check(($paymentBankAccount = post("paymentBankAccount")) !== null, "Invalid bank account.");
-		$check(stdExists("accountingAccount", array("accountID"=>$paymentBankAccount)), "Invalid bank account.");
+		$paymentDescription = sprintf(_("Payment for %s"), $invoiceNumber);
+		$check(($paymentDate = parseDate(post("paymentDate"))) !== null, _("Invalid date."));
+		$check(($paymentBankAccount = post("paymentBankAccount")) !== null, _("Invalid bank account."));
+		$check(stdExists("accountingAccount", array("accountID"=>$paymentBankAccount)), _("Invalid bank account."));
 		if($currencyID != $GLOBALS["defaultCurrencyID"]) {
 			
 		}

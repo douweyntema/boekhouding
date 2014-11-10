@@ -8,7 +8,7 @@ function sendMain()
 	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($customerID) {
-		if(!$condition) die(page(makeHeader("Send invoice", adminCustomerBreadcrumbs($customerID), crumbs("Send invoice", "sendinvoice.php?id=" . $customerID)) . sendInvoiceForm($customerID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Send invoice"), adminCustomerBreadcrumbs($customerID), crumbs(_("Send invoice"), "sendinvoice.php?id=" . $customerID)) . sendInvoiceForm($customerID, $error, $_POST)));
 	};
 	
 	$subscriptionLines = array();
@@ -31,7 +31,7 @@ function deleteMain()
 	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($customerID) {
-		if(!$condition) die(page(makeHeader("Send invoice", adminCustomerBreadcrumbs($customerID), crumbs("Send invoice", "sendinvoice.php?id=" . $customerID)) . sendInvoiceForm($customerID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Send invoice"), adminCustomerBreadcrumbs($customerID), crumbs(_("Send invoice"), "sendinvoice.php?id=" . $customerID)) . sendInvoiceForm($customerID, $error, $_POST)));
 	};
 	
 	$subscriptionLines = array();

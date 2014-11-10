@@ -1,0 +1,1372 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-11-10 17:07+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/common.php:195
+#, python-format
+msgid "Logged in as %s"
+msgstr ""
+
+#: src/common.php:198
+msgid "log out"
+msgstr ""
+
+#: src/common.php:218 src/index.php:7
+msgid "Welcome"
+msgstr ""
+
+#: src/index.php:8
+msgid "Home"
+msgstr ""
+
+#: src/index.php:32
+msgid "New news item"
+msgstr ""
+
+#: src/index.php:32
+msgid "Add news item"
+msgstr ""
+
+#: src/index.php:33
+msgid "Title"
+msgstr ""
+
+#: src/login.php:16
+msgid "Control panel disabled"
+msgstr ""
+
+#: src/login.php:78
+msgid "Invalid username or password."
+msgstr ""
+
+#: src/login.php:92 src/accounts/common.php:58
+msgid "Username"
+msgstr ""
+
+#: src/login.php:96 src/accounts/common.php:59 src/accounts/common.php:67
+msgid "Password"
+msgstr ""
+
+#: src/util.php:74
+msgid "January"
+msgstr ""
+
+#: src/util.php:75
+msgid "February"
+msgstr ""
+
+#: src/util.php:76
+msgid "March"
+msgstr ""
+
+#: src/util.php:77
+msgid "April"
+msgstr ""
+
+#: src/util.php:78
+msgid "May"
+msgstr ""
+
+#: src/util.php:79
+msgid "June"
+msgstr ""
+
+#: src/util.php:80
+msgid "July"
+msgstr ""
+
+#: src/util.php:81
+msgid "August"
+msgstr ""
+
+#: src/util.php:82
+msgid "September"
+msgstr ""
+
+#: src/util.php:83
+msgid "October"
+msgstr ""
+
+#: src/util.php:84
+msgid "November"
+msgstr ""
+
+#: src/util.php:85
+msgid "December"
+msgstr ""
+
+#: src/accounting/account.php:16 src/accounting/common.php:113
+#: src/accounting/common.php:115 src/accounting/common.php:117
+#: src/accounting/common.php:207
+#, python-format
+msgid "Account %s"
+msgstr ""
+
+#: src/accounting/addaccount.php:14 src/accounting/common.php:686
+#: src/accounting/common.php:689
+msgid "Add account"
+msgstr ""
+
+#: src/accounting/addaccount.php:23 src/accounting/editaccount.php:18
+#: src/accounting/editfixedasset.php:17
+msgid "Missing account name."
+msgstr ""
+
+#: src/accounting/addaccount.php:24 src/accounting/addsupplier.php:18
+msgid "Invalid currency."
+msgstr ""
+
+#: src/accounting/addfixedasset.php:10 src/accounting/common.php:1122
+#: src/accounting/common.php:1125
+msgid "Add fixed asset"
+msgstr ""
+
+#: src/accounting/addfixedasset.php:15
+msgid "Invalid purchase date."
+msgstr ""
+
+#: src/accounting/addfixedasset.php:16
+msgid "Invalid depreciationFrequencyMultiplier"
+msgstr ""
+
+#: src/accounting/addfixedasset.php:17
+msgid "Invalid depreciationFrequencyBase"
+msgstr ""
+
+#: src/accounting/addfixedasset.php:18 src/accounting/addfixedasset.php:19
+msgid "Invalid depreciation terms."
+msgstr ""
+
+#: src/accounting/addfixedasset.php:20
+msgid "Invalid residual value."
+msgstr ""
+
+#: src/accounting/addsupplier.php:10 src/accounting/common.php:864
+#: src/accounting/common.php:867
+msgid "Add supplier"
+msgstr ""
+
+#: src/accounting/addsupplier.php:19 src/accounting/editsupplier.php:18
+msgid "Invalid expense account."
+msgstr ""
+
+#: src/accounting/addsupplierinvoice.php:13 src/accounting/common.php:986
+msgid "Add invoice"
+msgstr ""
+
+#: src/accounting/addsupplierinvoice.php:15
+#: src/accounting/addsupplierinvoice.php:16
+#: src/accounting/editsupplierinvoice.php:16
+msgid "Missing invoice number."
+msgstr ""
+
+#: src/accounting/addsupplierinvoice.php:19
+msgid "Invoice %1$s from supplier %2$s"
+msgstr ""
+
+#: src/accounting/addsupplierinvoice.php:22
+#: src/accounting/editsupplierinvoice.php:17
+msgid "Missing date."
+msgstr ""
+
+#: src/accounting/addsupplierinvoice.php:23
+#: src/accounting/addsupplierinvoice.php:24
+#: src/accounting/editsupplierinvoice.php:19
+#: src/accounting/editsupplierinvoice.php:20
+msgid "Invalid tax amount."
+msgstr ""
+
+#: src/accounting/addsupplierinvoice.php:30
+#: src/accounting/editsupplierinvoice.php:27
+msgid "Invalid total amount."
+msgstr ""
+
+#: src/accounting/addsupplierinvoice.php:38
+#: src/accounting/addtransaction.php:25
+#: src/accounting/editsupplierinvoice.php:36
+#: src/accounting/edittransaction.php:27
+msgid "No account selected."
+msgstr ""
+
+#: src/accounting/addsupplierinvoice.php:43
+#: src/accounting/addtransaction.php:30
+#: src/accounting/editsupplierinvoice.php:41
+msgid "Invalid account."
+msgstr ""
+
+#: src/accounting/addsupplierinvoice.php:46
+#: src/accounting/editsupplierinvoice.php:44
+msgid "No lines selected."
+msgstr ""
+
+#: src/accounting/addsupplierinvoice.php:63
+#, python-format
+msgid "Payment for %s"
+msgstr ""
+
+#: src/accounting/addsupplierinvoice.php:64
+#: src/accounting/addsupplierpayment.php:16
+#: src/accounting/addtransaction.php:17
+#: src/accounting/editsupplierpayment.php:18
+#: src/accounting/edittransaction.php:19
+msgid "Invalid date."
+msgstr ""
+
+#: src/accounting/addsupplierinvoice.php:65
+#: src/accounting/addsupplierinvoice.php:66
+#: src/accounting/addsupplierpayment.php:18
+#: src/accounting/addsupplierpayment.php:19
+#: src/accounting/editsupplierpayment.php:21
+#: src/accounting/editsupplierpayment.php:22
+msgid "Invalid bank account."
+msgstr ""
+
+#: src/accounting/addsupplierpayment.php:12 src/accounting/common.php:1080
+#: src/billing/addpayment.php:11 src/billing/common.php:262
+msgid "Add payment"
+msgstr ""
+
+#: src/accounting/addsupplierpayment.php:15
+#: src/accounting/addtransaction.php:16
+#: src/accounting/editsupplierpayment.php:17
+#: src/accounting/edittransaction.php:18
+msgid "No description given."
+msgstr ""
+
+#: src/accounting/addsupplierpayment.php:17
+#: src/accounting/addsupplierpayment.php:25
+#: src/accounting/addsupplierpayment.php:26
+#: src/accounting/editsupplierpayment.php:19
+#: src/accounting/editsupplierpayment.php:20
+#: src/accounting/editsupplierpayment.php:28
+#: src/accounting/editsupplierpayment.php:29
+msgid "Invalid amount."
+msgstr ""
+
+#: src/accounting/addsupplierpayment.php:37
+#: src/accounting/addtransaction.php:34
+#: src/accounting/editsupplierpayment.php:40
+#: src/accounting/edittransaction.php:35
+msgid "No valid transaction lines."
+msgstr ""
+
+#: src/accounting/addtransaction.php:12
+msgid "Add transaction"
+msgstr ""
+
+#: src/accounting/addtransaction.php:36 src/accounting/edittransaction.php:37
+msgid "Transaction not in balance"
+msgstr ""
+
+#: src/accounting/addview.php:9 src/accounting/common.php:1249
+#: src/accounting/common.php:1258
+msgid "Add view"
+msgstr ""
+
+#: src/accounting/addview.php:28 src/accounting/editview.php:38
+msgid "Invalid date specified"
+msgstr ""
+
+#: src/accounting/addview.php:30 src/accounting/editview.php:40
+msgid "Invalid start date specified"
+msgstr ""
+
+#: src/accounting/addview.php:31 src/accounting/editview.php:41
+msgid "Invalid end date specified"
+msgstr ""
+
+#: src/accounting/api.php:3 src/accounting/common.php:89
+#: src/accounting/index.php:11
+msgid "Accounting"
+msgstr ""
+
+#: src/accounting/balanceview.php:12 src/accounting/common.php:155
+#: src/accounting/common.php:260 src/accounting/common.php:297
+#, python-format
+msgid "Balance %s"
+msgstr ""
+
+#: src/accounting/common.php:124 src/accounting/deletetransaction.php:14
+#: src/accounting/deletetransaction.php:15
+#: src/accounting/edittransaction.php:14 src/accounting/edittransaction.php:15
+#: src/accounting/transaction.php:13
+#, python-format
+msgid "Transaction on %s"
+msgstr ""
+
+#: src/accounting/common.php:130 src/accounting/common.php:533
+#: src/accounting/supplier.php:12
+#, python-format
+msgid "Supplier %s"
+msgstr ""
+
+#: src/accounting/common.php:136 src/accounting/common.php:556
+#: src/accounting/supplierinvoice.php:12
+#, python-format
+msgid "Invoice %s"
+msgstr ""
+
+#: src/accounting/common.php:143 src/accounting/common.php:598
+#: src/accounting/supplierpayment.php:13 src/billing/common.php:59
+#: src/billing/common.php:248
+#, python-format
+msgid "Payment on %s"
+msgstr ""
+
+#: src/accounting/common.php:149 src/accounting/common.php:646
+#: src/accounting/fixedasset.php:10
+#, python-format
+msgid "Fixed asset %s"
+msgstr ""
+
+#: src/accounting/common.php:161 src/accounting/incomeexpenseview.php:12
+#, python-format
+msgid "Income / Expense view %s"
+msgstr ""
+
+#: src/accounting/common.php:187
+msgid "Parent account"
+msgstr ""
+
+#: src/accounting/common.php:189 src/accounting/common.php:523
+#: src/accounting/common.php:692 src/accounting/common.php:870
+msgid "Currency"
+msgstr ""
+
+#: src/accounting/common.php:192 src/accounting/common.php:200
+#: src/accounting/common.php:263 src/accounting/common.php:470
+#: src/accounting/common.php:493 src/accounting/common.php:551
+#: src/accounting/common.php:577 src/accounting/common.php:594
+#: src/accounting/common.php:617 src/accounting/common.php:680
+#: src/accounting/common.php:785 src/accounting/common.php:918
+#: src/accounting/common.php:1051 src/accounting/common.php:1236
+#: src/billing/common.php:192 src/billing/common.php:209
+#: src/billing/common.php:227 src/billing/common.php:244
+#: src/billing/common.php:266 src/billing/common.php:299
+msgid "Date"
+msgstr ""
+
+#: src/accounting/common.php:195 src/accounting/common.php:403
+#: src/accounting/common.php:470 src/accounting/common.php:508
+#: src/accounting/common.php:525 src/billing/common.php:67
+#: src/customers/common.php:51 src/customers/common.php:56
+#: src/customers/common.php:57
+msgid "Balance"
+msgstr ""
+
+#: src/accounting/common.php:200 src/accounting/common.php:677
+msgid "%1$s to %2$s"
+msgstr ""
+
+#: src/accounting/common.php:201 src/accounting/common.php:401
+msgid "Start Balance"
+msgstr ""
+
+#: src/accounting/common.php:202 src/accounting/common.php:401
+msgid "End Balance"
+msgstr ""
+
+#: src/accounting/common.php:203 src/accounting/common.php:401
+msgid "Difference"
+msgstr ""
+
+#: src/accounting/common.php:205 src/accounting/common.php:262
+#: src/accounting/common.php:299 src/accounting/common.php:470
+#: src/accounting/common.php:493 src/accounting/common.php:508
+#: src/accounting/common.php:531 src/accounting/common.php:552
+#: src/accounting/common.php:577 src/accounting/common.php:595
+#: src/accounting/common.php:617 src/accounting/common.php:632
+#: src/accounting/common.php:648 src/accounting/common.php:697
+#: src/accounting/common.php:715 src/accounting/common.php:784
+#: src/accounting/common.php:872 src/accounting/common.php:891
+#: src/accounting/common.php:917 src/accounting/common.php:1052
+#: src/accounting/common.php:1127 src/accounting/common.php:1150
+#: src/accounting/common.php:1232 src/billing/common.php:121
+#: src/billing/common.php:133 src/billing/common.php:163
+#: src/billing/common.php:227 src/billing/common.php:245
+#: src/billing/common.php:265 src/billing/common.php:298
+#: src/billing/common.php:319 src/billing/common.php:356
+#: src/billing/common.php:390 src/billing/common.php:406
+msgid "Description"
+msgstr ""
+
+#: src/accounting/common.php:261 src/accounting/common.php:298
+#: src/accounting/common.php:508 src/accounting/common.php:632
+#: src/accounting/common.php:647 src/accounting/common.php:680
+#: src/accounting/common.php:691 src/accounting/common.php:714
+#: src/accounting/common.php:869 src/accounting/common.php:889
+#: src/accounting/common.php:1126 src/accounting/common.php:1149
+#: src/accounting/common.php:1231 src/customers/common.php:51
+msgid "Name"
+msgstr ""
+
+#: src/accounting/common.php:300 src/accounting/common.php:1239
+#: src/billing/common.php:332 src/billing/common.php:409
+msgid "Start date"
+msgstr ""
+
+#: src/accounting/common.php:301 src/accounting/common.php:1240
+#: src/billing/common.php:121 src/billing/common.php:171
+#: src/billing/common.php:383 src/billing/common.php:410
+msgid "End date"
+msgstr ""
+
+#: src/accounting/common.php:401 src/accounting/common.php:403
+#: src/accounting/common.php:694 src/accounting/common.php:796
+msgid "Account"
+msgstr ""
+
+#: src/accounting/common.php:401 src/accounting/common.php:403
+#: src/accounting/common.php:1233
+msgid "Accounts "
+msgstr ""
+
+#: src/accounting/common.php:446 src/accounting/common.php:480
+#: src/accounting/common.php:529 src/accounting/common.php:925
+#: src/billing/common.php:94 src/billing/common.php:153
+msgid "None"
+msgstr ""
+
+#: src/accounting/common.php:465
+#, python-format
+msgid "Value on %s"
+msgstr ""
+
+#: src/accounting/common.php:470 src/accounting/common.php:493
+#: src/accounting/common.php:553 src/accounting/common.php:577
+#: src/accounting/common.php:593 src/accounting/common.php:617
+#: src/accounting/common.php:1049 src/billing/common.php:192
+#: src/billing/common.php:209 src/billing/common.php:227
+#: src/billing/common.php:243 src/billing/common.php:264
+#: src/billing/common.php:297
+msgid "Amount"
+msgstr ""
+
+#: src/accounting/common.php:508
+msgid "Suppliers"
+msgstr ""
+
+#: src/accounting/common.php:527 src/accounting/common.php:529
+msgid "Default expences account"
+msgstr ""
+
+#: src/accounting/common.php:548 src/accounting/common.php:592
+msgid "Supplier"
+msgstr ""
+
+#: src/accounting/common.php:549 src/accounting/common.php:577
+#: src/accounting/common.php:916 src/billing/common.php:192
+#: src/billing/common.php:209
+msgid "Invoice number"
+msgstr ""
+
+#: src/accounting/common.php:550 src/accounting/common.php:929
+msgid "Pdf"
+msgstr ""
+
+#: src/accounting/common.php:550 src/accounting/common.php:657
+msgid "Yes"
+msgstr ""
+
+#: src/accounting/common.php:550 src/accounting/common.php:657
+msgid "No"
+msgstr ""
+
+#: src/accounting/common.php:577 src/billing/common.php:192
+#: src/billing/common.php:209
+msgid "Invoices"
+msgstr ""
+
+#: src/accounting/common.php:617 src/billing/common.php:227
+msgid "Payments"
+msgstr ""
+
+#: src/accounting/common.php:632
+msgid "Value"
+msgstr ""
+
+#: src/accounting/common.php:632
+msgid "Next depreciation date"
+msgstr ""
+
+#: src/accounting/common.php:632
+msgid "Fixed assets"
+msgstr ""
+
+#: src/accounting/common.php:632
+msgid "No fixed assets."
+msgstr ""
+
+#: src/accounting/common.php:649
+msgid "Current value"
+msgstr ""
+
+#: src/accounting/common.php:650
+msgid "Depreciated value"
+msgstr ""
+
+#: src/accounting/common.php:651
+msgid "Expense cost"
+msgstr ""
+
+#: src/accounting/common.php:652
+msgid "Purchase value"
+msgstr ""
+
+#: src/accounting/common.php:653 src/accounting/common.php:1128
+msgid "Purchase date"
+msgstr ""
+
+#: src/accounting/common.php:654 src/accounting/common.php:1129
+msgid "Depreciation interval"
+msgstr ""
+
+#: src/accounting/common.php:655
+msgid "Depreciations"
+msgstr ""
+
+#: src/accounting/common.php:656
+msgid "Residual value"
+msgstr ""
+
+#: src/accounting/common.php:657 src/accounting/common.php:1151
+msgid "Automatic depreciation"
+msgstr ""
+
+#: src/accounting/common.php:680
+msgid "Views"
+msgstr ""
+
+#: src/accounting/common.php:686 src/accounting/common.php:689
+msgid "Add Account"
+msgstr ""
+
+#: src/accounting/common.php:693 src/accounting/common.php:1234
+msgid "Type"
+msgstr ""
+
+#: src/accounting/common.php:695
+msgid "Directory"
+msgstr ""
+
+#: src/accounting/common.php:705 src/accounting/common.php:712
+#: src/accounting/editaccount.php:12
+msgid "Edit account"
+msgstr ""
+
+#: src/accounting/common.php:712 src/accounting/common.php:761
+#: src/accounting/common.php:811 src/accounting/common.php:853
+#: src/accounting/common.php:887 src/accounting/common.php:1023
+#: src/accounting/common.php:1080 src/accounting/common.php:1111
+#: src/accounting/common.php:1148 src/accounting/common.php:1258
+#: src/accounting/common.php:1290 src/accounting/common.php:1331
+#: src/billing/common.php:77 src/billing/common.php:262
+#: src/billing/common.php:296 src/billing/common.php:317
+#: src/billing/common.php:354 src/billing/common.php:383
+#: src/billing/common.php:388
+msgid "Save"
+msgstr ""
+
+#: src/accounting/common.php:723 src/accounting/common.php:761
+#: src/accounting/moveaccount.php:12
+msgid "Move account"
+msgstr ""
+
+#: src/accounting/common.php:738
+msgid "Top-level Account"
+msgstr ""
+
+#: src/accounting/common.php:763
+msgid "Move To"
+msgstr ""
+
+#: src/accounting/common.php:770 src/accounting/deleteaccount.php:12
+msgid "Delete account"
+msgstr ""
+
+#: src/accounting/common.php:770 src/accounting/common.php:858
+#: src/accounting/common.php:898 src/accounting/common.php:1028
+#: src/accounting/common.php:1116 src/accounting/common.php:1157
+#: src/accounting/common.php:1336 src/accounting/common.php:1341
+#: src/billing/common.php:306 src/billing/common.php:426
+msgid "Delete"
+msgstr ""
+
+#: src/accounting/common.php:792
+msgid ""
+"Warning, the correctness of this transaction cannot be checked because there "
+"are 3 or more currencies involved!"
+msgstr ""
+
+#: src/accounting/common.php:811
+msgid "New transaction"
+msgstr ""
+
+#: src/accounting/common.php:836
+msgid "Warning, this transaction is part of a "
+msgstr ""
+
+#: src/accounting/common.php:839
+msgid "customer invoice"
+msgstr ""
+
+#: src/accounting/common.php:842
+msgid "customer payment"
+msgstr ""
+
+#: src/accounting/common.php:845
+msgid "supplier invoice"
+msgstr ""
+
+#: src/accounting/common.php:848
+msgid "supplier payment"
+msgstr ""
+
+#: src/accounting/common.php:853 src/accounting/edittransaction.php:15
+msgid "Edit transaction"
+msgstr ""
+
+#: src/accounting/common.php:858 src/accounting/deletetransaction.php:15
+msgid "Delete transaction"
+msgstr ""
+
+#: src/accounting/common.php:864 src/accounting/common.php:867
+msgid "Add Supplier"
+msgstr ""
+
+#: src/accounting/common.php:871 src/accounting/common.php:890
+msgid "Default expense account"
+msgstr ""
+
+#: src/accounting/common.php:880 src/accounting/common.php:887
+#: src/accounting/editsupplier.php:11
+msgid "Edit supplier"
+msgstr ""
+
+#: src/accounting/common.php:898 src/accounting/deletesupplier.php:11
+msgid "Delete supplier"
+msgstr ""
+
+#: src/accounting/common.php:923
+msgid "Keep %1$scurrent file%2$s"
+msgstr ""
+
+#: src/accounting/common.php:926
+msgid "Upload new file"
+msgstr ""
+
+#: src/accounting/common.php:927
+msgid "File"
+msgstr ""
+
+#: src/accounting/common.php:933
+msgid "No payment"
+msgstr ""
+
+#: src/accounting/common.php:934
+msgid "Direct payment"
+msgstr ""
+
+#: src/accounting/common.php:935 src/accounting/common.php:1053
+#: src/billing/common.php:267 src/billing/common.php:300
+msgid "Bank account"
+msgstr ""
+
+#: src/accounting/common.php:936
+msgid "Payment date"
+msgstr ""
+
+#: src/accounting/common.php:938 src/billing/payment.php:11
+msgid "Payment"
+msgstr ""
+
+#: src/accounting/common.php:941
+#, python-format
+msgid "Total in %s"
+msgstr ""
+
+#: src/accounting/common.php:952
+msgid "Tax"
+msgstr ""
+
+#: src/accounting/common.php:957
+msgid "Line"
+msgstr ""
+
+#: src/accounting/common.php:1023 src/accounting/editsupplierinvoice.php:13
+msgid "Edit invoice"
+msgstr ""
+
+#: src/accounting/common.php:1028 src/accounting/deletesupplierinvoice.php:15
+msgid "Delete invoice"
+msgstr ""
+
+#: src/accounting/common.php:1042 src/accounting/common.php:1043
+#, python-format
+msgid "Amount (%s)"
+msgstr ""
+
+#: src/accounting/common.php:1111 src/accounting/editsupplierpayment.php:14
+#: src/billing/common.php:296 src/billing/editpayment.php:12
+msgid "Edit payment"
+msgstr ""
+
+#: src/accounting/common.php:1116 src/accounting/deletesupplierpayment.php:15
+#: src/billing/common.php:306 src/billing/deletepayment.php:12
+msgid "Delete payment"
+msgstr ""
+
+#: src/accounting/common.php:1125 src/accounts/common.php:56
+#: src/customers/common.php:70
+msgid "Add"
+msgstr ""
+
+#: src/accounting/common.php:1130 src/billing/common.php:324
+#: src/billing/common.php:361 src/customers/common.php:82
+#: src/customers/common.php:108
+msgid "per"
+msgstr ""
+
+#: src/accounting/common.php:1132 src/billing/common.php:335
+#: src/billing/common.php:371
+msgid "days"
+msgstr ""
+
+#: src/accounting/common.php:1132
+msgid "months"
+msgstr ""
+
+#: src/accounting/common.php:1132
+msgid "years"
+msgstr ""
+
+#: src/accounting/common.php:1134
+msgid "Depreciation terms"
+msgstr ""
+
+#: src/accounting/common.php:1135
+msgid "Residual value percentage"
+msgstr ""
+
+#: src/accounting/common.php:1148 src/accounting/editfixedasset.php:11
+msgid "Edit fixed asset"
+msgstr ""
+
+#: src/accounting/common.php:1151
+msgid "Enable automatic depreciation"
+msgstr ""
+
+#: src/accounting/common.php:1157 src/accounting/deletefixedasset.php:11
+msgid "Delete fixed asset"
+msgstr ""
+
+#: src/accounting/common.php:1166 src/accounting/depreciatefixedasset.php:11
+msgid "Depreciate fixed asset"
+msgstr ""
+
+#: src/accounting/common.php:1166
+msgid "Depreciate"
+msgstr ""
+
+#: src/accounting/common.php:1167
+msgid "Until"
+msgstr ""
+
+#: src/accounting/common.php:1173 src/accounting/recomputebalances.php:10
+msgid "Recompute balances"
+msgstr ""
+
+#: src/accounting/common.php:1173
+msgid "Recompute"
+msgstr ""
+
+#: src/accounting/common.php:1179 src/accounting/common.php:1180
+msgid "Absolute date"
+msgstr ""
+
+#: src/accounting/common.php:1182 src/accounting/common.php:1183
+msgid "Relative date"
+msgstr ""
+
+#: src/accounting/common.php:1185
+msgid "Now"
+msgstr ""
+
+#: src/accounting/common.php:1186
+msgid "Start of month"
+msgstr ""
+
+#: src/accounting/common.php:1187
+msgid "Start of quarter"
+msgstr ""
+
+#: src/accounting/common.php:1188
+msgid "Start of year"
+msgstr ""
+
+#: src/accounting/common.php:1193
+msgid "Seconds"
+msgstr ""
+
+#: src/accounting/common.php:1194
+msgid "Days"
+msgstr ""
+
+#: src/accounting/common.php:1195
+msgid "Months"
+msgstr ""
+
+#: src/accounting/common.php:1196
+msgid "Years"
+msgstr ""
+
+#: src/accounting/common.php:1221
+msgid "Visible"
+msgstr ""
+
+#: src/accounting/common.php:1222
+msgid "Collapsed"
+msgstr ""
+
+#: src/accounting/common.php:1223
+msgid "Hidden"
+msgstr ""
+
+#: src/accounting/common.php:1235
+msgid "Balance view"
+msgstr ""
+
+#: src/accounting/common.php:1235
+msgid "Create balance view"
+msgstr ""
+
+#: src/accounting/common.php:1238
+msgid "Income / expences view"
+msgstr ""
+
+#: src/accounting/common.php:1238
+msgid "Create income / expences view"
+msgstr ""
+
+#: src/accounting/common.php:1264 src/accounting/common.php:1290
+#: src/accounting/common.php:1296 src/accounting/common.php:1331
+#: src/accounting/editview.php:12 src/accounting/editview.php:18
+msgid "Edit view"
+msgstr ""
+
+#: src/accounting/common.php:1336 src/accounting/common.php:1341
+#: src/accounting/deletebalanceview.php:11
+#: src/accounting/deleteincomeexpenceview.php:11
+msgid "Delete view"
+msgstr ""
+
+#: src/accounting/common.php:1349 src/accounting/common.php:1353
+msgid "Exchange rate"
+msgstr ""
+
+#: src/accounting/common.php:1401
+#, python-format
+msgid "Supplier account for supplier %s"
+msgstr ""
+
+#: src/accounting/common.php:1406
+#, python-format
+msgid "Depreciation account for fixed asset %s"
+msgstr ""
+
+#: src/accounting/common.php:1411
+#, python-format
+msgid "Expense account for fixed asset %s"
+msgstr ""
+
+#: src/accounting/deleteaccount.php:15
+msgid "Account is still in use."
+msgstr ""
+
+#: src/accounting/deletefixedasset.php:14
+msgid "Fixed asset is still in use."
+msgstr ""
+
+#: src/accounting/deletesupplier.php:14
+msgid "Supplier is still in use."
+msgstr ""
+
+#: src/accounting/deletetransaction.php:19
+msgid "This transaction is linked to an invoice or payment."
+msgstr ""
+
+#: src/accounting/depreciatefixedasset.php:14
+msgid "Invalid until date."
+msgstr ""
+
+#: src/accounting/editsupplier.php:17
+msgid "Missing supplier name."
+msgstr ""
+
+#: src/accounting/moveaccount.php:20 src/accounting/moveaccount.php:23
+msgid "Invalid target account"
+msgstr ""
+
+#: src/accounts/addadminaccount.php:10 src/accounts/common.php:56
+msgid "Add admin account"
+msgstr ""
+
+#: src/accounts/addadminaccount.php:17 src/customers/addcustomer.php:38
+msgid "Invalid account name."
+msgstr ""
+
+#: src/accounts/addadminaccount.php:18
+msgid "An account with the chosen name already exists."
+msgstr ""
+
+#: src/accounts/adminaccount.php:12 src/accounts/removeadminaccount.php:12
+#, python-format
+msgid "Accounts - %s"
+msgstr ""
+
+#: src/accounts/api.php:3 src/accounts/common.php:35 src/accounts/index.php:9
+msgid "Accounts"
+msgstr ""
+
+#: src/accounts/api.php:4
+msgid "Account management"
+msgstr ""
+
+#: src/accounts/common.php:51
+msgid "Account name"
+msgstr ""
+
+#: src/accounts/common.php:59 src/accounts/common.php:67
+msgid "Confirm password"
+msgstr ""
+
+#: src/accounts/common.php:66
+msgid "Change password"
+msgstr ""
+
+#: src/accounts/common.php:66
+msgid "Change Password"
+msgstr ""
+
+#: src/accounts/common.php:73 src/accounts/removeadminaccount.php:12
+msgid "Remove admin account"
+msgstr ""
+
+#: src/accounts/common.php:73
+msgid "Remove Account"
+msgstr ""
+
+#: src/accounts/common.php:73
+msgid "Are you sure you want to remove this admin account?"
+msgstr ""
+
+#: src/accounts/editadminpassword.php:13
+msgid "Edit password"
+msgstr ""
+
+#: src/billing/addinvoiceline.php:11 src/billing/common.php:388
+msgid "Add invoice line"
+msgstr ""
+
+#: src/billing/addinvoiceline.php:15 src/billing/addsubscription.php:16
+#: src/billing/editsubscription.php:20
+msgid "Invalid price"
+msgstr ""
+
+#: src/billing/addinvoiceline.php:16 src/billing/addsubscription.php:17
+#: src/billing/editpayment.php:17 src/billing/editsubscription.php:21
+msgid "Amount is zero"
+msgstr ""
+
+#: src/billing/addinvoiceline.php:17
+msgid "Invalid discount"
+msgstr ""
+
+#: src/billing/addinvoiceline.php:18 src/billing/addinvoiceline.php:19
+#: src/billing/addsubscription.php:34 src/billing/addsubscription.php:35
+#: src/billing/editsubscription.php:38 src/billing/editsubscription.php:39
+msgid "Invalid revenue account"
+msgstr ""
+
+#: src/billing/addpayment.php:15 src/billing/editpayment.php:16
+msgid "Invalid amount"
+msgstr ""
+
+#: src/billing/addpayment.php:17 src/billing/editpayment.php:18
+msgid "Invalid date"
+msgstr ""
+
+#: src/billing/addpayment.php:18 src/billing/editpayment.php:19
+msgid "Invalid description"
+msgstr ""
+
+#: src/billing/addpayment.php:19 src/billing/addpayment.php:20
+#: src/billing/editpayment.php:20 src/billing/editpayment.php:21
+msgid "Invalid bank account"
+msgstr ""
+
+#: src/billing/addsubscription.php:11 src/billing/common.php:317
+msgid "Add subscription"
+msgstr ""
+
+#: src/billing/addsubscription.php:22 src/billing/addsubscription.php:23
+#: src/billing/addsubscription.php:24 src/billing/editsubscription.php:27
+#: src/billing/editsubscription.php:28 src/billing/editsubscription.php:29
+msgid "Invalid discount percentage"
+msgstr ""
+
+#: src/billing/addsubscription.php:26 src/billing/editsubscription.php:31
+msgid "Invalid discount amount"
+msgstr ""
+
+#: src/billing/addsubscription.php:30 src/billing/editsubscription.php:35
+msgid "Invalid frequency multiplier"
+msgstr ""
+
+#: src/billing/addsubscription.php:31 src/billing/editsubscription.php:36
+msgid "Invalid frequency base"
+msgstr ""
+
+#: src/billing/addsubscription.php:32
+msgid "Invalid start date"
+msgstr ""
+
+#: src/billing/addsubscription.php:33 src/billing/editsubscription.php:37
+msgid "Invalid invoice delay"
+msgstr ""
+
+#: src/billing/changestatus.php:11 src/billing/common.php:77
+msgid "Change invoice status"
+msgstr ""
+
+#: src/billing/common.php:36 src/billing/common.php:45
+#: src/billing/customer.php:11 src/billing/index.php:9
+msgid "Billing"
+msgstr ""
+
+#: src/billing/common.php:43 src/customers/api.php:3
+#: src/customers/common.php:30 src/customers/common.php:51
+#: src/customers/customer.php:14 src/customers/index.php:12
+msgid "Customers"
+msgstr ""
+
+#: src/billing/common.php:66
+#, python-format
+msgid "Customer %s"
+msgstr ""
+
+#: src/billing/common.php:68
+msgid "Invoice status"
+msgstr ""
+
+#: src/billing/common.php:79
+msgid "Status"
+msgstr ""
+
+#: src/billing/common.php:80
+msgid "Unset"
+msgstr ""
+
+#: src/billing/common.php:81
+msgid "Disabled"
+msgstr ""
+
+#: src/billing/common.php:82
+msgid "Preview"
+msgstr ""
+
+#: src/billing/common.php:83
+msgid "Enabled"
+msgstr ""
+
+#: src/billing/common.php:121 src/billing/common.php:133
+#: src/billing/common.php:164 src/billing/common.php:320
+#: src/billing/common.php:357 src/billing/common.php:391
+#: src/billing/common.php:407
+msgid "Price"
+msgstr ""
+
+#: src/billing/common.php:121
+msgid "Discounts"
+msgstr ""
+
+#: src/billing/common.php:121 src/billing/common.php:170
+msgid "Renew date"
+msgstr ""
+
+#: src/billing/common.php:121 src/billing/common.php:133
+msgid "Subscriptions"
+msgstr ""
+
+#: src/billing/common.php:155
+#, python-format
+msgid "%s days later"
+msgstr ""
+
+#: src/billing/common.php:157
+#, python-format
+msgid "%s days in advance"
+msgstr ""
+
+#: src/billing/common.php:162 src/billing/subscription.php:11
+msgid "Subscription"
+msgstr ""
+
+#: src/billing/common.php:165
+msgid "Base price"
+msgstr ""
+
+#: src/billing/common.php:166 src/billing/common.php:321
+#: src/billing/common.php:358
+msgid "Discount percentage"
+msgstr ""
+
+#: src/billing/common.php:167 src/billing/common.php:322
+#: src/billing/common.php:359
+msgid "Discount amount"
+msgstr ""
+
+#: src/billing/common.php:168 src/billing/common.php:323
+#: src/billing/common.php:360
+msgid "Frequency"
+msgstr ""
+
+#: src/billing/common.php:169 src/billing/common.php:333
+#: src/billing/common.php:369
+msgid "Invoice delay"
+msgstr ""
+
+#: src/billing/common.php:172 src/billing/common.php:337
+#: src/billing/common.php:373 src/billing/common.php:393
+msgid "Revenue account"
+msgstr ""
+
+#: src/billing/common.php:192 src/billing/common.php:209
+msgid "Remaining amount"
+msgstr ""
+
+#: src/billing/common.php:192
+msgid "Reminder"
+msgstr ""
+
+#: src/billing/common.php:192
+msgid "Resend"
+msgstr ""
+
+#: src/billing/common.php:192 src/billing/common.php:209
+msgid "No invoices have been sent so far."
+msgstr ""
+
+#: src/billing/common.php:227
+msgid "No payments have been made so far."
+msgstr ""
+
+#: src/billing/common.php:242
+msgid "Customer"
+msgstr ""
+
+#: src/billing/common.php:327 src/billing/common.php:364
+msgid "year"
+msgstr ""
+
+#: src/billing/common.php:328 src/billing/common.php:365
+msgid "month"
+msgstr ""
+
+#: src/billing/common.php:329 src/billing/common.php:366
+msgid "day"
+msgstr ""
+
+#: src/billing/common.php:354 src/billing/editsubscription.php:12
+msgid "Edit subscription"
+msgstr ""
+
+#: src/billing/common.php:383 src/billing/endsubscription.php:12
+msgid "End subscription"
+msgstr ""
+
+#: src/billing/common.php:392 src/billing/common.php:408
+msgid "Discount"
+msgstr ""
+
+#: src/billing/common.php:426
+msgid "Delete selected subscription lines"
+msgstr ""
+
+#: src/billing/common.php:427
+msgid "Create invoice"
+msgstr ""
+
+#: src/billing/common.php:427 src/billing/common.php:432
+msgid "Create Invoice"
+msgstr ""
+
+#: src/billing/common.php:427
+msgid "Create and send an invoice with the selected subscription lines"
+msgstr ""
+
+#: src/billing/common.php:428
+msgid "Send email"
+msgstr ""
+
+#: src/billing/common.php:428
+msgid "Send an email to the customer"
+msgstr ""
+
+#: src/billing/common.php:432
+msgid "Subscription lines"
+msgstr ""
+
+#: src/billing/common.php:438
+msgid "per day"
+msgstr ""
+
+#: src/billing/common.php:438
+#, python-format
+msgid "per %s days"
+msgstr ""
+
+#: src/billing/common.php:440
+msgid "per month"
+msgstr ""
+
+#: src/billing/common.php:440
+#, python-format
+msgid "per %s months"
+msgstr ""
+
+#: src/billing/common.php:442
+msgid "per year"
+msgstr ""
+
+#: src/billing/common.php:442
+#, python-format
+msgid "per %s years"
+msgstr ""
+
+#: src/billing/common.php:444
+msgid "unknown"
+msgstr ""
+
+#: src/billing/endsubscription.php:15
+msgid "Invalid end date"
+msgstr ""
+
+#: src/billing/reminder.php:12
+msgid "Send reminder"
+msgstr ""
+
+#: src/billing/reminder.php:12 src/billing/resend.php:12
+msgid "Send"
+msgstr ""
+
+#: src/billing/resend.php:12
+msgid "Resend invoice"
+msgstr ""
+
+#: src/billing/sendinvoice.php:11 src/billing/sendinvoice.php:34
+msgid "Send invoice"
+msgstr ""
+
+#: src/customers/addcustomer.php:10
+msgid "Add new customer"
+msgstr ""
+
+#: src/customers/addcustomer.php:10 src/customers/common.php:70
+msgid "Add customer"
+msgstr ""
+
+#: src/customers/addcustomer.php:14 src/customers/editcustomer.php:17
+#, python-format
+msgid "Invalid %s"
+msgstr ""
+
+#: src/customers/addcustomer.php:28 src/customers/editcustomer.php:30
+msgid "Invalid invoiceFrequencyMultiplier"
+msgstr ""
+
+#: src/customers/addcustomer.php:29 src/customers/editcustomer.php:31
+msgid "Invalid invoiceFrequencyBase"
+msgstr ""
+
+#: src/customers/addcustomer.php:37
+msgid "A customer with the chosen name already exists"
+msgstr ""
+
+#: src/customers/addcustomer.php:39
+msgid "An account with the chosen name already exists (reserved)."
+msgstr ""
+
+#: src/customers/common.php:51 src/customers/common.php:71
+#: src/customers/common.php:97
+msgid "Nickname"
+msgstr ""
+
+#: src/customers/common.php:51 src/customers/common.php:79
+#: src/customers/common.php:105
+msgid "Email"
+msgstr ""
+
+#: src/customers/common.php:72 src/customers/common.php:98
+msgid "Initials"
+msgstr ""
+
+#: src/customers/common.php:73 src/customers/common.php:99
+msgid "Last name"
+msgstr ""
+
+#: src/customers/common.php:74 src/customers/common.php:100
+msgid "Company name"
+msgstr ""
+
+#: src/customers/common.php:75 src/customers/common.php:101
+msgid "Address"
+msgstr ""
+
+#: src/customers/common.php:76 src/customers/common.php:102
+msgid "Postal code"
+msgstr ""
+
+#: src/customers/common.php:77 src/customers/common.php:103
+msgid "City"
+msgstr ""
+
+#: src/customers/common.php:78 src/customers/common.php:104
+msgid "Country"
+msgstr ""
+
+#: src/customers/common.php:80 src/customers/common.php:106
+msgid "Phone number"
+msgstr ""
+
+#: src/customers/common.php:81 src/customers/common.php:107
+msgid "Invoice interval"
+msgstr ""
+
+#: src/customers/common.php:96 src/customers/editcustomer.php:14
+msgid "Edit customer"
+msgstr ""
+
+#: src/customers/common.php:96
+msgid "Edit"
+msgstr ""
+
+#: src/customers/common.php:117
+#, python-format
+msgid "Customer account for customer %s"
+msgstr ""

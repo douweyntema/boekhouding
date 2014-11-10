@@ -10,7 +10,7 @@ function main()
 	
 	$transactionID = stdGet("suppliersPayment", array("paymentID"=>$paymentID), "transactionID");
 	$date = stdGet("accountingTransaction", array("transactionID"=>$transactionID), "date");
-	$content = makeHeader("Payment on " . date("d-m-Y", $date), suppliersPaymentBreadcrumbs($paymentID));
+	$content = makeHeader(sprintf(_("Payment on %s"), date("d-m-Y", $date)), suppliersPaymentBreadcrumbs($paymentID));
 	
 	$content .= supplierPaymentSummary($paymentID);
 	

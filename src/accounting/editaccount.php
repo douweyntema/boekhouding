@@ -9,13 +9,13 @@ function main()
 	if($accountID == 0) error404();
 	
 	$check = function($condition, $error) use($accountID) {
-		if(!$condition) die(page(makeHeader("Edit account", accountBreadcrumbs($accountID), crumbs("Edit account", "editaccount.php?id=$accountID")) . editAccountForm($accountID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Edit account"), accountBreadcrumbs($accountID), crumbs(_("Edit account"), "editaccount.php?id=$accountID")) . editAccountForm($accountID, $error, $_POST)));
 	};
 	
 	$check(($name = post("name")) !== null, "");
 	$check(($description = post("description")) !== null, "");
 	
-	$check($name != "", "Missing account name.");
+	$check($name != "", _("Missing account name."));
 	$check(post("confirm") !== null, null);
 	
 	accountingEditAccount($accountID, $name, $description);

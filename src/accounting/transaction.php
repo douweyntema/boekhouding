@@ -10,7 +10,7 @@ function main()
 	doAccountingTransaction($transactionID);
 	
 	$date = stdGet("accountingTransaction", array("transactionID"=>$transactionID), "date");
-	$content = makeHeader("Transaction on " . date("d-m-Y", $date), transactionBreadcrumbs($transactionID, $accountID));
+	$content = makeHeader(sprintf(_("Transaction on %s"), date("d-m-Y", $date)), transactionBreadcrumbs($transactionID, $accountID));
 	
 	$content .= transactionSummary($transactionID);
 	

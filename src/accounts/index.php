@@ -6,7 +6,7 @@ function main()
 {
 	doAccountsAdmin();
 	
-		$content = makeHeader("Admin Accounts", accountsBreadcrumbs());
+	$content = makeHeader(_("Accounts"), accountsBreadcrumbs());
 	$content .= adminAccountList();
 	$content .= addAdminAccountForm();
 	echo page($content);

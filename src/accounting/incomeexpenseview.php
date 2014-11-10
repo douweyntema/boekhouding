@@ -9,7 +9,7 @@ function main()
 	
 	$name = stdGet("accountingIncomeExpenseView", array("incomeExpenseViewID"=>$incomeExpenseViewID), "name");
 	$now = time();
-	$content = makeHeader("Income / Expense view $name", incomeExpenseViewBreadcrumbs($incomeExpenseViewID));
+	$content = makeHeader(sprintf(_("Income / Expense view %s"), $name), incomeExpenseViewBreadcrumbs($incomeExpenseViewID));
 	
 	$content .= incomeExpenseViewSummary($incomeExpenseViewID, $now);
 	$content .= incomeExpenseViewList($incomeExpenseViewID, $now);

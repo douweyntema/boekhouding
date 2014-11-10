@@ -10,21 +10,21 @@ function main()
 	acceptFile("file");
 	
 	$check = function($condition, $error, $total = null, $balance = null) use($invoiceID) {
-		if(!$condition) die(page(makeHeader("Add invoice", suppliersInvoiceBreadcrumbs($invoiceID), crumbs("Edit invoice", "editsupplierinvoice.php?id=$invoiceID")) . editSupplierInvoiceForm($invoiceID, $error, $_POST, $total, $balance)));
+		if(!$condition) die(page(makeHeader(_("Edit invoice"), suppliersInvoiceBreadcrumbs($invoiceID), crumbs(_("Edit invoice"), "editsupplierinvoice.php?id=$invoiceID")) . editSupplierInvoiceForm($invoiceID, $error, $_POST, $total, $balance)));
 	};
 	
-	$check(($invoiceNumber = post("invoiceNumber")) !== null, "Missing invoice number.");
-	$check(($date = parseDate(post("date"))) !== null, "Missing date.");
+	$check(($invoiceNumber = post("invoiceNumber")) !== null, _("Missing invoice number."));
+	$check(($date = parseDate(post("date"))) !== null, _("Missing date."));
 	$description = post("description");
-	$check(($taxAmount = parsePrice(post("taxAmount"))) !== null, "Invalid tax amount.");
-	$check($taxAmount >= 0, "Invalid tax amount.");
+	$check(($taxAmount = parsePrice(post("taxAmount"))) !== null, _("Invalid tax amount."));
+	$check($taxAmount >= 0, _("Invalid tax amount."));
 	$pdfType = post("pdfType");
 	
 	$supplierID = stdGet("suppliersInvoice", array("invoiceID"=>$invoiceID), "supplierID");
 	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID");
 	$currencyID = stdGet("accountingAccount", array("accountID"=>$accountID), "currencyID");
 	if($currencyID != $GLOBALS["defaultCurrencyID"]) {
-		$check(($foreignAmount = parsePrice(post("foreignAmount"))) !== null, "Invalid total amount.");
+		$check(($foreignAmount = parsePrice(post("foreignAmount"))) !== null, _("Invalid total amount."));
 	}
 	$transactionID = stdGet("suppliersInvoice", array("invoiceID"=>$invoiceID), "transactionID");
 	
@@ -33,15 +33,15 @@ function main()
 	foreach($lines as $line) {
 		$amount = parsePrice($line["amount"]);
 		if($line["accountID"] == "" && $amount != 0) {
-			$check(false, "No account selected.");
+			$check(false, _("No account selected."));
 		}
 		if($amount == 0) {
 			continue;
 		}
-		$check(stdExists("accountingAccount", array("accountID"=>$line["accountID"])), "Invalid account.");
+		$check(stdExists("accountingAccount", array("accountID"=>$line["accountID"])), _("Invalid account."));
 		$parsedLines[] = array("accountID"=>$line["accountID"], "amount"=>$amount);
 	}
-	$check(count($parsedLines) > 0, "No lines selected.");
+	$check(count($parsedLines) > 0, _("No lines selected."));
 	$parsedLines[] = array("accountID"=>$GLOBALS["taxReceivableAccountID"], "amount"=>$taxAmount);
 	
 	$total = 0;

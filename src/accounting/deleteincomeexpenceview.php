@@ -8,7 +8,7 @@ function main()
 	doAccountingIncomeExpenseView($viewID);
 	
 	$check = function($condition, $error) use($viewID) {
-		if(!$condition) die(page(makeHeader("Delete view", incomeExpenseViewBreadcrumbs($viewID), crumbs("Delete view", "deleteincomeexpenceview.php?id=$viewID")) . deleteIncomeExpenceViewForm($viewID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Delete view"), incomeExpenseViewBreadcrumbs($viewID), crumbs(_("Delete view"), "deleteincomeexpenceview.php?id=$viewID")) . deleteIncomeExpenceViewForm($viewID, $error, $_POST)));
 	};
 	
 	$check(post("confirm") !== null, null);

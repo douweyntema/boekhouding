@@ -13,7 +13,7 @@ if(isset($GLOBALS["controlpanelDisabled"]) && $GLOBALS["controlpanelDisabled"]) 
 	session_destroy();
 	$content = <<<HTML
 <div class="controlpanel-disabled"><div class="operation">
-<h2>Control panel disabled</h2>
+<h2>{$_("Control panel disabled")}</h2>
 {$GLOBALS["controlpanelDisabledNotice"]}
 </div></div>
 HTML;
@@ -71,10 +71,11 @@ if((isset($_SESSION["username"]) && isset($_SESSION["password"])) ||
 
 function loginForm($failed = false)
 {
+	global $_;
 	if($failed) {
 		$errorHtml = <<<HTML
 <tr>
-<td colspan="2"><p class="error">Invalid username or password.</p></td>
+<td colspan="2"><p class="error">{$_("Invalid username or password.")}</p></td>
 </tr>
 
 HTML;
@@ -88,15 +89,15 @@ $errorHtml
 <form action="{$GLOBALS["rootHtml"]}" method="post">
 <table class="login">
 <tr>
-<th>Username:</th>
+<th>{$_("Username")}:</th>
 <td><input type="text" name="username" /></td>
 </tr>
 <tr>
-<th>Password:</th>
+<th>{$_("Password")}:</th>
 <td><input type="password" name="password" /></td>
 </tr>
 <tr>
-<td colspan="2"><input type="submit" value="Login" /></td>
+<td colspan="2"><input type="submit" value="{$_("Login")}" /></td>
 </tr>
 </table>
 </form>

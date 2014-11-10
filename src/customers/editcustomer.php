@@ -11,10 +11,10 @@ function main()
 	$customerNameHtml = htmlentities($customerName);
 	
 	$check = function($condition, $error) use($customerID, $customerNameHtml) {
-		if(!$condition) die(page(makeHeader("Customers - $customerNameHtml", customerBreadcrumbs($customerID), crumbs("Edit customer", "editcustomer.php?id=$customerID")) . editCustomerForm($customerID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("Customers - $customerNameHtml", customerBreadcrumbs($customerID), crumbs(_("Edit customer"), "editcustomer.php?id=$customerID")) . editCustomerForm($customerID, $error, $_POST)));
 	};
 	$notempty = function($field) use($check) {
-		$check(trim(post($field)) != "", "Invalid $field");
+		$check(trim(post($field)) != "", sprintf(_("Invalid %s"), $field));
 	};
 	
 	$notempty("initials");
@@ -27,8 +27,8 @@ function main()
 	$notempty("invoiceFrequencyMultiplier");
 	$notempty("invoiceFrequencyBase");
 	
-	$check(ctype_digit(post("invoiceFrequencyMultiplier")), "Invalid invoiceFrequencyMultiplier");
-	$check(post("invoiceFrequencyBase") == "DAY" || post("invoiceFrequencyBase") == "MONTH" || post("invoiceFrequencyBase") == "YEAR", "Invalid invoiceFrequencyBase");
+	$check(ctype_digit(post("invoiceFrequencyMultiplier")), _("Invalid invoiceFrequencyMultiplier"));
+	$check(post("invoiceFrequencyBase") == "DAY" || post("invoiceFrequencyBase") == "MONTH" || post("invoiceFrequencyBase") == "YEAR", _("Invalid invoiceFrequencyBase"));
 	
 	$companyName = post("companyName");
 	

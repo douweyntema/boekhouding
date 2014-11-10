@@ -8,14 +8,14 @@ function main()
 	doAccountingSupplier($supplierID);
 	
 	$check = function($condition, $error) use($supplierID) {
-		if(!$condition) die(page(makeHeader("Edit supplier", supplierBreadcrumbs($supplierID), crumbs("Edit supplier", "editsupplier.php?id=$supplierID")) . editSupplierForm($supplierID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Edit supplier"), supplierBreadcrumbs($supplierID), crumbs(_("Edit supplier"), "editsupplier.php?id=$supplierID")) . editSupplierForm($supplierID, $error, $_POST)));
 	};
 	
 	$check(($name = post("name")) !== null, "");
 	$check(($defaultExpenseAccountID = post("defaultExpenseAccountID")) !== null, "");
 	
-	$check($name != "", "Missing supplier name.");
-	$check($defaultExpenseAccountID == "" || stdGetTry("accountingAccount", array("accountID"=>$defaultExpenseAccountID), "isDirectory", "1") == "0", "Invalid expense account.");
+	$check($name != "", _("Missing supplier name."));
+	$check($defaultExpenseAccountID == "" || stdGetTry("accountingAccount", array("accountID"=>$defaultExpenseAccountID), "isDirectory", "1") == "0", _("Invalid expense account."));
 	$check(post("confirm") !== null, null);
 	
 	startTransaction();

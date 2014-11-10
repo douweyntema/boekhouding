@@ -8,7 +8,7 @@ function main()
 	$customerID = stdGet("billingPayment", array("paymentID"=>$paymentID), "customerID");
 	doBillingAdmin($customerID);
 	
-	$content = makeHeader("Payment", adminPaymentBreadcrumbs($paymentID));
+	$content = makeHeader(_("Payment"), adminPaymentBreadcrumbs($paymentID));
 	$content .= paymentSummary($paymentID);
 	$content .= editPaymentForm($paymentID);
 	$content .= deletePaymentForm($paymentID);

@@ -27,7 +27,7 @@ function crumbs($name, $filename)
 
 function customersBreadcrumbs()
 {
-	return crumbs("Customers", "");
+	return crumbs(_("Customers"), "");
 }
 
 function customerBreadcrumbs($customerID)
@@ -48,13 +48,13 @@ function customerList()
 			array("url"=>"{$GLOBALS["rootHtml"]}billing/customer.php?id={$customer["customerID"]}", "html"=>formatPrice($balance), "class"=>$balance < 0 ? "balance-negative" : ($customer["invoiceStatus"] == "DISABLED" ? "balance-disabled" : null))
 		);
 	}
-	return listTable(array("Nickname", "Name", "Email", "Balance"), $rows, "Customers", true, "sortable list");
+	return listTable(array(_("Nickname"), _("Name"), _("Email"), _("Balance")), $rows, _("Customers"), true, "sortable list");
 }
 
 function customerBalance($customerID)
 {
-	return summaryTable("Balance", array(
-		"Balance"=>array("url"=>"{$GLOBALS["rootHtml"]}billing/customer.php?id=$customerID", "html"=>formatPrice(billingBalance($customerID)))
+	return summaryTable(_("Balance"), array(
+		_("Balance")=>array("url"=>"{$GLOBALS["rootHtml"]}billing/customer.php?id=$customerID", "html"=>formatPrice(billingBalance($customerID)))
 	));
 }
 
@@ -67,19 +67,19 @@ function addCustomerForm($error = "", $values = null)
 		);
 	}
 	
-	return operationForm("addcustomer.php", $error, "Add customer", "Add", array(
-		array("title"=>"Nickname", "type"=>"text", "name"=>"name"),
-		array("title"=>"Initials", "type"=>"text", "name"=>"initials"),
-		array("title"=>"Last name", "type"=>"text", "name"=>"lastName"),
-		array("title"=>"Company name", "type"=>"text", "name"=>"companyName"),
-		array("title"=>"Address", "type"=>"text", "name"=>"address"),
-		array("title"=>"Postal code", "type"=>"text", "name"=>"postalCode"),
-		array("title"=>"City", "type"=>"text", "name"=>"city"),
-		array("title"=>"Country", "type"=>"dropdown", "name"=>"countryCode", "options"=>dropdown(countryCodes())),
-		array("title"=>"Email", "type"=>"text", "name"=>"email"),
-		array("title"=>"Phone number", "type"=>"text", "name"=>"phoneNumber"),
-		array("title"=>"Invoice interval", "type"=>"colspan", "columns"=>array(
-			array("type"=>"html", "html"=>"per"),
+	return operationForm("addcustomer.php", $error, _("Add customer"), _("Add"), array(
+		array("title"=>_("Nickname"), "type"=>"text", "name"=>"name"),
+		array("title"=>_("Initials"), "type"=>"text", "name"=>"initials"),
+		array("title"=>_("Last name"), "type"=>"text", "name"=>"lastName"),
+		array("title"=>_("Company name"), "type"=>"text", "name"=>"companyName"),
+		array("title"=>_("Address"), "type"=>"text", "name"=>"address"),
+		array("title"=>_("Postal code"), "type"=>"text", "name"=>"postalCode"),
+		array("title"=>_("City"), "type"=>"text", "name"=>"city"),
+		array("title"=>_("Country"), "type"=>"dropdown", "name"=>"countryCode", "options"=>dropdown(countryCodes())),
+		array("title"=>_("Email"), "type"=>"text", "name"=>"email"),
+		array("title"=>_("Phone number"), "type"=>"text", "name"=>"phoneNumber"),
+		array("title"=>_("Invoice interval"), "type"=>"colspan", "columns"=>array(
+			array("type"=>"html", "html"=>_("per")),
 			array("type"=>"text", "name"=>"invoiceFrequencyMultiplier", "fill"=>true),
 			array("type"=>"dropdown", "name"=>"invoiceFrequencyBase", "options"=>dropdown(array("DAY"=>"days", "MONTH"=>"months", "YEAR"=>"years")))
 		)),
@@ -93,19 +93,19 @@ function editCustomerForm($customerID, $error = "", $values = null)
 	if($values === null) {
 		$values = $customer;
 	}
-	return operationForm("editcustomer.php?id=$customerID", $error, "Edit customer", "Edit", array(
-		array("title"=>"Nickname", "type"=>"html", "html"=>$customer["name"]),
-		array("title"=>"Initials", "type"=>"text", "name"=>"initials"),
-		array("title"=>"Last name", "type"=>"text", "name"=>"lastName"),
-		array("title"=>"Company name", "type"=>"text", "name"=>"companyName"),
-		array("title"=>"Address", "type"=>"text", "name"=>"address"),
-		array("title"=>"Postal code", "type"=>"text", "name"=>"postalCode"),
-		array("title"=>"City", "type"=>"text", "name"=>"city"),
-		array("title"=>"Country", "type"=>"dropdown", "name"=>"countryCode", "options"=>dropdown(countryCodes())),
-		array("title"=>"Email", "type"=>"text", "name"=>"email"),
-		array("title"=>"Phone number", "type"=>"text", "name"=>"phoneNumber"),
-		array("title"=>"Invoice interval", "type"=>"colspan", "columns"=>array(
-			array("type"=>"html", "html"=>"per"),
+	return operationForm("editcustomer.php?id=$customerID", $error, _("Edit customer"), _("Edit"), array(
+		array("title"=>_("Nickname"), "type"=>"html", "html"=>$customer["name"]),
+		array("title"=>_("Initials"), "type"=>"text", "name"=>"initials"),
+		array("title"=>_("Last name"), "type"=>"text", "name"=>"lastName"),
+		array("title"=>_("Company name"), "type"=>"text", "name"=>"companyName"),
+		array("title"=>_("Address"), "type"=>"text", "name"=>"address"),
+		array("title"=>_("Postal code"), "type"=>"text", "name"=>"postalCode"),
+		array("title"=>_("City"), "type"=>"text", "name"=>"city"),
+		array("title"=>_("Country"), "type"=>"dropdown", "name"=>"countryCode", "options"=>dropdown(countryCodes())),
+		array("title"=>_("Email"), "type"=>"text", "name"=>"email"),
+		array("title"=>_("Phone number"), "type"=>"text", "name"=>"phoneNumber"),
+		array("title"=>_("Invoice interval"), "type"=>"colspan", "columns"=>array(
+			array("type"=>"html", "html"=>_("per")),
 			array("type"=>"text", "name"=>"invoiceFrequencyMultiplier", "fill"=>true),
 			array("type"=>"dropdown", "name"=>"invoiceFrequencyBase", "options"=>dropdown(array("DAY"=>"days", "MONTH"=>"months", "YEAR"=>"years")))
 		)),
@@ -114,7 +114,7 @@ function editCustomerForm($customerID, $error = "", $values = null)
 
 function customerAccountDescription($name, $initials, $lastName)
 {
-	return "Customer account for customer $name ($initials $lastName)";
+	return sprintf(_("Customer account for customer %s"), "$name ($initials $lastName)");
 }
 
 ?>

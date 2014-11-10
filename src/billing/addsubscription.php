@@ -8,31 +8,31 @@ function main()
 	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($customerID) {
-		if(!$condition) die(page(makeHeader("Add subscription", adminCustomerBreadcrumbs($customerID), crumbs("Add subscription", "addsubscription.php?id=" . $customerID)) . addSubscriptionForm($customerID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Add subscription"), adminCustomerBreadcrumbs($customerID), crumbs(_("Add subscription"), "addsubscription.php?id=" . $customerID)) . addSubscriptionForm($customerID, $error, $_POST)));
 	};
 	
 	$invoiceDelay = post("invoiceDelay") * 3600 * 24;
 	
-	$check(($price = parsePrice(post("price"))) !== null, "Invalid price");
-	$check($price != 0, "Amount is zero");
+	$check(($price = parsePrice(post("price"))) !== null, _("Invalid price"));
+	$check($price != 0, _("Amount is zero"));
 	if(post("discountPercentage") == "" || post("discountPercentage") == "0") {
 		$discountPercentage = null;
 	} else {
 		$discountPercentage = post("discountPercentage");
-		$check(ctype_digit($discountPercentage), "Invalid discount percentage");
-		$check($discountPercentage >= 0, "Invalid discount percentage");
-		$check($discountPercentage <= 100, "Invalid discount percentage");
+		$check(ctype_digit($discountPercentage), _("Invalid discount percentage"));
+		$check($discountPercentage >= 0, _("Invalid discount percentage"));
+		$check($discountPercentage <= 100, _("Invalid discount percentage"));
 	}
-	$check(($discountAmount = parsePrice(post("discountAmount"))) !== null, "Invalid discount amount");
+	$check(($discountAmount = parsePrice(post("discountAmount"))) !== null, _("Invalid discount amount"));
 	if($discountAmount == 0) {
 		$discountAmount = null;
 	}
-	$check(ctype_digit(post("frequencyMultiplier")), "Invalid frequency multiplier");
-	$check((post("frequencyBase") == "YEAR" || post("frequencyBase") == "MONTH" || post("frequencyBase") == "DAY"), "Invalid frequency base");
-	$check(($nextPeriodStart = parseDate(post("nextPeriodStart"))) !== null, "Invalid start date");
-	$check(is_int($invoiceDelay), "Invalid invoice delay");
-	$check(($revenueAccountID = post("revenueAccountID")) !== "", "Invalid revenue account");
-	$check(stdExists("accountingAccount", array("accountID"=>$revenueAccountID)), "Invalid revenue account");
+	$check(ctype_digit(post("frequencyMultiplier")), _("Invalid frequency multiplier"));
+	$check((post("frequencyBase") == "YEAR" || post("frequencyBase") == "MONTH" || post("frequencyBase") == "DAY"), _("Invalid frequency base"));
+	$check(($nextPeriodStart = parseDate(post("nextPeriodStart"))) !== null, _("Invalid start date"));
+	$check(is_int($invoiceDelay), _("Invalid invoice delay"));
+	$check(($revenueAccountID = post("revenueAccountID")) !== "", _("Invalid revenue account"));
+	$check(stdExists("accountingAccount", array("accountID"=>$revenueAccountID)), _("Invalid revenue account"));
 	$check(post("confirm") !== null, null);
 	
 	billingNewSubscription($customerID, $revenueAccountID, post("description"), $price, $discountPercentage, $discountAmount, null, post("frequencyBase"), post("frequencyMultiplier"), $invoiceDelay, $nextPeriodStart);

@@ -6,7 +6,7 @@ function main()
 {
 	doBilling();
 	
-	$content = makeHeader("Billing", customersBillingBreadcrumbs());
+	$content = makeHeader(_("Billing"), customersBillingBreadcrumbs());
 	$content .= customerSubscriptionList();
 	$content .= customerInvoiceList(customerID());
 	

@@ -9,7 +9,7 @@ function main()
 	
 	$name = stdGet("accountingBalanceView", array("balanceViewID"=>$balanceViewID), "name");
 	$now = time();
-	$content = makeHeader("Balance $name", balanceViewBreadcrumbs($balanceViewID));
+	$content = makeHeader(sprintf(_("Balance %s"), $name), balanceViewBreadcrumbs($balanceViewID));
 	
 	$content .= balanceViewSummary($balanceViewID, $now);
 	$content .= balanceViewList($balanceViewID, $now);

@@ -32,7 +32,7 @@ function crumbs($name, $filename)
 
 function accountsBreadcrumbs()
 {
-	return crumbs("Accounts", "");
+	return crumbs(_("Accounts"), "");
 }
 
 function accountBreadcrumbs($userID)
@@ -48,29 +48,29 @@ function adminAccountList()
 			array("url"=>"{$GLOBALS["rootHtml"]}accounts/adminaccount.php?id={$account["userID"]}", "text"=>$account["username"])
 		);
 	}
-	return listTable(array("Account name"), $rows, null, true, "list sortable");
+	return listTable(array(_("Account name")), $rows, null, true, "list sortable");
 }
 
 function addAdminAccountForm($error = "", $values = null)
 {
-	return operationForm("addadminaccount.php", $error, "Add admin account", "Add",
+	return operationForm("addadminaccount.php", $error, _("Add admin account"), _("Add"),
 		array(
-			array("title"=>"Username", "type"=>"text", "name"=>"username"),
-			array("title"=>"Password", "type"=>"password", "name"=>"password", "confirmtitle"=>"Confirm password"),
+			array("title"=>_("Username"), "type"=>"text", "name"=>"username"),
+			array("title"=>_("Password"), "type"=>"password", "name"=>"password", "confirmtitle"=>_("Confirm password")),
 		),
 		$values);
 }
 
 function changeAdminAccountPasswordForm($userID, $error = "", $values = null)
 {
-	return operationForm("editadminpassword.php?id=$userID", $error, "Change password", "Change Password", array(
-		array("title"=>"Password", "type"=>"password", "name"=>"password", "confirmtitle"=>"Confirm password"),
+	return operationForm("editadminpassword.php?id=$userID", $error, _("Change password"), _("Change Password"), array(
+		array("title"=>_("Password"), "type"=>"password", "name"=>"password", "confirmtitle"=>_("Confirm password")),
 	), $values);
 }
 
 function removeAdminAccountForm($userID, $error, $values = null)
 {
-	return operationForm("removeadminaccount.php?id=$userID", $error, "Remove admin account", "Remove Account", array(), $values, array("confirmdelete"=>"Are you sure you want to remove this admin account?"));
+	return operationForm("removeadminaccount.php?id=$userID", $error, _("Remove admin account"), _("Remove Account"), array(), $values, array("confirmdelete"=>_("Are you sure you want to remove this admin account?")));
 }
 
 ?>

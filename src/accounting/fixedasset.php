@@ -7,7 +7,7 @@ function main()
 	$fixedAssetID = get("id");
 	doAccountingFixedAsset($fixedAssetID);
 	$fixedAsset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("name", "performedDepreciations", "totalDepreciations", "automaticDepreciation"));
-	$content = makeHeader("Fixed asset {$fixedAsset["name"]}", fixedAssetBreadcrumbs($fixedAssetID));
+	$content = makeHeader(sprintf(_("Fixed asset %s"), $fixedAsset["name"]), fixedAssetBreadcrumbs($fixedAssetID));
 	
 	$content .= fixedAssetSummary($fixedAssetID);
 	if(($fixedAsset["performedDepreciations"] < $fixedAsset["totalDepreciations"]) && !$fixedAsset["automaticDepreciation"]) {

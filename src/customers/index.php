@@ -9,7 +9,7 @@ function main()
 {
 	doCustomers();
 	
-	$content = makeHeader("Customers", customersBreadcrumbs());
+	$content = makeHeader(_("Customers"), customersBreadcrumbs());
 	$content .= customerList();
 	$content .= addCustomerForm();
 	echo page($content);

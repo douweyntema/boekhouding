@@ -9,7 +9,7 @@ function main()
 	doAccountingInvoice($invoiceID);
 	
 	$invoiceNumber = stdGet("suppliersInvoice", array("invoiceID"=>$invoiceID), "invoiceNumber");
-	$content = makeHeader("Invoice " . $invoiceNumber, suppliersInvoiceBreadcrumbs($invoiceID));
+	$content = makeHeader(sprintf(_("Invoice %s"), $invoiceNumber), suppliersInvoiceBreadcrumbs($invoiceID));
 	
 	$content .= supplierInvoiceSummary($invoiceID);
 	

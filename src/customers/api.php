@@ -1,6 +1,6 @@
 <?php
 
-$customersTitle = "Customers";
+$customersTitle = _("Customers");
 $customersTarget = "admin";
 
 function customersOverview()

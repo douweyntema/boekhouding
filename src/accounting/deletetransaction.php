@@ -11,12 +11,12 @@ function main()
 	
 	$check = function($condition, $error) use($transactionID, $accountID) {
 		$date = stdGet("accountingTransaction", array("transactionID"=>$transactionID), "date");
-		$content = makeHeader("Transaction on " . date("d-m-Y", $date), transactionBreadcrumbs($transactionID, $accountID));
-		if(!$condition) die(page(makeHeader("Transaction on " . date("d-m-Y", $date), transactionBreadcrumbs($transactionID, $accountID), crumbs("Delete transaction", "deletetransaction.php?id=$transactionID&accountID=$accountID")) . deleteTransactionForm($transactionID, $accountID, $error, $_POST)));
+		$content = makeHeader(sprintf(_("Transaction on %s"), date("d-m-Y", $date)), transactionBreadcrumbs($transactionID, $accountID));
+		if(!$condition) die(page(makeHeader(sprintf(_("Transaction on %s"), date("d-m-Y", $date)), transactionBreadcrumbs($transactionID, $accountID), crumbs(_("Delete transaction"), "deletetransaction.php?id=$transactionID&accountID=$accountID")) . deleteTransactionForm($transactionID, $accountID, $error, $_POST)));
 	};
 	
 	$type = accountingTransactionType($transactionID);
-	$check(($type["type"] == "NONE"), "This transaction is linked to an invoice or payment.");
+	$check(($type["type"] == "NONE"), _("This transaction is linked to an invoice or payment."));
 	$check(post("confirm") !== null, null);
 	
 	accountingDeleteTransaction($transactionID);

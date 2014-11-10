@@ -8,7 +8,7 @@ function main()
 	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($customerID) {
-		if(!$condition) die(page(makeHeader("Change invoice status", adminCustomerBreadcrumbs($customerID), crumbs("Change invoice status", "changestatus.php?id=" . $customerID)) . invoiceStatusForm($customerID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Change invoice status"), adminCustomerBreadcrumbs($customerID), crumbs(_("Change invoice status"), "changestatus.php?id=" . $customerID)) . invoiceStatusForm($customerID, $error, $_POST)));
 	};
 	
 	$check(post("invoiceStatus") == "UNSET" || post("invoiceStatus") == "DISABLED" || post("invoiceStatus") == "PREVIEW" || post("invoiceStatus") == "ENABLED", "");

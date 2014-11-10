@@ -7,17 +7,17 @@ function main()
 	doAccounting();
 	
 	$check = function($condition, $error) {
-		if(!$condition) die(page(makeHeader("Add fixed asset", accountingBreadcrumbs(), crumbs("Add fixed asset", "addfixedasset.php")) . addFixedAssetForm($error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Add fixed asset"), accountingBreadcrumbs(), crumbs(_("Add fixed asset"), "addfixedasset.php")) . addFixedAssetForm($error, $_POST)));
 	};
 	
 	$check(($name = post("name")) !== null, "");
 	$description = post("description");
-	$check(($purchaseDate = parseDate(post("purchaseDate"))) !== null, "Invalid purchase date.");
-	$check(ctype_digit(post("depreciationFrequencyMultiplier")), "Invalid depreciationFrequencyMultiplier");
-	$check(post("depreciationFrequencyBase") == "DAY" || post("depreciationFrequencyBase") == "MONTH" || post("depreciationFrequencyBase") == "YEAR", "Invalid depreciationFrequencyBase");
-	$check(ctype_digit($depreciationTerms = post("depreciationTerms")), "Invalid depreciation terms.");
-	$check($depreciationTerms > 0, "Invalid depreciation terms.");
-	$check(ctype_digit($residualValuePercentage = post("residualValue")), "Invalid residual value.");
+	$check(($purchaseDate = parseDate(post("purchaseDate"))) !== null, _("Invalid purchase date."));
+	$check(ctype_digit(post("depreciationFrequencyMultiplier")), _("Invalid depreciationFrequencyMultiplier"));
+	$check(post("depreciationFrequencyBase") == "DAY" || post("depreciationFrequencyBase") == "MONTH" || post("depreciationFrequencyBase") == "YEAR", _("Invalid depreciationFrequencyBase"));
+	$check(ctype_digit($depreciationTerms = post("depreciationTerms")), _("Invalid depreciation terms."));
+	$check($depreciationTerms > 0, _("Invalid depreciation terms."));
+	$check(ctype_digit($residualValuePercentage = post("residualValue")), _("Invalid residual value."));
 	
 	
 	$check(post("confirm") !== null, null);

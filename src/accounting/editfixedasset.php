@@ -8,13 +8,13 @@ function main()
 	doAccountingFixedAsset($fixedAssetID);
 	
 	$check = function($condition, $error) use($fixedAssetID) {
-		if(!$condition) die(page(makeHeader("Edit fixed asset", fixedAssetBreadcrumbs($fixedAssetID), crumbs("Edit fixed asset", "editfixedasset.php?id=$fixedAssetID")) . editFixedAssetForm($fixedAssetID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Edit fixed asset"), fixedAssetBreadcrumbs($fixedAssetID), crumbs(_("Edit fixed asset"), "editfixedasset.php?id=$fixedAssetID")) . editFixedAssetForm($fixedAssetID, $error, $_POST)));
 	};
 	
 	$check(($name = post("name")) !== null, "");
 	$check(($description = post("description")) != null, "");
 	
-	$check($name != "", "Missing account name.");
+	$check($name != "", _("Missing account name."));
 	$check(post("confirm") !== null, null);
 	
 	$fixedAsset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID", "expenseAccountID"));

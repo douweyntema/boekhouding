@@ -12,7 +12,7 @@ function main()
 	doAccountingSupplier($supplierID);
 	
 	$check = function($condition, $error) use($supplierID, $invoiceID) {
-		if(!$condition) die(page(makeHeader("Delete invoice", supplierBreadcrumbs($supplierID), crumbs("Delete invoice", "deletesupplierinvoice.php?id=$invoiceID")) . deleteSupplierInvoiceForm($invoiceID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Delete invoice"), supplierBreadcrumbs($supplierID), crumbs(_("Delete invoice"), "deletesupplierinvoice.php?id=$invoiceID")) . deleteSupplierInvoiceForm($invoiceID, $error, $_POST)));
 	};
 	
 	$check(post("confirm") !== null, null);

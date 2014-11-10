@@ -9,7 +9,7 @@ function main()
 	$username = htmlentities(stdGet("adminUser", array("userID"=>$userID), "username"));
 	
 	$check = function($condition, $error) use($userID, $username) {
-		if(!$condition) die(page(makeHeader("Accounts - $username", accountBreadcrumbs($userID), crumbs("Remove admin account", "removeadminaccount.php?id=$userID")) . removeAdminAccountForm($userID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(sprintf(_("Accounts - %s"), $username), accountBreadcrumbs($userID), crumbs(_("Remove admin account"), "removeadminaccount.php?id=$userID")) . removeAdminAccountForm($userID, $error, $_POST)));
 	};
 	
 	$check(post("confirm") !== null, null);

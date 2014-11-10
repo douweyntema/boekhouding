@@ -11,7 +11,7 @@ function main()
 	
 	$customerName = stdGet("adminCustomer", array("customerID"=>$customerID), "name");
 	
-	$content = makeHeader("Customers - $customerName", customerBreadcrumbs($customerID));
+	$content = makeHeader(_("Customers") . " - $customerName", customerBreadcrumbs($customerID));
 	$content .= customerBalance($customerID);
 	$content .= editCustomerForm($customerID);
 	echo page($content);

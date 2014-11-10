@@ -4,8 +4,8 @@ $GLOBALS["loginAllowed"] = true;
 
 require_once("common.php");
 
-$content = "<h1>Welcome</h1>";
-$content .= breadcrumbs(array(array("name"=>"Home", "url"=>"{$GLOBALS["root"]}")));
+$content = "<h1>" . _("Welcome") . "</h1>";
+$content .= breadcrumbs(array(array("name"=>_("Home"), "url"=>"{$GLOBALS["root"]}")));
 
 $newsItems = stdList("adminNews", array(), array("title", "text", "date"), array("date"=>"desc"));
 $count = 0;
@@ -29,19 +29,10 @@ HTML;
 }
 
 if(isRoot()) {
-	$content .= <<<HTML
-<div class="operation">
-<h2>New news item</h2>
-<form action="addnews.php" method="post">
-<table>
-<tr><th>Title:</th><td><input type="text" name="title" /></td></tr>
-<tr><td colspan="2"><textarea name="text"></textarea></td></tr>
-<tr class="submit"><td colspan="2"><input type="submit" value="Add news item"></td></tr>
-</table>
-</form>
-</div>
-
-HTML;
+	$content .= operationForm("addnews.php", "", _("New news item"), _("Add news item"), array(
+		array("title"=>_("Title"), "type"=>"text", "name"=>"title"),
+		array("title"=>null, "type"=>"textarea", "name"=>"text"),
+	), null);
 }
 
 echo page($content);

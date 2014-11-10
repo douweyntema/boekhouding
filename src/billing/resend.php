@@ -9,7 +9,7 @@ function main()
 	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($customerID, $invoiceID) {
-		if(!$condition) die(page(makeHeader("Resend invoice", adminCustomerBreadcrumbs($customerID), crumbs("Resend invoice", "resend.php?id=" . $invoiceID)) . operationForm("resend.php?id=$invoiceID", $error, "Resend invoice", "Send", array(), $_POST)));
+		if(!$condition) die(page(makeHeader(_("Resend invoice"), adminCustomerBreadcrumbs($customerID), crumbs(_("Resend invoice"), "resend.php?id=" . $invoiceID)) . operationForm("resend.php?id=$invoiceID", $error, _("Resend invoice"), _("Send"), array(), $_POST)));
 	};
 	
 	$check(post("confirm") !== null, null);

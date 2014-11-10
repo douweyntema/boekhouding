@@ -8,10 +8,10 @@ function main()
 	doAccountingFixedAsset($fixedAssetID);
 	
 	$check = function($condition, $error) use($fixedAssetID) {
-		if(!$condition) die(page(makeHeader("Delete fixed asset", fixedAssetBreadcrumbs($fixedAssetID), crumbs("Delete fixed asset", "editfixedasset.php?id=$fixedAssetID")) . deleteFixedAssetForm($fixedAssetID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Delete fixed asset"), fixedAssetBreadcrumbs($fixedAssetID), crumbs(_("Delete fixed asset"), "editfixedasset.php?id=$fixedAssetID")) . deleteFixedAssetForm($fixedAssetID, $error, $_POST)));
 	};
 	
-	$check(fixedAssetEmpty($fixedAssetID), "Fixed asset is still in use.");
+	$check(fixedAssetEmpty($fixedAssetID), _("Fixed asset is still in use."));
 	$check(post("confirm") !== null, null);
 	
 	$fixedAsset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID", "expenseAccountID"));

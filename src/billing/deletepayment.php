@@ -9,7 +9,7 @@ function main()
 	doBillingAdmin($customerID);
 	
 	$check = function($condition, $error) use($paymentID) {
-		if(!$condition) die(page(makeHeader("Delete payment", adminPaymentBreadcrumbs($paymentID), crumbs("Delete payment", "deletepayment.php?id=" . $paymentID)) . deletePaymentForm($paymentID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Delete payment"), adminPaymentBreadcrumbs($paymentID), crumbs(_("Delete payment"), "deletepayment.php?id=" . $paymentID)) . deletePaymentForm($paymentID, $error, $_POST)));
 	};
 	
 	$check(post("confirm") !== null, null);

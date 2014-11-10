@@ -10,7 +10,7 @@ function main()
 	$username = htmlentities(stdGet("adminUser", array("userID"=>$userID), "username"));
 	
 	$check = function($condition, $error) use($userID, $username) {
-		if(!$condition) die(page(makeHeader("Accounts - $username", accountBreadcrumbs($userID), crumbs("Edit password", "editadminpassword.php?id=$userID")) . changeAdminAccountPasswordForm($userID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader("Accounts - $username", accountBreadcrumbs($userID), crumbs(_("Edit password"), "editadminpassword.php?id=$userID")) . changeAdminAccountPasswordForm($userID, $error, $_POST)));
 	};
 	
 	$password = checkPassword($check, "password");

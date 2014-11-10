@@ -7,15 +7,15 @@ function main()
 	doAccountsAdmin();
 	
 	$check = function($condition, $error) {
-		if(!$condition) die(page(makeHeader("Add admin account", accountsBreadcrumbs(), crumbs("Add admin account", "addadminaccount.php")) . addAdminAccountForm($error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Add admin account"), accountsBreadcrumbs(), crumbs(_("Add admin account"), "addadminaccount.php")) . addAdminAccountForm($error, $_POST)));
 	};
 	
 	$check(post("username") !== null, "");
 	
 	$username = post("username");
 	
-	$check(validAccountName($username), "Invalid account name.");
-	$check(!stdExists("adminUser", array("username"=>$username)), "An account with the chosen name already exists.");
+	$check(validAccountName($username), _("Invalid account name."));
+	$check(!stdExists("adminUser", array("username"=>$username)), _("An account with the chosen name already exists."));
 	
 	$password = checkPassword($check, "password");
 	$check(post("confirm") !== null, null);

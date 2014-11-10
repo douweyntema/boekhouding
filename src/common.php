@@ -1,5 +1,14 @@
 <?php
 
+$locale = "nl_NL.UTF-8";
+putenv("LC_ALL=$locale");
+setlocale(LC_ALL, $locale);
+
+bindtextdomain("boekhouding", dirname(__FILE__) . "/../locale");
+textdomain("boekhouding");
+
+$_ = "gettext";
+
 require_once(dirname(__FILE__) . "/config.php");
 require_once("/usr/lib/phpdatabase/database.php");
 require_once("/usr/lib/phpmail/mimemail.php");
@@ -183,10 +192,10 @@ function welcomeHeader()
 {
 	global $_;
 	if(isLoggedIn()) {
-		$loginMessage = "Logged in as " . htmlentities(username());
+		$loginMessage = sprintf(_("Logged in as %s"), htmlentities(username()));
 		return <<<HTML
 <div class="welcome">
-<span>$loginMessage - <a href="{$GLOBALS["rootHtml"]}logout.php">log out</a></span>
+<span>$loginMessage - <a href="{$GLOBALS["rootHtml"]}logout.php">{$_("log out")}</a></span>
 </div>
 
 HTML;
@@ -206,7 +215,7 @@ function menu()
 	
 	if(isRoot()) {
 		$output .= "<ul>\n";
-		$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}\">Welcome</a></li>\n";
+		$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}\">" . _("Welcome") . "</a></li>\n";
 		foreach(components() as $component) {
 			if($component["menu"] == "customer") {
 				continue;

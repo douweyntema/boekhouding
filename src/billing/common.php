@@ -33,16 +33,16 @@ function crumbs($name, $filename)
 
 function customersBillingBreadcrumbs()
 {
-	return crumbs("Billing", "");
+	return crumbs(_("Billing"), "");
 }
 
 function adminCustomerBreadcrumbs($customerID)
 {
 	$name = stdGet("adminCustomer", array("customerID"=>$customerID), "name");
 	return array(
-		array("name"=>"Customers", "url"=>"{$GLOBALS["root"]}customers/"),
+		array("name"=>_("Customers"), "url"=>"{$GLOBALS["root"]}customers/"),
 		array("name"=>$name, "url"=>"{$GLOBALS["root"]}customers/customer.php?id=$customerID"),
-		crumb("Billing", "customer.php?id=$customerID")
+		crumb(_("Billing"), "customer.php?id=$customerID")
 	);
 }
 
@@ -56,17 +56,16 @@ function adminPaymentBreadcrumbs($paymentID)
 {
 	$payment = stdGet("billingPayment", array("paymentID"=>$paymentID), array("customerID", "transactionID"));
 	$date = stdGet("accountingTransaction", array("transactionID"=>$payment["transactionID"]), "date");
-	$name = "Payment on " . date("d-m-Y", $date);
+	$name = sprintf(_("Payment on %s"), date("d-m-Y", $date));
 	return array_merge(adminCustomerBreadcrumbs($payment["customerID"]), crumbs($name, "payment.php?id=$payment"));
 }
 
 function customerSummary($customerID)
 {
 	$customer = stdGet("adminCustomer", array("customerID"=>$customerID), array("accountID", "name", "invoiceStatus"));
-	return summaryTable("Customer {$customer["name"]}", array(
-		"Balance"=>array("url"=>"{$GLOBALS["rootHtml"]}accounting/account.php?id={$customer["accountID"]}", "html"=>accountingFormatAccountPrice($customer["accountID"], true)),
-		"Invoice status"=>ucfirst(strtolower($customer["invoiceStatus"])),
-		
+	return summaryTable(sprintf(_("Customer %s"), $customer["name"]), array(
+		_("Balance")=>array("url"=>"{$GLOBALS["rootHtml"]}accounting/account.php?id={$customer["accountID"]}", "html"=>accountingFormatAccountPrice($customer["accountID"], true)),
+		_("Invoice status")=>ucfirst(strtolower($customer["invoiceStatus"])),
 	));
 }
 
@@ -75,13 +74,13 @@ function invoiceStatusForm($customerID, $error = "", $values = null)
 	if($values === null) {
 		$values = stdGet("adminCustomer", array("customerID"=>$customerID), array("invoiceStatus"));
 	}
-	return operationForm("changestatus.php?id=$customerID", $error, "Change invoice status", "Save",
+	return operationForm("changestatus.php?id=$customerID", $error, _("Change invoice status"), _("Save"),
 		array(
-			array("title"=>"Status", "type"=>"dropdown", "name"=>"invoiceStatus", "options"=>array(
-				array("label"=>"Unset", "value"=>"UNSET"),
-				array("label"=>"Disabled", "value"=>"DISABLED"),
-				array("label"=>"Preview", "value"=>"PREVIEW"),
-				array("label"=>"Enabled", "value"=>"ENABLED")
+			array("title"=>_("Status"), "type"=>"dropdown", "name"=>"invoiceStatus", "options"=>array(
+				array("label"=>_("Unset"), "value"=>"UNSET"),
+				array("label"=>_("Disabled"), "value"=>"DISABLED"),
+				array("label"=>_("Preview"), "value"=>"PREVIEW"),
+				array("label"=>_("Enabled"), "value"=>"ENABLED")
 			)),
 		),
 		$values);
@@ -92,7 +91,7 @@ function subscriptionList($customerID)
 	$rows = array();
 	foreach(stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
 		if($subscription["discountPercentage"] === null && $subscription["discountAmount"] === null) {
-			$priceDetail = "None";
+			$priceDetail = _("None");
 		} else {
 			$priceDetail = formatPrice(billingBasePrice($subscription));
 			if($subscription["discountPercentage"] !== null) {
@@ -119,7 +118,7 @@ function subscriptionList($customerID)
 			$endDate
 		);
 	}
-	return listTable(array("Description", "Price", "Discounts", "Renew date", "End date"), $rows, "Subscriptions", true, "sortable list");
+	return listTable(array(_("Description"), _("Price"), _("Discounts"), _("Renew date"), _("End date")), $rows, _("Subscriptions"), true, "sortable list");
 }
 
 function customerSubscriptionList()
@@ -131,7 +130,7 @@ function customerSubscriptionList()
 			array("html"=>formatSubscriptionPrice($subscription))
 		);
 	}
-	return listTable(array("Description", "Price"), $rows, "Subscriptions", false, "sortable list");
+	return listTable(array(_("Description"), _("Price")), $rows, _("Subscriptions"), false, "sortable list");
 }
 
 function subscriptionDetail($subscriptionID)
@@ -151,26 +150,26 @@ function subscriptionDetail($subscriptionID)
 	}
 	
 	if($subscription["invoiceDelay"] == 0) {
-		$delay = "None";
+		$delay = _("None");
 	} else if($subscription["invoiceDelay"] > 0) {
-		$delay = ceil($subscription["invoiceDelay"] / 86400) . " days later";
+		$delay = sprintf(_("%s days later"), ceil($subscription["invoiceDelay"] / 86400));
 	} else {
-		$delay = ceil(-1 * $subscription["invoiceDelay"] / 86400) . " days in advance";
+		$delay = sprintf(_("%s days in advance"), ceil(-1 * $subscription["invoiceDelay"] / 86400));
 	}
 	
 	$revenueAccountName = stdGet("accountingAccount", array("accountID"=>$subscription["revenueAccountID"]), "name");
 	
-	return summaryTable("Subscription", array(
-		"Description"=>$subscription["description"],
-		"Price"=>array("html"=>formatSubscriptionPrice($subscription)),
-		"Base price"=>array("html"=>formatPrice(billingBasePrice($subscription))),
-		"Discount percentage"=>array("html"=>$discountPercentage),
-		"Discount amount"=>array("html"=>$discountAmount),
-		"Frequency"=>frequency($subscription),
-		"Invoice delay"=>$delay,
-		"Renew date"=>date("d-m-Y", $subscription["nextPeriodStart"]),
-		"End date"=>($subscription["endDate"] === null ? "-" : date("d-m-Y", $subscription["endDate"])),
-		"Revenue account"=>array("url"=>"{$GLOBALS["rootHtml"]}accounting/account.php?id={$subscription["revenueAccountID"]}", "text"=>$revenueAccountName),
+	return summaryTable(_("Subscription"), array(
+		_("Description")=>$subscription["description"],
+		_("Price")=>array("html"=>formatSubscriptionPrice($subscription)),
+		_("Base price")=>array("html"=>formatPrice(billingBasePrice($subscription))),
+		_("Discount percentage")=>array("html"=>$discountPercentage),
+		_("Discount amount")=>array("html"=>$discountAmount),
+		_("Frequency")=>frequency($subscription),
+		_("Invoice delay")=>$delay,
+		_("Renew date")=>date("d-m-Y", $subscription["nextPeriodStart"]),
+		_("End date")=>($subscription["endDate"] === null ? "-" : date("d-m-Y", $subscription["endDate"])),
+		_("Revenue account")=>array("url"=>"{$GLOBALS["rootHtml"]}accounting/account.php?id={$subscription["revenueAccountID"]}", "text"=>$revenueAccountName),
 	));
 }
 
@@ -190,7 +189,7 @@ function invoiceList($customerID)
 			array("url"=>"resend.php?id={$invoice["invoiceID"]}", "text"=>"Resend")
 		);
 	}
-	return listTable(array("Date", "Invoice number", "Amount", "Remaining amount", "Reminder", "Resend"), $rows, "Invoices", "No invoices have been sent so far.", "sortable list");
+	return listTable(array(_("Date"), _("Invoice number"), _("Amount"), _("Remaining amount"), _("Reminder"), _("Resend")), $rows, _("Invoices"), _("No invoices have been sent so far."), "sortable list");
 }
 
 function customerInvoiceList($customerID)
@@ -207,7 +206,7 @@ function customerInvoiceList($customerID)
 			array("html"=>($invoice["remainingAmount"] == 0 ? "Paid" : formatPrice($invoice["remainingAmount"]))),
 		);
 	}
-	return listTable(array("Invoice number", "Date", "Amount", "Remaining amount"), $rows, "Invoices", "No invoices have been sent so far.", "sortable list");
+	return listTable(array(_("Invoice number"), _("Date"), _("Amount"), _("Remaining amount")), $rows, _("Invoices"), _("No invoices have been sent so far."), "sortable list");
 }
 
 function paymentList($customerID)
@@ -225,7 +224,7 @@ function paymentList($customerID)
 			$payment["description"]
 		);
 	}
-	return listTable(array("Date", "Amount", "Description"), $rows, "Payments", "No payments have been made so far.", "sortable list");
+	return listTable(array(_("Date"), _("Amount"), _("Description")), $rows, _("Payments"), _("No payments have been made so far."), "sortable list");
 }
 
 function paymentSummary($paymentID)
@@ -240,13 +239,13 @@ function paymentSummary($paymentID)
 	$amountHtml = accountingCalculateTransactionAmount($payment["transactionID"], $customer["accountID"], true);
 	
 	$fields = array(
-		"Customer"=>array("url"=>"customer.php?id={$payment["customerID"]}", "text"=>$customer["name"]),
-		"Amount"=>array("url"=>"{$GLOBALS["rootHtml"]}accounting/transaction.php?id={$payment["transactionID"]}", "html"=>$amountHtml),
-		"Date"=>array("text"=>$dateHtml),
-		"Description"=>array("text"=>$transaction["description"]),
+		_("Customer")=>array("url"=>"customer.php?id={$payment["customerID"]}", "text"=>$customer["name"]),
+		_("Amount")=>array("url"=>"{$GLOBALS["rootHtml"]}accounting/transaction.php?id={$payment["transactionID"]}", "html"=>$amountHtml),
+		_("Date")=>array("text"=>$dateHtml),
+		_("Description")=>array("text"=>$transaction["description"]),
 	);
 	
-	return summaryTable("Payment on " . $dateHtml, $fields);
+	return summaryTable(sprintf(_("Payment on %s"), $dateHtml), $fields);
 }
 
 function addPaymentForm($customerID, $error = "", $values = null)
@@ -260,12 +259,12 @@ function addPaymentForm($customerID, $error = "", $values = null)
 	if(isset($values["amount"])) {
 		$values["amount"] = formatPriceRaw(parsePrice($values["amount"]));
 	}
-	return operationForm("addpayment.php?id=$customerID", $error, "Add payment", "Save",
+	return operationForm("addpayment.php?id=$customerID", $error, _("Add payment"), _("Save"),
 		array(
-			array("title"=>"Amount", "type"=>"text", "name"=>"amount"),
-			array("title"=>"Description", "type"=>"text", "name"=>"description"),
-			array("title"=>"Date", "type"=>"text", "name"=>"date"),
-			array("title"=>"Bank account", "type"=>"dropdown", "name"=>"bankAccountID", "options"=>accountingAccountOptions($GLOBALS["bankDirectoryAccountID"], true)),
+			array("title"=>_("Amount"), "type"=>"text", "name"=>"amount"),
+			array("title"=>_("Description"), "type"=>"text", "name"=>"description"),
+			array("title"=>_("Date"), "type"=>"text", "name"=>"date"),
+			array("title"=>_("Bank account"), "type"=>"dropdown", "name"=>"bankAccountID", "options"=>accountingAccountOptions($GLOBALS["bankDirectoryAccountID"], true)),
 		),
 		$values);
 }
@@ -294,17 +293,17 @@ function editPaymentForm($paymentID, $error = "", $values = null)
 		);
 	}
 	
-	return operationForm("editpayment.php?id=$paymentID", $error, "Edit payment", "Save", array(
-			array("title"=>"Amount", "type"=>"text", "name"=>"amount"),
-			array("title"=>"Description", "type"=>"text", "name"=>"description"),
-			array("title"=>"Date", "type"=>"text", "name"=>"date"),
-			array("title"=>"Bank account", "type"=>"dropdown", "name"=>"bankAccountID", "options"=>accountingAccountOptions($GLOBALS["bankDirectoryAccountID"], true)),
+	return operationForm("editpayment.php?id=$paymentID", $error, _("Edit payment"), _("Save"), array(
+			array("title"=>_("Amount"), "type"=>"text", "name"=>"amount"),
+			array("title"=>_("Description"), "type"=>"text", "name"=>"description"),
+			array("title"=>_("Date"), "type"=>"text", "name"=>"date"),
+			array("title"=>_("Bank account"), "type"=>"dropdown", "name"=>"bankAccountID", "options"=>accountingAccountOptions($GLOBALS["bankDirectoryAccountID"], true)),
 		), $values);
 }
 
 function deletePaymentForm($paymentID, $error = "", $values = null)
 {
-	return operationForm("deletepayment.php?id=$paymentID", $error, "Delete payment", "Delete", array(), $values);
+	return operationForm("deletepayment.php?id=$paymentID", $error, _("Delete payment"), _("Delete"), array(), $values);
 }
 
 function addSubscriptionForm($customerID, $error = "", $values = null)
@@ -315,27 +314,27 @@ function addSubscriptionForm($customerID, $error = "", $values = null)
 	if(isset($values["nextPeriodStart"])) {
 		$values["nextPeriodStart"] = date("d-m-Y", parseDate($values["nextPeriodStart"]));
 	}
-	return operationForm("addsubscription.php?id=$customerID", $error, "Add subscription", "Save",
+	return operationForm("addsubscription.php?id=$customerID", $error, _("Add subscription"), _("Save"),
 		array(
-			array("title"=>"Description", "type"=>"text", "name"=>"description"),
-			array("title"=>"Price", "type"=>"text", "name"=>"price"),
-			array("title"=>"Discount percentage", "type"=>"text", "name"=>"discountPercentage"),
-			array("title"=>"Discount amount", "type"=>"text", "name"=>"discountAmount"),
-			array("title"=>"Frequency", "type"=>"colspan", "columns"=>array(
-				array("type"=>"html", "html"=>"per"),
+			array("title"=>_("Description"), "type"=>"text", "name"=>"description"),
+			array("title"=>_("Price"), "type"=>"text", "name"=>"price"),
+			array("title"=>_("Discount percentage"), "type"=>"text", "name"=>"discountPercentage"),
+			array("title"=>_("Discount amount"), "type"=>"text", "name"=>"discountAmount"),
+			array("title"=>_("Frequency"), "type"=>"colspan", "columns"=>array(
+				array("type"=>"html", "html"=>_("per")),
 				array("type"=>"text", "name"=>"frequencyMultiplier", "fill"=>true),
 				array("type"=>"dropdown", "name"=>"frequencyBase", "options"=>array(
-					array("label"=>"year", "value"=>"YEAR"),
-					array("label"=>"month", "value"=>"MONTH"),
-					array("label"=>"day", "value"=>"DAY")
+					array("label"=>_("year"), "value"=>"YEAR"),
+					array("label"=>_("month"), "value"=>"MONTH"),
+					array("label"=>_("day"), "value"=>"DAY")
 				))
 			)),
-			array("title"=>"Start date", "type"=>"text", "name"=>"nextPeriodStart"),
-			array("title"=>"Invoice delay", "type"=>"colspan", "columns"=>array(
+			array("title"=>_("Start date"), "type"=>"text", "name"=>"nextPeriodStart"),
+			array("title"=>_("Invoice delay"), "type"=>"colspan", "columns"=>array(
 				array("type"=>"text", "name"=>"invoiceDelay", "fill"=>true),
-				array("type"=>"html", "html"=>"days")
+				array("type"=>"html", "html"=>_("days"))
 			)),
-			array("title"=>"Revenue account", "type"=>"dropdown", "name"=>"revenueAccountID", "options"=>accountingAccountOptions($GLOBALS["revenueDirectoryAccountID"], true)),
+			array("title"=>_("Revenue account"), "type"=>"dropdown", "name"=>"revenueAccountID", "options"=>accountingAccountOptions($GLOBALS["revenueDirectoryAccountID"], true)),
 		),
 		$values);
 }
@@ -354,24 +353,24 @@ function editSubscriptionForm($subscriptionID, $error = "", $values = null)
 	}
 	return operationForm("editsubscription.php?id=$subscriptionID", $error, _("Edit subscription"), _("Save"),
 		array(
-			array("title"=>"Description", "type"=>"text", "name"=>"description"),
-			array("title"=>"Price", "type"=>"text", "name"=>"price"),
-			array("title"=>"Discount percentage", "type"=>"text", "name"=>"discountPercentage"),
-			array("title"=>"Discount amount", "type"=>"text", "name"=>"discountAmount"),
-			array("title"=>"Frequency", "type"=>"colspan", "columns"=>array(
-				array("type"=>"html", "html"=>"per"),
+			array("title"=>_("Description"), "type"=>"text", "name"=>"description"),
+			array("title"=>_("Price"), "type"=>"text", "name"=>"price"),
+			array("title"=>_("Discount percentage"), "type"=>"text", "name"=>"discountPercentage"),
+			array("title"=>_("Discount amount"), "type"=>"text", "name"=>"discountAmount"),
+			array("title"=>_("Frequency"), "type"=>"colspan", "columns"=>array(
+				array("type"=>"html", "html"=>_("per")),
 				array("type"=>"text", "name"=>"frequencyMultiplier", "fill"=>true),
 				array("type"=>"dropdown", "name"=>"frequencyBase", "options"=>array(
-					array("label"=>"year", "value"=>"YEAR"),
-					array("label"=>"month", "value"=>"MONTH"),
-					array("label"=>"day", "value"=>"DAY")
+					array("label"=>_("year"), "value"=>"YEAR"),
+					array("label"=>_("month"), "value"=>"MONTH"),
+					array("label"=>_("day"), "value"=>"DAY")
 				))
 			)),
-			array("title"=>"Invoice delay", "type"=>"colspan", "columns"=>array(
+			array("title"=>_("Invoice delay"), "type"=>"colspan", "columns"=>array(
 				array("type"=>"text", "name"=>"invoiceDelay", "fill"=>true),
-				array("type"=>"html", "html"=>"days")
+				array("type"=>"html", "html"=>_("days"))
 			)),
-			array("title"=>"Revenue account", "type"=>"dropdown", "name"=>"revenueAccountID", "options"=>accountingAccountOptions($GLOBALS["revenueDirectoryAccountID"])),
+			array("title"=>_("Revenue account"), "type"=>"dropdown", "name"=>"revenueAccountID", "options"=>accountingAccountOptions($GLOBALS["revenueDirectoryAccountID"])),
 		),
 		$values);
 }
@@ -381,17 +380,17 @@ function endSubscriptionForm($subscriptionID, $error = "", $values = null)
 	if($values === null) {
 		$values = array("endDate"=>date("d-m-Y"));
 	}
-	return operationForm("endsubscription.php?id=$subscriptionID", $error, "End subscription", "Save", array(array("title"=>"End date", "type"=>"text", "name"=>"endDate")), $values);
+	return operationForm("endsubscription.php?id=$subscriptionID", $error, _("End subscription"), _("Save"), array(array("title"=>_("End date"), "type"=>"text", "name"=>"endDate")), $values);
 }
 
 function addInvoiceLineForm($customerID, $error = "", $values = null)
 {
-	return operationForm("addinvoiceline.php?id=$customerID", $error, "Add invoice line", "Save", 
+	return operationForm("addinvoiceline.php?id=$customerID", $error, _("Add invoice line"), _("Save"),
 		array(
-			array("title"=>"Description", "type"=>"text", "name"=>"description"),
-			array("title"=>"Price", "type"=>"text", "name"=>"price"),
-			array("title"=>"Discount", "type"=>"text", "name"=>"discount"),
-			array("title"=>"Revenue account", "type"=>"dropdown", "name"=>"revenueAccountID", "options"=>accountingAccountOptions($GLOBALS["revenueDirectoryAccountID"], true)),
+			array("title"=>_("Description"), "type"=>"text", "name"=>"description"),
+			array("title"=>_("Price"), "type"=>"text", "name"=>"price"),
+			array("title"=>_("Discount"), "type"=>"text", "name"=>"discount"),
+			array("title"=>_("Revenue account"), "type"=>"dropdown", "name"=>"revenueAccountID", "options"=>accountingAccountOptions($GLOBALS["revenueDirectoryAccountID"], true)),
 		),
 		$values);
 }
@@ -404,11 +403,11 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 	$lines = array();
 	$lines[] = array("type"=>"colspan", "columns"=>array(
 		array("type"=>"html", "html"=>"", "celltype"=>"th"),
-		array("type"=>"html", "html"=>"Description", "celltype"=>"th", "fill"=>true),
-		array("type"=>"html", "html"=>"Price", "celltype"=>"th"),
-		array("type"=>"html", "html"=>"Discount", "celltype"=>"th"),
-		array("type"=>"html", "html"=>"Start date", "celltype"=>"th"),
-		array("type"=>"html", "html"=>"End date", "celltype"=>"th")
+		array("type"=>"html", "html"=>_("Description"), "celltype"=>"th", "fill"=>true),
+		array("type"=>"html", "html"=>_("Price"), "celltype"=>"th"),
+		array("type"=>"html", "html"=>_("Discount"), "celltype"=>"th"),
+		array("type"=>"html", "html"=>_("Start date"), "celltype"=>"th"),
+		array("type"=>"html", "html"=>_("End date"), "celltype"=>"th")
 	));
 	foreach(stdList("billingSubscriptionLine", array("customerID"=>$customerID), array("subscriptionLineID", "revenueAccountID", "description", "price", "discount", "periodStart", "periodEnd")) as $subscriptionLine) {
 		if($error === null && !isset($values["subscriptionline-{$subscriptionLine["subscriptionLineID"]}"])) {
@@ -424,25 +423,25 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 		));
 	}
 	$lines[] = array("type"=>"typechooser", "options"=>array(
-		array("title"=>"Delete", "submitcaption"=>"Delete", "name"=>"delete", "summary"=>"Delete selected subscription lines", "subform"=>array()),
-		array("title"=>"Create invoice", "submitcaption"=>"Create Invoice", "name"=>"create", "summary"=>"Create and send an invoice with the selected subscription lines", "subform"=>array(
-			array("title"=>"Send email", "type"=>"checkbox", "name"=>"sendmail", "label"=>"Send an email to the customer")
+		array("title"=>_("Delete"), "submitcaption"=>_("Delete"), "name"=>"delete", "summary"=>_("Delete selected subscription lines"), "subform"=>array()),
+		array("title"=>_("Create invoice"), "submitcaption"=>_("Create Invoice"), "name"=>"create", "summary"=>_("Create and send an invoice with the selected subscription lines"), "subform"=>array(
+			array("title"=>_("Send email"), "type"=>"checkbox", "name"=>"sendmail", "label"=>_("Send an email to the customer"))
 		)),
 	));
 
-	return operationForm("sendinvoice.php?id=$customerID", $error, "Subscription lines", "Create Invoice", $lines, $values);
+	return operationForm("sendinvoice.php?id=$customerID", $error, _("Subscription lines"), _("Create Invoice"), $lines, $values);
 }
 
 function frequency($subscription)
 {
 	if($subscription["frequencyBase"] == "DAY") {
-		return "per " . ($subscription["frequencyMultiplier"] == 1 ? "day" : $subscription["frequencyMultiplier"] . " days");
+		return ($subscription["frequencyMultiplier"] == 1 ? _("per day") : sprintf(_("per %s days"), $subscription["frequencyMultiplier"]));
 	} else if($subscription["frequencyBase"] == "MONTH") {
-		return "per " . ($subscription["frequencyMultiplier"] == 1 ? "month" : $subscription["frequencyMultiplier"] . " months");
+		return ($subscription["frequencyMultiplier"] == 1 ? _("per month") : sprintf(_("per %s months"), $subscription["frequencyMultiplier"]));
 	} else if($subscription["frequencyBase"] == "YEAR") {
-		return "per " . ($subscription["frequencyMultiplier"] == 1 ? "year" : $subscription["frequencyMultiplier"] . " years");
+		return ($subscription["frequencyMultiplier"] == 1 ? _("per year") : sprintf(_("per %s years"), $subscription["frequencyMultiplier"]));
 	} else {
-		return "unknown";
+		return _("unknown");
 	}
 }
 

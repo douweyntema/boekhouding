@@ -9,13 +9,13 @@ function main()
 		doAccountingBalanceView($viewID);
 		
 		$check = function($condition, $error) use($viewID) {
-			if(!$condition) die(page(makeHeader("Edit view", balanceViewBreadcrumbs($viewID), crumbs("Edit view", "editview.php?id=$viewID&type=balance")) . editBalanceViewForm($viewID, $error, $_POST)));
+			if(!$condition) die(page(makeHeader(_("Edit view"), balanceViewBreadcrumbs($viewID), crumbs(_("Edit view"), "editview.php?id=$viewID&type=balance")) . editBalanceViewForm($viewID, $error, $_POST)));
 		};
 	} else {
 		doAccountingIncomeExpenseView($viewID);
 		
 		$check = function($condition, $error) use($viewID) {
-			if(!$condition) die(page(makeHeader("Edit view", incomeExpenseViewBreadcrumbs($viewID), crumbs("Edit view", "editview.php?id=$viewID&type=incomeexpence")) . editIncomeExpenseViewForm($viewID, $error, $_POST)));
+			if(!$condition) die(page(makeHeader(_("Edit view"), incomeExpenseViewBreadcrumbs($viewID), crumbs(_("Edit view"), "editview.php?id=$viewID&type=incomeexpence")) . editIncomeExpenseViewForm($viewID, $error, $_POST)));
 		};
 	}
 	
@@ -35,10 +35,10 @@ function main()
 	}
 	
 	if($type == "balance") {
-		$check(($balanceDate = parseRelativeTime($_POST, "balance")) !== null, "Invalid date specified");
+		$check(($balanceDate = parseRelativeTime($_POST, "balance")) !== null, _("Invalid date specified"));
 	} else {
-		$check(($incomeExpencesStartDate = parseRelativeTime($_POST, "incomeExpencesStart")) !== null, "Invalid start date specified");
-		$check(($incomeExpencesEndDate = parseRelativeTime($_POST, "incomeExpencesEnd")) !== null, "Invalid end date specified");
+		$check(($incomeExpencesStartDate = parseRelativeTime($_POST, "incomeExpencesStart")) !== null, _("Invalid start date specified"));
+		$check(($incomeExpencesEndDate = parseRelativeTime($_POST, "incomeExpencesEnd")) !== null, _("Invalid end date specified"));
 	}
 	
 	$check(post("confirm") !== null, null);

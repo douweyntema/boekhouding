@@ -86,7 +86,7 @@ function crumbs($name, $filename)
 
 function accountingBreadcrumbs()
 {
-	return crumbs("Accounting", "");
+	return crumbs(_("Accounting"), "");
 }
 
 function accountBreadcrumbs($accountID, $toDate = null, $fromDate = null, $balanceViewID = null, $incomeExpenseViewID = null)
@@ -110,55 +110,55 @@ function accountBreadcrumbs($accountID, $toDate = null, $fromDate = null, $balan
 	}
 	
 	if($balanceViewID !== null) {
-		return array_merge(balanceViewBreadcrumbs($balanceViewID), crumbs("Account " . $name, $url));
+		return array_merge(balanceViewBreadcrumbs($balanceViewID), crumbs(sprintf(_("Account %s"), $name), $url));
 	} else if($incomeExpenseViewID !== null) {
-		return array_merge(incomeExpenseViewBreadcrumbs($incomeExpenseViewID), crumbs("Account " . $name, $url));
+		return array_merge(incomeExpenseViewBreadcrumbs($incomeExpenseViewID), crumbs(sprintf(_("Account %s"), $name), $url));
 	} else {
-		return array_merge(accountingBreadcrumbs(), crumbs("Account " . $name, $url));
+		return array_merge(accountingBreadcrumbs(), crumbs(sprintf(_("Account %s"), $name), $url));
 	}
 }
 
 function transactionBreadcrumbs($transactionID, $accountID)
 {
 	$date = stdGet("accountingTransaction", array("transactionID"=>$transactionID), "date");
-	return array_merge(accountBreadcrumbs($accountID), crumbs("Transaction on " . date("d-m-Y", $date), "transaction.php?id=$transactionID&accountID=$accountID"));
+	return array_merge(accountBreadcrumbs($accountID), crumbs(sprintf(_("Transaction on %s"), date("d-m-Y", $date)), "transaction.php?id=$transactionID&accountID=$accountID"));
 }
 
 function supplierBreadcrumbs($supplierID)
 {
 	$name = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "name");
-	return array_merge(accountingBreadcrumbs(), crumbs("Supplier " . $name, "supplier.php?id=$supplierID"));
+	return array_merge(accountingBreadcrumbs(), crumbs(sprintf(_('Supplier %s'), $name), "supplier.php?id=$supplierID"));
 }
 
 function suppliersInvoiceBreadcrumbs($invoiceID)
 {
 	$invoice = stdGet("suppliersInvoice", array("invoiceID"=>$invoiceID), array("supplierID", "invoiceNumber"));
-	return array_merge(supplierBreadcrumbs($invoice["supplierID"]), crumbs("Invoice " . $invoice["invoiceNumber"], "supplierinvoice.php?id=$invoiceID"));
+	return array_merge(supplierBreadcrumbs($invoice["supplierID"]), crumbs(sprintf(_("Invoice %s"), $invoice["invoiceNumber"]), "supplierinvoice.php?id=$invoiceID"));
 }
 
 function suppliersPaymentBreadcrumbs($paymentID)
 {
 	$payment = stdGet("suppliersPayment", array("paymentID"=>$paymentID), array("supplierID", "transactionID"));
 	$date = stdGet("accountingTransaction", array("transactionID"=>$payment["transactionID"]), "date");
-	return array_merge(supplierBreadcrumbs($payment["supplierID"]), crumbs("Payment on " . date("d-m-Y", $date), "supplierpayment.php?id=$paymentID"));
+	return array_merge(supplierBreadcrumbs($payment["supplierID"]), crumbs(sprintf(_("Payment on %s"), date("d-m-Y", $date)), "supplierpayment.php?id=$paymentID"));
 }
 
 function fixedAssetBreadcrumbs($fixedAssetID)
 {
 	$name = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), "name");
-	return array_merge(accountingBreadcrumbs(), crumbs("Fixed asset " . $name, "fixedasset.php?id=$fixedAssetID"));
+	return array_merge(accountingBreadcrumbs(), crumbs(sprintf(_("Fixed asset %s"), $name), "fixedasset.php?id=$fixedAssetID"));
 }
 
 function balanceViewBreadcrumbs($balanceViewID)
 {
 	$name = stdGet("accountingBalanceView", array("balanceViewID"=>$balanceViewID), "name");
-	return array_merge(accountingBreadcrumbs(), crumbs("Balance $name", "balanceview.php?id=$balanceViewID"));
+	return array_merge(accountingBreadcrumbs(), crumbs(sprintf(_("Balance %s"), $name), "balanceview.php?id=$balanceViewID"));
 }
 
 function incomeExpenseViewBreadcrumbs($incomeExpenseViewID)
 {
 	$name = stdGet("accountingIncomeExpenseView", array("incomeExpenseViewID"=>$incomeExpenseViewID), "name");
-	return array_merge(accountingBreadcrumbs(), crumbs("Income / Expense view $name", "incomeexpenseview.php?id=$incomeExpenseViewID"));
+	return array_merge(accountingBreadcrumbs(), crumbs(sprintf(_("Income / Expense view %s"), $name), "incomeexpenseview.php?id=$incomeExpenseViewID"));
 }
 
 
@@ -184,27 +184,27 @@ function accountSummary($accountID, $toDate = null, $fromDate = null, $balanceVi
 	$rows = array();
 	if($account["parentAccountID"] !== null) {
 		$parentAccountName = stdGet("accountingAccount", array("accountID"=>$account["parentAccountID"]), "name");
-		$rows["Parent account"] = array("url"=>"account.php?id={$account["parentAccountID"]}{$extraFields}", "text"=>$parentAccountName);
+		$rows[_("Parent account")] = array("url"=>"account.php?id={$account["parentAccountID"]}{$extraFields}", "text"=>$parentAccountName);
 	}
-	$rows["Currency"] = array("html"=>$currency["name"] . " (" . $currency["symbol"] . ")");
+	$rows[_("Currency")] = array("html"=>$currency["name"] . " (" . $currency["symbol"] . ")");
 	if($fromDate === null) {
 		if($toDate !== null) {
-			$rows["Date"] = date("d-m-Y", $toDate);
+			$rows[_("Date")] = date("d-m-Y", $toDate);
 		}
 		$balance  = accountingBalance($toDate);
-		$rows["Balance"] = array("html"=>formatPrice($balance[$accountID], $currency["symbol"]));
+		$rows[_("Balance")] = array("html"=>formatPrice($balance[$accountID], $currency["symbol"]));
 	} else {
 		$startBalance = accountingBalance($fromDate);
 		$endBalance = accountingBalance($toDate);
 		
-		$rows["Date"] = date("d-m-Y", $fromDate) . " to " . date("d-m-Y", $toDate);
-		$rows["Start Balance"] = array("html"=>formatPrice($startBalance[$accountID], $currency["symbol"]));
-		$rows["End Balance"] = array("html"=>formatPrice($endBalance[$accountID], $currency["symbol"]));
-		$rows["Difference"] = array("html"=>formatPrice($endBalance[$accountID] - $startBalance[$accountID], $currency["symbol"]));
+		$rows[_("Date")] = sprintf(_('%1$s to %2$s'), date("d-m-Y", $fromDate), date("d-m-Y", $toDate));
+		$rows[_("Start Balance")] = array("html"=>formatPrice($startBalance[$accountID], $currency["symbol"]));
+		$rows[_("End Balance")] = array("html"=>formatPrice($endBalance[$accountID], $currency["symbol"]));
+		$rows[_("Difference")] = array("html"=>formatPrice($endBalance[$accountID] - $startBalance[$accountID], $currency["symbol"]));
 	}
-	$rows["Description"] = $account["description"];
+	$rows[_("Description")] = $account["description"];
 	
-	return summaryTable("Account {$account["name"]}", $rows);
+	return summaryTable(sprintf(_("Account %s"), $account["name"]), $rows);
 }
 
 function accountList($accountID = null, $toDate = null, $fromDate = null, $balanceViewID = null, $incomeExpenseViewID = null)
@@ -257,10 +257,10 @@ function balanceViewSummary($balanceViewID, $now)
 	$balanceView = stdGet("accountingBalanceView", array("balanceViewID"=>$balanceViewID), array("name", "description", "dateBase", "dateOffsetType", "dateOffsetAmount"));
 	$date = renderRelativeTime($balanceView["dateBase"], $balanceView["dateOffsetType"], $balanceView["dateOffsetAmount"], $now);
 	
-	return summaryTable("Balance {$balanceView["name"]}", array(
-		"Name"=>$balanceView["name"],
-		"Description"=>$balanceView["description"],
-		"Date"=>date("d-m-Y", $date)
+	return summaryTable(sprintf(_("Balance %s"), $balanceView["name"]), array(
+		_("Name")=>$balanceView["name"],
+		_("Description")=>$balanceView["description"],
+		_("Date")=>date("d-m-Y", $date)
 	));
 }
 
@@ -294,11 +294,11 @@ function incomeExpenseViewSummary($incomeExpenseViewID, $now)
 	$startDate = renderRelativeTime($incomeExpenseView["startDateBase"], $incomeExpenseView["startDateOffsetType"], $incomeExpenseView["startDateOffsetAmount"], $now);
 	$endDate = renderRelativeTime($incomeExpenseView["endDateBase"], $incomeExpenseView["endDateOffsetType"], $incomeExpenseView["endDateOffsetAmount"], $now);
 	
-	return summaryTable("Balance {$incomeExpenseView["name"]}", array(
-		"Name"=>$incomeExpenseView["name"],
-		"Description"=>$incomeExpenseView["description"],
-		"Start date"=>date("d-m-Y", $startDate),
-		"End date"=>date("d-m-Y", $endDate),
+	return summaryTable(sprintf(_("Balance %s"), $incomeExpenseView["name"]), array(
+		_("Name")=>$incomeExpenseView["name"],
+		_("Description")=>$incomeExpenseView["description"],
+		_("Start date")=>date("d-m-Y", $startDate),
+		_("End date")=>date("d-m-Y", $endDate),
 	));
 }
 
@@ -398,9 +398,9 @@ function doAccountList($tree, $toDate, $fromDate, $balanceViewID = null, $income
 		$rows[] = array("id"=>$account["id"], "class"=>$class, "cells"=>$row);
 	}
 	if($fromBalance !== null) {
-		return listTable(array(array("text"=>"Account", "class"=>"stretch"), array("text"=>"Start Balance", "class"=>"nowrap"), array("text"=>"End Balance", "class"=>"nowrap"), array("text"=>"Difference", "class"=>"nowrap")), $rows, "Accounts", true, "list tree");
+		return listTable(array(array("text"=>_("Account"), "class"=>"stretch"), array("text"=>_("Start Balance"), "class"=>"nowrap"), array("text"=>_("End Balance"), "class"=>"nowrap"), array("text"=>_("Difference"), "class"=>"nowrap")), $rows, _("Accounts "), true, "list tree");
 	} else {
-		return listTable(array("Account", "Balance"), $rows, "Accounts", true, "list tree");
+		return listTable(array(_("Account"), _("Balance")), $rows, _("Accounts "), true, "list tree");
 	}
 }
 
@@ -443,7 +443,7 @@ function transactionList($accountID, $toDate = null, $fromDate = null)
 		
 		$rows[] = array("id"=>"transaction-{$transaction["transactionID"]}", "class"=>"transaction collapsed", "cells"=>array(
 			array("text"=>date("d-m-Y", $transaction["date"])),
-			array("html"=>($transaction["description"] == "" ? "<i>None</i>" : htmlentities($transaction["description"])), "url"=>"transaction.php?id={$transaction["transactionID"]}&accountID={$accountID}"),
+			array("html"=>($transaction["description"] == "" ? "<i>" . _("None") . "</i>" : htmlentities($transaction["description"])), "url"=>"transaction.php?id={$transaction["transactionID"]}&accountID={$accountID}"),
 			array("html"=>formatPrice($currentLineAmount, $currencySymbol)),
 			array("html"=>formatPrice($balance, $currencySymbol)),
 		));
@@ -462,12 +462,12 @@ function transactionList($accountID, $toDate = null, $fromDate = null)
 	if($fromDate !== null) {
 		$rows = array_merge(array(array("class"=>"transaction", "cells"=>array(
 			array("text"=>date("d-m-Y", $fromDate)),
-			array("text"=>"Value on " . date("d-m-Y", $fromDate)),
+			array("text"=>sprintf(_("Value on %s"), date("d-m-Y", $fromDate))),
 			array("text"=>""),
 			array("html"=>formatPrice($startBalance, $currencySymbol)),
 		))), $rows);
 	}
-	return listTable(array("Date", "Description", "Amount", "Balance"), $rows, null, true, "list tree");
+	return listTable(array(_("Date"), _("Description"), _("Amount"), _("Balance")), $rows, null, true, "list tree");
 }
 
 function transactionSummary($transactionID)
@@ -477,7 +477,7 @@ function transactionSummary($transactionID)
 	
 	$rows[] = array("id"=>"transaction-{$transactionID}", "class"=>"transaction", "cells"=>array(
 		array("text"=>date("d-m-Y", $transaction["date"])),
-		array("html"=>($transaction["description"] == "" ? "<i>None</i>" : htmlentities($transaction["description"]))),
+		array("html"=>($transaction["description"] == "" ? "<i>" . _("None") . "</i>" : htmlentities($transaction["description"]))),
 		array("text"=>""),
 	));
 	
@@ -490,7 +490,7 @@ function transactionSummary($transactionID)
 			array("html"=>formatPrice($line["amount"], $lineCurrencySymbol)),
 		));
 	}
-	return listTable(array("Date", "Description", "Amount"), $rows, null, true, "list");
+	return listTable(array(_("Date"), _("Description"), _("Amount")), $rows, null, true, "list");
 }
 
 function supplierList()
@@ -505,7 +505,7 @@ function supplierList()
 			array("url"=>"account.php?id={$supplier["accountID"]}", "html"=>accountingFormatAccountPrice($supplier["accountID"])),
 		));
 	}
-	return listTable(array("Name", "Description", "Balance"), $rows, "Suppliers", true, "list sortable");
+	return listTable(array(_("Name"), _("Description"), _("Balance")), $rows, _("Suppliers"), true, "list sortable");
 }
 
 function supplierSummary($supplierID)
@@ -520,17 +520,17 @@ function supplierSummary($supplierID)
 	$rows = array();
 	if($currencyID != $GLOBALS["defaultCurrencyID"]) {
 		$currency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), array("name", "symbol"));
-		$rows["Currency"] = array("html"=>$currency["name"] . " (" . $currency["symbol"] . ")");
+		$rows[_("Currency")] = array("html"=>$currency["name"] . " (" . $currency["symbol"] . ")");
 	}
-	$rows["Balance"] = array("url"=>"account.php?id={$supplier["accountID"]}", "html"=>accountingFormatAccountPrice($supplier["accountID"]));
+	$rows[_("Balance")] = array("url"=>"account.php?id={$supplier["accountID"]}", "html"=>accountingFormatAccountPrice($supplier["accountID"]));
 	if($supplier["defaultExpenseAccountID"] !== null) {
-		$rows["Default expences account"] = array("url"=>"account.php?id={$supplier["defaultExpenseAccountID"]}", "text"=>$defaultExpenseAccountName);
+		$rows[_("Default expences account")] = array("url"=>"account.php?id={$supplier["defaultExpenseAccountID"]}", "text"=>$defaultExpenseAccountName);
 	} else {
-		$rows["Default expences account"] = array("html"=>"<i>None</i>");
+		$rows[_("Default expences account")] = array("html"=>"<i>" . _("None") . "</i>");
 	}
-	$rows["Description"] = $supplier["description"];
+	$rows[_("Description")] = $supplier["description"];
 	
-	return summaryTable("Supplier {$supplier["name"]}", $rows);
+	return summaryTable(sprintf(_("Supplier %s"), $supplier["name"]), $rows);
 }
 
 function supplierInvoiceSummary($invoiceID)
@@ -545,15 +545,15 @@ function supplierInvoiceSummary($invoiceID)
 	$amountHtml = accountingCalculateTransactionAmount($invoice["transactionID"], $supplier["accountID"], true);
 	
 	$fields = array(
-		"Supplier"=>array("url"=>"supplier.php?id={$invoice["supplierID"]}", "text"=>$supplier["name"]),
-		"Invoice number"=>array("text"=>$invoice["invoiceNumber"]),
-		"Pdf"=>array("url"=>$hasPdf ? "supplierinvoicepdf.php?id={$invoiceID}" : null, "text"=>$hasPdf ? "Yes" : "No"),
-		"Date"=>array("text"=>$dateHtml),
-		"Description"=>array("text"=>$transaction["description"]),
-		"Amount"=>array("url"=>"transaction.php?id={$invoice["transactionID"]}", "html"=>$amountHtml),
+		_("Supplier")=>array("url"=>"supplier.php?id={$invoice["supplierID"]}", "text"=>$supplier["name"]),
+		_("Invoice number")=>array("text"=>$invoice["invoiceNumber"]),
+		_("Pdf")=>array("url"=>$hasPdf ? "supplierinvoicepdf.php?id={$invoiceID}" : null, "text"=>$hasPdf ? _("Yes") : _("No")),
+		_("Date")=>array("text"=>$dateHtml),
+		_("Description")=>array("text"=>$transaction["description"]),
+		_("Amount")=>array("url"=>"transaction.php?id={$invoice["transactionID"]}", "html"=>$amountHtml),
 	);
 	
-	return summaryTable("Invoice {$invoice["invoiceNumber"]}", $fields);
+	return summaryTable(sprintf(_("Invoice %s"), $invoice["invoiceNumber"]), $fields);
 }
 
 function supplierInvoiceList($supplierID)
@@ -574,7 +574,7 @@ function supplierInvoiceList($supplierID)
 			array("text"=>$transaction["description"]),
 		));
 	}
-	return listTable(array("Date", "Amount", "Invoice number", "Description"), $rows, "Invoices", true, "list sortable");
+	return listTable(array(_("Date"), _("Amount"), _("Invoice number"), _("Description")), $rows, _("Invoices"), true, "list sortable");
 }
 
 function supplierPaymentSummary($paymentID)
@@ -589,13 +589,13 @@ function supplierPaymentSummary($paymentID)
 	$amountHtml = accountingCalculateTransactionAmount($payment["transactionID"], $supplier["accountID"]);
 	
 	$fields = array(
-		"Supplier"=>array("url"=>"supplier.php?id={$payment["supplierID"]}", "text"=>$supplier["name"]),
-		"Amount"=>array("url"=>"transaction.php?id={$payment["transactionID"]}", "html"=>$amountHtml),
-		"Date"=>array("text"=>$dateHtml),
-		"Description"=>array("text"=>$transaction["description"]),
+		_("Supplier")=>array("url"=>"supplier.php?id={$payment["supplierID"]}", "text"=>$supplier["name"]),
+		_("Amount")=>array("url"=>"transaction.php?id={$payment["transactionID"]}", "html"=>$amountHtml),
+		_("Date")=>array("text"=>$dateHtml),
+		_("Description")=>array("text"=>$transaction["description"]),
 	);
 	
-	return summaryTable("Payment on " . $dateHtml, $fields);
+	return summaryTable(sprintf(_("Payment on %s"), $dateHtml), $fields);
 }
 
 function supplierPaymentList($supplierID)
@@ -614,7 +614,7 @@ function supplierPaymentList($supplierID)
 			array("text"=>$transaction["description"]),
 		));
 	}
-	return listTable(array("Date", "Amount", "Description"), $rows, "Payments", true, "list sortable");
+	return listTable(array(_("Date"), _("Amount"), _("Description")), $rows, _("Payments"), true, "list sortable");
 }
 
 function fixedAssetList()
@@ -629,7 +629,7 @@ function fixedAssetList()
 		));
 	}
 	
-	return listTable(array("Name", "Description", "Value", "Next depreciation date"), $rows, "Fixed assets", "No fixed assets.", "list sortable");
+	return listTable(array(_("Name"), _("Description"), _("Value"), _("Next depreciation date")), $rows, _("Fixed assets"), _("No fixed assets."), "list sortable");
 }
 
 function fixedAssetSummary($fixedAssetID)
@@ -643,18 +643,18 @@ function fixedAssetSummary($fixedAssetID)
 	$depreciatedValue = stdGet("accountingAccount", array("accountID"=>$asset["depreciationAccountID"]), "balance");
 	$expenseCost = stdGet("accountingAccount", array("accountID"=>$asset["expenseAccountID"]), "balance");
 	
-	return summaryTable("Fixed asset $nameHtml", array(
-		"Name"=>array("text"=>$asset["name"]),
-		"Description"=>array("text"=>$asset["description"]),
-		"Current value"=>array("html"=>formatPrice($currentValue), "url"=>"account.php?id={$asset["accountID"]}"),
-		"Depreciated value"=>array("html"=>formatPrice($depreciatedValue), "url"=>"account.php?id={$asset["depreciationAccountID"]}"),
-		"Expense cost"=>array("html"=>formatPrice($expenseCost), "url"=>"account.php?id={$asset["expenseAccountID"]}"),
-		"Purchase value"=>array("html"=>formatPrice($currentValue + $depreciatedValue)),
-		"Purchase date"=>array("text"=>date("d-m-Y", $asset["purchaseDate"])),
-		"Depreciation interval"=>array("text"=>"per {$asset["depreciationFrequencyMultiplier"]} {$frequencyBase}s"),
-		"Depreciations"=>array("text"=>"{$asset["performedDepreciations"]} / {$asset["totalDepreciations"]}"),
-		"Residual value"=>array("text"=>"{$asset["residualValuePercentage"]}%"),
-		"Automatic depreciation"=>array("text"=>$asset["automaticDepreciation"] ? "Yes" : "No")
+	return summaryTable(sprintf(_("Fixed asset %s"), $nameHtml), array(
+		_("Name")=>array("text"=>$asset["name"]),
+		_("Description")=>array("text"=>$asset["description"]),
+		_("Current value")=>array("html"=>formatPrice($currentValue), "url"=>"account.php?id={$asset["accountID"]}"),
+		_("Depreciated value")=>array("html"=>formatPrice($depreciatedValue), "url"=>"account.php?id={$asset["depreciationAccountID"]}"),
+		_("Expense cost")=>array("html"=>formatPrice($expenseCost), "url"=>"account.php?id={$asset["expenseAccountID"]}"),
+		_("Purchase value")=>array("html"=>formatPrice($currentValue + $depreciatedValue)),
+		_("Purchase date")=>array("text"=>date("d-m-Y", $asset["purchaseDate"])),
+		_("Depreciation interval")=>array("text"=>"per {$asset["depreciationFrequencyMultiplier"]} {$frequencyBase}s"),
+		_("Depreciations")=>array("text"=>"{$asset["performedDepreciations"]} / {$asset["totalDepreciations"]}"),
+		_("Residual value")=>array("text"=>"{$asset["residualValuePercentage"]}%"),
+		_("Automatic depreciation")=>array("text"=>$asset["automaticDepreciation"] ? _("Yes") : _("No"))
 		));
 }
 
@@ -674,27 +674,27 @@ function viewList()
 		$endDate = renderRelativeTime($view["endDateBase"], $view["endDateOffsetType"], $view["endDateOffsetAmount"], $now);
 		$rows[] = array("cells"=>array(
 			array("url"=>"incomeexpenseview.php?id={$view["incomeExpenseViewID"]}", "text"=>$view["name"]),
-			array("text"=> date("d-m-Y", $startDate) . " to " . date("d-m-Y", $endDate)),
+			array("text"=> sprintf(_('%1$s to %2$s'), date("d-m-Y", $startDate), date("d-m-Y", $endDate))),
 		));
 	}
-	return listTable(array("Name", "Date"), $rows, "Views", null, "list sortable");
+	return listTable(array(_("Name"), _("Date")), $rows, _("Views"), null, "list sortable");
 }
 
 function addAccountForm($accountID, $error = "", $values = null)
 {
 	if($error == "STUB") {
-		return operationForm("addaccount.php?id=$accountID", "", "Add account", "Add Account", array(), array());
+		return operationForm("addaccount.php?id=$accountID", "", _("Add account"), _("Add Account"), array(), array());
 	}
 	
-	return operationForm("addaccount.php?id=$accountID", $error, "Add account", "Add Account",
+	return operationForm("addaccount.php?id=$accountID", $error, _("Add account"), _("Add Account"),
 		array(
-			array("title"=>"Name", "type"=>"text", "name"=>"name"),
-			array("title"=>"Currency", "type"=>"dropdown", "name"=>"currencyID", "options"=>currencyOptions()),
-			array("title"=>"Type", "type"=>"radio", "name"=>"type", "options"=>array(
-				array("label"=>"Account", "value"=>"account"),
-				array("label"=>"Directory", "value"=>"directory")
+			array("title"=>_("Name"), "type"=>"text", "name"=>"name"),
+			array("title"=>_("Currency"), "type"=>"dropdown", "name"=>"currencyID", "options"=>currencyOptions()),
+			array("title"=>_("Type"), "type"=>"radio", "name"=>"type", "options"=>array(
+				array("label"=>_("Account"), "value"=>"account"),
+				array("label"=>_("Directory"), "value"=>"directory")
 			)),
-			array("title"=>"Description", "type"=>"textarea", "name"=>"description")
+			array("title"=>_("Description"), "type"=>"textarea", "name"=>"description")
 		),
 		$values);
 }
@@ -702,17 +702,17 @@ function addAccountForm($accountID, $error = "", $values = null)
 function editAccountForm($accountID, $error = "", $values = null)
 {
 	if($error == "STUB") {
-		return operationForm("editaccount.php?id=$accountID", "", "Edit account", "Edit Account", array(), array());
+		return operationForm("editaccount.php?id=$accountID", "", _("Edit account"), _("Edit account"), array(), array());
 	}
 	
 	if($values === null || $error === "") {
 		$values = stdGet("accountingAccount", array("accountID"=>$accountID), array("name", "description"));
 	}
 	
-	return operationForm("editaccount.php?id=$accountID", $error, "Edit account", "Save",
+	return operationForm("editaccount.php?id=$accountID", $error, _("Edit account"), _("Save"),
 		array(
-			array("title"=>"Name", "type"=>"text", "name"=>"name"),
-			array("title"=>"Description", "type"=>"textarea", "name"=>"description")
+			array("title"=>_("Name"), "type"=>"text", "name"=>"name"),
+			array("title"=>_("Description"), "type"=>"textarea", "name"=>"description")
 		),
 		$values);
 }
@@ -720,7 +720,7 @@ function editAccountForm($accountID, $error = "", $values = null)
 function moveAccountForm($accountID, $error = "", $values = null)
 {
 	if($error == "STUB") {
-		return operationForm("moveaccount.php?id=$accountID", "", "Move account", "Move Account", array(), array());
+		return operationForm("moveaccount.php?id=$accountID", "", _("Move account"), _("Move account"), array(), array());
 	}
 	
 	$rootNodes = stdList("accountingAccount", array("parentAccountID"=>null), "accountID", array("name"=>"ASC"));
@@ -735,7 +735,7 @@ function moveAccountForm($accountID, $error = "", $values = null)
 	
 	$disabledDepth = null;
 	$options = array();
-	$options[] = array("label"=>"Top-level Account", "value"=>"0");
+	$options[] = array("label"=>_("Top-level Account"), "value"=>"0");
 	foreach($accountList as $account) {
 		if($disabledDepth !== null) {
 			if($account["depth"] <= $disabledDepth) {
@@ -758,16 +758,16 @@ function moveAccountForm($accountID, $error = "", $values = null)
 		$values = array("parentAccountID"=>stdGet("accountingAccount", array("accountID"=>$accountID), "parentAccountID"));
 	}
 	
-	return operationForm("moveaccount.php?id=$accountID", $error, "Move account", "Save", 
+	return operationForm("moveaccount.php?id=$accountID", $error, _("Move account"), _("Save"), 
 		array(
-			array("title"=>"Move To", "type"=>"dropdown", "name"=>"parentAccountID", "options"=>$options)
+			array("title"=>_("Move To"), "type"=>"dropdown", "name"=>"parentAccountID", "options"=>$options)
 		),
 		$values);
 }
 
 function deleteAccountForm($accountID, $error = "", $values = null)
 {
-	return operationForm("deleteaccount.php?id=$accountID", $error, "Delete account", "Delete", array(), $values);
+	return operationForm("deleteaccount.php?id=$accountID", $error, _("Delete account"), _("Delete"), array(), $values);
 }
 
 function transactionForm($error = "", $values = null, $balance = null)
@@ -781,19 +781,19 @@ function transactionForm($error = "", $values = null, $balance = null)
 	}
 	
 	$fields = array();
-	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
-	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
+	$fields[] = array("title"=>_("Description"), "type"=>"text", "name"=>"description");
+	$fields[] = array("title"=>_("Date"), "type"=>"text", "name"=>"date");
 	
 	$message = array();
 	if($error === null && $balance !== null) {
 		if($balance["type"] == "double") {
 			$fields = array_merge($fields, transactionExchangeRates($balance));
 		} else if($balance["type"] == "multiple") {
-			$message["custom"] = "<p class=\"warning\">Warning, the correctness of this transaction cannot be checked because there are 3 or more currencies involved!</p>";
+			$message["custom"] = "<p class=\"warning\">" . _("Warning, the correctness of this transaction cannot be checked because there are 3 or more currencies involved!") . "</p>";
 		}
 	}
 	
-	$fields[] = array("type"=>"array", "field"=>array("title"=>"Account", "type"=>"colspan", "columns"=>array(
+	$fields[] = array("type"=>"array", "field"=>array("title"=>_("Account"), "type"=>"colspan", "columns"=>array(
 			array("type"=>"dropdown", "name"=>"accountID", "options"=>accountingAccountOptions(null, true)),
 			array("type"=>"text", "name"=>"amount", "fill"=>true),
 		)));
@@ -808,7 +808,7 @@ function addTransactionForm($accountID, $error = "", $values = null, $balance = 
 	
 	$formContent = transactionForm($error, $values, $balance);
 	
-	return operationForm("addtransaction.php?id=$accountID", $error, "New transaction", "Save", $formContent["fields"], $formContent["values"], $formContent["message"]);
+	return operationForm("addtransaction.php?id=$accountID", $error, _("New transaction"), _("Save"), $formContent["fields"], $formContent["values"], $formContent["message"]);
 }
 
 function editTransactionForm($transactionID, $accountID, $error = "", $values = null, $balance = null)
@@ -833,43 +833,43 @@ function editTransactionForm($transactionID, $accountID, $error = "", $values = 
 		if(!isset($formContent["message"]["custom"])) {
 			$formContent["message"]["custom"] = "";
 		}
-		$formContent["message"]["custom"] .= "<p class=\"warning\">Warning, this transaction is part of a ";
+		$formContent["message"]["custom"] .= "<p class=\"warning\">" . _("Warning, this transaction is part of a ");
 		if($type["type"] == "CUSTOMERINVOICE") {
 			$customerID = stdGet("billingInvoice", array("invoiceID"=>$type["invoiceID"]), "customerID");
-			$formContent["message"]["custom"] .= "<a href=\"{$GLOBALS["rootHtml"]}billing/customer.php?id={$customerID}\">customer invoice</a>";
+			$formContent["message"]["custom"] .= "<a href=\"{$GLOBALS["rootHtml"]}billing/customer.php?id={$customerID}\">" . _("customer invoice") . "</a>";
 		}
 		if($type["type"] == "CUSTOMERPAYMENT") {
-			$formContent["message"]["custom"] .= "<a href=\"{$GLOBALS["rootHtml"]}billing/payment.php?id={$type["paymentID"]}\">customer payment</a>";
+			$formContent["message"]["custom"] .= "<a href=\"{$GLOBALS["rootHtml"]}billing/payment.php?id={$type["paymentID"]}\">" . _("customer payment") . "</a>";
 		}
 		if($type["type"] == "SUPPLIERINVOICE") {
-			$formContent["message"]["custom"] .= "<a href=\"supplierinvoice.php?id={$type["invoiceID"]}\">supplier invoice</a>";
+			$formContent["message"]["custom"] .= "<a href=\"supplierinvoice.php?id={$type["invoiceID"]}\">" . _("supplier invoice") . "</a>";
 		}
 		if($type["type"] == "SUPPLIERPAYMENT") {
-			$formContent["message"]["custom"] .= "<a href=\"supplierpayment.php?id={$type["paymentID"]}\">supplier payment</a>";
+			$formContent["message"]["custom"] .= "<a href=\"supplierpayment.php?id={$type["paymentID"]}\">" . _("supplier payment") . "</a>";
 		}
 		$formContent["message"]["custom"] .= ".</p>";
 	}
 	
-	return operationForm("edittransaction.php?id=$transactionID&accountID=$accountID", $error, "Edit transaction", "Save", $formContent["fields"], $formContent["values"], $formContent["message"]);
+	return operationForm("edittransaction.php?id=$transactionID&accountID=$accountID", $error, _("Edit transaction"), _("Save"), $formContent["fields"], $formContent["values"], $formContent["message"]);
 }
 
 function deleteTransactionForm($transactionID, $accountID, $error = "", $values = null)
 {
-	return operationForm("deletetransaction.php?id=$transactionID&accountID=$accountID", $error, "Delete transaction", "Delete", array(), $values);
+	return operationForm("deletetransaction.php?id=$transactionID&accountID=$accountID", $error, _("Delete transaction"), _("Delete"), array(), $values);
 }
 
 function addSupplierForm($error = "", $values = null)
 {
 	if($error == "STUB") {
-		return operationForm("addsupplier.php", $error, "Add supplier", "Add Supplier", array(), array());
+		return operationForm("addsupplier.php", $error, _("Add supplier"), _("Add Supplier"), array(), array());
 	}
 	
-	return operationForm("addsupplier.php", $error, "Add supplier", "Add Supplier",
+	return operationForm("addsupplier.php", $error, _("Add supplier"), _("Add Supplier"),
 		array(
-			array("title"=>"Name", "type"=>"text", "name"=>"name"),
-			array("title"=>"Currency", "type"=>"dropdown", "name"=>"currencyID", "options"=>currencyOptions()),
-			array("title"=>"Default expense account", "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountingAccountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
-			array("title"=>"Description", "type"=>"textarea", "name"=>"description")
+			array("title"=>_("Name"), "type"=>"text", "name"=>"name"),
+			array("title"=>_("Currency"), "type"=>"dropdown", "name"=>"currencyID", "options"=>currencyOptions()),
+			array("title"=>_("Default expense account"), "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountingAccountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
+			array("title"=>_("Description"), "type"=>"textarea", "name"=>"description")
 		),
 		$values);
 }
@@ -877,25 +877,25 @@ function addSupplierForm($error = "", $values = null)
 function editSupplierForm($supplierID, $error = "", $values = null)
 {
 	if($error == "STUB") {
-		return operationForm("editsupplier.php?id=$supplierID", $error, "Edit supplier", "Edit Supplier", array(), array());
+		return operationForm("editsupplier.php?id=$supplierID", $error, _("Edit supplier"), _("Edit supplier"), array(), array());
 	}
 	
 	if($values === null || $error === "") {
 		$values = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), array("name", "defaultExpenseAccountID", "description"));
 	}
 	
-	return operationForm("editsupplier.php?id=$supplierID", $error, "Edit supplier", "Save",
+	return operationForm("editsupplier.php?id=$supplierID", $error, _("Edit supplier"), _("Save"),
 		array(
-			array("title"=>"Name", "type"=>"text", "name"=>"name"),
-			array("title"=>"Default expense account", "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountingAccountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
-			array("title"=>"Description", "type"=>"textarea", "name"=>"description")
+			array("title"=>_("Name"), "type"=>"text", "name"=>"name"),
+			array("title"=>_("Default expense account"), "type"=>"dropdown", "name"=>"defaultExpenseAccountID", "options"=>accountingAccountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
+			array("title"=>_("Description"), "type"=>"textarea", "name"=>"description")
 		),
 		$values);
 }
 
 function deleteSupplierForm($supplierID, $error = "", $values = null)
 {
-	return operationForm("deletesupplier.php?id=$supplierID", $error, "Delete supplier", "Delete", array(), $values);
+	return operationForm("deletesupplier.php?id=$supplierID", $error, _("Delete supplier"), _("Delete"), array(), $values);
 }
 
 function supplierInvoiceForm($supplierID, $fileLink, $error = "", $values = null, $total = null, $balance = null)
@@ -913,32 +913,32 @@ function supplierInvoiceForm($supplierID, $fileLink, $error = "", $values = null
 	normalizePrice($values, "taxAmount");
 	
 	$fields = array();
-	$fields[] = array("title"=>"Invoice number", "type"=>"text", "name"=>"invoiceNumber");
-	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
-	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
+	$fields[] = array("title"=>_("Invoice number"), "type"=>"text", "name"=>"invoiceNumber");
+	$fields[] = array("title"=>_("Description"), "type"=>"text", "name"=>"description");
+	$fields[] = array("title"=>_("Date"), "type"=>"text", "name"=>"date");
 	
 	$subforms = array();
 	if($fileLink !== null) {
 		$fileLinkHtml = htmlentities($fileLink);
-		$subforms[] = array("value"=>"current", "label"=>"Keep <a href=\"$fileLinkHtml\">current file</a>", "subform"=>array());
+		$subforms[] = array("value"=>"current", "label"=>sprintf(_('Keep %1$scurrent file%2$s'), "<a href=\"$fileLinkHtml\">", "</a>"), "subform"=>array());
 	}
-	$subforms[] = array("value"=>"none", "label"=>"None", "subform"=>array());
-	$subforms[] = array("value"=>"new", "label"=>"Upload new file", "subform"=>array(
-		array("title"=>"File", "type"=>"file", "name"=>"file", "accept"=>"application/pdf")
+	$subforms[] = array("value"=>"none", "label"=>_("None"), "subform"=>array());
+	$subforms[] = array("value"=>"new", "label"=>_("Upload new file"), "subform"=>array(
+		array("title"=>_("File"), "type"=>"file", "name"=>"file", "accept"=>"application/pdf")
 	));
-	$fields[] = array("title"=>"Pdf", "type"=>"subformchooser", "name"=>"pdfType", "subforms"=>$subforms);
+	$fields[] = array("title"=>_("Pdf"), "type"=>"subformchooser", "name"=>"pdfType", "subforms"=>$subforms);
 	
 	$bankAccounts = accountingAccountOptions($GLOBALS["bankDirectoryAccountID"]);
 	$subforms = array();
-	$subforms[] = array("value"=>"no", "label"=>"No payment", "subform"=>array());
-	$subforms[] = array("value"=>"yes", "label"=>"Direct payment", "subform"=>array(
-		array("title"=>"Bank account", "type"=>"dropdown", "name"=>"paymentBankAccount", "options"=>$bankAccounts),
-		array("title"=>"Payment date", "type"=>"text", "name"=>"paymentDate"),
+	$subforms[] = array("value"=>"no", "label"=>_("No payment"), "subform"=>array());
+	$subforms[] = array("value"=>"yes", "label"=>_("Direct payment"), "subform"=>array(
+		array("title"=>_("Bank account"), "type"=>"dropdown", "name"=>"paymentBankAccount", "options"=>$bankAccounts),
+		array("title"=>_("Payment date"), "type"=>"text", "name"=>"paymentDate"),
 	));
-	$fields[] = array("title"=>"Payment", "type"=>"subformchooser", "name"=>"payment", "subforms"=>$subforms);
+	$fields[] = array("title"=>_("Payment"), "type"=>"subformchooser", "name"=>"payment", "subforms"=>$subforms);
 	
 	if($currencyID != $GLOBALS["defaultCurrencyID"]) {
-		$fields[] = array("title"=>"Total in {$currency["name"]}", "type"=>"text", "name"=>"foreignAmount");
+		$fields[] = array("title"=>sprintf(_("Total in %s"), $currency["name"]), "type"=>"text", "name"=>"foreignAmount");
 	}
 	if($error === null && $total !== null) {
 		$totalHtml = formatPriceRaw($total, $defaultCurrency["symbol"]);
@@ -949,12 +949,12 @@ function supplierInvoiceForm($supplierID, $fileLink, $error = "", $values = null
 	}
 	
 	
-	$fields[] = array("title"=>"Tax", "type"=>"colspan", "columns"=>array(
+	$fields[] = array("title"=>_("Tax"), "type"=>"colspan", "columns"=>array(
 		array("type"=>"html", "html"=>""),
 		array("type"=>"html", "html"=>htmlentities($defaultCurrency["name"])),
 		array("type"=>"text", "name"=>"taxAmount", "fill"=>true)
 	));
-	$fields[] = array("type"=>"array", "field"=>array("title"=>"Line", "type"=>"colspan", "columns"=>array(
+	$fields[] = array("type"=>"array", "field"=>array("title"=>_("Line"), "type"=>"colspan", "columns"=>array(
 		array("type"=>"dropdown", "name"=>"accountID", "options"=>accountingAccountOptions(array($GLOBALS["expensesDirectoryAccountID"], $GLOBALS["assetsDirectoryAccountID"]), true)),
 		array("type"=>"html", "html"=>htmlentities($defaultCurrency["name"])),
 		array("type"=>"text", "name"=>"amount", "fill"=>true)
@@ -983,7 +983,7 @@ function addSupplierInvoiceForm($supplierID, $error = "", $values = null, $total
 	
 	$formContent = supplierInvoiceForm($supplierID, null, $error, $values, $total, $balance);
 	
-	return operationForm("addsupplierinvoice.php?id=$supplierID", $error, "Add invoice", "Add Invoice", $formContent["fields"], $formContent["values"]);
+	return operationForm("addsupplierinvoice.php?id=$supplierID", $error, _("Add invoice"), _("Add invoice"), $formContent["fields"], $formContent["values"]);
 }
 
 function editSupplierInvoiceForm($invoiceID, $error = "", $values = null, $total = null, $balance = null)
@@ -1020,12 +1020,12 @@ function editSupplierInvoiceForm($invoiceID, $error = "", $values = null, $total
 	
 	$formContent = supplierInvoiceForm($invoice["supplierID"], $hasPdf ? "supplierinvoicepdf.php?id=$invoiceID" : null, $error, $values, $total, $balance);
 	
-	return operationForm("editsupplierinvoice.php?id=$invoiceID", $error, "Edit invoice", "Save", $formContent["fields"], $formContent["values"]);
+	return operationForm("editsupplierinvoice.php?id=$invoiceID", $error, _("Edit invoice"), _("Save"), $formContent["fields"], $formContent["values"]);
 }
 
 function deleteSupplierInvoiceForm($invoiceID, $error = "", $values = null)
 {
-	return operationForm("deletesupplierinvoice.php?id=$invoiceID", $error, "Delete invoice", "Delete", array(), $values);
+	return operationForm("deletesupplierinvoice.php?id=$invoiceID", $error, _("Delete invoice"), _("Delete"), array(), $values);
 }
 
 function supplierPaymentForm($supplierID, $error = "", $values = null, $balance = null)
@@ -1039,18 +1039,18 @@ function supplierPaymentForm($supplierID, $error = "", $values = null, $balance 
 	if($GLOBALS["defaultCurrencyID"] != $currencyID) {
 		$defaultCurrency = stdGet("accountingCurrency", array("currencyID"=>$GLOBALS["defaultCurrencyID"]), "name");
 		$strangeCurrency = stdGet("accountingCurrency", array("currencyID"=>$currencyID), "name");
-		$fields[] = array("title"=>"Amount ($defaultCurrency)", "type"=>"text", "name"=>"amount");
-		$fields[] = array("title"=>"Amount ($strangeCurrency)", "type"=>"text", "name"=>"foreignAmount");
+		$fields[] = array("title"=>sprintf(_("Amount (%s)"), $defaultCurrency), "type"=>"text", "name"=>"amount");
+		$fields[] = array("title"=>sprintf(_("Amount (%s)"), $strangeCurrency), "type"=>"text", "name"=>"foreignAmount");
 		
 		if($error === null && $balance !== null) {
 			$fields = array_merge($fields, transactionExchangeRates($balance));
 		}
 	} else {
-		$fields[] = array("title"=>"Amount", "type"=>"text", "name"=>"amount");
+		$fields[] = array("title"=>_("Amount"), "type"=>"text", "name"=>"amount");
 	}
-	$fields[] = array("title"=>"Date", "type"=>"text", "name"=>"date");
-	$fields[] = array("title"=>"Description", "type"=>"text", "name"=>"description");
-	$fields[] = array("title"=>"Bank account", "type"=>"dropdown", "name"=>"bankAccount", "options"=>$bankAccounts);
+	$fields[] = array("title"=>_("Date"), "type"=>"text", "name"=>"date");
+	$fields[] = array("title"=>_("Description"), "type"=>"text", "name"=>"description");
+	$fields[] = array("title"=>_("Bank account"), "type"=>"dropdown", "name"=>"bankAccount", "options"=>$bankAccounts);
 	return $fields;
 }
 
@@ -1077,7 +1077,7 @@ function addSupplierPaymentForm($supplierID, $error = "", $values = null, $balan
 	
 	$fields = supplierPaymentForm($supplierID, $error, $values);
 	
-	return operationForm("addsupplierpayment.php?id=$supplierID", $error, "Add payment", "Save", $fields, $values);
+	return operationForm("addsupplierpayment.php?id=$supplierID", $error, _("Add payment"), _("Save"), $fields, $values);
 }
 
 function editSupplierPaymentForm($paymentID, $error = "", $values = null, $balance = null)
@@ -1108,31 +1108,31 @@ function editSupplierPaymentForm($paymentID, $error = "", $values = null, $balan
 	
 	$fields = supplierPaymentForm($payment["supplierID"], $error, $values);
 	
-	return operationForm("editsupplierpayment.php?id=$paymentID", $error, "Edit payment", "Save", $fields, $values);
+	return operationForm("editsupplierpayment.php?id=$paymentID", $error, _("Edit payment"), _("Save"), $fields, $values);
 }
 
 function deleteSupplierPaymentForm($paymentID, $error = "", $values = null)
 {
-	return operationForm("deletesupplierpayment.php?id=$paymentID", $error, "Delete payment", "Delete", array(), $values);
+	return operationForm("deletesupplierpayment.php?id=$paymentID", $error, _("Delete payment"), _("Delete"), array(), $values);
 }
 
 function addFixedAssetForm($error = "", $values = null)
 {
 	if($error == "STUB") {
-		return operationForm("addfixedasset.php", $error, "Add fixed asset", "Add Fixed Asset", array(), array());
+		return operationForm("addfixedasset.php", $error, _("Add fixed asset"), _("Add fixed asset"), array(), array());
 	}
 	
-	return operationForm("addfixedasset.php", $error, "Add fixed asset", "Add", array(
-		array("title"=>"Name", "type"=>"text", "name"=>"name"),
-		array("title"=>"Description", "type"=>"text", "name"=>"description"),
-		array("title"=>"Purchase date", "type"=>"text", "name"=>"purchaseDate"),
-		array("title"=>"Depreciation interval", "type"=>"colspan", "columns"=>array(
-			array("type"=>"html", "html"=>"per"),
+	return operationForm("addfixedasset.php", $error, _("Add fixed asset"), _("Add"), array(
+		array("title"=>_("Name"), "type"=>"text", "name"=>"name"),
+		array("title"=>_("Description"), "type"=>"text", "name"=>"description"),
+		array("title"=>_("Purchase date"), "type"=>"text", "name"=>"purchaseDate"),
+		array("title"=>_("Depreciation interval"), "type"=>"colspan", "columns"=>array(
+			array("type"=>"html", "html"=>_("per")),
 			array("type"=>"text", "name"=>"depreciationFrequencyMultiplier", "fill"=>true),
-			array("type"=>"dropdown", "name"=>"depreciationFrequencyBase", "options"=>dropdown(array("DAY"=>"days", "MONTH"=>"months", "YEAR"=>"years")))
+			array("type"=>"dropdown", "name"=>"depreciationFrequencyBase", "options"=>dropdown(array("DAY"=>_("days"), "MONTH"=>_("months"), "YEAR"=>_("years"))))
 		)),
-		array("title"=>"Depreciation terms", "type"=>"text", "name"=>"depreciationTerms"),
-		array("title"=>"Residual value percentage", "type"=>"text", "name"=>"residualValue"),
+		array("title"=>_("Depreciation terms"), "type"=>"text", "name"=>"depreciationTerms"),
+		array("title"=>_("Residual value percentage"), "type"=>"text", "name"=>"residualValue"),
 	), $values);
 }
 
@@ -1145,16 +1145,16 @@ function editFixedAssetForm($fixedAssetID, $error = "", $values = null)
 		}
 	}
 	
-	return operationForm("editfixedasset.php?id=$fixedAssetID", $error, "Edit fixed asset", "Save", array(
-		array("title"=>"Name", "type"=>"text", "name"=>"name"),
-		array("title"=>"Description", "type"=>"text", "name"=>"description"),
-		array("title"=>"Automatic depreciation", "type"=>"checkbox", "name"=>"automaticDepreciation", "label"=>"Enable automatic depreciation"),
+	return operationForm("editfixedasset.php?id=$fixedAssetID", $error, _("Edit fixed asset"), _("Save"), array(
+		array("title"=>_("Name"), "type"=>"text", "name"=>"name"),
+		array("title"=>_("Description"), "type"=>"text", "name"=>"description"),
+		array("title"=>_("Automatic depreciation"), "type"=>"checkbox", "name"=>"automaticDepreciation", "label"=>_("Enable automatic depreciation")),
 	), $values);
 }
 
 function deleteFixedAssetForm($fixedAssetID, $error = "", $values = null)
 {
-	return operationForm("deletefixedasset.php?id=$fixedAssetID", $error, "Delete fixed asset", "Delete", array(), $values);
+	return operationForm("deletefixedasset.php?id=$fixedAssetID", $error, _("Delete fixed asset"), _("Delete"), array(), $values);
 }
 
 function depreciateFixedAssetForm($fixedAssetID, $error = "", $values = null)
@@ -1163,37 +1163,37 @@ function depreciateFixedAssetForm($fixedAssetID, $error = "", $values = null)
 		$values = array("until"=>date("d-m-Y"));
 	}
 	
-	return operationForm("depreciatefixedasset.php?id=$fixedAssetID", $error, "Depreciate fixed asset", "Depreciate", array(
-		array("title"=>"Until", "type"=>"text", "name"=>"until")
+	return operationForm("depreciatefixedasset.php?id=$fixedAssetID", $error, _("Depreciate fixed asset"), _("Depreciate"), array(
+		array("title"=>_("Until"), "type"=>"text", "name"=>"until")
 	), $values);
 }
 
 function recomputeBalancesForm($error = "", $values = null)
 {
-	return operationForm("recomputebalances.php", $error, "Recompute balances", "Recompute", array(), $values);
+	return operationForm("recomputebalances.php", $error, _("Recompute balances"), _("Recompute"), array(), $values);
 }
 
 function relativeTimeChooser($title, $namePrefix)
 {
 	return array("title"=>"$title", "type"=>"subformchooser", "name"=>"{$namePrefix}DateType", "subforms"=>array(
-		array("value"=>"ABSOLUTE", "label"=>"Absolute date", "subform"=>array(
-			array("title"=>"Absolute date", "type"=>"date", "name"=>"{$namePrefix}AbsDate"),
+		array("value"=>"ABSOLUTE", "label"=>_("Absolute date"), "subform"=>array(
+			array("title"=>_("Absolute date"), "type"=>"date", "name"=>"{$namePrefix}AbsDate"),
 		)),
-		array("value"=>"RELATIVE", "label"=>"Relative date", "subform"=>array(
-			array("title"=>"Relative date", "type"=>"colspan", "columns"=>array(
+		array("value"=>"RELATIVE", "label"=>_("Relative date"), "subform"=>array(
+			array("title"=>_("Relative date"), "type"=>"colspan", "columns"=>array(
 				array("type"=>"dropdown", "name"=>"{$namePrefix}Base", "options"=>array(
-					array("label"=>"Now", "value"=>"NOW"),
-					array("label"=>"Start of month", "value"=>"STARTMONTH"),
-					array("label"=>"Start of quarter", "value"=>"STARTQUARTER"),
-					array("label"=>"Start of year", "value"=>"STARTYEAR"),
+					array("label"=>_("Now"), "value"=>"NOW"),
+					array("label"=>_("Start of month"), "value"=>"STARTMONTH"),
+					array("label"=>_("Start of quarter"), "value"=>"STARTQUARTER"),
+					array("label"=>_("Start of year"), "value"=>"STARTYEAR"),
 				)),
 				array("type"=>"html", "html"=>"+"),
 				array("type"=>"text", "name"=>"{$namePrefix}OffsetAmount", "fill"=>true),
 				array("type"=>"dropdown", "name"=>"{$namePrefix}OffsetType", "options"=>array(
-					array("label"=>"Seconds", "value"=>"SECONDS"),
-					array("label"=>"Days", "value"=>"DAYS"),
-					array("label"=>"Months", "value"=>"MONTHS"),
-					array("label"=>"Years", "value"=>"YEARS"),
+					array("label"=>_("Seconds"), "value"=>"SECONDS"),
+					array("label"=>_("Days"), "value"=>"DAYS"),
+					array("label"=>_("Months"), "value"=>"MONTHS"),
+					array("label"=>_("Years"), "value"=>"YEARS"),
 				)),
 			)),
 		)),
@@ -1218,9 +1218,9 @@ function viewForm()
 		if($account["parentID"] !== null) {
 			$options[] = array("label"=>"", "value"=>"INHERIT");
 		}
-		$options[] = array("label"=>"Visible", "value"=>"VISIBLE");
-		$options[] = array("label"=>"Collapsed", "value"=>"COLLAPSED");
-		$options[] = array("label"=>"Hidden", "value"=>"HIDDEN");
+		$options[] = array("label"=>_("Visible"), "value"=>"VISIBLE");
+		$options[] = array("label"=>_("Collapsed"), "value"=>"COLLAPSED");
+		$options[] = array("label"=>_("Hidden"), "value"=>"HIDDEN");
 		$rows[] = array("type"=>"colspan", "rowid"=>"view-{$account["id"]}", "rowclass"=>($account["parentID"] === null ? null : "child-of-view-{$account["parentID"]} ") . (isset($values[$account["id"]]) && $values[$account["id"]] == "VISIBLE" ? "" : "collapsed"), "columns"=>array(
 			array("type"=>"html", "html"=>$account["name"], "fill"=>true),
 			array("type"=>"dropdown", "name"=>$account["id"], "options"=>$options),
@@ -1228,16 +1228,16 @@ function viewForm()
 	}
 
 	return array(
-		array("title"=>"Name", "type"=>"text", "name"=>"name"),
-		array("title"=>"Description", "type"=>"text", "name"=>"description"),
-		array("caption"=>"Accounts", "type"=>"table", "tableclass"=>"list tree", "subform"=>$rows),
-		array("title"=>"Type", "type"=>"typechooser", "options"=>array(
-			array("title"=>"Balance view", "submitcaption"=>"Create balance view", "name"=>"balance", "subform"=>array(
-				relativeTimeChooser("Date", "balance")
+		array("title"=>_("Name"), "type"=>"text", "name"=>"name"),
+		array("title"=>_("Description"), "type"=>"text", "name"=>"description"),
+		array("caption"=>_("Accounts "), "type"=>"table", "tableclass"=>"list tree", "subform"=>$rows),
+		array("title"=>_("Type"), "type"=>"typechooser", "options"=>array(
+			array("title"=>_("Balance view"), "submitcaption"=>_("Create balance view"), "name"=>"balance", "subform"=>array(
+				relativeTimeChooser(_("Date"), "balance")
 			)),
-			array("title"=>"Income / expences view", "submitcaption"=>"Create Income / expences view", "name"=>"incomeexpences", "subform"=>array(
-				relativeTimeChooser("Start date", "incomeExpencesStart"),
-				relativeTimeChooser("End date", "incomeExpencesEnd"),
+			array("title"=>_("Income / expences view"), "submitcaption"=>_("Create income / expences view"), "name"=>"incomeexpences", "subform"=>array(
+				relativeTimeChooser(_("Start date"), "incomeExpencesStart"),
+				relativeTimeChooser(_("End date"), "incomeExpencesEnd"),
 			)),
 		)),
 	);
@@ -1246,7 +1246,7 @@ function viewForm()
 function addViewForm($error = "", $values = null)
 {
 	if($error == "STUB") {
-		return operationForm("addview.php", "", "Add view", "Add view", array(), array());
+		return operationForm("addview.php", "", _("Add view"), _("Add view"), array(), array());
 	}
 	if($values === null || count($values) == 0) {
 		$values = array();
@@ -1255,13 +1255,13 @@ function addViewForm($error = "", $values = null)
 		$values["incomeExpencesEndOffsetAmount"] = 0;
 	}
 	$form = viewForm();
-	return operationForm("addview.php", $error, "Add view", "Save", $form, $values);
+	return operationForm("addview.php", $error, _("Add view"), _("Save"), $form, $values);
 }
 
 function editBalanceViewForm($balanceViewID, $error = "", $values = null)
 {
 	if($error == "STUB") {
-		return operationForm("editview.php?id=$balanceViewID&type=balance", "", "Edit view", "Edit view", array(), array());
+		return operationForm("editview.php?id=$balanceViewID&type=balance", "", _("Edit view"), _("Edit view"), array(), array());
 	}
 	if($values === null || count($values) == 0) {
 		$values = array();
@@ -1287,13 +1287,13 @@ function editBalanceViewForm($balanceViewID, $error = "", $values = null)
 		}
 	}
 	$form = viewForm();
-	return operationForm("editview.php?id=$balanceViewID&type=balance", $error, "Edit view", "Save", $form, $values);
+	return operationForm("editview.php?id=$balanceViewID&type=balance", $error, _("Edit view"), _("Save"), $form, $values);
 }
 
 function editIncomeExpenseViewForm($incomeExpenseViewID, $error = "", $values = null)
 {
 	if($error == "STUB") {
-		return operationForm("editview.php?id=$incomeExpenseViewID&type=incomeexpence", "", "Edit view", "Edit view", array(), array());
+		return operationForm("editview.php?id=$incomeExpenseViewID&type=incomeexpence", "", _("Edit view"), _("Edit view"), array(), array());
 	}
 	if($values === null || count($values) == 0) {
 		$values = array();
@@ -1328,17 +1328,17 @@ function editIncomeExpenseViewForm($incomeExpenseViewID, $error = "", $values = 
 		}
 	}
 	$form = viewForm();
-	return operationForm("editview.php?id=$incomeExpenseViewID&type=incomeexpence", $error, "Edit view", "Save", $form, $values);
+	return operationForm("editview.php?id=$incomeExpenseViewID&type=incomeexpence", $error, _("Edit view"), _("Save"), $form, $values);
 }
 
 function deleteBalanceViewForm($viewID, $error = "", $values = null)
 {
-	return operationForm("deletebalanceview.php?id=$viewID", $error, "Delete view", "Delete", array(), $values);
+	return operationForm("deletebalanceview.php?id=$viewID", $error, _("Delete view"), _("Delete"), array(), $values);
 }
 
 function deleteIncomeExpenceViewForm($viewID, $error = "", $values = null)
 {
-	return operationForm("deleteincomeexpenceview.php?id=$viewID", $error, "Delete view", "Delete", array(), $values);
+	return operationForm("deleteincomeexpenceview.php?id=$viewID", $error, _("Delete view"), _("Delete"), array(), $values);
 }
 
 function transactionExchangeRates($balance)
@@ -1346,11 +1346,11 @@ function transactionExchangeRates($balance)
 	$currency1 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["from"]), array("name", "symbol"));
 	$currency2 = stdGet("accountingCurrency", array("currencyID"=>$balance["rates"][0]["to"]), array("name", "symbol"));
 	
-	$rates1 = array("title"=>"Exchange rate", "type"=>"colspan", "columns"=>array(
+	$rates1 = array("title"=>_("Exchange rate"), "type"=>"colspan", "columns"=>array(
 		array("type"=>"html", "cellclass"=>"nowrap", "html"=>formatPrice(100, $currency1["symbol"]) . " (" . $currency1["name"] . ")"),
 		array("type"=>"html", "fill"=>true, "html"=>"<input type=\"text\" readonly=\"readonly\" value=\"" . formatPrice($balance["rates"][0]["rate"], $currency2["symbol"]) . " (" . $currency2["name"] . ")\" />")
 	));
-	$rates2 = array("title"=>"Exchange rate", "type"=>"colspan", "columns"=>array(
+	$rates2 = array("title"=>_("Exchange rate"), "type"=>"colspan", "columns"=>array(
 		array("type"=>"html", "cellclass"=>"nowrap", "html"=>formatPrice(100, $currency2["symbol"]) . " (" . $currency2["name"] . ")"),
 		array("type"=>"html", "fill"=>true, "html"=>"<input type=\"text\" readonly=\"readonly\" value=\"" . formatPrice($balance["rates"][1]["rate"], $currency1["symbol"]) . " (" . $currency1["name"] . ")\" />")
 	));
@@ -1398,17 +1398,17 @@ function currencyOptions()
 
 function supplierAccountDescription($name)
 {
-	return "Supplier account for supplier $name";
+	return sprintf(_("Supplier account for supplier %s"), $name);
 }
 
 function depreciationAccountDescription($name)
 {
-	return "Depreciation account for fixed asset $name";
+	return sprintf(_("Depreciation account for fixed asset %s"), $name);
 }
 
 function expenseAccountDescription($name)
 {
-	return "Expense account for fixed asset $name";
+	return sprintf(_("Expense account for fixed asset %s"), $name);
 }
 
 function accountEmpty($accountID)

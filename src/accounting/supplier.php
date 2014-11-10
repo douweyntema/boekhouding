@@ -9,7 +9,7 @@ function main()
 	doAccountingSupplier($supplierID);
 	
 	$name = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "name");
-	$content = makeHeader("Supplier " . $name, supplierBreadcrumbs($supplierID));
+	$content = makeHeader(sprintf(_("Supplier %s"), $name), supplierBreadcrumbs($supplierID));
 	
 	$content .= supplierSummary($supplierID);
 	

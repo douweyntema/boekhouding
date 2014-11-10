@@ -8,10 +8,10 @@ function main()
 	doAccountingFixedAsset($fixedAssetID);
 	
 	$check = function($condition, $error) use($fixedAssetID) {
-		if(!$condition) die(page(makeHeader("Depreciate fixed asset", fixedAssetBreadcrumbs($fixedAssetID), crumbs("Depreciate fixed asset", "depreciatefixedasset.php?id=$fixedAssetID")) . depreciateFixedAssetForm($fixedAssetID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Depreciate fixed asset"), fixedAssetBreadcrumbs($fixedAssetID), crumbs(_("Depreciate fixed asset"), "depreciatefixedasset.php?id=$fixedAssetID")) . depreciateFixedAssetForm($fixedAssetID, $error, $_POST)));
 	};
 	
-	$check(($until = parseDate(post("until"))) !== null, "Invalid until date.");
+	$check(($until = parseDate(post("until"))) !== null, _("Invalid until date."));
 	$check(post("confirm") !== null, null);
 	
 	accountingDepreciateFixedAsset($fixedAssetID, $until);

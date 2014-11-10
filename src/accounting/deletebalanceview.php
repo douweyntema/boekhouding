@@ -8,7 +8,7 @@ function main()
 	doAccountingBalanceView($viewID);
 	
 	$check = function($condition, $error) use($viewID) {
-		if(!$condition) die(page(makeHeader("Delete view", balanceViewBreadcrumbs($viewID), crumbs("Delete view", "deletebalanceview.php?id=$viewID")) . deleteBalanceViewForm($viewID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Delete view"), balanceViewBreadcrumbs($viewID), crumbs(_("Delete view"), "deletebalanceview.php?id=$viewID")) . deleteBalanceViewForm($viewID, $error, $_POST)));
 	};
 	
 	$check(post("confirm") !== null, null);

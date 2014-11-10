@@ -7,11 +7,11 @@ function main()
 	doCustomers();
 	
 	$check = function($condition, $error) {
-		if(!$condition) die(page(makeHeader("Add new customer", customersBreadcrumbs(), crumbs("Add customer", "addcustomer.php")) . addCustomerForm($error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Add new customer"), customersBreadcrumbs(), crumbs(_("Add customer"), "addcustomer.php")) . addCustomerForm($error, $_POST)));
 	};
 	
 	$notempty = function($field) use($check) {
-		$check(trim(post($field)) != "", "Invalid $field");
+		$check(trim(post($field)) != "", sprintf(_("Invalid %s"), $field));
 	};
 	
 	$notempty("name");
@@ -25,8 +25,8 @@ function main()
 	$notempty("invoiceFrequencyMultiplier");
 	$notempty("invoiceFrequencyBase");
 	
-	$check(ctype_digit(post("invoiceFrequencyMultiplier")), "Invalid invoiceFrequencyMultiplier");
-	$check(post("invoiceFrequencyBase") == "DAY" || post("invoiceFrequencyBase") == "MONTH" || post("invoiceFrequencyBase") == "YEAR", "Invalid invoiceFrequencyBase");
+	$check(ctype_digit(post("invoiceFrequencyMultiplier")), _("Invalid invoiceFrequencyMultiplier"));
+	$check(post("invoiceFrequencyBase") == "DAY" || post("invoiceFrequencyBase") == "MONTH" || post("invoiceFrequencyBase") == "YEAR", _("Invalid invoiceFrequencyBase"));
 	
 	$companyName = post("companyName");
 	
@@ -34,9 +34,9 @@ function main()
 		$companyName = null;
 	}
 	
-	$check(!stdExists("adminCustomer", array("name"=>post("name")), "customerID"), "A customer with the chosen name already exists");
-	$check(validAccountName(post("name")), "Invalid account name.");
-	$check(!reservedAccountName(post("name")), "An account with the chosen name already exists (reserved).");
+	$check(!stdExists("adminCustomer", array("name"=>post("name")), "customerID"), _("A customer with the chosen name already exists"));
+	$check(validAccountName(post("name")), _("Invalid account name."));
+	$check(!reservedAccountName(post("name")), _("An account with the chosen name already exists (reserved)."));
 	
 	$check(post("confirm") !== null, null);
 	

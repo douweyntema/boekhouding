@@ -9,7 +9,7 @@ function main()
 	if($accountID == 0) error404();
 	
 	$check = function($condition, $error) use($accountID) {
-		if(!$condition) die(page(makeHeader("Move account", accountBreadcrumbs($accountID), crumbs("Move account", "moveaccount.php?id=$accountID")) . moveAccountForm($accountID, $error, $_POST)));
+		if(!$condition) die(page(makeHeader(_("Move account"), accountBreadcrumbs($accountID), crumbs(_("Move account"), "moveaccount.php?id=$accountID")) . moveAccountForm($accountID, $error, $_POST)));
 	};
 	
 	$check(($parentAccountID = post("parentAccountID")) !== null, "");
@@ -17,10 +17,10 @@ function main()
 		$parentAccountID = null;
 	}
 	
-	$check($parentAccountID === null || stdExists("accountingAccount", array("accountID"=>$parentAccountID)), "Invalid target account");
+	$check($parentAccountID === null || stdExists("accountingAccount", array("accountID"=>$parentAccountID)), _("Invalid target account"));
 	$target = $parentAccountID;
 	while($target !== null) {
-		$check($target != $accountID, "Invalid target account");
+		$check($target != $accountID, _("Invalid target account"));
 		$target = stdGet("accountingAccount", array("accountID"=>$target), "parentAccountID");
 	}
 	

@@ -8,7 +8,7 @@ function main()
 	doBillingAdmin($customerID);
 	billingUpdateSubscriptionLines($customerID);
 	
-	$content = makeHeader("Billing", adminCustomerBreadcrumbs($customerID));
+	$content = makeHeader(_("Billing"), adminCustomerBreadcrumbs($customerID));
 	$content .= customerSummary($customerID);
 	$content .= subscriptionList($customerID);
 	$content .= invoiceList($customerID);
