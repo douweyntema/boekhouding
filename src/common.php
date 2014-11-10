@@ -169,7 +169,7 @@ return <<<HTML
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery.tablesorter.js"></script>
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery.treeTable.js"></script>
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/script.js"></script>
-<title>Treva control panel</title>
+<title>{$GLOBALS["htmlTitle"]}</title>
 </head>
 <body>
 $content
@@ -181,28 +181,19 @@ HTML;
 
 function welcomeHeader()
 {
-	if(isLoggedIn() && isImpersonating()) {
-		$usernameHtml = htmlentities(username());
-		$customerHtml = htmlentities(impersonatedCustomer());
+	global $_;
+	if(isLoggedIn()) {
+		$loginMessage = "Logged in as " . htmlentities(username());
 		return <<<HTML
 <div class="welcome">
-<span>Logged in as $usernameHtml@$customerHtml - <a href="{$GLOBALS["rootHtml"]}logout.php">log out</a> - <a href="{$GLOBALS["rootHtml"]}customers/?customerID=0">back to $usernameHtml</a></span>
-</div>
-
-HTML;
-	
-	} else if(isLoggedIn()) {
-		$usernameHtml = htmlentities(username());
-		return <<<HTML
-<div class="welcome">
-<span>Logged in as $usernameHtml - <a href="{$GLOBALS["rootHtml"]}logout.php">log out</a></span>
+<span>$loginMessage - <a href="{$GLOBALS["rootHtml"]}logout.php">log out</a></span>
 </div>
 
 HTML;
 	} else {
 		return <<<HTML
 <div class="welcome">
-<span>Treva control panel</span>
+<span>{$GLOBALS["htmlTitle"]}</span>
 </div>
 
 HTML;
@@ -252,20 +243,6 @@ function menu()
 	}
 	
 	return $output;
-}
-
-function trevaOverview()
-{
-	return summaryTable("Our information", array(
-		"Name"=>"Treva Technologies",
-		"Address"=>"Sibeliuslaan 95\n5654 CV Eindhoven",
-		"Email"=>array("html"=>"treva@treva.nl", "url"=>"mailto:treva@treva.nl"),
-		"Urgent tech support"=>"040-7114037 (24/7)",
-		"KvK number"=>"17218313 in Eindhoven",
-		"BTW number"=>"NL0026006487B01",
-		"Bank number"=>"ING 3962370",
-		"IBAN number"=>"NL81INGB0003962370"
-	));
 }
 
 function page($content)

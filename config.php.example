@@ -1,56 +1,44 @@
 <?php
 
-$adminMail = "treva@treva.nl";
-$adminMailName = "Treva Technologies";
+$adminMail = "info@nadicia.nl";
+$adminMailName = "Valkerij Nadicia";
 
 $controlpanelDisabled = false;
-$controlpanelDisabledNotice = "<p>The Treva control panel is currently disabled for maintenance.</p>";
+$controlpanelDisabledNotice = "<p>De boekhouding is tijdelijk buiten gebruik voor onderhoud.</p>";
 
-$controlpanelEnableCustomerEmail = false;
 $controlpanelEnableAssetDepreciation = false;
 
-$controlpanelUrl = "http://controlpanel.treva.nl/";
+$controlpanelUrl = "http://boekhouding.nadicia.nl/";
 
 $database_hostname = "localhost";
 $database_username = "";
 $database_password = "";
-$database_name = "treva-panel";
+$database_name = "nadicia-boekhouding";
 
-$mysql_management_disabled = false;
-$mysql_management_username = "";
-$mysql_management_password = "";
-
-$crypto_key = "aiulfdsfhkasdfouglasdfasjd,fgksdfj";
-
-$ssh_private_key_file = "~/.ssh/id_rsa";
+$crypto_key = "khflabrtbejrhtwkergt,webrt";
 
 $taxRate = 0.21;
-$defaultCurrencyID = ;
+$defaultCurrencyID = 0;
 
-$assetsDirectoryAccountID = ;
-$customersDirectoryAccountID = ;
-$suppliersDirectoryAccountID = ;
-$revenueDirectoryAccountID = ;
-$expensesDirectoryAccountID = ;
-$bankDirectoryAccountID = ;
-$fixedAssetValueDirectoryAccountID = ;
-$fixedAssetDepreciationDirectoryAccountID = ;
-$fixedAssetExpenseDirectoryAccountID = ;
+$assetsDirectoryAccountID = 0;
+$customersDirectoryAccountID = 0;
+$suppliersDirectoryAccountID = 0;
+$revenueDirectoryAccountID = 0;
+$expensesDirectoryAccountID = 0;
+$bankDirectoryAccountID = 0;
+$fixedAssetValueDirectoryAccountID = 0;
+$fixedAssetDepreciationDirectoryAccountID = 0;
+$fixedAssetExpenseDirectoryAccountID = 0;
 
-$bankDefaultAccountID = ;
-$taxPayableAccountID = ;
-$taxReceivableAccountID = ;
-$domainsRevenueAccountID = ;
+$bankDefaultAccountID = 0;
+$taxPayableAccountID = 0;
+$taxReceivableAccountID = 0;
+$domainsRevenueAccountID = 0;
 
 $componentsEnabled = array();
-$componentsEnabled[] = "infrastructure";
 $componentsEnabled[] = "customers";
 $componentsEnabled[] = "accounts";
 $componentsEnabled[] = "billing";
 $componentsEnabled[] = "ticket";
-$componentsEnabled[] = "http";
-$componentsEnabled[] = "mail";
-$componentsEnabled[] = "domains";
-$componentsEnabled[] = "mysql";
 
 ?>

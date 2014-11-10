@@ -20,7 +20,7 @@ function main()
 	$password = checkPassword($check, "password");
 	$check(post("confirm") !== null, null);
 	
-	$userID = stdNew("adminUser", array("customerID"=>null, "username"=>$username, "password"=>hashPassword($password)));
+	$userID = stdNew("adminUser", array("username"=>$username, "password"=>hashPassword($password)));
 	
 	redirect("accounts/adminaccount.php?id=$userID");
 }

@@ -31,7 +31,7 @@ if((isset($_SESSION["username"]) && isset($_SESSION["password"])) ||
 		$password = $_SESSION["password"];
 	}
 	
-	$user = stdGetTry("adminUser", array("username"=>$username), array("userID", "customerID", "username", "password"), false);
+	$user = stdGetTry("adminUser", array("username"=>$username), array("userID", "username", "password"), false);
 	if($user === false) {
 		loginFailed();
 	}
@@ -39,22 +39,8 @@ if((isset($_SESSION["username"]) && isset($_SESSION["password"])) ||
 		loginFailed();
 	}
 	
-	if($user["customerID"] !== null) {
-		$customerID = $user["customerID"];
-		$impersonate = false;
-	} else if((isset($GLOBALS["loginAllowed"]) && get("customerID") !== null && get("customerID") == 0) || (isset($GLOBALS["endImpersonate"]) && $GLOBALS["endImpersonate"])) {
-		$customerID = 0;
-		$impersonate = false;
-	} else if(isset($GLOBALS["loginAllowed"]) && get("customerID") !== null) {
-		$customerID = get("customerID");
-		$impersonate = true;
-	} else if(isset($_SESSION["impersonatedCustomerID"])) {
-		$customerID = $_SESSION["impersonatedCustomerID"];
-		$impersonate = true;
-	} else {
-		$customerID = 0;
-		$impersonate = false;
-	}
+	$customerID = 0;
+	$impersonate = false;
 	
 	if($impersonate) {
 		$customer = stdGetTry("adminCustomer", array("customerID"=>$customerID), "name", false);

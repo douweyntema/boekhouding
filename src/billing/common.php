@@ -66,7 +66,6 @@ function customerSummary($customerID)
 	return summaryTable("Customer {$customer["name"]}", array(
 		"Balance"=>array("url"=>"{$GLOBALS["rootHtml"]}accounting/account.php?id={$customer["accountID"]}", "html"=>accountingFormatAccountPrice($customer["accountID"], true)),
 		"Invoice status"=>ucfirst(strtolower($customer["invoiceStatus"])),
-		"Domain registration limit"=>array("html"=>formatPrice(domainsCustomerUnpaidDomainsPrice($customerID)) . " / " . formatPrice(domainsCustomerUnpaidDomainsLimit($customerID))),
 		
 	));
 }
@@ -91,7 +90,7 @@ function invoiceStatusForm($customerID, $error = "", $values = null)
 function subscriptionList($customerID)
 {
 	$rows = array();
-	foreach(stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
+	foreach(stdList("billingSubscription", array("customerID"=>$customerID), array("subscriptionID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
 		if($subscription["discountPercentage"] === null && $subscription["discountAmount"] === null) {
 			$priceDetail = "None";
 		} else {
@@ -126,15 +125,9 @@ function subscriptionList($customerID)
 function customerSubscriptionList()
 {
 	$rows = array();
-	foreach(stdList("billingSubscription", array("customerID"=>customerID()), array("subscriptionID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
-		$domainID = stdGetTry("dnsDomain", array("subscriptionID"=>$subscription["subscriptionID"]), "domainID");
-		if($domainID === null) {
-			$url = null;
-		} else {
-			$url = "{$GLOBALS["rootHtml"]}domains/domain.php?id={$domainID}";
-		}
+	foreach(stdList("billingSubscription", array("customerID"=>customerID()), array("subscriptionID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate")) as $subscription) {
 		$rows[] = array(
-			array("url"=>$url, "text"=>$subscription["description"]),
+			array("text"=>$subscription["description"]),
 			array("html"=>formatSubscriptionPrice($subscription))
 		);
 	}
@@ -143,7 +136,7 @@ function customerSubscriptionList()
 
 function subscriptionDetail($subscriptionID)
 {
-	$subscription = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("revenueAccountID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
+	$subscription = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("revenueAccountID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
 	
 	if($subscription["discountPercentage"] !== null) {
 		$discountPercentage = $subscription["discountPercentage"] . "% (" . formatPrice(billingBasePrice($subscription) * $subscription["discountPercentage"] / 100) . ")";
@@ -165,18 +158,6 @@ function subscriptionDetail($subscriptionID)
 		$delay = ceil(-1 * $subscription["invoiceDelay"] / 86400) . " days in advance";
 	}
 	
-	if($subscription["domainTldID"] !== null) {
-		$domainID = stdGetTry("dnsDomain", array("subscriptionID"=>$subscriptionID), "domainID");
-		if($domainID === null) {
-			$domainTldName = "." . stdGet("infrastructureDomainTld", array("domainTldID"=>$subscription["domainTldID"]), "name");
-			$domainName = "unknown $domainTldName domain";
-		} else {
-			$domainName = domainsFormatDomainName($domainID);
-		}
-	} else {
-		$domainName = "-";
-	}
-	
 	$revenueAccountName = stdGet("accountingAccount", array("accountID"=>$subscription["revenueAccountID"]), "name");
 	
 	return summaryTable("Subscription", array(
@@ -190,7 +171,6 @@ function subscriptionDetail($subscriptionID)
 		"Renew date"=>date("d-m-Y", $subscription["nextPeriodStart"]),
 		"End date"=>($subscription["endDate"] === null ? "-" : date("d-m-Y", $subscription["endDate"])),
 		"Revenue account"=>array("url"=>"{$GLOBALS["rootHtml"]}accounting/account.php?id={$subscription["revenueAccountID"]}", "text"=>$revenueAccountName),
-		"Related domain"=>$domainName
 	));
 }
 
@@ -363,7 +343,7 @@ function addSubscriptionForm($customerID, $error = "", $values = null)
 function editSubscriptionForm($subscriptionID, $error = "", $values = null)
 {
 	if($values === null) {
-		$values = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("revenueAccountID", "domainTldID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
+		$values = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), array("revenueAccountID", "description", "price", "discountPercentage", "discountAmount", "frequencyBase", "frequencyMultiplier", "invoiceDelay", "nextPeriodStart", "endDate"));
 		$values["priceType"] = $values["price"] === null ? "domain" : "custom";
 		$values["price"] = formatPriceRaw($values["price"]);
 		$values["discountAmount"] = formatPriceRaw($values["discountAmount"]);
@@ -372,20 +352,10 @@ function editSubscriptionForm($subscriptionID, $error = "", $values = null)
 			$values["discountPercentage"] = 0;
 		}
 	}
-	$domainTldID = stdGet("billingSubscription", array("subscriptionID"=>$subscriptionID), "domainTldID");
-	return operationForm("editsubscription.php?id=$subscriptionID", $error, "Edit subscription", "Save",
+	return operationForm("editsubscription.php?id=$subscriptionID", $error, _("Edit subscription"), _("Save"),
 		array(
 			array("title"=>"Description", "type"=>"text", "name"=>"description"),
-			$domainTldID !== null ?
-				array("title"=>"Price", "type"=>"subformchooser", "name"=>"priceType", "subforms"=>array(
-					array("value"=>"domain", "label"=>"Use tld price (" . formatPrice(billingDomainPrice($domainTldID)) . ")", "subform"=>array()),
-					array("value"=>"custom", "label"=>"Custom", "subform"=>array(
-						array("type"=>"text", "name"=>"price")
-					))
-				))
-			:
-				array("title"=>"Price", "type"=>"text", "name"=>"price")
-			,
+			array("title"=>"Price", "type"=>"text", "name"=>"price"),
 			array("title"=>"Discount percentage", "type"=>"text", "name"=>"discountPercentage"),
 			array("title"=>"Discount amount", "type"=>"text", "name"=>"discountAmount"),
 			array("title"=>"Frequency", "type"=>"colspan", "columns"=>array(

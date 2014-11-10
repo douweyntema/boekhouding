@@ -14,7 +14,7 @@ function main()
 	
 	$check(post("confirm") !== null, null);
 	
-	stdDel("adminUser", array("userID"=>$userID, "customerID"=>null));
+	stdDel("adminUser", array("userID"=>$userID));
 	
 	redirect("accounts/");
 }

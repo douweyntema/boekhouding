@@ -1,7 +1,7 @@
 <?php
 
 define("COUNTRYCODES_FILE", dirname(__FILE__) . "/../countrycodes");
-define("RESERVED_USERNAMES_FILE", dirname(__FILE__) . "/../../reserved-usernames");
+define("RESERVED_USERNAMES_FILE", dirname(__FILE__) . "/../reserved-usernames");
 
 function searchKey($array /*, $keys */)
 {

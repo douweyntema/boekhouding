@@ -84,13 +84,11 @@ function billingUpdateSubscriptionLines($customerID)
 		}
 		if($subscription["endDate"] !== null && $subscription["nextPeriodStart"] >= $subscription["endDate"]) {
 			if($subscription["domainTldID"] !== null) {
-				$domainID = stdGetTry("dnsDomain", array("subscriptionID"=>$subscription["subscriptionID"]), "domainID");
-				if($domainID !== null) {
-					if(domainsDomainStatus($domainID) == "expired" || domainsDomainStatus($domainID) == "quarantaine") {
-						domainsRemoveDomain($domainID);
-					} else {
-						continue;
-					}
+				$domainID = stdGet("dnsDomain", array("subscriptionID"=>$subscription["subscriptionID"]), "domainID");
+				if(domainsDomainStatus($domainID) == "expired" || domainsDomainStatus($domainID) == "quarantaine") {
+					domainsRemoveDomain($domainID);
+				} else {
+					continue;
 				}
 			}
 			stdDel("billingSubscription", array("subscriptionID"=>$subscription["subscriptionID"]));
@@ -258,14 +256,13 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 	$btwTex = formatPriceRaw($btw);
 	$brieftype = $creditatie ? "creditatiebrief" : "factuurbrief";
 	$tex = <<<TEX
-\\documentclass{trevabrief}
-\\usepackage{treva-factuur}
+\\documentclass{nadiciabrief}
+\\usepackage{nadicia-factuur}
 \\setDatum[{$texdatum}]
 
 \\begin{document}
 
 \\begin{{$brieftype}}{{$to}}{{$invoiceNumber}}
-\\gebruikersnaam{{$usernameTex}}
 
 \\begin{factuur}
 {$posts}{$discounts}\\btw{{$btwTex}}
@@ -311,9 +308,9 @@ function billingCreateInvoiceEmail($invoiceID, $reminder=false)
 		$bedrag = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$customer["accountID"]), "amount");
 		$bedragText = formatPriceRaw($remainingAmount);
 		if($bedrag == $remainingAmount) {
-			$betalen = "Wij verzoeken u dit bedrag (€ $bedragText) binnen 30 dagen over te maken op rekeningnummer 3962370 t.n.v. Treva Technologies, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}) en uw accountnaam ({$customer["name"]}).";
+			$betalen = "Wij verzoeken u dit bedrag (€ $bedragText) binnen 30 dagen over te maken op rekeningnummer XXXXXXXX t.n.v. Valkerij Nadicia, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}).";
 		} else {
-			$betalen = "Deze factuur is nog niet volledig betaald. Wij verzoeken u het resterende bedrag (€ $bedragText) binnen 30 dagen over te maken op rekeningnummer 3962370 t.n.v. Treva Technologies, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}) en uw accountnaam ({$customer["name"]}).";
+			$betalen = "Deze factuur is nog niet volledig betaald. Wij verzoeken u het resterende bedrag (€ $bedragText) binnen 30 dagen over te maken op rekeningnummer XXXXXXXX t.n.v. Valkerij Nadicia, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}).";
 		}
 	} else {
 		$betalen = "Deze factuur is reeds verrekend met eerdere betalingen.";
@@ -326,8 +323,8 @@ function billingCreateInvoiceEmail($invoiceID, $reminder=false)
 	} else {
 		$mail->addReceiver($customer["email"], $customer["companyName"]);
 	}
-	$mail->setSender("treva@treva.nl", "Treva Technologies");
-	$mail->addBcc("klantfacturen@treva.nl");
+	$mail->setSender("info@nadicia.nl", "Valkerij Nadicia");
+	$mail->addBcc("info@nadicia.nl");
 	if($reminder) {
 		$mail->setSubject("Herrinnering: factuur {$invoice["invoiceNumber"]}");
 	} else {
@@ -350,7 +347,7 @@ Geachte {$customer["initials"]} {$customer["lastName"]},
 
 Met vriendelijke groet,
 
-Treva Technologies
+Valkerij Nadicia
 
 TEXT
 );

@@ -28,16 +28,6 @@ foreach($newsItems as $item) {
 HTML;
 }
 
-if(function_exists("customersOverview")) {
-	$content .= customersOverview();
-}
-if(function_exists("trevaOverview")) {
-	$content .= trevaOverview();
-}
-if(function_exists("infrastructureOverview")) {
-	$content .= infrastructureOverview();
-}
-
 if(isRoot()) {
 	$content .= <<<HTML
 <div class="operation">
