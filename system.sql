@@ -1,17 +1,17 @@
 -- phpMyAdmin SQL Dump
--- version 3.4.3.1
+-- version 3.4.11.1deb2+deb7u1
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Apr 30, 2014 at 02:13 AM
--- Server version: 5.5.35
--- PHP Version: 5.4.4-14+deb7u8
+-- Generation Time: Nov 10, 2014 at 05:14 PM
+-- Server version: 5.5.40
+-- PHP Version: 5.4.34-0+deb7u1
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
 --
--- Database: `treva-panel`
+-- Database: `boekhouding`
 --
 
 -- --------------------------------------------------------
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `accountingAccount` (
   PRIMARY KEY (`accountID`),
   KEY `parentAccountID` (`parentAccountID`),
   KEY `currencyID` (`currencyID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=107 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `accountingBalanceView` (
   `dateOffsetType` enum('SECONDS','DAYS','MONTHS','YEARS') NOT NULL,
   `dateOffsetAmount` int(11) NOT NULL,
   PRIMARY KEY (`balanceViewID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=7 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -66,6 +66,26 @@ CREATE TABLE IF NOT EXISTS `accountingBalanceViewAccount` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `accountingCar`
+--
+
+CREATE TABLE IF NOT EXISTS `accountingCar` (
+  `carID` int(11) NOT NULL AUTO_INCREMENT,
+  `drivenKmAccountID` int(11) NOT NULL,
+  `expencesAccountID` int(11) NOT NULL,
+  `defaultBankAccountID` int(11) DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `kmFee` float NOT NULL,
+  PRIMARY KEY (`carID`),
+  KEY `drivenKmID` (`drivenKmAccountID`),
+  KEY `expencesID` (`expencesAccountID`),
+  KEY `defaultBankAccountID` (`defaultBankAccountID`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `accountingCurrency`
 --
 
@@ -75,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `accountingCurrency` (
   `symbol` varchar(255) NOT NULL,
   `order` int(11) NOT NULL,
   PRIMARY KEY (`currencyID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -102,7 +122,7 @@ CREATE TABLE IF NOT EXISTS `accountingFixedAsset` (
   KEY `accountID` (`accountID`),
   KEY `depreciationAccountID` (`depreciationAccountID`),
   KEY `expenseAccountID` (`expenseAccountID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=5 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -121,7 +141,7 @@ CREATE TABLE IF NOT EXISTS `accountingIncomeExpenseView` (
   `endDateOffsetType` enum('SECONDS','DAYS','MONTHS','YEARS') NOT NULL,
   `endDateOffsetAmount` int(11) NOT NULL,
   PRIMARY KEY (`incomeExpenseViewID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -149,7 +169,7 @@ CREATE TABLE IF NOT EXISTS `accountingTransaction` (
   `description` text NOT NULL,
   PRIMARY KEY (`transactionID`),
   KEY `date` (`date`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=472 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -165,7 +185,7 @@ CREATE TABLE IF NOT EXISTS `accountingTransactionLine` (
   PRIMARY KEY (`transactionLineID`),
   KEY `transactionID` (`transactionID`,`accountID`),
   KEY `accountID` (`accountID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1341 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -192,7 +212,7 @@ CREATE TABLE IF NOT EXISTS `adminCustomer` (
   `invoiceStatus` enum('UNSET','DISABLED','PREVIEW','ENABLED') NOT NULL DEFAULT 'UNSET',
   PRIMARY KEY (`customerID`),
   KEY `accountID` (`accountID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=29 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -206,7 +226,7 @@ CREATE TABLE IF NOT EXISTS `adminNews` (
   `date` int(11) NOT NULL,
   `text` text NOT NULL,
   PRIMARY KEY (`newsID`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -220,7 +240,7 @@ CREATE TABLE IF NOT EXISTS `adminUser` (
   `password` varchar(255) NOT NULL,
   PRIMARY KEY (`userID`),
   UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=43 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -238,7 +258,7 @@ CREATE TABLE IF NOT EXISTS `billingInvoice` (
   PRIMARY KEY (`invoiceID`),
   KEY `customerID` (`customerID`),
   KEY `transactionID` (`transactionID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=93 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -258,7 +278,7 @@ CREATE TABLE IF NOT EXISTS `billingInvoiceLine` (
   `taxRate` varchar(255) NOT NULL,
   PRIMARY KEY (`invoiceLineID`),
   KEY `invoiceID` (`invoiceID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=261 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -273,7 +293,7 @@ CREATE TABLE IF NOT EXISTS `billingPayment` (
   PRIMARY KEY (`paymentID`),
   KEY `customerID` (`customerID`),
   KEY `transactionID` (`transactionID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=68 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -297,7 +317,7 @@ CREATE TABLE IF NOT EXISTS `billingSubscription` (
   PRIMARY KEY (`subscriptionID`),
   KEY `customerID` (`customerID`),
   KEY `revenueAccountID` (`revenueAccountID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=56 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -317,7 +337,7 @@ CREATE TABLE IF NOT EXISTS `billingSubscriptionLine` (
   PRIMARY KEY (`subscriptionLineID`),
   KEY `customerID` (`customerID`),
   KEY `revenueAccountID` (`revenueAccountID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=106 ;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -334,7 +354,7 @@ CREATE TABLE IF NOT EXISTS `suppliersInvoice` (
   PRIMARY KEY (`invoiceID`),
   KEY `supplierID` (`supplierID`),
   KEY `transactionID` (`transactionID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=105 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -349,7 +369,7 @@ CREATE TABLE IF NOT EXISTS `suppliersPayment` (
   PRIMARY KEY (`paymentID`),
   KEY `supplierID` (`supplierID`),
   KEY `transactionID` (`transactionID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=111 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -366,9 +386,7 @@ CREATE TABLE IF NOT EXISTS `suppliersSupplier` (
   PRIMARY KEY (`supplierID`),
   KEY `accountID` (`accountID`),
   KEY `expenseAccountID` (`defaultExpenseAccountID`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=18 ;
-
--- --------------------------------------------------------
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 --
 -- Constraints for dumped tables

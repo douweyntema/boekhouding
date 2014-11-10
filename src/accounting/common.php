@@ -73,6 +73,14 @@ function doAccountingIncomeExpenseView($incomeExpenseViewID)
 	}
 }
 
+function doAccountingCar($carID)
+{
+	doAccounting();
+	if(!stdExists("accountingCar", array("carID"=>$carID))) {
+		error404();
+	}
+}
+
 
 function crumb($name, $filename)
 {
@@ -161,6 +169,11 @@ function incomeExpenseViewBreadcrumbs($incomeExpenseViewID)
 	return array_merge(accountingBreadcrumbs(), crumbs(sprintf(_("Income / Expense view %s"), $name), "incomeexpenseview.php?id=$incomeExpenseViewID"));
 }
 
+function carBreadcrumbs($carID)
+{
+	$name = stdGet("accountingCar", array("carID"=>$carID), "name");
+	return array_merge(accountingBreadcrumbs(), crumbs($name, "car.php?id=$carID"));
+}
 
 function accountSummary($accountID, $toDate = null, $fromDate = null, $balanceViewID = null, $incomeExpenseViewID = null)
 {
@@ -630,6 +643,19 @@ function fixedAssetList()
 	}
 	
 	return listTable(array(_("Name"), _("Description"), _("Value"), _("Next depreciation date")), $rows, _("Fixed assets"), _("No fixed assets."), "list sortable");
+}
+
+function carList()
+{
+	$rows = array();
+	foreach(stdList("accountingCar", array(), array("carID", "name", "description")) as $car) {
+		$rows[] = array("cells"=>array(
+			array("url"=>"car.php?id={$car["carID"]}", "text"=>$car["name"]),
+			array("text"=>$car["description"]),
+		));
+	}
+	
+	return listTable(array(_("Name"), _("Description")), $rows, _("Cars"), _("No cars."), "list sortable");
 }
 
 function fixedAssetSummary($fixedAssetID)
@@ -1339,6 +1365,41 @@ function deleteBalanceViewForm($viewID, $error = "", $values = null)
 function deleteIncomeExpenceViewForm($viewID, $error = "", $values = null)
 {
 	return operationForm("deleteincomeexpenceview.php?id=$viewID", $error, _("Delete view"), _("Delete"), array(), $values);
+}
+
+function addTravelExpencesForm($carID, $error = "", $values = null, $balance = null)
+{
+	if($values === null || $error === "") {
+		$values = array();
+		$values["date"] = date("d-m-Y");
+		$values["accountID"] = stdGet("accountingCar", array("carID"=>$carID), "defaultBankAccountID");
+	}
+	
+	$bankAccounts = accountingAccountOptions($GLOBALS["bankDirectoryAccountID"]);
+	
+	$fields = array();
+	
+	$message = array();
+	if($error === null) {
+		$km = $values["endKm"] - $values["startKm"];
+		if($km > 500) {
+			$message["custom"] = "<p class=\"warning\">" . _("Warning, this trip is more than 500 km, are you sure it is correct?") . "</p>";
+		}
+	}
+	$fields[] = array("title"=>_("Date"), "type"=>"date", "name"=>"date");
+	$fields[] = array("title"=>_("Start Km"), "type"=>"text", "name"=>"startKm");
+	$fields[] = array("title"=>_("End Km"), "type"=>"text", "name"=>"endKm");
+	$fields[] = array("title"=>_("Occasion"), "type"=>"text", "name"=>"occasion");
+	$fields[] = array("title"=>_("Destination"), "type"=>"text", "name"=>"destination");
+	$fields[] = array("title"=>_("Bank account"), "type"=>"dropdown", "name"=>"accountID", "options"=>$bankAccounts);
+	
+	if($error === null) {
+		$fields[] = array("title"=>_("Trip length"), "type"=>"colspan", "columns"=>array(
+			array("type"=>"html", "cellclass"=>"nowrap", "html"=>$km . " km")
+		));
+	}
+	
+	return operationForm("addtravelexpences.php?id=$carID", $error, _("Add travel expences"), _("Save"), $fields, $values, $message);
 }
 
 function transactionExchangeRates($balance)
