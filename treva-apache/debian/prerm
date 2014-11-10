@@ -1,7 +1,0 @@
-#!/bin/bash -e
-
-if [ "`dpkg-divert --truename /etc/suphp/suphp.conf`" = /etc/suphp/suphp.conf.orig ]
-then
-	rm /etc/suphp/suphp.conf
-	dpkg-divert --remove --rename /etc/suphp/suphp.conf
-fi

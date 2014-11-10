@@ -1,7 +1,0 @@
-#!/bin/sh -e
-
-if [ "`dpkg-divert --truename /etc/dovecot/dovecot.conf`" = /etc/dovecot/dovecot.conf.old ]
-then
-	rm /etc/dovecot/dovecot.conf
-	dpkg-divert --remove --rename /etc/dovecot/dovecot.conf
-fi

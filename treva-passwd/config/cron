@@ -1,3 +1,0 @@
-# Update the user database every 5 minutes.
-# Disabled by default.
-#*/5 * * * * root /usr/sbin/update-treva-passwd

@@ -1,4 +1,0 @@
-#!/bin/bash
-
-rm -f /etc/ssl/private/treva.pem
-rm -f /etc/ssl/certs/treva.pem
