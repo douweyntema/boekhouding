@@ -1,1 +1,0 @@
-0 0 * * * wget http://controlpanel.treva.nl/api/sendinvoices.php -O/dev/null -q
