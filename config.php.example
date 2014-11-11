@@ -9,6 +9,7 @@ $controlpanelDisabled = false;
 $controlpanelDisabledNotice = "<p>De boekhouding is tijdelijk buiten gebruik voor onderhoud.</p>";
 
 $controlpanelEnableAssetDepreciation = true;
+$controlpanelEnableCustomerEmail = false;
 
 $controlpanelUrl = "http://boekhouding.example.com/";
 

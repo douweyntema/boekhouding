@@ -398,7 +398,7 @@ function addInvoiceLineForm($customerID, $error = "", $values = null)
 function sendInvoiceForm($customerID, $error = "", $values = null)
 {
 	if($values === null) {
-		$values = array("sendmail"=>true);
+		$values = array();
 	}
 	$lines = array();
 	$lines[] = array("type"=>"colspan", "columns"=>array(
