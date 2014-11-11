@@ -308,9 +308,9 @@ function billingCreateInvoiceEmail($invoiceID, $reminder=false)
 		$bedrag = stdGet("accountingTransactionLine", array("transactionID"=>$invoice["transactionID"], "accountID"=>$customer["accountID"]), "amount");
 		$bedragText = formatPriceRaw($remainingAmount);
 		if($bedrag == $remainingAmount) {
-			$betalen = "Wij verzoeken u dit bedrag (€ $bedragText) binnen 30 dagen over te maken op rekeningnummer XXXXXXXX t.n.v. Valkerij Nadicia, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}).";
+			$betalen = "Wij verzoeken u dit bedrag (€ $bedragText) binnen 30 dagen over te maken op rekeningnummer {$GLOBALS["invoiceAccountNumber"]} t.n.v. {$GLOBALS["invoiceAccountName"]}, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}).";
 		} else {
-			$betalen = "Deze factuur is nog niet volledig betaald. Wij verzoeken u het resterende bedrag (€ $bedragText) binnen 30 dagen over te maken op rekeningnummer XXXXXXXX t.n.v. Valkerij Nadicia, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}).";
+			$betalen = "Deze factuur is nog niet volledig betaald. Wij verzoeken u het resterende bedrag (€ $bedragText) binnen 30 dagen over te maken op rekeningnummer {$GLOBALS["invoiceAccountNumber"]} t.n.v. {$GLOBALS["invoiceAccountName"]}, onder vermelding van het factuurnummer ({$invoice["invoiceNumber"]}).";
 		}
 	} else {
 		$betalen = "Deze factuur is reeds verrekend met eerdere betalingen.";
@@ -323,8 +323,8 @@ function billingCreateInvoiceEmail($invoiceID, $reminder=false)
 	} else {
 		$mail->addReceiver($customer["email"], $customer["companyName"]);
 	}
-	$mail->setSender("info@nadicia.nl", "Valkerij Nadicia");
-	$mail->addBcc("info@nadicia.nl");
+	$mail->setSender($GLOBALS["invoiceSenderEmail"], $GLOBALS["invoiceSenderName"]);
+	$mail->addBcc($GLOBALS["invoiceBCCEmail"]);
 	if($reminder) {
 		$mail->setSubject("Herrinnering: factuur {$invoice["invoiceNumber"]}");
 	} else {
@@ -347,7 +347,7 @@ Geachte {$customer["initials"]} {$customer["lastName"]},
 
 Met vriendelijke groet,
 
-Valkerij Nadicia
+{$GLOBALS["invoiceEmailSignature"]}
 
 TEXT
 );

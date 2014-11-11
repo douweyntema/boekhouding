@@ -47,4 +47,11 @@ $componentsEnabled[] = "billing";
 $invoiceLatexDocumentClass = "demobrief";
 $invoiceLatexPackage = "demo-factuur";
 
+$invoiceAccountNumber = "";
+$invoiceAccountName = "";
+$invoiceSenderEmail = "";
+$invoiceSenderName = "";
+$invoiceBCCEmail = "";
+$invoiceEmailSignature = "";
+
 ?>
