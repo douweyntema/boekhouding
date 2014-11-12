@@ -173,6 +173,7 @@ return <<<HTML
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" type="text/css" href="{$GLOBALS["rootHtml"]}css/layout.css" />
 <link rel="stylesheet" type="text/css" href="{$GLOBALS["rootHtml"]}css/jquery-ui.css" />
+<link rel="stylesheet" type="text/css" href="{$GLOBALS["rootHtml"]}css/font-awesome/css/font-awesome.min.css" />
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery.js"></script>
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery-ui.js"></script>
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery.tablesorter.js"></script>
