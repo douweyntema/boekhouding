@@ -19,15 +19,15 @@ function main()
 	$content .= accountList($accountID, $toDate, $fromDate, $balanceViewID, $incomeExpenseViewID);
 	$content .= transactionList($accountID, $toDate, $fromDate);
 	if(stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory")) {
-		$content .= addAccountForm($accountID, "STUB");
+// 		$content .= addAccountForm($accountID, "STUB");
 	} else {
 		$content .= addTransactionForm($accountID);
 	}
-	$content .= editAccountForm($accountID, "STUB");
+// 	$content .= editAccountForm($accountID, "STUB");
 	$content .= moveAccountForm($accountID, "STUB");
-	if(accountEmpty($accountID)) {
-		$content .= deleteAccountForm($accountID);
-	}
+// 	if(accountEmpty($accountID)) {
+// 		$content .= deleteAccountForm($accountID);
+// 	}
 	echo page($content);
 }
 

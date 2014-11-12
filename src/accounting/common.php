@@ -217,7 +217,7 @@ function accountSummary($accountID, $toDate = null, $fromDate = null, $balanceVi
 	}
 	$rows[_("Description")] = $account["description"];
 	
-	return summaryTable(sprintf(_("Account %s"), $account["name"]), $rows);
+	return summaryTable(sprintf(_("Account %s"), $account["name"]), $rows, array("editLink"=>"editaccount.php?id=$accountID", "deleteLink"=>accountEmpty($accountID) ? "deleteaccount.php?id=$accountID" : null));
 }
 
 function accountList($accountID = null, $toDate = null, $fromDate = null, $balanceViewID = null, $incomeExpenseViewID = null)
@@ -262,7 +262,7 @@ function accountList($accountID = null, $toDate = null, $fromDate = null, $balan
 		}
 	}
 	
-	return doAccountList($tree, $toDate, $fromDate, $balanceViewID, $incomeExpenseViewID);
+	return doAccountList($tree, $toDate, $fromDate, $balanceViewID, $incomeExpenseViewID, $accountID !== null && !stdGet("accountingAccount", array("accountID"=>$accountID), "isDirectory") ? null : array("addNewLink"=>"addaccount.php" . ($accountID === null ? "" : "?id=$accountID")));
 }
 
 function balanceViewSummary($balanceViewID, $now)
@@ -274,7 +274,7 @@ function balanceViewSummary($balanceViewID, $now)
 		_("Name")=>$balanceView["name"],
 		_("Description")=>$balanceView["description"],
 		_("Date")=>date("d-m-Y", $date)
-	));
+	), array("editLink"=>"editview.php?id=$balanceViewID&type=balance", "deleteLink"=>"deletebalanceview.php?id=$balanceViewID"));
 }
 
 function balanceViewList($balanceViewID, $now)
@@ -312,7 +312,7 @@ function incomeExpenseViewSummary($incomeExpenseViewID, $now)
 		_("Description")=>$incomeExpenseView["description"],
 		_("Start date")=>date("d-m-Y", $startDate),
 		_("End date")=>date("d-m-Y", $endDate),
-	));
+	), array("editLink"=>"editview.php?id=$incomeExpenseViewID&type=incomeexpence", "deleteLink"=>"deleteincomeexpenceview.php?id=$incomeExpenseViewID"));
 }
 
 function incomeExpenseViewList($incomeExpenseViewID, $now)
@@ -340,7 +340,7 @@ function incomeExpenseViewList($incomeExpenseViewID, $now)
 	return doAccountList($accountList, $endDate, $startDate, null, $incomeExpenseViewID);
 }
 
-function doAccountList($tree, $toDate, $fromDate, $balanceViewID = null, $incomeExpenseViewID = null)
+function doAccountList($tree, $toDate, $fromDate, $balanceViewID = null, $incomeExpenseViewID = null, $properties = null)
 {
 	$toBalance = accountingBalance($toDate);
 	if($fromDate !== null) {
@@ -410,10 +410,14 @@ function doAccountList($tree, $toDate, $fromDate, $balanceViewID = null, $income
 		
 		$rows[] = array("id"=>$account["id"], "class"=>$class, "cells"=>$row);
 	}
+	if($properties === null) {
+		$properties = array();
+	}
+	$properties = array_merge($properties, array("divclass"=>"list tree"));
 	if($fromBalance !== null) {
-		return listTable(array(array("text"=>_("Account"), "class"=>"stretch"), array("text"=>_("Start Balance"), "class"=>"nowrap"), array("text"=>_("End Balance"), "class"=>"nowrap"), array("text"=>_("Difference"), "class"=>"nowrap")), $rows, _("Accounts "), true, "list tree");
+		return listTable(array(array("text"=>_("Account"), "class"=>"stretch"), array("text"=>_("Start Balance"), "class"=>"nowrap"), array("text"=>_("End Balance"), "class"=>"nowrap"), array("text"=>_("Difference"), "class"=>"nowrap")), $rows, _("Accounts "), true, $properties);
 	} else {
-		return listTable(array(_("Account"), _("Balance")), $rows, _("Accounts "), true, "list tree");
+		return listTable(array(_("Account"), _("Balance")), $rows, _("Accounts "), true, $properties);
 	}
 }
 
@@ -518,7 +522,7 @@ function supplierList()
 			array("url"=>"account.php?id={$supplier["accountID"]}", "html"=>accountingFormatAccountPrice($supplier["accountID"])),
 		));
 	}
-	return listTable(array(_("Name"), _("Description"), _("Balance")), $rows, _("Suppliers"), true, "list sortable");
+	return listTable(array(_("Name"), _("Description"), _("Balance")), $rows, _("Suppliers"), true, array("divclass"=>"list sortable", "addNewLink"=>"addsupplier.php"));
 }
 
 function supplierSummary($supplierID)
@@ -543,7 +547,7 @@ function supplierSummary($supplierID)
 	}
 	$rows[_("Description")] = $supplier["description"];
 	
-	return summaryTable(sprintf(_("Supplier %s"), $supplier["name"]), $rows);
+	return summaryTable(sprintf(_("Supplier %s"), $supplier["name"]), $rows, array("editLink"=>"editsupplier.php?id=$supplierID", "deleteLink"=>supplierEmpty($supplierID) ? "deletesupplier.php?id=$supplierID" : null));
 }
 
 function supplierInvoiceSummary($invoiceID)
@@ -642,7 +646,7 @@ function fixedAssetList()
 		));
 	}
 	
-	return listTable(array(_("Name"), _("Description"), _("Value"), _("Next depreciation date")), $rows, _("Fixed assets"), _("No fixed assets."), "list sortable");
+	return listTable(array(_("Name"), _("Description"), _("Value"), _("Next depreciation date")), $rows, _("Fixed assets"), _("No fixed assets."), array("divclass"=>"list sortable", "addNewLink"=>"addfixedasset.php"));
 }
 
 function carList()
@@ -655,7 +659,7 @@ function carList()
 		));
 	}
 	
-	return listTable(array(_("Name"), _("Description")), $rows, _("Cars"), _("No cars."), "list sortable");
+	return listTable(array(_("Name"), _("Description")), $rows, _("Cars"), _("No cars."), array("divclass"=>"list sortable"));
 }
 
 function fixedAssetSummary($fixedAssetID)
@@ -703,7 +707,7 @@ function viewList()
 			array("text"=> sprintf(_('%1$s to %2$s'), date("d-m-Y", $startDate), date("d-m-Y", $endDate))),
 		));
 	}
-	return listTable(array(_("Name"), _("Date")), $rows, _("Views"), null, "list sortable");
+	return listTable(array(_("Name"), _("Date")), $rows, _("Views"), null, array("divclass"=>"list sortable", "addNewLink"=>"addview.php"));
 }
 
 function addAccountForm($accountID, $error = "", $values = null)

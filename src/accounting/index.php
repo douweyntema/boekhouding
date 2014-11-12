@@ -14,10 +14,10 @@ function main()
 	$content .= fixedAssetList();
 	$content .= viewList();
 	$content .= carList();
-	$content .= addAccountForm(0, "STUB");
-	$content .= addSupplierForm("STUB");
-	$content .= addFixedAssetForm("STUB");
-	$content .= addViewForm("STUB");
+// 	$content .= addAccountForm(0, "STUB");
+// 	$content .= addSupplierForm("STUB");
+// 	$content .= addFixedAssetForm("STUB");
+// 	$content .= addViewForm("STUB");
 	$content .= recomputeBalancesForm();
 	echo page($content);
 }

@@ -764,7 +764,7 @@ function addPostUrl($field, $postUrl)
 	return array($field, $found);
 }
 
-function operationForm($postUrl, $error, $title, $submitCaption, $fields, $values, $messages = null)
+function operationForm($postUrl, $error, $title, $submitCaption, $fields, $values, $messages = null, $properties = null)
 {
 	if($values === null) {
 		$values = array();
@@ -772,6 +772,10 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	
 	if($messages === null) {
 		$messages = array();
+	}
+	
+	if($properties === null) {
+		$properties = array();
 	}
 	
 	$readOnly = ($error === null);
@@ -888,7 +892,15 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	$subformTables = $filteredTables;
 	
 	$output = "<div class=\"operation\">\n";
-	$output .= "<h2>$title</h2>\n";
+	$output .= "<h2>";
+	$output .= $title;
+	if(isset($properties["deleteLink"]) && $properties["deleteLink"] !== null) {
+		$output .= "<a href=\"" . $properties["deleteLink"] . "\" class=\"deleteItemLink\"><i class=\"fa fa-trash\"></i></a>\n";
+	}
+	if(isset($properties["editLink"]) && $properties["editLink"] !== null) {
+		$output .= "<a href=\"" . $properties["editLink"] . "\" class=\"editItemLink\"><i class=\"fa fa-pencil\"></i></a>\n";
+	}
+	$output .= "</h2>\n";
 	
 	if($error === null) {
 		$output .= "<p class=\"confirm\">Confirm your input</p>\n";
@@ -1042,7 +1054,12 @@ function listTable($header, $rows, $caption, $showIfEmpty, $properties = null)
 	$output .= ">\n";
 	
 	if($caption !== null) {
-		$output .= "<caption>$caption</caption>\n";
+		$output .= "<caption>";
+		$output .= $caption;
+		if(isset($properties["addNewLink"]) && $properties["addNewLink"] !== null) {
+			$output .= "<a href=\"" . $properties["addNewLink"] . "\" class=\"addNewLink\"><i class=\"fa fa-plus-circle\"></i></a>\n";
+		}
+		$output .= "</caption>\n";
 	}
 	
 	if (is_string($showIfEmpty) && count($rows) == 0) {
@@ -1112,8 +1129,11 @@ function listTable($header, $rows, $caption, $showIfEmpty, $properties = null)
 	return $output;
 }
 
-function summaryTable($title, $values)
+function summaryTable($title, $values, $properties = null)
 {
+	if($properties === null) {
+		$properties = array();
+	}
 	$fields = array();
 	foreach($values as $key=>$value) {
 		if(!is_array($value)) {
@@ -1132,7 +1152,7 @@ function summaryTable($title, $values)
 		}
 		$fields[] = array("title"=>$key, "type"=>"html", "html"=>$html);
 	}
-	return operationForm(null, "", $title, null, $fields, null);
+	return operationForm(null, "", $title, null, $fields, null, null, $properties);
 }
 
 ?>

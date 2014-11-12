@@ -19,10 +19,10 @@ function main()
 	$content .= addSupplierInvoiceForm($supplierID);
 	$content .= addSupplierPaymentForm($supplierID);
 
-	$content .= editSupplierForm($supplierID, "STUB");
-	if(supplierEmpty($supplierID)) {
-		$content .= deleteSupplierForm($supplierID);
-	}
+// 	$content .= editSupplierForm($supplierID, "STUB");
+// 	if(supplierEmpty($supplierID)) {
+// 		$content .= deleteSupplierForm($supplierID);
+// 	}
 
 	echo page($content);
 }
