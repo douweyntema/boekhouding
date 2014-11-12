@@ -23,15 +23,16 @@ $crypto_key = "asdasdasd123123123";
 $taxRate = 0.21;
 $defaultCurrencyID = 0;
 
-$customersDirectoryAccountID = 0;
-$suppliersDirectoryAccountID = 0;
 $revenueDirectoryAccountID = 0;
 $expensesDirectoryAccountID = 0;
+$assetsDirectoryAccountID = 0;
+
+$customersDirectoryAccountID = 0;
+$suppliersDirectoryAccountID = 0;
 
 $bankDirectoryAccountID = 0;
 $bankDefaultAccountID = 0;
 
-$assetsDirectoryAccountID = 0;
 $fixedAssetValueDirectoryAccountID = 0;
 $fixedAssetDepreciationDirectoryAccountID = 0;
 $fixedAssetExpenseDirectoryAccountID = 0;
