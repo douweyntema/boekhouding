@@ -56,4 +56,6 @@ $invoiceSenderName = "";
 $invoiceBCCEmail = "";
 $invoiceEmailSignature = "";
 
+$brandingColor = "#c11b17";
+
 ?>

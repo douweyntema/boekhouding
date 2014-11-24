@@ -166,6 +166,21 @@ function getRootUser()
 
 function htmlHeader($content)
 {
+	if(isset($GLOBALS["brandingColor"]) && $GLOBALS["brandingColor"] != "") {
+		$style = <<<CSS
+<style>
+.welcome {
+	background-color: {$GLOBALS["brandingColor"]};
+}
+h1 {
+	color: {$GLOBALS["brandingColor"]};
+}
+</style>
+
+CSS;
+	} else {
+		$style = "";
+	}
 return <<<HTML
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -180,6 +195,7 @@ return <<<HTML
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/jquery.treeTable.js"></script>
 <script type="text/javascript" src="{$GLOBALS["rootHtml"]}js/script.js"></script>
 <title>{$GLOBALS["htmlTitle"]}</title>
+$style
 </head>
 <body>
 $content
