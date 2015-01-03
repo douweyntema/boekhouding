@@ -258,6 +258,7 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 	$tex = <<<TEX
 \\documentclass{{$GLOBALS["invoiceLatexDocumentClass"]}}
 \\usepackage{{$GLOBALS["invoiceLatexPackage"]}}
+\\usepackage[utf8]{inputenc}
 \\setDatum[{$texdatum}]
 
 \\begin{document}
