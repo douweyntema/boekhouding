@@ -64,6 +64,7 @@ function addCustomerForm($error = "", $values = null)
 		$values = array(
 			"countryCode"=>"NL",
 			"invoiceFrequencyBase"=>"MONTH",
+			"btwStatus"=>"excludingBTW",
 		);
 	}
 	
@@ -83,12 +84,16 @@ function addCustomerForm($error = "", $values = null)
 			array("type"=>"text", "name"=>"invoiceFrequencyMultiplier", "fill"=>true),
 			array("type"=>"dropdown", "name"=>"invoiceFrequencyBase", "options"=>dropdown(array("DAY"=>"days", "MONTH"=>"months", "YEAR"=>"years")))
 		)),
+		array("title"=>_("Invoice BTW status"), "type"=>"dropdown", "name"=>"btwStatus", "options"=>array(
+			array("label"=>_("Send invoices excluding BTW (for companies)"), "value"=>"excludingBTW"),
+			array("label"=>_("Send invoices including BTW (for individuals)"), "value"=>"includingBTW"),
+		)),
 	), $values);
 }
 
 function editCustomerForm($customerID, $error = "", $values = null)
 {
-	$customer = stdGet("adminCustomer", array("customerID"=>$customerID), array("name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber", "invoiceFrequencyBase", "invoiceFrequencyMultiplier"));
+	$customer = stdGet("adminCustomer", array("customerID"=>$customerID), array("name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "email", "phoneNumber", "invoiceFrequencyBase", "invoiceFrequencyMultiplier", "btwStatus"));
 	
 	if($values === null) {
 		$values = $customer;
@@ -108,6 +113,10 @@ function editCustomerForm($customerID, $error = "", $values = null)
 			array("type"=>"html", "html"=>_("per")),
 			array("type"=>"text", "name"=>"invoiceFrequencyMultiplier", "fill"=>true),
 			array("type"=>"dropdown", "name"=>"invoiceFrequencyBase", "options"=>dropdown(array("DAY"=>"days", "MONTH"=>"months", "YEAR"=>"years")))
+		)),
+		array("title"=>_("Invoice BTW status"), "type"=>"dropdown", "name"=>"btwStatus", "options"=>array(
+			array("label"=>_("Send invoices excluding BTW (for companies)"), "value"=>"excludingBTW"),
+			array("label"=>_("Send invoices including BTW (for individuals)"), "value"=>"includingBTW"),
 		)),
 	), $values);
 }

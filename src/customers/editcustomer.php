@@ -29,6 +29,7 @@ function main()
 	
 	$check(ctype_digit(post("invoiceFrequencyMultiplier")), _("Invalid invoiceFrequencyMultiplier"));
 	$check(post("invoiceFrequencyBase") == "DAY" || post("invoiceFrequencyBase") == "MONTH" || post("invoiceFrequencyBase") == "YEAR", _("Invalid invoiceFrequencyBase"));
+	$check(post("btwStatus") == "excludingBTW" || post("btwStatus") == "includingBTW", _("Invalid BTW status"));
 	
 	$companyName = post("companyName");
 	
@@ -41,7 +42,7 @@ function main()
 	startTransaction();
 	$accountID = stdGet("adminCustomer", array("customerID"=>$customerID), "accountID");
 	accountingEditAccount($accountID, $customerName, customerAccountDescription(post("name"), post("initials"), post("lastName")));
-	stdSet("adminCustomer", array("customerID"=>$customerID), array("initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("countryCode"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "invoiceFrequencyBase"=>post("invoiceFrequencyBase"), "invoiceFrequencyMultiplier"=>post("invoiceFrequencyMultiplier")));
+	stdSet("adminCustomer", array("customerID"=>$customerID), array("initials"=>post("initials"), "lastName"=>post("lastName"), "companyName"=>$companyName, "address"=>post("address"), "postalCode"=>post("postalCode"), "city"=>post("city"), "countryCode"=>post("countryCode"), "email"=>post("email"), "phoneNumber"=>post("phoneNumber"), "invoiceFrequencyBase"=>post("invoiceFrequencyBase"), "invoiceFrequencyMultiplier"=>post("invoiceFrequencyMultiplier"), "btwStatus"=>post("btwStatus")));
 	commitTransaction();
 	
 	redirect("customers/customer.php?id=$customerID");

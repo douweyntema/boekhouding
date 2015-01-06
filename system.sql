@@ -210,6 +210,7 @@ CREATE TABLE IF NOT EXISTS `adminCustomer` (
   `invoiceFrequencyMultiplier` int(11) NOT NULL DEFAULT '1',
   `nextInvoiceDate` int(11) NOT NULL,
   `invoiceStatus` enum('UNSET','DISABLED','PREVIEW','ENABLED') NOT NULL DEFAULT 'UNSET',
+  `btwStatus` enum('excludingBTW', 'includingBTW') NOT NULL DEFAUL 'UNSET',
   PRIMARY KEY (`customerID`),
   KEY `accountID` (`accountID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
