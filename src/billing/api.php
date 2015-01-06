@@ -203,10 +203,21 @@ function billingCreateInvoice($customerID, $subscriptionLines, $sendEmail = true
 function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 {
 	$invoice = stdGet("billingInvoice", array("invoiceID"=>$invoiceID), array("customerID", "transactionID", "invoiceNumber"));
-	$customer = stdGet("adminCustomer", array("customerID"=>$invoice["customerID"]), array("name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "btwStatus"));
+	$date = stdGet("accountingTransaction", array("transactionID"=>$invoice["transactionID"]), "date");
+	$invoiceLines = stdList("billingInvoiceLine", array("invoiceID"=>$invoiceID), array("description", "periodStart", "periodEnd", "price", "discount", "tax", "taxRate"));
+
+	$tex = billingCreateInvoiceTexRaw($invoice["customerID"], $date, $invoice["invoiceNumber"], $invoiceLines);
 	
-	$texdatum = date("d/m/Y", stdGet("accountingTransaction", array("transactionID"=>$invoice["transactionID"]), "date"));
-	$invoiceNumber = $invoice["invoiceNumber"];
+	stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("tex"=>$tex));
+	
+	billingCreateInvoicePdf($invoiceID, $sendEmail);
+}
+
+function billingCreateInvoiceTexRaw($customerID, $date, $invoiceNumber, $lines)
+{
+	$customer = stdGet("adminCustomer", array("customerID"=>$customerID), array("name", "companyName", "initials", "lastName", "address", "postalCode", "city", "countryCode", "btwStatus"));
+	
+	$texdatum = date("d/m/Y", $date);
 	$to = "";
 	if($customer["companyName"] !== null && $customer["companyName"] !== "") {
 		$to .= latexEscapeString($customer["companyName"]) . "\\\\";
@@ -229,7 +240,7 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 	$discounts = "";
 	$btw = 0;
 	$creditatie = true;
-	foreach(stdList("billingInvoiceLine", array("invoiceID"=>$invoiceID), array("description", "periodStart", "periodEnd", "price", "discount", "tax", "taxRate")) as $line) {
+	foreach($lines as $line) {
 		if($line["periodStart"] != null && $line["periodEnd"] != null) {
 			$startdate = texdate($line["periodStart"]);
 			$enddate = texdate($line["periodEnd"] - 86400);
@@ -241,7 +252,7 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 			$creditatie = false;
 		}
 		$discountBTW = round($line["discount"] * $line["taxRate"] / 100);
-		$priceBTW = $line["tax"] - $discountBTW;
+		$priceBTW = $line["tax"] + $discountBTW;
 		
 		if($line["price"] != 0) {
 			if($customer["btwStatus"] == "includingBTW") {
@@ -292,9 +303,7 @@ function billingCreateInvoiceTex($invoiceID, $sendEmail = true)
 \\end{document}
 
 TEX;
-	stdSet("billingInvoice", array("invoiceID"=>$invoiceID), array("tex"=>$tex));
-	
-	billingCreateInvoicePdf($invoiceID, $sendEmail);
+	return $tex;
 }
 
 function billingCreateInvoicePdf($invoiceID, $sendEmail = true)

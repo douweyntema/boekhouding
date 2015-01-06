@@ -409,6 +409,7 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 		array("type"=>"html", "html"=>_("Start date"), "celltype"=>"th"),
 		array("type"=>"html", "html"=>_("End date"), "celltype"=>"th")
 	));
+	$subscriptionLineIDs = array();
 	foreach(stdList("billingSubscriptionLine", array("customerID"=>$customerID), array("subscriptionLineID", "revenueAccountID", "description", "price", "discount", "periodStart", "periodEnd")) as $subscriptionLine) {
 		if($error === null && !isset($values["subscriptionline-{$subscriptionLine["subscriptionLineID"]}"])) {
 			continue;
@@ -421,6 +422,7 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 			array("type"=>"html", "cellclass"=>"nowrap", "html"=>$subscriptionLine["periodStart"] == null ? "-" : date("d-m-Y", $subscriptionLine["periodStart"])),
 			array("type"=>"html", "cellclass"=>"nowrap", "html"=>$subscriptionLine["periodEnd"] == null ? "-" : date("d-m-Y", $subscriptionLine["periodEnd"]))
 		));
+		$subscriptionLineIDs[] = $subscriptionLine["subscriptionLineID"];
 	}
 	$lines[] = array("type"=>"typechooser", "options"=>array(
 		array("title"=>_("Delete"), "submitcaption"=>_("Delete"), "name"=>"delete", "summary"=>_("Delete selected subscription lines"), "subform"=>array()),
@@ -428,8 +430,13 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 			array("title"=>_("Send email"), "type"=>"checkbox", "name"=>"sendmail", "label"=>_("Send an email to the customer"))
 		)),
 	));
-
-	return operationForm("sendinvoice.php?id=$customerID", $error, _("Subscription lines"), _("Create Invoice"), $lines, $values);
+	
+	$messages = array();
+	if($error === null) {
+		$messages["custom"] = "<p><a href=\"invoicepreview.php?customerID=$customerID&lines=" . implode(",", $subscriptionLineIDs) . "\">" . _("Preview invoice") . "</a></p>";
+	}
+	
+	return operationForm("sendinvoice.php?id=$customerID", $error, _("Subscription lines"), _("Create Invoice"), $lines, $values, $messages);
 }
 
 function frequency($subscription)
