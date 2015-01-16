@@ -20,7 +20,7 @@
       $(this).addClass("treeTable");
       $(this).find("tbody tr").each(function () {
 	 if(!(!options.expandable || $(this)[0].className.search(options.childPrefix) == -1)) {
-	   this.style.visibility = "collapse";
+	   this.style.display = "none";
 	 }
       });
       $(this).find("tbody tr").each(function() {
@@ -63,7 +63,7 @@
       }
       
 //       this.style.display = "none"; // Performance! $(this).hide() is slow...
-      this.style.visibility = "collapse";
+      this.style.display = "none";
     });
     zebra($(this).parent().parent());
     return this;
@@ -82,7 +82,7 @@
       
       // this.style.display = "table-row"; // Unfortunately this is not possible with IE :-(
 //       $(this).show();
-      this.style.visibility = "visible";
+      this.style.display = "table-row";
     });
     
     zebra($(this).parent().parent());
@@ -94,7 +94,7 @@
     $(ancestorsOf($(this)).reverse()).each(function() {
       initialize($(this));
       $(this).expand();/*.show();*/
-      this.style.visibility = "visible";
+      this.style.display = "table-row";
     });
     
     return this;
