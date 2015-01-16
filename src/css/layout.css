@@ -434,3 +434,11 @@ table.inline, table.inline tr, table.inline td, table.inline th {
 	float: right;
 	margin-left: 10px;
 }
+
+@media print {
+	.welcome { display: none; }
+	.menu { display: none; }
+	.main { left: 0; width: 100%; }
+	.addNewLink { display: none; }
+	.operation { display: none; }
+}
