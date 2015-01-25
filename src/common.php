@@ -123,7 +123,8 @@ foreach($componentsEnabled as $component) {
 	$title = $GLOBALS[$component . "Title"];
 	$target = $GLOBALS[$component . "Target"];
 	$menu = isset($GLOBALS[$component . "Menu"]) ? $GLOBALS[$component . "Menu"] : $target;
-	$GLOBALS["components"][$component] = array("name"=>$component, "title"=>$title, "target"=>$target, "menu"=>$menu);
+	$extraMenuItems = isset($GLOBALS[$component . "ExtraMenuItems"]) ? $GLOBALS[$component . "ExtraMenuItems"] : array();
+	$GLOBALS["components"][$component] = array("name"=>$component, "title"=>$title, "target"=>$target, "menu"=>$menu, "extraMenuItems"=>$extraMenuItems);
 	if(!in_array($target, array("admin", "both", "customer"))) {
 		die("Internal error: undefined target '$target' in component '$component'");
 	}
@@ -239,6 +240,10 @@ function menu()
 			}
 			$titleHtml = htmlentities($component["title"]);
 			$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}{$component["name"]}/\">$titleHtml</a></li>\n";
+			foreach($component["extraMenuItems"] as $menuItem) {
+				$titleHtml = htmlentities($menuItem["title"]);
+				$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}{$menuItem["url"]}\">$titleHtml</a></li>\n";
+			}
 		}
 		$output .= "</ul>\n";
 	} else {
@@ -255,6 +260,10 @@ function menu()
 			}
 			$titleHtml = htmlentities($component["title"]);
 			$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}{$component["name"]}/\">$titleHtml</a></li>\n";
+			foreach($component["extraMenuItems"] as $menuItem) {
+				$titleHtml = htmlentities($menuItem["title"]);
+				$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}{$menuItem["url"]}\">$titleHtml</a></li>\n";
+			}
 		}
 		$output .= "</ul>\n";
 		
@@ -263,6 +272,10 @@ function menu()
 			foreach($blocked as $component) {
 				$titleHtml = htmlentities($component["title"]);
 				$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}{$component["name"]}/\">$titleHtml</a></li>\n";
+				foreach($component["extraMenuItems"] as $menuItem) {
+					$titleHtml = htmlentities($menuItem["title"]);
+					$output .= "<li><a href=\"{$GLOBALS["rootHtml"]}{$menuItem["url"]}\">$titleHtml</a></li>\n";
+				}
 			}
 			$output .= "</ul>\n";
 		}

@@ -132,10 +132,15 @@ function transactionBreadcrumbs($transactionID, $accountID)
 	return array_merge(accountBreadcrumbs($accountID), crumbs(sprintf(_("Transaction on %s"), date("d-m-Y", $date)), "transaction.php?id=$transactionID&accountID=$accountID"));
 }
 
+function suppliersBreadcrumbs()
+{
+	return array_merge(accountingBreadcrumbs(), crumbs(_('Suppliers'), "suppliers.php"));
+}
+
 function supplierBreadcrumbs($supplierID)
 {
 	$name = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "name");
-	return array_merge(accountingBreadcrumbs(), crumbs(sprintf(_('Supplier %s'), $name), "supplier.php?id=$supplierID"));
+	return array_merge(suppliersBreadcrumbs(), crumbs(sprintf(_('Supplier %s'), $name), "supplier.php?id=$supplierID"));
 }
 
 function suppliersInvoiceBreadcrumbs($invoiceID)

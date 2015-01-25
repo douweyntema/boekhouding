@@ -3,6 +3,9 @@
 $accountingTitle = _("Accounting");
 $accountingTarget = "admin";
 
+$accountingExtraMenuItems = array(array("title"=>_("Suppliers"), "url"=>"accounting/suppliers.php"));
+
+
 function accountingAddAccount($parentAccountID, $currencyID, $name, $description, $isDirectory)
 {
 	if($parentAccountID !== null && stdGet("accountingAccount", array("accountID"=>$parentAccountID), "isDirectory") != 1) {
