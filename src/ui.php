@@ -778,6 +778,11 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 		$properties = array();
 	}
 	
+	if($error === null && $values["changeInput"] == 1) {
+		$error = "";
+		unset($values["changeInput"]);
+	}
+	
 	$readOnly = ($error === null);
 	$stub = ($error == "STUB");
 	
@@ -902,8 +907,20 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	}
 	$output .= "</h2>\n";
 	
+	if($postUrl !== null && $error === null) {
+		$output .= "<form action=\"$postUrl\" method=\"post\"";
+		if($hasFiles) {
+			$output .= " enctype=\"multipart/form-data\"";
+		}
+		$output .= ">\n";
+		foreach($values as $key=>$value) {
+			$output .= "<input type=\"hidden\" name=\"$key\" value=\"$value\" />";
+		}
+		$output .= "<input type=\"hidden\" name=\"changeInput\" value=\"1\" />";
+	}
+	
 	if($error === null) {
-		$output .= "<p class=\"confirm\">Confirm your input</p>\n";
+		$output .= "<p class=\"confirm\">" . _("Confirm your input") . "<span class=\"rightalign\"><input type=\"submit\" value=\"" . _("change input") . "\"></span></p>\n";
 		if(isset($messages["confirmdelete"])) {
 			$output .= "<p class=\"confirmdelete\">{$messages["confirmdelete"]}</p>\n";
 		}
@@ -915,6 +932,10 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 	}
 	if(isset($messages["custom"])) {
 		$output .= $messages["custom"];
+	}
+	
+	if($postUrl !== null && $error === null) {
+		$output .= "</form>";
 	}
 	
 	if($postUrl !== null) {
