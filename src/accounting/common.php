@@ -431,9 +431,9 @@ function transactionList($accountID, $toDate = null, $fromDate = null)
 	$transactions = transactions($accountID);
 	uasort($transactions, function($a, $b) {
 		if($a["date"] == $b["date"]) {
-			return $a["transactionID"] - $b["transactionID"];
+			return $b["transactionID"] - $a["transactionID"];
 		}
-		return $a["date"] - $b["date"];
+		return $b["date"] - $a["date"];
 	});
 	$rows = array();
 	$balance = 0;
