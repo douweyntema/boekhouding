@@ -17,12 +17,12 @@ function main()
 		$check(trim(post($field)) != "", sprintf(_("Invalid %s"), $field));
 	};
 	
-	$notempty("initials");
+// 	$notempty("initials");
 	$notempty("lastName");
-	$notempty("address");
-	$notempty("postalCode");
-	$notempty("city");
-	$notempty("countryCode");
+// 	$notempty("address");
+// 	$notempty("postalCode");
+// 	$notempty("city");
+// 	$notempty("countryCode");
 	$notempty("email");
 	$notempty("invoiceFrequencyMultiplier");
 	$notempty("invoiceFrequencyBase");
