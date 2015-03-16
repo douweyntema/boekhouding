@@ -82,7 +82,7 @@ function addCustomerForm($error = "", $values = null)
 		array("title"=>_("Invoice interval"), "type"=>"colspan", "columns"=>array(
 			array("type"=>"html", "html"=>_("per")),
 			array("type"=>"text", "name"=>"invoiceFrequencyMultiplier", "fill"=>true),
-			array("type"=>"dropdown", "name"=>"invoiceFrequencyBase", "options"=>dropdown(array("DAY"=>"days", "MONTH"=>"months", "YEAR"=>"years")))
+			array("type"=>"dropdown", "name"=>"invoiceFrequencyBase", "options"=>dropdown(array("DAY"=>_("days"), "MONTH"=>_("months"), "YEAR"=>_("years"))))
 		)),
 		array("title"=>_("Invoice BTW status"), "type"=>"dropdown", "name"=>"btwStatus", "options"=>array(
 			array("label"=>_("Send invoices excluding BTW (for companies)"), "value"=>"excludingBTW"),
