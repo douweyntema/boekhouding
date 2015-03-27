@@ -22,8 +22,11 @@ function main()
 		}
 	}
 	
+	$name = stdGet("billingInvoice", array("invoiceID"=>$invoiceID), "invoiceNumber");
+	
 	header("Content-Type: application/pdf");
 	header("Content-Length: " . strlen($pdf));
+	header("Content-Disposition: attachment; filename=$name.pdf");
 	echo $pdf;
 }
 
