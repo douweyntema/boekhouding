@@ -431,9 +431,9 @@ function transactionList($accountID, $toDate = null, $fromDate = null)
 	$transactions = transactions($accountID);
 	uasort($transactions, function($a, $b) {
 		if($a["date"] == $b["date"]) {
-			return $b["transactionID"] - $a["transactionID"];
+			return $a["transactionID"] - $b["transactionID"];
 		}
-		return $b["date"] - $a["date"];
+		return $a["date"] - $b["date"];
 	});
 	$rows = array();
 	$balance = 0;
@@ -489,6 +489,7 @@ function transactionList($accountID, $toDate = null, $fromDate = null)
 			array("html"=>formatPrice($startBalance, $currencySymbol)),
 		))), $rows);
 	}
+	$rows = array_reverse($rows);
 	return listTable(array(_("Date"), _("Description"), _("Amount"), _("Balance")), $rows, null, true, "list tree");
 }
 
