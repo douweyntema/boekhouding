@@ -463,13 +463,7 @@ function transactionList($accountID, $toDate = null, $fromDate = null)
 			break;
 		}
 		
-		$rows[] = array("id"=>"transaction-{$transaction["transactionID"]}", "class"=>"transaction collapsed", "cells"=>array(
-			array("text"=>date("d-m-Y", $transaction["date"])),
-			array("html"=>($transaction["description"] == "" ? "<i>" . _("None") . "</i>" : htmlentities($transaction["description"])), "url"=>"transaction.php?id={$transaction["transactionID"]}&accountID={$accountID}"),
-			array("html"=>formatPrice($currentLineAmount, $currencySymbol)),
-			array("html"=>formatPrice($balance, $currencySymbol)),
-		));
-		
+		$lines = array_reverse($lines);
 		foreach($lines as $line) {
 			$account = stdGet("accountingAccount", array("accountID"=>$line["accountID"]), array("name", "currencyID"));
 			$lineCurrencySymbol = stdGet("accountingCurrency", array("currencyID"=>$account["currencyID"]), "symbol");
@@ -480,6 +474,13 @@ function transactionList($accountID, $toDate = null, $fromDate = null)
 				array("text"=>""),
 			));
 		}
+		
+		$rows[] = array("id"=>"transaction-{$transaction["transactionID"]}", "class"=>"transaction collapsed", "cells"=>array(
+			array("text"=>date("d-m-Y", $transaction["date"])),
+			array("html"=>($transaction["description"] == "" ? "<i>" . _("None") . "</i>" : htmlentities($transaction["description"])), "url"=>"transaction.php?id={$transaction["transactionID"]}&accountID={$accountID}"),
+			array("html"=>formatPrice($currentLineAmount, $currencySymbol)),
+			array("html"=>formatPrice($balance, $currencySymbol)),
+		));
 	}
 	if($fromDate !== null) {
 		$rows = array_merge(array(array("class"=>"transaction", "cells"=>array(
