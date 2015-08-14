@@ -4,10 +4,10 @@
 # Stef Louwers <fhp@full-hyperion.nl>, 2014.
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: boekhouding\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-02-23 11:15+0100\n"
-"PO-Revision-Date: 2015-02-23 11:17+0100\n"
+"PO-Revision-Date: 2015-07-09 01:53+0100\n"
 "Last-Translator: Stef Louwers <stef@steflouwers.nl>\n"
 "Language-Team: Dutch <>\n"
 "Language: nl\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 1.4\n"
+"X-Generator: Poedit 1.6.10\n"
 
 #: src/common.php:213
 #, python-format
@@ -26,8 +26,7 @@ msgstr "Ingelogd als %s"
 msgid "log out"
 msgstr "log uit"
 
-#: src/common.php:236
-#: src/index.php:7
+#: src/common.php:236 src/index.php:7
 msgid "Welcome"
 msgstr "Welkom"
 
@@ -55,14 +54,11 @@ msgstr "Control panel uitgeschakelt"
 msgid "Invalid username or password."
 msgstr "Ongeldige gebruikersnaam of wachtwoord."
 
-#: src/login.php:92
-#: src/accounts/common.php:58
+#: src/login.php:92 src/accounts/common.php:58
 msgid "Username"
 msgstr "Gebruikersnaam"
 
-#: src/login.php:96
-#: src/accounts/common.php:59
-#: src/accounts/common.php:67
+#: src/login.php:96 src/accounts/common.php:59 src/accounts/common.php:67
 msgid "Password"
 msgstr "Wachtwoord"
 
@@ -122,34 +118,28 @@ msgstr "november"
 msgid "December"
 msgstr "december"
 
-#: src/accounting/account.php:16
-#: src/accounting/common.php:121
-#: src/accounting/common.php:123
-#: src/accounting/common.php:125
+#: src/accounting/account.php:16 src/accounting/common.php:121
+#: src/accounting/common.php:123 src/accounting/common.php:125
 #: src/accounting/common.php:225
 #, python-format
 msgid "Account %s"
 msgstr "Post %s"
 
-#: src/accounting/addaccount.php:14
-#: src/accounting/common.php:721
+#: src/accounting/addaccount.php:14 src/accounting/common.php:721
 #: src/accounting/common.php:724
 msgid "Add account"
 msgstr "Nieuwe post"
 
-#: src/accounting/addaccount.php:23
-#: src/accounting/editaccount.php:18
+#: src/accounting/addaccount.php:23 src/accounting/editaccount.php:18
 #: src/accounting/editfixedasset.php:17
 msgid "Missing account name."
 msgstr "De post naam ontbreekt."
 
-#: src/accounting/addaccount.php:24
-#: src/accounting/addsupplier.php:18
+#: src/accounting/addaccount.php:24 src/accounting/addsupplier.php:18
 msgid "Invalid currency."
 msgstr "Ongeldige valuta."
 
-#: src/accounting/addfixedasset.php:10
-#: src/accounting/common.php:1157
+#: src/accounting/addfixedasset.php:10 src/accounting/common.php:1157
 #: src/accounting/common.php:1160
 msgid "Add fixed asset"
 msgstr "Nieuwe vaste activa"
@@ -166,8 +156,7 @@ msgstr "Ongeldige depreciationFrequencyMultiplier."
 msgid "Invalid depreciationFrequencyBase"
 msgstr "Ongeldige depreciationFrequencyBase."
 
-#: src/accounting/addfixedasset.php:18
-#: src/accounting/addfixedasset.php:19
+#: src/accounting/addfixedasset.php:18 src/accounting/addfixedasset.php:19
 msgid "Invalid depreciation terms."
 msgstr "Ongeldige afschrijf termeinen."
 
@@ -175,19 +164,16 @@ msgstr "Ongeldige afschrijf termeinen."
 msgid "Invalid residual value."
 msgstr "Ongeldig restbedrag."
 
-#: src/accounting/addsupplier.php:10
-#: src/accounting/common.php:899
+#: src/accounting/addsupplier.php:10 src/accounting/common.php:899
 #: src/accounting/common.php:902
 msgid "Add supplier"
 msgstr "Nieuwe leverancier"
 
-#: src/accounting/addsupplier.php:19
-#: src/accounting/editsupplier.php:18
+#: src/accounting/addsupplier.php:19 src/accounting/editsupplier.php:18
 msgid "Invalid expense account."
 msgstr "Ongeldige onkostenpost."
 
-#: src/accounting/addsupplierinvoice.php:13
-#: src/accounting/common.php:1021
+#: src/accounting/addsupplierinvoice.php:13 src/accounting/common.php:1021
 msgid "Add invoice"
 msgstr "Nieuw factuur"
 
@@ -261,10 +247,8 @@ msgstr "Ongeldige datum."
 msgid "Invalid bank account."
 msgstr "Ongeldige bankrekening."
 
-#: src/accounting/addsupplierpayment.php:12
-#: src/accounting/common.php:1115
-#: src/billing/addpayment.php:11
-#: src/billing/common.php:262
+#: src/accounting/addsupplierpayment.php:12 src/accounting/common.php:1115
+#: src/billing/addpayment.php:11 src/billing/common.php:262
 msgid "Add payment"
 msgstr "Nieuwe betaling"
 
@@ -296,8 +280,7 @@ msgstr "Geen geldige transactie regels."
 msgid "Add transaction"
 msgstr "Nieuwe transactie"
 
-#: src/accounting/addtransaction.php:36
-#: src/accounting/edittransaction.php:37
+#: src/accounting/addtransaction.php:36 src/accounting/edittransaction.php:37
 msgid "Transaction not in balance"
 msgstr "De transactie is niet in balans."
 
@@ -305,8 +288,7 @@ msgstr "De transactie is niet in balans."
 msgid "Add Travel Expences"
 msgstr "Reiskosten Toevoegen"
 
-#: src/accounting/addtravelexpences.php:11
-#: src/accounting/common.php:1411
+#: src/accounting/addtravelexpences.php:11 src/accounting/common.php:1411
 msgid "Add travel expences"
 msgstr "Reiskosten toevoegen"
 
@@ -326,90 +308,73 @@ msgstr "Ongeldige bestemming."
 msgid "Invalid occasion."
 msgstr "Ongeldige gelegenheid."
 
-#: src/accounting/addview.php:9
-#: src/accounting/common.php:1284
+#: src/accounting/addview.php:9 src/accounting/common.php:1284
 #: src/accounting/common.php:1293
 msgid "Add view"
 msgstr "Nieuw rapport"
 
-#: src/accounting/addview.php:28
-#: src/accounting/editview.php:38
+#: src/accounting/addview.php:28 src/accounting/editview.php:38
 msgid "Invalid date specified"
 msgstr "Ongeldige datum opgegeven"
 
-#: src/accounting/addview.php:30
-#: src/accounting/editview.php:40
+#: src/accounting/addview.php:30 src/accounting/editview.php:40
 msgid "Invalid start date specified"
 msgstr "Ongeldige startdatum opgegeven"
 
-#: src/accounting/addview.php:31
-#: src/accounting/editview.php:41
+#: src/accounting/addview.php:31 src/accounting/editview.php:41
 msgid "Invalid end date specified"
 msgstr "Ongeldige einddatum opgegeven"
 
-#: src/accounting/api.php:3
-#: src/accounting/common.php:97
+#: src/accounting/api.php:3 src/accounting/common.php:97
 #: src/accounting/index.php:11
 msgid "Accounting"
 msgstr "Boekhouding"
 
-#: src/accounting/api.php:6
-#: src/accounting/common.php:137
-#: src/accounting/common.php:530
-#: src/accounting/suppliers.php:9
+#: src/accounting/api.php:6 src/accounting/common.php:137
+#: src/accounting/common.php:530 src/accounting/suppliers.php:9
 msgid "Suppliers"
 msgstr "Leveranciers"
 
-#: src/accounting/balanceview.php:12
-#: src/accounting/common.php:168
-#: src/accounting/common.php:278
-#: src/accounting/common.php:315
+#: src/accounting/balanceview.php:12 src/accounting/common.php:168
+#: src/accounting/common.php:278 src/accounting/common.php:315
 #, python-format
 msgid "Balance %s"
 msgstr "Balans %s"
 
-#: src/accounting/common.php:132
-#: src/accounting/deletetransaction.php:14
+#: src/accounting/common.php:132 src/accounting/deletetransaction.php:14
 #: src/accounting/deletetransaction.php:15
-#: src/accounting/edittransaction.php:14
-#: src/accounting/edittransaction.php:15
+#: src/accounting/edittransaction.php:14 src/accounting/edittransaction.php:15
 #: src/accounting/transaction.php:13
 #, python-format
 msgid "Transaction on %s"
 msgstr "Transactie op %s"
 
-#: src/accounting/common.php:143
-#: src/accounting/common.php:555
+#: src/accounting/common.php:143 src/accounting/common.php:555
 #: src/accounting/supplier.php:12
 #, python-format
 msgid "Supplier %s"
 msgstr "Leverancier %s"
 
-#: src/accounting/common.php:149
-#: src/accounting/common.php:578
+#: src/accounting/common.php:149 src/accounting/common.php:578
 #: src/accounting/supplierinvoice.php:12
 #, python-format
 msgid "Invoice %s"
 msgstr "Factuur %s"
 
-#: src/accounting/common.php:156
-#: src/accounting/common.php:620
-#: src/accounting/supplierpayment.php:13
-#: src/billing/common.php:59
+#: src/accounting/common.php:156 src/accounting/common.php:620
+#: src/accounting/supplierpayment.php:13 src/billing/common.php:59
 #: src/billing/common.php:248
 #, python-format
 msgid "Payment on %s"
 msgstr "Betaling op %s"
 
-#: src/accounting/common.php:162
-#: src/accounting/common.php:681
+#: src/accounting/common.php:162 src/accounting/common.php:681
 #: src/accounting/fixedasset.php:10
 #, python-format
 msgid "Fixed asset %s"
 msgstr "Vaste activa %s"
 
-#: src/accounting/common.php:174
-#: src/accounting/incomeexpenseview.php:12
+#: src/accounting/common.php:174 src/accounting/incomeexpenseview.php:12
 #, python-format
 msgid "Income / Expense view %s"
 msgstr "Inkomsten / uitgaven raport %s"
@@ -418,160 +383,105 @@ msgstr "Inkomsten / uitgaven raport %s"
 msgid "Parent account"
 msgstr "Bovenliggende post"
 
-#: src/accounting/common.php:207
-#: src/accounting/common.php:545
-#: src/accounting/common.php:727
-#: src/accounting/common.php:905
+#: src/accounting/common.php:207 src/accounting/common.php:545
+#: src/accounting/common.php:727 src/accounting/common.php:905
 msgid "Currency"
 msgstr "Valuta"
 
-#: src/accounting/common.php:210
-#: src/accounting/common.php:218
-#: src/accounting/common.php:281
-#: src/accounting/common.php:492
-#: src/accounting/common.php:515
-#: src/accounting/common.php:573
-#: src/accounting/common.php:599
-#: src/accounting/common.php:616
-#: src/accounting/common.php:639
-#: src/accounting/common.php:715
-#: src/accounting/common.php:820
-#: src/accounting/common.php:953
-#: src/accounting/common.php:1086
-#: src/accounting/common.php:1271
-#: src/accounting/common.php:1398
-#: src/billing/common.php:192
-#: src/billing/common.php:209
-#: src/billing/common.php:227
-#: src/billing/common.php:244
-#: src/billing/common.php:266
+#: src/accounting/common.php:210 src/accounting/common.php:218
+#: src/accounting/common.php:281 src/accounting/common.php:492
+#: src/accounting/common.php:515 src/accounting/common.php:573
+#: src/accounting/common.php:599 src/accounting/common.php:616
+#: src/accounting/common.php:639 src/accounting/common.php:715
+#: src/accounting/common.php:820 src/accounting/common.php:953
+#: src/accounting/common.php:1086 src/accounting/common.php:1271
+#: src/accounting/common.php:1398 src/billing/common.php:192
+#: src/billing/common.php:209 src/billing/common.php:227
+#: src/billing/common.php:244 src/billing/common.php:266
 #: src/billing/common.php:299
 msgid "Date"
 msgstr "Datum"
 
-#: src/accounting/common.php:213
-#: src/accounting/common.php:425
-#: src/accounting/common.php:492
-#: src/accounting/common.php:530
-#: src/accounting/common.php:547
-#: src/billing/common.php:67
-#: src/customers/common.php:51
-#: src/customers/common.php:56
+#: src/accounting/common.php:213 src/accounting/common.php:425
+#: src/accounting/common.php:492 src/accounting/common.php:530
+#: src/accounting/common.php:547 src/billing/common.php:67
+#: src/customers/common.php:51 src/customers/common.php:56
 #: src/customers/common.php:57
 msgid "Balance"
 msgstr "Balans"
 
-#: src/accounting/common.php:218
-#: src/accounting/common.php:712
+#: src/accounting/common.php:218 src/accounting/common.php:712
 msgid "%1$s to %2$s"
 msgstr "%1$s tot %2$s"
 
-#: src/accounting/common.php:219
-#: src/accounting/common.php:423
+#: src/accounting/common.php:219 src/accounting/common.php:423
 msgid "Start Balance"
 msgstr "Begin balans"
 
-#: src/accounting/common.php:220
-#: src/accounting/common.php:423
+#: src/accounting/common.php:220 src/accounting/common.php:423
 msgid "End Balance"
 msgstr "Eind balans"
 
-#: src/accounting/common.php:221
-#: src/accounting/common.php:423
+#: src/accounting/common.php:221 src/accounting/common.php:423
 msgid "Difference"
 msgstr "Verschil"
 
-#: src/accounting/common.php:223
-#: src/accounting/common.php:280
-#: src/accounting/common.php:317
-#: src/accounting/common.php:492
-#: src/accounting/common.php:515
-#: src/accounting/common.php:530
-#: src/accounting/common.php:553
-#: src/accounting/common.php:574
-#: src/accounting/common.php:599
-#: src/accounting/common.php:617
-#: src/accounting/common.php:639
-#: src/accounting/common.php:654
-#: src/accounting/common.php:667
-#: src/accounting/common.php:683
-#: src/accounting/common.php:732
-#: src/accounting/common.php:750
-#: src/accounting/common.php:819
-#: src/accounting/common.php:907
-#: src/accounting/common.php:926
-#: src/accounting/common.php:952
-#: src/accounting/common.php:1087
-#: src/accounting/common.php:1162
-#: src/accounting/common.php:1185
-#: src/accounting/common.php:1267
-#: src/billing/common.php:121
-#: src/billing/common.php:133
-#: src/billing/common.php:163
-#: src/billing/common.php:227
-#: src/billing/common.php:245
-#: src/billing/common.php:265
-#: src/billing/common.php:298
-#: src/billing/common.php:319
-#: src/billing/common.php:356
-#: src/billing/common.php:390
+#: src/accounting/common.php:223 src/accounting/common.php:280
+#: src/accounting/common.php:317 src/accounting/common.php:492
+#: src/accounting/common.php:515 src/accounting/common.php:530
+#: src/accounting/common.php:553 src/accounting/common.php:574
+#: src/accounting/common.php:599 src/accounting/common.php:617
+#: src/accounting/common.php:639 src/accounting/common.php:654
+#: src/accounting/common.php:667 src/accounting/common.php:683
+#: src/accounting/common.php:732 src/accounting/common.php:750
+#: src/accounting/common.php:819 src/accounting/common.php:907
+#: src/accounting/common.php:926 src/accounting/common.php:952
+#: src/accounting/common.php:1087 src/accounting/common.php:1162
+#: src/accounting/common.php:1185 src/accounting/common.php:1267
+#: src/billing/common.php:121 src/billing/common.php:133
+#: src/billing/common.php:163 src/billing/common.php:227
+#: src/billing/common.php:245 src/billing/common.php:265
+#: src/billing/common.php:298 src/billing/common.php:319
+#: src/billing/common.php:356 src/billing/common.php:390
 #: src/billing/common.php:406
 msgid "Description"
 msgstr "Beschrijving"
 
-#: src/accounting/common.php:279
-#: src/accounting/common.php:316
-#: src/accounting/common.php:530
-#: src/accounting/common.php:654
-#: src/accounting/common.php:667
-#: src/accounting/common.php:682
-#: src/accounting/common.php:715
-#: src/accounting/common.php:726
-#: src/accounting/common.php:749
-#: src/accounting/common.php:904
-#: src/accounting/common.php:924
-#: src/accounting/common.php:1161
-#: src/accounting/common.php:1184
-#: src/accounting/common.php:1266
+#: src/accounting/common.php:279 src/accounting/common.php:316
+#: src/accounting/common.php:530 src/accounting/common.php:654
+#: src/accounting/common.php:667 src/accounting/common.php:682
+#: src/accounting/common.php:715 src/accounting/common.php:726
+#: src/accounting/common.php:749 src/accounting/common.php:904
+#: src/accounting/common.php:924 src/accounting/common.php:1161
+#: src/accounting/common.php:1184 src/accounting/common.php:1266
 #: src/customers/common.php:51
 msgid "Name"
 msgstr "Naam"
 
-#: src/accounting/common.php:318
-#: src/accounting/common.php:1274
-#: src/billing/common.php:332
-#: src/billing/common.php:409
+#: src/accounting/common.php:318 src/accounting/common.php:1274
+#: src/billing/common.php:332 src/billing/common.php:409
 msgid "Start date"
 msgstr "Start datum"
 
-#: src/accounting/common.php:319
-#: src/accounting/common.php:1275
-#: src/billing/common.php:121
-#: src/billing/common.php:171
-#: src/billing/common.php:383
-#: src/billing/common.php:410
+#: src/accounting/common.php:319 src/accounting/common.php:1275
+#: src/billing/common.php:121 src/billing/common.php:171
+#: src/billing/common.php:383 src/billing/common.php:410
 msgid "End date"
 msgstr "Eind datum"
 
-#: src/accounting/common.php:423
-#: src/accounting/common.php:425
-#: src/accounting/common.php:729
-#: src/accounting/common.php:831
+#: src/accounting/common.php:423 src/accounting/common.php:425
+#: src/accounting/common.php:729 src/accounting/common.php:831
 msgid "Account"
 msgstr "Post"
 
-#: src/accounting/common.php:423
-#: src/accounting/common.php:425
+#: src/accounting/common.php:423 src/accounting/common.php:425
 #: src/accounting/common.php:1268
 msgid "Accounts "
 msgstr "Posten"
 
-#: src/accounting/common.php:468
-#: src/accounting/common.php:502
-#: src/accounting/common.php:551
-#: src/accounting/common.php:960
-#: src/billing/common.php:94
-#: src/billing/common.php:153
+#: src/accounting/common.php:468 src/accounting/common.php:502
+#: src/accounting/common.php:551 src/accounting/common.php:960
+#: src/billing/common.php:94 src/billing/common.php:153
 msgid "None"
 msgstr "Geen"
 
@@ -580,63 +490,48 @@ msgstr "Geen"
 msgid "Value on %s"
 msgstr "Waarde op %s"
 
-#: src/accounting/common.php:492
-#: src/accounting/common.php:515
-#: src/accounting/common.php:575
-#: src/accounting/common.php:599
-#: src/accounting/common.php:615
-#: src/accounting/common.php:639
-#: src/accounting/common.php:1084
-#: src/billing/common.php:192
-#: src/billing/common.php:209
-#: src/billing/common.php:227
-#: src/billing/common.php:243
-#: src/billing/common.php:264
+#: src/accounting/common.php:492 src/accounting/common.php:515
+#: src/accounting/common.php:575 src/accounting/common.php:599
+#: src/accounting/common.php:615 src/accounting/common.php:639
+#: src/accounting/common.php:1084 src/billing/common.php:192
+#: src/billing/common.php:209 src/billing/common.php:227
+#: src/billing/common.php:243 src/billing/common.php:264
 #: src/billing/common.php:297
 msgid "Amount"
 msgstr "Bedrag"
 
-#: src/accounting/common.php:549
-#: src/accounting/common.php:551
+#: src/accounting/common.php:549 src/accounting/common.php:551
 msgid "Default expences account"
 msgstr "Standaard onkostenpost"
 
-#: src/accounting/common.php:570
-#: src/accounting/common.php:614
+#: src/accounting/common.php:570 src/accounting/common.php:614
 msgid "Supplier"
 msgstr "Leverancier"
 
-#: src/accounting/common.php:571
-#: src/accounting/common.php:599
-#: src/accounting/common.php:951
-#: src/billing/common.php:192
+#: src/accounting/common.php:571 src/accounting/common.php:599
+#: src/accounting/common.php:951 src/billing/common.php:192
 #: src/billing/common.php:209
 msgid "Invoice number"
 msgstr "Factuur nummer"
 
-#: src/accounting/common.php:572
-#: src/accounting/common.php:964
+#: src/accounting/common.php:572 src/accounting/common.php:964
 msgid "Pdf"
 msgstr "Pdf"
 
-#: src/accounting/common.php:572
-#: src/accounting/common.php:692
+#: src/accounting/common.php:572 src/accounting/common.php:692
 msgid "Yes"
 msgstr "Ja"
 
-#: src/accounting/common.php:572
-#: src/accounting/common.php:692
+#: src/accounting/common.php:572 src/accounting/common.php:692
 msgid "No"
 msgstr "Nee"
 
-#: src/accounting/common.php:599
-#: src/billing/common.php:192
+#: src/accounting/common.php:599 src/billing/common.php:192
 #: src/billing/common.php:209
 msgid "Invoices"
 msgstr "Facturen"
 
-#: src/accounting/common.php:639
-#: src/billing/common.php:227
+#: src/accounting/common.php:639 src/billing/common.php:227
 msgid "Payments"
 msgstr "Betalingen"
 
@@ -670,23 +565,21 @@ msgstr "Huidige waarde"
 
 #: src/accounting/common.php:685
 msgid "Depreciated value"
-msgstr "Afschrijf bedrag"
+msgstr "Afgeschreven bedrag"
 
 #: src/accounting/common.php:686
 msgid "Expense cost"
-msgstr "Afgeschreven bedrag"
+msgstr "Onkosten"
 
 #: src/accounting/common.php:687
 msgid "Purchase value"
 msgstr "Aankoop waarde"
 
-#: src/accounting/common.php:688
-#: src/accounting/common.php:1163
+#: src/accounting/common.php:688 src/accounting/common.php:1163
 msgid "Purchase date"
 msgstr "Aankoop datum"
 
-#: src/accounting/common.php:689
-#: src/accounting/common.php:1164
+#: src/accounting/common.php:689 src/accounting/common.php:1164
 msgid "Depreciation interval"
 msgstr "Afschrijf interval"
 
@@ -698,8 +591,7 @@ msgstr "Afschrijvingen"
 msgid "Residual value"
 msgstr "Restbedrag"
 
-#: src/accounting/common.php:692
-#: src/accounting/common.php:1186
+#: src/accounting/common.php:692 src/accounting/common.php:1186
 msgid "Automatic depreciation"
 msgstr "Automatische afschrijving"
 
@@ -707,13 +599,11 @@ msgstr "Automatische afschrijving"
 msgid "Views"
 msgstr "Rapporten"
 
-#: src/accounting/common.php:721
-#: src/accounting/common.php:724
+#: src/accounting/common.php:721 src/accounting/common.php:724
 msgid "Add Account"
 msgstr "Nieuwe post"
 
-#: src/accounting/common.php:728
-#: src/accounting/common.php:1269
+#: src/accounting/common.php:728 src/accounting/common.php:1269
 msgid "Type"
 msgstr "Type"
 
@@ -721,37 +611,25 @@ msgstr "Type"
 msgid "Directory"
 msgstr "Map"
 
-#: src/accounting/common.php:740
-#: src/accounting/common.php:747
+#: src/accounting/common.php:740 src/accounting/common.php:747
 #: src/accounting/editaccount.php:12
 msgid "Edit account"
 msgstr "Bewerk post"
 
-#: src/accounting/common.php:747
-#: src/accounting/common.php:796
-#: src/accounting/common.php:846
-#: src/accounting/common.php:888
-#: src/accounting/common.php:922
-#: src/accounting/common.php:1058
-#: src/accounting/common.php:1115
-#: src/accounting/common.php:1146
-#: src/accounting/common.php:1183
-#: src/accounting/common.php:1293
-#: src/accounting/common.php:1325
-#: src/accounting/common.php:1366
-#: src/accounting/common.php:1411
-#: src/billing/common.php:77
-#: src/billing/common.php:262
-#: src/billing/common.php:296
-#: src/billing/common.php:317
-#: src/billing/common.php:354
-#: src/billing/common.php:383
-#: src/billing/common.php:388
+#: src/accounting/common.php:747 src/accounting/common.php:796
+#: src/accounting/common.php:846 src/accounting/common.php:888
+#: src/accounting/common.php:922 src/accounting/common.php:1058
+#: src/accounting/common.php:1115 src/accounting/common.php:1146
+#: src/accounting/common.php:1183 src/accounting/common.php:1293
+#: src/accounting/common.php:1325 src/accounting/common.php:1366
+#: src/accounting/common.php:1411 src/billing/common.php:77
+#: src/billing/common.php:262 src/billing/common.php:296
+#: src/billing/common.php:317 src/billing/common.php:354
+#: src/billing/common.php:383 src/billing/common.php:388
 msgid "Save"
 msgstr "Opslaan"
 
-#: src/accounting/common.php:758
-#: src/accounting/common.php:796
+#: src/accounting/common.php:758 src/accounting/common.php:796
 #: src/accounting/moveaccount.php:12
 msgid "Move account"
 msgstr "Verplaats post"
@@ -764,27 +642,25 @@ msgstr "Hoofdpost"
 msgid "Move To"
 msgstr "Verplaats naar"
 
-#: src/accounting/common.php:805
-#: src/accounting/deleteaccount.php:12
+#: src/accounting/common.php:805 src/accounting/deleteaccount.php:12
 msgid "Delete account"
 msgstr "Verwijder post"
 
-#: src/accounting/common.php:805
-#: src/accounting/common.php:893
-#: src/accounting/common.php:933
-#: src/accounting/common.php:1063
-#: src/accounting/common.php:1151
-#: src/accounting/common.php:1192
-#: src/accounting/common.php:1371
-#: src/accounting/common.php:1376
-#: src/billing/common.php:306
-#: src/billing/common.php:428
+#: src/accounting/common.php:805 src/accounting/common.php:893
+#: src/accounting/common.php:933 src/accounting/common.php:1063
+#: src/accounting/common.php:1151 src/accounting/common.php:1192
+#: src/accounting/common.php:1371 src/accounting/common.php:1376
+#: src/billing/common.php:306 src/billing/common.php:428
 msgid "Delete"
 msgstr "Verwijder"
 
 #: src/accounting/common.php:827
-msgid "Warning, the correctness of this transaction cannot be checked because there are 3 or more currencies involved!"
-msgstr "Waarschuwing, de correctheid van deze transactie kan niet worden gecontroleerd, omdat er 3 of meer verschillende valuta's in betrokken zijn."
+msgid ""
+"Warning, the correctness of this transaction cannot be checked because there "
+"are 3 or more currencies involved!"
+msgstr ""
+"Waarschuwing, de correctheid van deze transactie kan niet worden "
+"gecontroleerd, omdat er 3 of meer verschillende valuta's in betrokken zijn."
 
 #: src/accounting/common.php:846
 msgid "New transaction"
@@ -810,34 +686,28 @@ msgstr "leveranciers factuur"
 msgid "supplier payment"
 msgstr "leveranciers betaling"
 
-#: src/accounting/common.php:888
-#: src/accounting/edittransaction.php:15
+#: src/accounting/common.php:888 src/accounting/edittransaction.php:15
 msgid "Edit transaction"
 msgstr "Bewerk transactie"
 
-#: src/accounting/common.php:893
-#: src/accounting/deletetransaction.php:15
+#: src/accounting/common.php:893 src/accounting/deletetransaction.php:15
 msgid "Delete transaction"
 msgstr "Verwijder transactie"
 
-#: src/accounting/common.php:899
-#: src/accounting/common.php:902
+#: src/accounting/common.php:899 src/accounting/common.php:902
 msgid "Add Supplier"
 msgstr "Nieuwe Leverancier"
 
-#: src/accounting/common.php:906
-#: src/accounting/common.php:925
+#: src/accounting/common.php:906 src/accounting/common.php:925
 msgid "Default expense account"
 msgstr "Standaard onkostenpost"
 
-#: src/accounting/common.php:915
-#: src/accounting/common.php:922
+#: src/accounting/common.php:915 src/accounting/common.php:922
 #: src/accounting/editsupplier.php:11
 msgid "Edit supplier"
 msgstr "Bewerk leverancier"
 
-#: src/accounting/common.php:933
-#: src/accounting/deletesupplier.php:11
+#: src/accounting/common.php:933 src/accounting/deletesupplier.php:11
 msgid "Delete supplier"
 msgstr "Verwijder leverancier"
 
@@ -861,10 +731,8 @@ msgstr "Geen betaling"
 msgid "Direct payment"
 msgstr "Betaling toevoegen"
 
-#: src/accounting/common.php:970
-#: src/accounting/common.php:1088
-#: src/accounting/common.php:1403
-#: src/billing/common.php:267
+#: src/accounting/common.php:970 src/accounting/common.php:1088
+#: src/accounting/common.php:1403 src/billing/common.php:267
 #: src/billing/common.php:300
 msgid "Bank account"
 msgstr "Bankrekening"
@@ -873,8 +741,7 @@ msgstr "Bankrekening"
 msgid "Payment date"
 msgstr "Betaaldatum"
 
-#: src/accounting/common.php:973
-#: src/billing/payment.php:11
+#: src/accounting/common.php:973 src/billing/payment.php:11
 msgid "Payment"
 msgstr "Betaling"
 
@@ -891,52 +758,41 @@ msgstr "BTW"
 msgid "Line"
 msgstr "Regel"
 
-#: src/accounting/common.php:1058
-#: src/accounting/editsupplierinvoice.php:13
+#: src/accounting/common.php:1058 src/accounting/editsupplierinvoice.php:13
 msgid "Edit invoice"
 msgstr "Bewerk factuur"
 
-#: src/accounting/common.php:1063
-#: src/accounting/deletesupplierinvoice.php:15
+#: src/accounting/common.php:1063 src/accounting/deletesupplierinvoice.php:15
 msgid "Delete invoice"
 msgstr "Verwijder de factuur"
 
-#: src/accounting/common.php:1077
-#: src/accounting/common.php:1078
+#: src/accounting/common.php:1077 src/accounting/common.php:1078
 #, python-format
 msgid "Amount (%s)"
 msgstr "Bedrag (%s)"
 
-#: src/accounting/common.php:1146
-#: src/accounting/editsupplierpayment.php:14
-#: src/billing/common.php:296
-#: src/billing/editpayment.php:12
+#: src/accounting/common.php:1146 src/accounting/editsupplierpayment.php:14
+#: src/billing/common.php:296 src/billing/editpayment.php:12
 msgid "Edit payment"
 msgstr "Bewerk betaling"
 
-#: src/accounting/common.php:1151
-#: src/accounting/deletesupplierpayment.php:15
-#: src/billing/common.php:306
-#: src/billing/deletepayment.php:12
+#: src/accounting/common.php:1151 src/accounting/deletesupplierpayment.php:15
+#: src/billing/common.php:306 src/billing/deletepayment.php:12
 msgid "Delete payment"
 msgstr "Verwijder betaling"
 
-#: src/accounting/common.php:1160
-#: src/accounts/common.php:56
+#: src/accounting/common.php:1160 src/accounts/common.php:56
 #: src/customers/common.php:71
 msgid "Add"
 msgstr "Toevoegen"
 
-#: src/accounting/common.php:1165
-#: src/billing/common.php:324
-#: src/billing/common.php:361
-#: src/customers/common.php:83
+#: src/accounting/common.php:1165 src/billing/common.php:324
+#: src/billing/common.php:361 src/customers/common.php:83
 #: src/customers/common.php:113
 msgid "per"
 msgstr "per"
 
-#: src/accounting/common.php:1167
-#: src/billing/common.php:335
+#: src/accounting/common.php:1167 src/billing/common.php:335
 #: src/billing/common.php:371
 msgid "days"
 msgstr "dagen"
@@ -957,8 +813,7 @@ msgstr "Aantal afschrijvinging"
 msgid "Residual value percentage"
 msgstr "Rest bedrag (percentage)"
 
-#: src/accounting/common.php:1183
-#: src/accounting/editfixedasset.php:11
+#: src/accounting/common.php:1183 src/accounting/editfixedasset.php:11
 msgid "Edit fixed asset"
 msgstr "Bewerk vaste activa"
 
@@ -966,13 +821,11 @@ msgstr "Bewerk vaste activa"
 msgid "Enable automatic depreciation"
 msgstr "Automatische afschrijving aanzetten"
 
-#: src/accounting/common.php:1192
-#: src/accounting/deletefixedasset.php:11
+#: src/accounting/common.php:1192 src/accounting/deletefixedasset.php:11
 msgid "Delete fixed asset"
 msgstr "Verwijder vaste activa"
 
-#: src/accounting/common.php:1201
-#: src/accounting/depreciatefixedasset.php:11
+#: src/accounting/common.php:1201 src/accounting/depreciatefixedasset.php:11
 msgid "Depreciate fixed asset"
 msgstr "Vaste activa afschrijven"
 
@@ -984,8 +837,7 @@ msgstr "Afschrijven"
 msgid "Until"
 msgstr "Tot"
 
-#: src/accounting/common.php:1208
-#: src/accounting/recomputebalances.php:10
+#: src/accounting/common.php:1208 src/accounting/recomputebalances.php:10
 msgid "Recompute balances"
 msgstr "Herbereken balansen"
 
@@ -993,13 +845,11 @@ msgstr "Herbereken balansen"
 msgid "Recompute"
 msgstr "Herbereken"
 
-#: src/accounting/common.php:1214
-#: src/accounting/common.php:1215
+#: src/accounting/common.php:1214 src/accounting/common.php:1215
 msgid "Absolute date"
 msgstr "Absolute datum"
 
-#: src/accounting/common.php:1217
-#: src/accounting/common.php:1218
+#: src/accounting/common.php:1217 src/accounting/common.php:1218
 msgid "Relative date"
 msgstr "Relatieve datum"
 
@@ -1063,17 +913,13 @@ msgstr "Inkomsten / uitgaven raport"
 msgid "Create income / expences view"
 msgstr "Maak inkomsten / uitgaven raport"
 
-#: src/accounting/common.php:1299
-#: src/accounting/common.php:1325
-#: src/accounting/common.php:1331
-#: src/accounting/common.php:1366
-#: src/accounting/editview.php:12
-#: src/accounting/editview.php:18
+#: src/accounting/common.php:1299 src/accounting/common.php:1325
+#: src/accounting/common.php:1331 src/accounting/common.php:1366
+#: src/accounting/editview.php:12 src/accounting/editview.php:18
 msgid "Edit view"
 msgstr "Bewerk raport"
 
-#: src/accounting/common.php:1371
-#: src/accounting/common.php:1376
+#: src/accounting/common.php:1371 src/accounting/common.php:1376
 #: src/accounting/deletebalanceview.php:11
 #: src/accounting/deleteincomeexpenceview.php:11
 msgid "Delete view"
@@ -1081,7 +927,8 @@ msgstr "Verwijder raport"
 
 #: src/accounting/common.php:1395
 msgid "Warning, this trip is more than 500 km, are you sure it is correct?"
-msgstr "Let op! Deze rit is langer dan 500 km, weet je zeker dat dit correct is?"
+msgstr ""
+"Let op! Deze rit is langer dan 500 km, weet je zeker dat dit correct is?"
 
 #: src/accounting/common.php:1399
 msgid "Start Km"
@@ -1103,8 +950,7 @@ msgstr "Bestemming"
 msgid "Trip length"
 msgstr "Afstand"
 
-#: src/accounting/common.php:1419
-#: src/accounting/common.php:1423
+#: src/accounting/common.php:1419 src/accounting/common.php:1423
 msgid "Exchange rate"
 msgstr "Wisselkoers"
 
@@ -1147,18 +993,15 @@ msgstr "Ongeldige tot datum."
 msgid "Missing supplier name."
 msgstr "De leveranciers naam ontbreekt."
 
-#: src/accounting/moveaccount.php:20
-#: src/accounting/moveaccount.php:23
+#: src/accounting/moveaccount.php:20 src/accounting/moveaccount.php:23
 msgid "Invalid target account"
 msgstr "Ongeldige doel-post."
 
-#: src/accounts/addadminaccount.php:10
-#: src/accounts/common.php:56
+#: src/accounts/addadminaccount.php:10 src/accounts/common.php:56
 msgid "Add admin account"
 msgstr "Nieuwe beheersaccount"
 
-#: src/accounts/addadminaccount.php:17
-#: src/customers/addcustomer.php:39
+#: src/accounts/addadminaccount.php:17 src/customers/addcustomer.php:39
 msgid "Invalid account name."
 msgstr "Ongeldige accountnaam."
 
@@ -1166,15 +1009,12 @@ msgstr "Ongeldige accountnaam."
 msgid "An account with the chosen name already exists."
 msgstr "Er bestaat al een account met de gekozen naam."
 
-#: src/accounts/adminaccount.php:12
-#: src/accounts/removeadminaccount.php:12
+#: src/accounts/adminaccount.php:12 src/accounts/removeadminaccount.php:12
 #, python-format
 msgid "Accounts - %s"
 msgstr "Accounts - %s"
 
-#: src/accounts/api.php:3
-#: src/accounts/common.php:35
-#: src/accounts/index.php:9
+#: src/accounts/api.php:3 src/accounts/common.php:35 src/accounts/index.php:9
 msgid "Accounts"
 msgstr "Accounts"
 
@@ -1186,8 +1026,7 @@ msgstr "Account beheer"
 msgid "Account name"
 msgstr "Account naam"
 
-#: src/accounts/common.php:59
-#: src/accounts/common.php:67
+#: src/accounts/common.php:59 src/accounts/common.php:67
 msgid "Confirm password"
 msgstr "Bevestig wachtwoord"
 
@@ -1199,8 +1038,7 @@ msgstr "Verander wachtwoord"
 msgid "Change Password"
 msgstr "Verander Wachtwoord"
 
-#: src/accounts/common.php:73
-#: src/accounts/removeadminaccount.php:12
+#: src/accounts/common.php:73 src/accounts/removeadminaccount.php:12
 msgid "Remove admin account"
 msgstr "Verwijder beheersaccount"
 
@@ -1216,21 +1054,17 @@ msgstr "Weet je zeker dat je deze beheersaccount wilt verwijderen?"
 msgid "Edit password"
 msgstr "Verander wachtwoord"
 
-#: src/billing/addinvoiceline.php:11
-#: src/billing/common.php:388
+#: src/billing/addinvoiceline.php:11 src/billing/common.php:388
 msgid "Add invoice line"
 msgstr "Nieuwe post"
 
-#: src/billing/addinvoiceline.php:15
-#: src/billing/addsubscription.php:16
+#: src/billing/addinvoiceline.php:15 src/billing/addsubscription.php:16
 #: src/billing/editsubscription.php:20
 msgid "Invalid price"
 msgstr "Ongeldige prijs"
 
-#: src/billing/addinvoiceline.php:16
-#: src/billing/addsubscription.php:17
-#: src/billing/editpayment.php:17
-#: src/billing/editsubscription.php:21
+#: src/billing/addinvoiceline.php:16 src/billing/addsubscription.php:17
+#: src/billing/editpayment.php:17 src/billing/editsubscription.php:21
 msgid "Amount is zero"
 msgstr "Bedrag is nul"
 
@@ -1238,63 +1072,48 @@ msgstr "Bedrag is nul"
 msgid "Invalid discount"
 msgstr "Ongeldige korting"
 
-#: src/billing/addinvoiceline.php:18
-#: src/billing/addinvoiceline.php:19
-#: src/billing/addsubscription.php:34
-#: src/billing/addsubscription.php:35
-#: src/billing/editsubscription.php:38
-#: src/billing/editsubscription.php:39
+#: src/billing/addinvoiceline.php:18 src/billing/addinvoiceline.php:19
+#: src/billing/addsubscription.php:34 src/billing/addsubscription.php:35
+#: src/billing/editsubscription.php:38 src/billing/editsubscription.php:39
 msgid "Invalid revenue account"
 msgstr "Ongeldige inkomsten post"
 
-#: src/billing/addpayment.php:15
-#: src/billing/editpayment.php:16
+#: src/billing/addpayment.php:15 src/billing/editpayment.php:16
 msgid "Invalid amount"
 msgstr "Ongeldig bedrag"
 
-#: src/billing/addpayment.php:17
-#: src/billing/editpayment.php:18
+#: src/billing/addpayment.php:17 src/billing/editpayment.php:18
 msgid "Invalid date"
 msgstr "Ongeldige datum"
 
-#: src/billing/addpayment.php:18
-#: src/billing/editpayment.php:19
+#: src/billing/addpayment.php:18 src/billing/editpayment.php:19
 msgid "Invalid description"
 msgstr "Ongeldige beschrijving"
 
-#: src/billing/addpayment.php:19
-#: src/billing/addpayment.php:20
-#: src/billing/editpayment.php:20
-#: src/billing/editpayment.php:21
+#: src/billing/addpayment.php:19 src/billing/addpayment.php:20
+#: src/billing/editpayment.php:20 src/billing/editpayment.php:21
 msgid "Invalid bank account"
 msgstr "Ongeldige bankrekening"
 
-#: src/billing/addsubscription.php:11
-#: src/billing/common.php:317
+#: src/billing/addsubscription.php:11 src/billing/common.php:317
 msgid "Add subscription"
 msgstr "Abbonement toevoegen"
 
-#: src/billing/addsubscription.php:22
-#: src/billing/addsubscription.php:23
-#: src/billing/addsubscription.php:24
-#: src/billing/editsubscription.php:27
-#: src/billing/editsubscription.php:28
-#: src/billing/editsubscription.php:29
+#: src/billing/addsubscription.php:22 src/billing/addsubscription.php:23
+#: src/billing/addsubscription.php:24 src/billing/editsubscription.php:27
+#: src/billing/editsubscription.php:28 src/billing/editsubscription.php:29
 msgid "Invalid discount percentage"
 msgstr "Ongeldig kortingsprecentage"
 
-#: src/billing/addsubscription.php:26
-#: src/billing/editsubscription.php:31
+#: src/billing/addsubscription.php:26 src/billing/editsubscription.php:31
 msgid "Invalid discount amount"
 msgstr "Ongeldig kortingsbedrag"
 
-#: src/billing/addsubscription.php:30
-#: src/billing/editsubscription.php:35
+#: src/billing/addsubscription.php:30 src/billing/editsubscription.php:35
 msgid "Invalid frequency multiplier"
 msgstr "Ongeldige frequentie multiplier"
 
-#: src/billing/addsubscription.php:31
-#: src/billing/editsubscription.php:36
+#: src/billing/addsubscription.php:31 src/billing/editsubscription.php:36
 msgid "Invalid frequency base"
 msgstr "Ongeldige frequentie termein"
 
@@ -1302,29 +1121,22 @@ msgstr "Ongeldige frequentie termein"
 msgid "Invalid start date"
 msgstr "Ongeldige startdatum"
 
-#: src/billing/addsubscription.php:33
-#: src/billing/editsubscription.php:37
+#: src/billing/addsubscription.php:33 src/billing/editsubscription.php:37
 msgid "Invalid invoice delay"
 msgstr "Ongeldige factuur vertraging"
 
-#: src/billing/changestatus.php:11
-#: src/billing/common.php:77
+#: src/billing/changestatus.php:11 src/billing/common.php:77
 msgid "Change invoice status"
 msgstr "Verander facturatie status"
 
-#: src/billing/common.php:36
-#: src/billing/common.php:45
-#: src/billing/customer.php:11
-#: src/billing/index.php:9
+#: src/billing/common.php:36 src/billing/common.php:45
+#: src/billing/customer.php:11 src/billing/index.php:9
 msgid "Billing"
 msgstr "Facturatie"
 
-#: src/billing/common.php:43
-#: src/customers/api.php:3
-#: src/customers/common.php:30
-#: src/customers/common.php:51
-#: src/customers/customer.php:14
-#: src/customers/index.php:12
+#: src/billing/common.php:43 src/customers/api.php:3
+#: src/customers/common.php:30 src/customers/common.php:51
+#: src/customers/customer.php:14 src/customers/index.php:12
 msgid "Customers"
 msgstr "Klanten"
 
@@ -1357,12 +1169,9 @@ msgstr "Voorbeeld"
 msgid "Enabled"
 msgstr "Ingeschakeld"
 
-#: src/billing/common.php:121
-#: src/billing/common.php:133
-#: src/billing/common.php:164
-#: src/billing/common.php:320
-#: src/billing/common.php:357
-#: src/billing/common.php:391
+#: src/billing/common.php:121 src/billing/common.php:133
+#: src/billing/common.php:164 src/billing/common.php:320
+#: src/billing/common.php:357 src/billing/common.php:391
 #: src/billing/common.php:407
 msgid "Price"
 msgstr "Prijs"
@@ -1371,13 +1180,11 @@ msgstr "Prijs"
 msgid "Discounts"
 msgstr "Kortingen"
 
-#: src/billing/common.php:121
-#: src/billing/common.php:170
+#: src/billing/common.php:121 src/billing/common.php:170
 msgid "Renew date"
 msgstr "Vernieuw datum"
 
-#: src/billing/common.php:121
-#: src/billing/common.php:133
+#: src/billing/common.php:121 src/billing/common.php:133
 msgid "Subscriptions"
 msgstr "Abonementen"
 
@@ -1391,8 +1198,7 @@ msgstr "%s dagen later"
 msgid "%s days in advance"
 msgstr "%s dagen eerder"
 
-#: src/billing/common.php:162
-#: src/billing/subscription.php:11
+#: src/billing/common.php:162 src/billing/subscription.php:11
 msgid "Subscription"
 msgstr "Abonnement"
 
@@ -1400,39 +1206,32 @@ msgstr "Abonnement"
 msgid "Base price"
 msgstr "Basis prijs"
 
-#: src/billing/common.php:166
-#: src/billing/common.php:321
+#: src/billing/common.php:166 src/billing/common.php:321
 #: src/billing/common.php:358
 msgid "Discount percentage"
 msgstr "Kortingspercentage"
 
-#: src/billing/common.php:167
-#: src/billing/common.php:322
+#: src/billing/common.php:167 src/billing/common.php:322
 #: src/billing/common.php:359
 msgid "Discount amount"
 msgstr "Kortingsbedrag"
 
-#: src/billing/common.php:168
-#: src/billing/common.php:323
+#: src/billing/common.php:168 src/billing/common.php:323
 #: src/billing/common.php:360
 msgid "Frequency"
 msgstr "Interval"
 
-#: src/billing/common.php:169
-#: src/billing/common.php:333
+#: src/billing/common.php:169 src/billing/common.php:333
 #: src/billing/common.php:369
 msgid "Invoice delay"
 msgstr "Facturatie vertraging"
 
-#: src/billing/common.php:172
-#: src/billing/common.php:337
-#: src/billing/common.php:373
-#: src/billing/common.php:393
+#: src/billing/common.php:172 src/billing/common.php:337
+#: src/billing/common.php:373 src/billing/common.php:393
 msgid "Revenue account"
 msgstr "Inkomstenpost"
 
-#: src/billing/common.php:192
-#: src/billing/common.php:209
+#: src/billing/common.php:192 src/billing/common.php:209
 msgid "Remaining amount"
 msgstr "Openstaand bedrag"
 
@@ -1444,8 +1243,7 @@ msgstr "Herinnering"
 msgid "Resend"
 msgstr "Verstuur opnieuw"
 
-#: src/billing/common.php:192
-#: src/billing/common.php:209
+#: src/billing/common.php:192 src/billing/common.php:209
 msgid "No invoices have been sent so far."
 msgstr "Er zijn nog geen facturen verstuurd."
 
@@ -1457,33 +1255,27 @@ msgstr "Er zijn nog geen betalingen gedaan."
 msgid "Customer"
 msgstr "Klant"
 
-#: src/billing/common.php:327
-#: src/billing/common.php:364
+#: src/billing/common.php:327 src/billing/common.php:364
 msgid "year"
 msgstr "jaar"
 
-#: src/billing/common.php:328
-#: src/billing/common.php:365
+#: src/billing/common.php:328 src/billing/common.php:365
 msgid "month"
 msgstr "maand"
 
-#: src/billing/common.php:329
-#: src/billing/common.php:366
+#: src/billing/common.php:329 src/billing/common.php:366
 msgid "day"
 msgstr "dag"
 
-#: src/billing/common.php:354
-#: src/billing/editsubscription.php:12
+#: src/billing/common.php:354 src/billing/editsubscription.php:12
 msgid "Edit subscription"
 msgstr "Bewerk abonnement"
 
-#: src/billing/common.php:383
-#: src/billing/endsubscription.php:12
+#: src/billing/common.php:383 src/billing/endsubscription.php:12
 msgid "End subscription"
 msgstr "Beeindig abonnement"
 
-#: src/billing/common.php:392
-#: src/billing/common.php:408
+#: src/billing/common.php:392 src/billing/common.php:408
 msgid "Discount"
 msgstr "Korting"
 
@@ -1495,8 +1287,7 @@ msgstr "Verwijder geselecteerde factuur posten"
 msgid "Create invoice"
 msgstr "Maak factuur"
 
-#: src/billing/common.php:429
-#: src/billing/common.php:439
+#: src/billing/common.php:429 src/billing/common.php:439
 msgid "Create Invoice"
 msgstr "Maak Factuur"
 
@@ -1559,8 +1350,7 @@ msgstr "Ongeldige einddatum"
 msgid "Send reminder"
 msgstr "Verstuur herinering"
 
-#: src/billing/reminder.php:12
-#: src/billing/resend.php:12
+#: src/billing/reminder.php:12 src/billing/resend.php:12
 msgid "Send"
 msgstr "Verstuur"
 
@@ -1568,8 +1358,7 @@ msgstr "Verstuur"
 msgid "Resend invoice"
 msgstr "Verstuur factuur opnieuw"
 
-#: src/billing/sendinvoice.php:11
-#: src/billing/sendinvoice.php:34
+#: src/billing/sendinvoice.php:11 src/billing/sendinvoice.php:34
 msgid "Send invoice"
 msgstr "Verstuur factuur"
 
@@ -1577,29 +1366,24 @@ msgstr "Verstuur factuur"
 msgid "Add new customer"
 msgstr "Nieuwe klant toevoegen"
 
-#: src/customers/addcustomer.php:10
-#: src/customers/common.php:71
+#: src/customers/addcustomer.php:10 src/customers/common.php:71
 msgid "Add customer"
 msgstr "Nieuwe klant"
 
-#: src/customers/addcustomer.php:14
-#: src/customers/editcustomer.php:17
+#: src/customers/addcustomer.php:14 src/customers/editcustomer.php:17
 #, python-format
 msgid "Invalid %s"
 msgstr "Ongeldige %s"
 
-#: src/customers/addcustomer.php:28
-#: src/customers/editcustomer.php:30
+#: src/customers/addcustomer.php:28 src/customers/editcustomer.php:30
 msgid "Invalid invoiceFrequencyMultiplier"
 msgstr "Ongeldige invoiceFrequencyMultiplier"
 
-#: src/customers/addcustomer.php:29
-#: src/customers/editcustomer.php:31
+#: src/customers/addcustomer.php:29 src/customers/editcustomer.php:31
 msgid "Invalid invoiceFrequencyBase"
 msgstr "Ongeldige invoiceFrequencyBase"
 
-#: src/customers/addcustomer.php:30
-#: src/customers/editcustomer.php:32
+#: src/customers/addcustomer.php:30 src/customers/editcustomer.php:32
 msgid "Invalid BTW status"
 msgstr "Ongeldige BTW status"
 
@@ -1611,80 +1395,65 @@ msgstr "Er bestaat al een klant met de gekozen naam."
 msgid "An account with the chosen name already exists (reserved)."
 msgstr "Er bestaat al een account met de gekozen naam."
 
-#: src/customers/common.php:51
-#: src/customers/common.php:72
+#: src/customers/common.php:51 src/customers/common.php:72
 #: src/customers/common.php:102
 msgid "Nickname"
 msgstr "Bijnaam"
 
-#: src/customers/common.php:51
-#: src/customers/common.php:80
+#: src/customers/common.php:51 src/customers/common.php:80
 #: src/customers/common.php:110
 msgid "Email"
 msgstr "Email"
 
-#: src/customers/common.php:73
-#: src/customers/common.php:103
+#: src/customers/common.php:73 src/customers/common.php:103
 msgid "Initials"
 msgstr "Initialen"
 
-#: src/customers/common.php:74
-#: src/customers/common.php:104
+#: src/customers/common.php:74 src/customers/common.php:104
 msgid "Last name"
 msgstr "Achternaam"
 
-#: src/customers/common.php:75
-#: src/customers/common.php:105
+#: src/customers/common.php:75 src/customers/common.php:105
 msgid "Company name"
 msgstr "Bedrijfsnaam"
 
-#: src/customers/common.php:76
-#: src/customers/common.php:106
+#: src/customers/common.php:76 src/customers/common.php:106
 msgid "Address"
 msgstr "Adres"
 
-#: src/customers/common.php:77
-#: src/customers/common.php:107
+#: src/customers/common.php:77 src/customers/common.php:107
 msgid "Postal code"
 msgstr "Postcode"
 
-#: src/customers/common.php:78
-#: src/customers/common.php:108
+#: src/customers/common.php:78 src/customers/common.php:108
 msgid "City"
 msgstr "Stad"
 
-#: src/customers/common.php:79
-#: src/customers/common.php:109
+#: src/customers/common.php:79 src/customers/common.php:109
 msgid "Country"
 msgstr "Land"
 
-#: src/customers/common.php:81
-#: src/customers/common.php:111
+#: src/customers/common.php:81 src/customers/common.php:111
 msgid "Phone number"
 msgstr "Telefoonnummer"
 
-#: src/customers/common.php:82
-#: src/customers/common.php:112
+#: src/customers/common.php:82 src/customers/common.php:112
 msgid "Invoice interval"
 msgstr "Factuur interval"
 
-#: src/customers/common.php:87
-#: src/customers/common.php:117
+#: src/customers/common.php:87 src/customers/common.php:117
 msgid "Invoice BTW status"
 msgstr "Factuur BTW status"
 
-#: src/customers/common.php:88
-#: src/customers/common.php:118
+#: src/customers/common.php:88 src/customers/common.php:118
 msgid "Send invoices excluding BTW (for companies)"
 msgstr "Verstuur facturen zonder BTW (voor bedrijven)"
 
-#: src/customers/common.php:89
-#: src/customers/common.php:119
+#: src/customers/common.php:89 src/customers/common.php:119
 msgid "Send invoices including BTW (for individuals)"
 msgstr "Verstuur facturen met BTW (voor consumenten)"
 
-#: src/customers/common.php:101
-#: src/customers/editcustomer.php:14
+#: src/customers/common.php:101 src/customers/editcustomer.php:14
 msgid "Edit customer"
 msgstr "Bewerk klant"
 

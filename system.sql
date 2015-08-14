@@ -210,7 +210,7 @@ CREATE TABLE IF NOT EXISTS `adminCustomer` (
   `invoiceFrequencyMultiplier` int(11) NOT NULL DEFAULT '1',
   `nextInvoiceDate` int(11) NOT NULL,
   `invoiceStatus` enum('UNSET','DISABLED','PREVIEW','ENABLED') NOT NULL DEFAULT 'UNSET',
-  `btwStatus` enum('excludingBTW', 'includingBTW') NOT NULL DEFAUL 'UNSET',
+  `btwStatus` enum('excludingBTW', 'includingBTW') NOT NULL DEFAULT 'includingBTW',
   PRIMARY KEY (`customerID`),
   KEY `accountID` (`accountID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -490,16 +490,3 @@ ALTER TABLE `suppliersSupplier`
   ADD CONSTRAINT `suppliersSupplier_ibfk_1` FOREIGN KEY (`accountID`) REFERENCES `accountingAccount` (`accountID`),
   ADD CONSTRAINT `suppliersSupplier_ibfk_2` FOREIGN KEY (`defaultExpenseAccountID`) REFERENCES `accountingAccount` (`accountID`);
 
---
--- Dumping data for table `accountingCurrency`
---
-
-INSERT INTO `accountingCurrency` (`currencyID`, `name`, `symbol`, `order`) VALUES
-(1, 'EUR', '&euro;', 1);
-
---
--- Dumping data for table `adminUser`
---
-
-INSERT INTO `adminUser` (`userID`, `username`, `password`) VALUES
-(1, 'root', '$6$XW791GwKNEgGV8Od$hsNolFgFQ76a2SHXJLZWezA2uaYF33.YNcYjMT7DXJV./tc3aaYCMNpVp7ivEGQh/8hitVKCiGw9TTq5wqud1/');

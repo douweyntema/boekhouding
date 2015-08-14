@@ -3,6 +3,68 @@
 define("COUNTRYCODES_FILE", dirname(__FILE__) . "/../countrycodes");
 define("RESERVED_USERNAMES_FILE", dirname(__FILE__) . "/../reserved-usernames");
 
+function rawQuery($query) { return $GLOBALS["database"]->rawQuery($query); }
+function query($query) { return $GLOBALS["database"]->query($query); }
+function setQuery($query) { return $GLOBALS["database"]->setQuery($query); }
+function dbAddSlashes($string) { return $GLOBALS["database"]->addSlashes($string); }
+function stdGet($table, $where, $get) { return $GLOBALS["database"]->stdGet($table, $where, $get); }
+function stdGetTry($table, $where, $get, $default = null) { return $GLOBALS["database"]->stdGetTry($table, $where, $get, $default); }
+function stdList($table, $where, $get, $sort = null, $number = 0, $skip = 0) { return $GLOBALS["database"]->stdList($table, $where, $get, $sort, $number, $skip); }
+function stdMap($table, $where, $mapKey, $get, $sort = null, $number = 0, $skip = 0) { return $GLOBALS["database"]->stdMap($table, $where, $mapKey, $get, $sort, $number, $skip); }
+function stdCount($table, $where) { return $GLOBALS["database"]->stdCount($table, $where); }
+function stdExists($table, $where) { return $GLOBALS["database"]->stdExists($table, $where); }
+function stdSet($table, $where, $set) { return $GLOBALS["database"]->stdSet($table, $where, $set); }
+function stdNew($table, $set) { return $GLOBALS["database"]->stdNew($table, $set); }
+function stdDel($table, $where) { return $GLOBALS["database"]->stdDel($table, $where); }
+function stdIncrement($table, $where, $field, $modulo = null) { return $GLOBALS["database"]->stdIncrement($table, $where, $field, $modulo); }
+function stdLock($table, $where, $shared = false) { return $GLOBALS["database"]->stdLock($table, $where, $shared); }
+function startTransaction($consistent = true) { return $GLOBALS["database"]->startTransaction($consistent); }
+function commitTransaction() { return $GLOBALS["database"]->commitTransaction(); }
+function rollbackTransaction() { return $GLOBALS["database"]->rollbackTransaction(); }
+
+function defineRight($module, $rightName, $rightTitle, $rightDescription)
+{
+	$GLOBALS["componentRights"][$module][] = array("name"=>$rightName, "title"=>$rightTitle, "description"=>$rightDescription);
+}
+
+function hashPassword($password)
+{
+	$salt = base64_encode(mcrypt_create_iv(12, MCRYPT_DEV_URANDOM));
+	return crypt($password, '$6$' . $salt);
+}
+
+function verifyPassword($password, $passwordHash)
+{
+	return crypt($password, $passwordHash) === $passwordHash;
+}
+
+function encryptPassword($password)
+{
+	$iv = mcrypt_create_iv(32, MCRYPT_DEV_URANDOM);
+	$plaintext = md5($password) . base64_encode($password);
+	$key = md5($GLOBALS["crypto_key"], true);
+	$cipher = mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $key, $plaintext, MCRYPT_MODE_CBC, $iv);
+	return base64_encode($iv) . ":" . base64_encode($cipher);
+}
+
+function decryptPassword($cipher)
+{
+	$pos = strpos($cipher, ':');
+	if($pos === false) {
+		return null;
+	}
+	$iv = base64_decode(substr($cipher, 0, $pos));
+	$decoded = base64_decode(substr($cipher, $pos + 1));
+	$key = md5($GLOBALS["crypto_key"], true);
+	$plaintext = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $key, $decoded, MCRYPT_MODE_CBC, $iv);
+	$checksum = substr($plaintext, 0, 32);
+	$password = base64_decode(substr($plaintext, 32));
+	if(md5($password) != $checksum) {
+		return null;
+	}
+	return $password;
+}
+
 function searchKey($array /*, $keys */)
 {
 	$keys = func_get_args();
