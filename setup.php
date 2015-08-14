@@ -25,13 +25,13 @@ $succes = false;
 while(!$succes) {
 	$config["database_hostname"] = question("Database server?", "localhost");
 	$config["database_username"] = question("Database gebruikesnaam?", "root");
-	$config["database_password"] = question("Database wachtwoord?", "stef45");
-	$config["database_name"] = question("Database naam?", "boekhouding-setuptest");
+	$config["database_password"] = question("Database wachtwoord?");
+	$config["database_name"] = question("Database naam?");
 	
 	$succes = true;
 	$GLOBALS["database"] = new MysqlConnection();
 	try {
-		$GLOBALS["database"]->open($config["database_hostname"], $config["database_username"], $config["database_password"], $config["database_name"]);
+		@$GLOBALS["database"]->open($config["database_hostname"], $config["database_username"], $config["database_password"], $config["database_name"]);
 	} catch(DatabaseException $e) {
 		echo "Database gegevens ongeldig, probeer opnieuw.\n";
 		$succes = false;
