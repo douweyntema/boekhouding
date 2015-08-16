@@ -16,10 +16,10 @@ function main()
 	
 	$fixedAsset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID", "expenseAccountID"));
 	startTransaction();
+	stdDel("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID));
 	accountingDeleteAccount($fixedAsset["accountID"]);
 	accountingDeleteAccount($fixedAsset["depreciationAccountID"]);
 	accountingDeleteAccount($fixedAsset["expenseAccountID"]);
-	stdDel("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID));
 	commitTransaction();
 	
 	redirect("accounting/index.php");
