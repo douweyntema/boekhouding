@@ -1158,6 +1158,12 @@ function addFixedAssetForm($error = "", $values = null)
 	if($error == "STUB") {
 		return operationForm("addfixedasset.php", $error, _("Add fixed asset"), _("Add fixed asset"), array(), array());
 	}
+	if($values === null || count($values) == 0) {
+		$values = array(
+			"depreciationFrequencyMultiplier"=>1,
+			"depreciationFrequencyBase"=>"YEAR",
+		);
+	}
 	
 	return operationForm("addfixedasset.php", $error, _("Add fixed asset"), _("Add"), array(
 		array("title"=>_("Name"), "type"=>"text", "name"=>"name"),
