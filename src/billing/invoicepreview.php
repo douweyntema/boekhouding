@@ -29,6 +29,7 @@ function main()
 	
 	header("Content-Type: application/pdf");
 	header("Content-Length: " . strlen($pdf));
+	header("Content-Disposition: attachment; filename=factuur-voorbeeld.pdf");
 	echo $pdf;
 }
 
