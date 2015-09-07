@@ -368,7 +368,7 @@ function doAccountList($tree, $toDate, $fromDate, $balanceViewID = null, $income
 		if($type["type"] == "SUPPLIER") {
 			$typeUrl = "supplier.php?id={$type["supplierID"]}";
 		}
-		if($type["type"] == "FIXEDASSETVALUE" || $type["type"] == "FIXEDASSETDEPRICIATION" || $type["type"] == "FIXEDASSETEXPENSE") {
+		if($type["type"] == "FIXEDASSETVALUE" || $type["type"] == "FIXEDASSETDEPRICIATION") {
 			$typeUrl = "fixedasset.php?id={$type["fixedAssetID"]}";
 		}
 		
@@ -671,21 +671,19 @@ function carList()
 
 function fixedAssetSummary($fixedAssetID)
 {
-	$asset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID", "expenseAccountID", "name", "description", "purchaseDate", "depreciationFrequencyBase", "depreciationFrequencyMultiplier", "nextDepreciationDate", "totalDepreciations", "performedDepreciations", "residualValuePercentage", "automaticDepreciation"));
+	$asset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID", "name", "description", "purchaseDate", "depreciationFrequencyBase", "depreciationFrequencyMultiplier", "nextDepreciationDate", "totalDepreciations", "performedDepreciations", "residualValuePercentage", "automaticDepreciation"));
 	
 	$frequencyBase = strtolower($asset["depreciationFrequencyBase"]);
 	$nameHtml = htmlentities($asset["name"]);
 	
 	$currentValue = stdGet("accountingAccount", array("accountID"=>$asset["accountID"]), "balance");
 	$depreciatedValue = stdGet("accountingAccount", array("accountID"=>$asset["depreciationAccountID"]), "balance");
-	$expenseCost = stdGet("accountingAccount", array("accountID"=>$asset["expenseAccountID"]), "balance");
 	
 	return summaryTable(sprintf(_("Fixed asset %s"), $nameHtml), array(
 		_("Name")=>array("text"=>$asset["name"]),
 		_("Description")=>array("text"=>$asset["description"]),
 		_("Current value")=>array("html"=>formatPrice($currentValue), "url"=>"account.php?id={$asset["accountID"]}"),
 		_("Depreciated value")=>array("html"=>formatPrice($depreciatedValue), "url"=>"account.php?id={$asset["depreciationAccountID"]}"),
-		_("Expense cost")=>array("html"=>formatPrice($expenseCost), "url"=>"account.php?id={$asset["expenseAccountID"]}"),
 		_("Purchase value")=>array("html"=>formatPrice($currentValue + $depreciatedValue)),
 		_("Purchase date")=>array("text"=>date("d-m-Y", $asset["purchaseDate"])),
 		_("Depreciation interval")=>array("text"=>"per {$asset["depreciationFrequencyMultiplier"]} {$frequencyBase}s"),
@@ -1484,11 +1482,6 @@ function depreciationAccountDescription($name)
 	return sprintf(_("Depreciation account for fixed asset %s"), $name);
 }
 
-function expenseAccountDescription($name)
-{
-	return sprintf(_("Expense account for fixed asset %s"), $name);
-}
-
 function accountEmpty($accountID)
 {
 	return
@@ -1506,11 +1499,10 @@ function supplierEmpty($supplierID)
 
 function fixedAssetEmpty($fixedAssetID)
 {
-	$fixedAsset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID", "expenseAccountID"));
+	$fixedAsset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID"));
 	return
 		accountEmpty($fixedAsset["accountID"]) &&
-		accountEmpty($fixedAsset["depreciationAccountID"]) &&
-		accountEmpty($fixedAsset["expenseAccountID"]);
+		accountEmpty($fixedAsset["depreciationAccountID"]);
 }
 
 function parseRelativeTime($values, $namePrefix)

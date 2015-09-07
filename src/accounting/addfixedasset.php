@@ -25,11 +25,9 @@ function main()
 	startTransaction();
 	$valueAccountID = accountingAddAccount($GLOBALS["fixedAssetValueDirectoryAccountID"], $GLOBALS["defaultCurrencyID"], $name, $description, false);
 	$depreciationAccountID = accountingAddAccount($GLOBALS["fixedAssetDepreciationDirectoryAccountID"], $GLOBALS["defaultCurrencyID"], $name, depreciationAccountDescription($name), false);
-	$expenseAccountID = accountingAddAccount($GLOBALS["fixedAssetExpenseDirectoryAccountID"], $GLOBALS["defaultCurrencyID"], $name, expenseAccountDescription($name), false);
 	$fixedAssetID = stdNew("accountingFixedAsset", array(
 		"accountID"=>$valueAccountID,
 		"depreciationAccountID"=>$depreciationAccountID,
-		"expenseAccountID"=>$expenseAccountID,
 		"name"=>$name,
 		"description"=>$description,
 		"purchaseDate"=>$purchaseDate,

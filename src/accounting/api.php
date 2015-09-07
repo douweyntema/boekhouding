@@ -142,9 +142,6 @@ function accountingAccountType($accountID)
 	if(($fixedAssetID = stdGetTry("accountingFixedAsset", array("depreciationAccountID"=>$accountID), "fixedAssetID")) !== null) {
 		return array("type"=>"FIXEDASSETDEPRICIATION", "fixedAssetID"=>$fixedAssetID);
 	}
-	if(($fixedAssetID = stdGetTry("accountingFixedAsset", array("expenseAccountID"=>$accountID), "fixedAssetID")) !== null) {
-		return array("type"=>"FIXEDASSETEXPENSE", "fixedAssetID"=>$fixedAssetID);
-	}
 	return array("type"=>"NONE");
 }
 

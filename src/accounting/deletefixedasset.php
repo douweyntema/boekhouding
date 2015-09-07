@@ -14,12 +14,11 @@ function main()
 	$check(fixedAssetEmpty($fixedAssetID), _("Fixed asset is still in use."));
 	$check(post("confirm") !== null, null);
 	
-	$fixedAsset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID", "expenseAccountID"));
+	$fixedAsset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID"));
 	startTransaction();
 	stdDel("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID));
 	accountingDeleteAccount($fixedAsset["accountID"]);
 	accountingDeleteAccount($fixedAsset["depreciationAccountID"]);
-	accountingDeleteAccount($fixedAsset["expenseAccountID"]);
 	commitTransaction();
 	
 	redirect("accounting/index.php");
