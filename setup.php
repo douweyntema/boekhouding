@@ -65,6 +65,7 @@ $config["crypto_key"] = randomString(20);
 
 $euro = stdNew("accountingCurrency", array("name"=>"EUR", "symbol"=>'&euro;', "order"=>1));
 $dollar = stdNew("accountingCurrency", array("name"=>"USD", "symbol"=>'$', "order"=>2));
+$km = stdNew("accountingCurrency", array("name"=>"km", "symbol"=>'km', "order"=>99));
 
 $config["taxRate"] = 0.21;
 $defaultCurrency = "";
@@ -81,6 +82,7 @@ $config["assetsDirectoryAccountID"] = accountingAddAccount(null, $config["defaul
 $config["liabilitiesDirectoryAccountID"] = accountingAddAccount(null, $config["defaultCurrencyID"], "Passiva", "", 1);
 $config["revenueDirectoryAccountID"] = accountingAddAccount(null, $config["defaultCurrencyID"], "Inkomsten", "", 1);
 $config["expensesDirectoryAccountID"] = accountingAddAccount(null, $config["defaultCurrencyID"], "Onkosten", "", 1);
+$config["travelExpencesAccountID"] = accountingAddAccount(null, $km, "Kilometer registratie", "", 1);
 
 $config["customersDirectoryAccountID"] = accountingAddAccount($config["assetsDirectoryAccountID"], $config["defaultCurrencyID"], "Debiteuren", "", 1);
 $config["suppliersDirectoryAccountID"] = accountingAddAccount($config["liabilitiesDirectoryAccountID"], $config["defaultCurrencyID"], "Crediteuren", "", 1);

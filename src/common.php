@@ -30,8 +30,8 @@ function exceptionHandler($exception)
 
 class AssertionError extends Exception {}
 
-if($_SERVER["REMOTE_ADDR"] == "127.0.0.1") {
-	error_reporting(E_ALL);
+if($_SERVER["REMOTE_ADDR"] == "127.0.0.1" || $_SERVER["REMOTE_ADDR"] == "::1") {
+	error_reporting(E_ALL & ~E_DEPRECATED);
 } else {
 	error_reporting(0);
 	set_exception_handler("exceptionHandler");

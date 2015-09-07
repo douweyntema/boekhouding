@@ -778,7 +778,7 @@ function operationForm($postUrl, $error, $title, $submitCaption, $fields, $value
 		$properties = array();
 	}
 	
-	if($error === null && $values["changeInput"] == 1) {
+	if($error === null && isset($values["changeInput"]) && $values["changeInput"] == 1) {
 		$error = "";
 		unset($values["changeInput"]);
 	}

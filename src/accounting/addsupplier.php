@@ -14,7 +14,7 @@ function main()
 	$check(($currencyID = post("currencyID")) !== null, "");
 	$check(($defaultExpenseAccountID = post("defaultExpenseAccountID")) !== null, "");
 	
-	$check($name != "", "Missing supplier name.");
+	$check($name != "", _("Missing supplier name."));
 	$check(stdExists("accountingCurrency", array("currencyID"=>$currencyID)), _("Invalid currency."));
 	$check($defaultExpenseAccountID == "" || stdGetTry("accountingAccount", array("accountID"=>$defaultExpenseAccountID), "isDirectory", "1") == "0", _("Invalid expense account."));
 	$check(post("confirm") !== null, null);

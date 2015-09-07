@@ -656,19 +656,6 @@ function fixedAssetList()
 	return listTable(array(_("Name"), _("Description"), _("Value"), _("Next depreciation date")), $rows, _("Fixed assets"), _("No fixed assets."), array("divclass"=>"list sortable", "addNewLink"=>"addfixedasset.php"));
 }
 
-function carList()
-{
-	$rows = array();
-	foreach(stdList("accountingCar", array(), array("carID", "name", "description")) as $car) {
-		$rows[] = array("cells"=>array(
-			array("url"=>"car.php?id={$car["carID"]}", "text"=>$car["name"]),
-			array("text"=>$car["description"]),
-		));
-	}
-	
-	return listTable(array(_("Name"), _("Description")), $rows, _("Cars"), _("No cars."), array("divclass"=>"list sortable"));
-}
-
 function fixedAssetSummary($fixedAssetID)
 {
 	$asset = stdGet("accountingFixedAsset", array("fixedAssetID"=>$fixedAssetID), array("accountID", "depreciationAccountID", "name", "description", "purchaseDate", "depreciationFrequencyBase", "depreciationFrequencyMultiplier", "nextDepreciationDate", "totalDepreciations", "performedDepreciations", "residualValuePercentage", "automaticDepreciation"));
@@ -691,6 +678,39 @@ function fixedAssetSummary($fixedAssetID)
 		_("Residual value")=>array("text"=>"{$asset["residualValuePercentage"]}%"),
 		_("Automatic depreciation")=>array("text"=>$asset["automaticDepreciation"] ? _("Yes") : _("No"))
 		));
+}
+
+function carList()
+{
+	$rows = array();
+	foreach(stdList("accountingCar", array(), array("carID", "name", "description")) as $car) {
+		$rows[] = array("cells"=>array(
+			array("url"=>"car.php?id={$car["carID"]}", "text"=>$car["name"]),
+			array("text"=>$car["description"]),
+		));
+	}
+	
+	return listTable(array(_("Name"), _("Description")), $rows, _("Cars"), _("No cars."), array("divclass"=>"list sortable", "addNewLink"=>"addcar.php"));
+}
+
+function carSummary($carID)
+{
+	$car = stdGet("accountingCar", array("carID"=>$carID), array("carID", "drivenKmAccountID", "expencesAccountID", "defaultBankAccountID", "name", "description", "kmFee"));
+	
+	$nameHtml = htmlentities($car["name"]);
+	
+	$drivenKm = stdGet("accountingAccount", array("accountID"=>$car["drivenKmAccountID"]), "balance");
+	$expencesAccount = stdGet("accountingAccount", array("accountID"=>$car["expencesAccountID"]), "name");
+	$defaultBankAccount = stdGet("accountingAccount", array("accountID"=>$car["defaultBankAccountID"]), "name");
+	
+	return summaryTable(sprintf(_("car %s"), $nameHtml), array(
+		_("Name")=>array("text"=>$car["name"]),
+		_("Description")=>array("text"=>$car["description"]),
+		_("Driven Km")=>array("html"=>formatPrice($drivenKm, "km"), "url"=>"account.php?id={$car["drivenKmAccountID"]}"),
+		_("Expences account")=>array("html"=>$expencesAccount, "url"=>"account.php?id={$car["expencesAccountID"]}"),
+		_("Default bank account")=>array("html"=>$defaultBankAccount, "url"=>"account.php?id={$car["defaultBankAccountID"]}"),
+		_("Km fee")=>array("html"=>formatPrice($car["kmFee"])),
+		), array("editLink"=>"editcar.php?id=$carID", "deleteLink"=>carEmpty($carID) ? "deletecar.php?id=$carID" : null));
 }
 
 function viewList()
@@ -1381,6 +1401,51 @@ function deleteIncomeExpenceViewForm($viewID, $error = "", $values = null)
 	return operationForm("deleteincomeexpenceview.php?id=$viewID", $error, _("Delete view"), _("Delete"), array(), $values);
 }
 
+function addCarForm($error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("addcar.php", $error, _("Add car"), _("Add car"), array(), array());
+	}
+	
+	return operationForm("addcar.php", $error, _("Add car"), _("Add car"),
+		array(
+			array("title"=>_("Name"), "type"=>"text", "name"=>"name"),
+			array("title"=>_("Description"), "type"=>"textarea", "name"=>"description"),
+			array("title"=>_("Expense account"), "type"=>"dropdown", "name"=>"expencesAccountID", "options"=>accountingAccountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
+			array("title"=>_("Default bank account"), "type"=>"dropdown", "name"=>"defaultBankAccountID", "options"=>accountingAccountOptions($GLOBALS["bankDirectoryAccountID"], true)),
+			array("title"=>_("KM fee"), "type"=>"text", "name"=>"kmFee")
+		),
+		$values);
+}
+
+function editCarForm($carID, $error = "", $values = null)
+{
+	if($error == "STUB") {
+		return operationForm("editcar.php?id=$carID", $error, _("Edit car"), _("Edit car"), array(), array());
+	}
+	
+	if($values === null || $error === "") {
+		$values = stdGet("accountingCar", array("carID"=>$carID), array("name", "description", "expencesAccountID", "defaultBankAccountID", "kmFee"));
+		$values["kmFee"] = formatPriceRaw($values["kmFee"]);
+	}
+	
+	return operationForm("editcar.php?id=$carID", $error, _("Edit car"), _("Save"),
+		array(
+			array("title"=>_("Name"), "type"=>"text", "name"=>"name"),
+			array("title"=>_("Description"), "type"=>"textarea", "name"=>"description"),
+			array("title"=>_("Expense account"), "type"=>"dropdown", "name"=>"expencesAccountID", "options"=>accountingAccountOptions($GLOBALS["expensesDirectoryAccountID"], true)),
+			array("title"=>_("Default bank account"), "type"=>"dropdown", "name"=>"defaultBankAccountID", "options"=>accountingAccountOptions($GLOBALS["bankDirectoryAccountID"], true)),
+			array("title"=>_("KM fee"), "type"=>"text", "name"=>"kmFee")
+		),
+		$values);
+}
+
+function deleteCarForm($carID, $error = "", $values = null)
+{
+	return operationForm("deletecar.php?id=$carID", $error, _("Delete car"), _("Delete"), array(), $values);
+}
+
+
 function addTravelExpencesForm($carID, $error = "", $values = null, $balance = null)
 {
 	if($values === null || $error === "") {
@@ -1494,6 +1559,12 @@ function supplierEmpty($supplierID)
 		!stdExists("suppliersInvoice", array("supplierID"=>$supplierID)) &&
 		!stdExists("suppliersPayment", array("supplierID"=>$supplierID)) &&
 		accountEmpty(stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID"));
+}
+
+function carEmpty($carID)
+{
+	return
+		accountEmpty(stdGet("accountingCar", array("carID"=>$carID), "drivenKmAccountID"));
 }
 
 function fixedAssetEmpty($fixedAssetID)
