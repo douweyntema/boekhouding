@@ -244,9 +244,11 @@ function billingCreateInvoiceTexRaw($customerID, $date, $invoiceNumber, $lines)
 		if($line["periodStart"] != null && $line["periodEnd"] != null) {
 			$startdate = texdate($line["periodStart"]);
 			$enddate = texdate($line["periodEnd"] - 86400);
+			$dateRange = "($startdate tot $enddate)";
 		} else {
 			$startdate = "";
 			$enddate = "";
+			$dateRange = "";
 		}
 		if($line["price"] > 0) {
 			$creditatie = false;
@@ -255,47 +257,33 @@ function billingCreateInvoiceTexRaw($customerID, $date, $invoiceNumber, $lines)
 		$priceBTW = $line["tax"] + $discountBTW;
 		
 		if($line["price"] != 0) {
-			if($customer["btwStatus"] == "includingBTW") {
-				$price = $line["price"] + $priceBTW;
-			} else {
-				$price = $line["price"];
-			}
-			$priceFormat = formatPriceRaw($price);
-			$desciptionTex = latexEscapeString($line["description"]);
-			$posts .= "\\post{{$desciptionTex}}{{$startdate}}{{$enddate}}{{$priceFormat}}\n";
+			$desciptionTex = latexEscapeString($line["description"] . $dateRange);
+			$priceExFormat = formatPriceRaw($line["price"]);
+			$btwFormat = formatPriceRaw($priceBTW);
+			$totalFormat = formatPriceRaw($line["price"] + $priceBTW);
+			$posts .= "\\post{{$desciptionTex}}{{$priceExFormat}}{{$btwFormat}}{{$totalFormat}}\n";
 		}
 		if($line["discount"] != 0) {
 			$discountDescription = "Korting " . strtolower(substr($line["description"], 0, 1)) . substr($line["description"], 1);
 			$discountDescriptionTex = latexEscapeString($discountDescription);
-			if($customer["btwStatus"] == "includingBTW") {
-				$discount = $line["discount"] + $discountBTW;
-			} else {
-				$discount = $line["discount"];
-			}
-			$discountamountFormat = formatPriceRaw($discount);
-			$discounts .= "\\korting{{$discountDescriptionTex}}{{$discountamountFormat}}\n";
+			$discountamountExFormat = formatPriceRaw($line["discount"]);
+			$discountamountBtwFormat = formatPriceRaw($discountBTW);
+			$discountamountTotalFormat = formatPriceRaw($line["discount"] + $discountBTW);
+			$discounts .= "\\korting{{$discountDescriptionTex}}{{$discountamountExFormat}}{{$discountamountBtwFormat}}{{$discountamountTotalFormat}}\n";
 		}
 		$btw += $line["tax"];
-	}
-	$btwFormat = formatPriceRaw($btw);
-	if($customer["btwStatus"] == "includingBTW") {
-		$btwTex = "\\waarvanbtw{{$btwFormat}}";
-	} else {
-		$btwTex = "\\btw{{$btwFormat}}";
 	}
 	$brieftype = $creditatie ? "creditatiebrief" : "factuurbrief";
 	$tex = <<<TEX
 \\documentclass{{$GLOBALS["invoiceLatexDocumentClass"]}}
-\\usepackage{{$GLOBALS["invoiceLatexPackage"]}}
-\\usepackage[utf8]{inputenc}
-\\setDatum[{$texdatum}]
+\\zetDatum[{$texdatum}]
 
 \\begin{document}
 
 \\begin{{$brieftype}}{{$to}}{{$invoiceNumber}}
 
 \\begin{factuur}
-{$posts}{$discounts}{$btwTex}
+{$posts}{$discounts}
 \\end{factuur}
 
 \\end{{$brieftype}}
