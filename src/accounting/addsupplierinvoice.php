@@ -21,7 +21,6 @@ function main()
 	}
 	$check(($date = parseDate(post("date"))) !== null, _("Missing date."));
 	$check(($taxAmount = parsePrice(post("taxAmount"))) !== null, _("Invalid tax amount."));
-	$check($taxAmount >= 0, _("Invalid tax amount."));
 	$pdfType = post("pdfType");
 	
 	$accountID = stdGet("suppliersSupplier", array("supplierID"=>$supplierID), "accountID");
