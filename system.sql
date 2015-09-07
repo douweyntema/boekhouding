@@ -107,7 +107,6 @@ CREATE TABLE IF NOT EXISTS `accountingFixedAsset` (
   `fixedAssetID` int(11) NOT NULL AUTO_INCREMENT,
   `accountID` int(11) NOT NULL,
   `depreciationAccountID` int(11) NOT NULL,
-  `expenseAccountID` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `description` text NOT NULL,
   `purchaseDate` int(11) NOT NULL,
@@ -120,8 +119,7 @@ CREATE TABLE IF NOT EXISTS `accountingFixedAsset` (
   `automaticDepreciation` tinyint(1) NOT NULL,
   PRIMARY KEY (`fixedAssetID`),
   KEY `accountID` (`accountID`),
-  KEY `depreciationAccountID` (`depreciationAccountID`),
-  KEY `expenseAccountID` (`expenseAccountID`)
+  KEY `depreciationAccountID` (`depreciationAccountID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -412,8 +410,7 @@ ALTER TABLE `accountingBalanceViewAccount`
 --
 ALTER TABLE `accountingFixedAsset`
   ADD CONSTRAINT `accountingFixedAsset_ibfk_1` FOREIGN KEY (`accountID`) REFERENCES `accountingAccount` (`accountID`),
-  ADD CONSTRAINT `accountingFixedAsset_ibfk_2` FOREIGN KEY (`depreciationAccountID`) REFERENCES `accountingAccount` (`accountID`),
-  ADD CONSTRAINT `accountingFixedAsset_ibfk_3` FOREIGN KEY (`expenseAccountID`) REFERENCES `accountingAccount` (`accountID`);
+  ADD CONSTRAINT `accountingFixedAsset_ibfk_2` FOREIGN KEY (`depreciationAccountID`) REFERENCES `accountingAccount` (`accountID`);
 
 --
 -- Constraints for table `accountingIncomeExpenseViewAccount`

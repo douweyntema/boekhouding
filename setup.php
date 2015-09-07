@@ -102,8 +102,7 @@ $config["componentsEnabled"][] = "accounting";
 $config["componentsEnabled"][] = "accounts";
 $config["componentsEnabled"][] = "billing";
 
-$config["invoiceLatexDocumentClass"] = ""; //question(""); //"demobrief";
-$config["invoiceLatexPackage"] = ""; //question(""); //"demo-factuur";
+$config["invoiceLatexDocumentClass"] = question("Latex documentclass voor facturen?");
 
 $config["invoiceAccountNumber"] = question("Rekeningnummer voor facturen?");
 $config["invoiceAccountName"] = question("Naam rekeninghouder voor facturen?");
