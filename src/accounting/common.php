@@ -1005,7 +1005,6 @@ function addSupplierInvoiceForm($supplierID, $error = "", $values = null, $total
 		$values["pdfType"] = "none";
 		$values["payment"] = "no";
 		$values["date"] = date("d-m-Y");
-		$values["paymentDate"] = date("d-m-Y");
 		if(isset($GLOBALS["bankDefaultAccountID"])) {
 			$values["paymentBankAccount"] = $GLOBALS["bankDefaultAccountID"];
 		}

@@ -61,7 +61,7 @@ function main()
 	if(post("payment") == "yes") {
 		$payment = true;
 		$paymentDescription = sprintf(_("Payment for %s"), $invoiceNumber);
-		$check(($paymentDate = parseDate(post("paymentDate"))) !== null, _("Invalid date."));
+		$check(($paymentDate = parseDate(trim(post("paymentDate")) == "" ? post("date") : post("paymentDate"))) !== null, _("Invalid date."));
 		$check(($paymentBankAccount = post("paymentBankAccount")) !== null, _("Invalid bank account."));
 		$check(stdExists("accountingAccount", array("accountID"=>$paymentBankAccount)), _("Invalid bank account."));
 		if($currencyID != $GLOBALS["defaultCurrencyID"]) {
