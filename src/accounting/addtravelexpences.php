@@ -25,7 +25,7 @@ function main()
 	$check(post("confirm") !== null, null);
 	
 	$km = $endKm - $startKm;
-	$amount = 100 * $km * stdGet("accountingCar", array("carID"=>$carID), "kmFee");
+	$amount = $km * stdGet("accountingCar", array("carID"=>$carID), "kmFee");
 	
 	$description = "$occasion; Adres: $destination; Start: $startKm km; Einde: $endKm km; Afstand: $km km";
 	
