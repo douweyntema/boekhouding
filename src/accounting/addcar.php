@@ -21,7 +21,7 @@ function main()
 	$check(stdGetTry("accountingAccount", array("accountID"=>$defaultBankAccountID), "isDirectory", "1") == "0", _("Invalid default bank account."));
 	
 	$check(($kmfee = (int)(post("kmFee")*100)) !== "", _("Invalid km fee"));
-	
+	$check(isset($GLOBALS["travelExpencesAccountID"]), _("Setting \"travelExpencesAccountID\" not set, please contact your system administrator."));
 	$check(post("confirm") !== null, null);
 	
 	startTransaction();
