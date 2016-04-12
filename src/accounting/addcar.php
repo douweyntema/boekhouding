@@ -21,11 +21,14 @@ function main()
 	$check(stdGetTry("accountingAccount", array("accountID"=>$defaultBankAccountID), "isDirectory", "1") == "0", _("Invalid default bank account."));
 	
 	$check(($kmfee = (int)(post("kmFee")*100)) !== "", _("Invalid km fee"));
-	$check(($kmCurrency = stdGetTry("accountingCurrency", array("name"=>"km"), "currencyID")) !== null, _("Currency \"km\" not found, please contact your system administrator."));
 	
 	$check(post("confirm") !== null, null);
 	
 	startTransaction();
+	$kmCurrency = stdGetTry("accountingCurrency", array("name"=>"km"), "currencyID");
+	if($kmCurrency === null) {
+		$kmCurrency = stdNew("accountingCurrency", array("name"=>"km", "symbol"=>"km", "order"=>999));
+	}
 	$drivenKmAccountID = accountingAddAccount($GLOBALS["travelExpencesAccountID"], $kmCurrency, $name, $description, false);
 	
 	$carID = stdNew("accountingCar", array(
