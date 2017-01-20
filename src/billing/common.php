@@ -399,6 +399,7 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 {
 	if($values === null) {
 		$values = array();
+		$values["date"] = date("d-m-Y");
 	}
 	$lines = array();
 	$lines[] = array("type"=>"colspan", "columns"=>array(
@@ -427,7 +428,8 @@ function sendInvoiceForm($customerID, $error = "", $values = null)
 	$lines[] = array("type"=>"typechooser", "options"=>array(
 		array("title"=>_("Delete"), "submitcaption"=>_("Delete"), "name"=>"delete", "summary"=>_("Delete selected subscription lines"), "subform"=>array()),
 		array("title"=>_("Create invoice"), "submitcaption"=>_("Create Invoice"), "name"=>"create", "summary"=>_("Create and send an invoice with the selected subscription lines"), "subform"=>array(
-			array("title"=>_("Send email"), "type"=>"checkbox", "name"=>"sendmail", "label"=>_("Send an email to the customer"))
+			array("title"=>_("Send email"), "type"=>"checkbox", "name"=>"sendmail", "label"=>_("Send an email to the customer")),
+			array("title"=>_("Invoice date"), "type"=>"date", "name"=>"date")
 		)),
 	));
 	

@@ -18,9 +18,10 @@ function sendMain()
 		}
 	}
 	$check(count($subscriptionLines) > 0, "");
+	$check(($date = parseDate(post("date"))) !== null, _("Invalid date."));
 	$check(post("confirm") !== null, null);
 	
-	billingCreateInvoice($customerID, $subscriptionLines, post("sendmail") !== null);
+	billingCreateInvoice($customerID, $subscriptionLines, post("sendmail") !== null, $date);
 	
 	redirect("billing/customer.php?id=$customerID");
 }

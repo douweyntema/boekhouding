@@ -142,13 +142,15 @@ function billingCreateAllInvoices()
 	}
 }
 
-function billingCreateInvoice($customerID, $subscriptionLines, $sendEmail = true)
+function billingCreateInvoice($customerID, $subscriptionLines, $sendEmail = true, $date = null)
 {
 	if(count($subscriptionLines) == 0) {
 		throw new BillingInvoiceException();
 	}
-	$now = time();
-	$factuurnrDatum = date("Ymd", $now);
+	if($date === null) {
+		$date = time();
+	}
+	$factuurnrDatum = date("Ymd", $date);
 	
 	startTransaction();
 	stdLock("billingInvoice", array());
@@ -186,7 +188,7 @@ function billingCreateInvoice($customerID, $subscriptionLines, $sendEmail = true
 	$transactionLines[] = array("accountID"=>$GLOBALS["taxPayableAccountID"], "amount"=>-1 * $taxTotal);
 	$transactionLines[] = array("accountID"=>$customer["accountID"], "amount"=>$total);
 	
-	$transactionID = accountingAddTransaction($now, "Invoice $factuurnr for customer {$customer["name"]}", $transactionLines);
+	$transactionID = accountingAddTransaction($date, "Invoice $factuurnr for customer {$customer["name"]}", $transactionLines);
 	
 	$invoiceID = stdNew("billingInvoice", array("customerID"=>$customerID, "transactionID"=>$transactionID, "invoiceNumber"=>$factuurnr));
 	
