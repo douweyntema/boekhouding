@@ -174,7 +174,11 @@ function question($question, $default = null)
 	while($line == "") {
 		echo $question . ($default !== null ? " [" . $default . "]" : "") . "\n";
 		$handle = fopen ("php://stdin","r");
-		$line = trim(fgets($handle));
+		$line = fgets($handle);
+		if($line === false) {
+			die("Unable to read answer!");
+		}
+		$line = trim($line);
 		fclose($handle);
 		if($default !== null && $line == "") {
 			return $default;
