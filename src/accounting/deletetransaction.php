@@ -21,7 +21,11 @@ function main()
 	
 	accountingDeleteTransaction($transactionID);
 	
-	redirect("accounting/account.php?id=$accountID");
+	if($accountID === null) {
+		redirect("accounting/index.php");
+	} else {
+		redirect("accounting/account.php?id=$accountID");
+	}
 }
 
 main();
